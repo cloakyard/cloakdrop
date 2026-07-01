@@ -2,7 +2,7 @@
 
 **A fast, private, multi-segment download manager for macOS — that feels like Apple made it.**
 
-IDM-class download power with the look and feel of a first-party app. No Electron, no web views, no telemetry — everything runs on your Mac and nothing ever phones home.
+Serious multi-segment download power with the look and feel of a first-party app. No Electron, no web views, no telemetry — everything runs on your Mac and nothing ever phones home.
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
@@ -105,12 +105,6 @@ cloakdrop/
 ```
 
 The brand (`CloakDrop`) lives only at the repo root and the app target; the reusable core is named for the **downloader** domain. See [ARCHITECTURE.md](ARCHITECTURE.md) for the full design.
-
-## 🗺️ Status
-
-**CloakDrop is feature-complete for 1.0.** The multi-segment engine, capture (clipboard, drag & drop, batch, scheduler, browser/share/services), auth & proxy, localization, and media grabbing (HLS/DASH → remux) are all shipped and covered by the test suite; the ongoing work is pixel-level UI polish.
-
-Considered for after 1.0: Keychain storage for HTTP/proxy credentials, notarized direct-download + Mac App Store distribution, bandwidth schedules and per-download priority, and audio-track extraction from a video rendition.
 
 ## 🤝 Contributing & license
 
