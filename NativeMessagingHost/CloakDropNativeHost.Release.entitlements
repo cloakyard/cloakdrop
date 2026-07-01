@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The native-messaging host is a helper the browser launches directly (not the app), so it
+	     is deliberately NOT sandboxed — unlike the app and the Safari extension. Its only job is to
+	     drop a validated capture into the shared container, so all it needs is the App Group.
+
+	     App Groups require provisioning with a development team, so — as with the app and the Safari
+	     extension — the group lives only in this Release variant. Debug builds ship no host
+	     entitlements and stay team-less; there the host replies "container-unavailable" and the
+	     extension falls back to the cloakdrop:// deep link. Keep this group in sync with
+	     CloakDrop.Release.entitlements.
+
+	     Distribution note: a non-sandboxed helper can't ship in a Mac App Store build, so the
+	     browser-extension path is a Developer ID (direct-download) feature. The Safari extension
+	     (Phase 3b) remains the App-Store-friendly capture path. -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.cloakyard.cloakdrop</string>
+	</array>
+</dict>
+</plist>

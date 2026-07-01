@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Release entitlements = the Debug set (CloakDrop.entitlements) PLUS the App Group. App
+	     Groups require provisioning with a development team, so they live only here — the signed
+	     Release/App Store build — keeping Debug builds team-less. Keep the shared keys in sync
+	     with CloakDrop.entitlements. -->
+	<!-- App Sandbox: CloakDrop runs fully sandboxed. -->
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<!-- Outbound network access, for downloading the URLs the user requests. -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<!-- Read/write to folders the user explicitly picks as download destinations,
+	     persisted via security-scoped bookmarks. -->
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
+	<!-- Convenience access to the standard Downloads folder. -->
+	<key>com.apple.security.files.downloads.read-write</key>
+	<true/>
+	<!-- Shared container with the bundled Safari/browser extensions: captured downloads cross the
+	     sandbox boundary here (see CaptureInbox). Must match every extension's entitlements. -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.cloakyard.cloakdrop</string>
+	</array>
+</dict>
+</plist>

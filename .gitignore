@@ -1,0 +1,57 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Xcode — user-specific & build artifacts
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+DerivedData/
+build/
+.build-xcode/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Generated Xcode project (regenerate with `xcodegen generate`)
+CloakDrop.xcodeproj/
+
+# Packaged app / distribution output (produced by a build; never commit)
+*.app/
+*.dmg
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/*/.build/
+Package.resolved
+
+# Xcode SPM integration caches
+*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+
+# Accidental secrets / local config
+*.xcconfig.local
+secrets.plist
+
+# Signing certificates & provisioning profiles (Developer ID / notarization) — never commit
+*.p12
+*.cer
+*.mobileprovision
+*.provisionprofile
+
+# CloakDrop runtime artifacts (should never be committed)
+*.cloakpart
+*.cloakparts/
+
+# Browser extension build output (assembled from BrowserExtension/shared + manifests)
+BrowserExtension/dist/
+
+# Browser extension signing key (Chrome/Edge). Only the public "key" in manifest.chrome.json is
+# committed; the private key is generated locally and never checked in.
+key.pem

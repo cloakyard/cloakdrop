@@ -1,0 +1,204 @@
+name: CloakDrop
+
+options:
+  bundleIdPrefix: com.cloakyard
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+  generateEmptyDirectories: true
+  developmentLanguage: en
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MACOSX_DEPLOYMENT_TARGET: "26.0"
+    CODE_SIGN_STYLE: Automatic
+    CODE_SIGN_IDENTITY: "-"
+    ENABLE_HARDENED_RUNTIME: YES
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
+    GCC_TREAT_WARNINGS_AS_ERRORS: NO
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+packages:
+  DownloaderCore:
+    path: Packages/DownloaderCore
+
+targets:
+  CloakDrop:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+        excludes:
+          - "Resources/Info.plist"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.cloakyard.cloakdrop
+        PRODUCT_NAME: CloakDrop
+        # Debug uses the team-less entitlements (no App Group); Release adds the App Group below.
+        CODE_SIGN_ENTITLEMENTS: App/Resources/CloakDrop.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ENABLE_PREVIEWS: YES
+        COMBINE_HIDPI_IMAGES: YES
+        LD_RUNPATH_SEARCH_PATHS: "@executable_path/../Frameworks"
+      configs:
+        Release:
+          CODE_SIGN_ENTITLEMENTS: App/Resources/CloakDrop.Release.entitlements
+    info:
+      path: App/Resources/Info.plist
+      properties:
+        CFBundleName: CloakDrop
+        CFBundleDisplayName: CloakDrop
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        LSMinimumSystemVersion: "26.0"
+        LSApplicationCategoryType: public.app-category.utilities
+        NSHumanReadableCopyright: "CloakDrop is part of the Cloakyard privacy-first suite. Runs entirely on-device."
+        ITSAppUsesNonExemptEncryption: false
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, es, fr, de, zh-Hans, ja, ko, pt-BR, ru, ar, hi]
+        # Deep-link scheme for one-click capture: cloakdrop://add?url=…&referer=…&filename=…
+        CFBundleURLTypes:
+          - CFBundleURLName: com.cloakyard.cloakdrop
+            CFBundleTypeRole: Viewer
+            CFBundleURLSchemes:
+              - cloakdrop
+        # "Send to CloakDrop" Services item: select a link in any app, right-click ▸ Services.
+        # Handled in-process by ServicesProvider (registered as NSApp.servicesProvider at launch).
+        NSServices:
+          - NSMenuItem:
+              default: Send to CloakDrop
+            NSMessage: sendToCloakDrop
+            NSPortName: CloakDrop
+            NSSendTypes:
+              - public.url
+              - public.utf8-plain-text
+    dependencies:
+      # Bundled Safari Web Extension, embedded into Contents/PlugIns and signed on copy.
+      - target: CloakDropSafariExtension
+        embed: true
+      # Native share-sheet extension ("Share ▸ CloakDrop"), embedded into Contents/PlugIns.
+      - target: CloakDropShareExtension
+        embed: true
+      # Native-messaging host for the Chrome/Edge/Brave/Firefox extension, embedded into
+      # Contents/MacOS (resolved at runtime via `Bundle.main.url(forAuxiliaryExecutable:)`) and
+      # re-signed on copy so it carries the app's identity/entitlements.
+      - target: CloakDropNativeHost
+        embed: true
+        codeSign: true
+        copy:
+          destination: executables
+      - package: DownloaderCore
+        product: DownloadModels
+      - package: DownloaderCore
+        product: DownloadEngine
+      - package: DownloaderCore
+        product: DownloadPersistence
+
+  # Safari Web Extension: the native "Download with CloakDrop" path. The web half (manifest +
+  # background service worker) lives in SafariExtension/WebExtension; the native handler validates
+  # the capture and drops it in the shared App Group inbox for the app to pick up.
+  CloakDropSafariExtension:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: SafariExtension
+        excludes:
+          - "Info.plist"
+          - "CloakDropSafariExtension.entitlements"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.cloakyard.cloakdrop.SafariExtension
+        PRODUCT_NAME: CloakDropSafariExtension
+        PRODUCT_MODULE_NAME: CloakDropSafariExtension
+        # Debug: sandbox only (team-less). Release: adds the shared App Group (needs a team).
+        CODE_SIGN_ENTITLEMENTS: SafariExtension/CloakDropSafariExtension.entitlements
+      configs:
+        Release:
+          CODE_SIGN_ENTITLEMENTS: SafariExtension/CloakDropSafariExtension.Release.entitlements
+    info:
+      path: SafariExtension/Info.plist
+      properties:
+        CFBundleName: CloakDrop
+        CFBundleDisplayName: CloakDrop
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        LSMinimumSystemVersion: "26.0"
+        NSHumanReadableCopyright: "CloakDrop is part of the Cloakyard privacy-first suite. Runs entirely on-device."
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.Safari.web-extension
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).SafariWebExtensionHandler
+    dependencies:
+      - package: DownloaderCore
+        product: DownloadModels
+
+  # Native-messaging host: the bridge for the Chrome/Edge/Brave/Firefox extension (Phase 3c). A tiny
+  # stdio helper the browser launches; it validates the capture and drops it in the shared App Group
+  # inbox — the same path the Safari extension uses. Deliberately NOT sandboxed (browser-launched),
+  # so it ships in the Developer ID build, not the Mac App Store build.
+  CloakDropNativeHost:
+    type: tool
+    platform: macOS
+    sources:
+      - path: NativeMessagingHost
+        excludes:
+          - "CloakDropNativeHost.Release.entitlements"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.cloakyard.cloakdrop.NativeHost
+        PRODUCT_NAME: CloakDropNativeHost
+        # Debug: no entitlements — a team-less, non-sandboxed helper. Release: adds the App Group so
+        # the browser-launched host can reach the shared inbox (needs a development team).
+      configs:
+        Release:
+          CODE_SIGN_ENTITLEMENTS: NativeMessagingHost/CloakDropNativeHost.Release.entitlements
+          # Defined alongside the App Group entitlement: only then does the host actually share the
+          # inbox with the app. In Debug it's absent, so the host reports the inbox unavailable and
+          # the extension falls back to cloakdrop:// (see relay() in main.swift).
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: APP_GROUP_INBOX
+    dependencies:
+      - package: DownloaderCore
+        product: DownloadModels
+
+  # Native share-sheet extension: accepts a web URL shared from any app and drops it in the shared
+  # inbox for the app to confirm — the same path as the Safari/browser extensions (Phase 3d).
+  CloakDropShareExtension:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: ShareExtension
+        excludes:
+          - "Info.plist"
+          - "CloakDropShareExtension.entitlements"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.cloakyard.cloakdrop.ShareExtension
+        PRODUCT_NAME: CloakDropShareExtension
+        PRODUCT_MODULE_NAME: CloakDropShareExtension
+        # Debug: sandbox only (team-less). Release: adds the shared App Group (needs a team).
+        CODE_SIGN_ENTITLEMENTS: ShareExtension/CloakDropShareExtension.entitlements
+      configs:
+        Release:
+          CODE_SIGN_ENTITLEMENTS: ShareExtension/CloakDropShareExtension.Release.entitlements
+    info:
+      path: ShareExtension/Info.plist
+      properties:
+        CFBundleName: CloakDrop
+        CFBundleDisplayName: CloakDrop
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        LSMinimumSystemVersion: "26.0"
+        NSHumanReadableCopyright: "CloakDrop is part of the Cloakyard privacy-first suite. Runs entirely on-device."
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
+    dependencies:
+      - package: DownloaderCore
+        product: DownloadModels

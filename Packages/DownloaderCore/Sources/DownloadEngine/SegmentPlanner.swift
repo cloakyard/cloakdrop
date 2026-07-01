@@ -1,0 +1,80 @@
+import Foundation
+import DownloadModels
+
+/// Pure segmentation math: splits a known-size resource into balanced, contiguous,
+/// non-overlapping byte ranges. Kept free of I/O so it can be exhaustively unit-tested.
+public enum SegmentPlanner {
+
+    /// Plan the segments for a download.
+    ///
+    /// - Parameters:
+    ///   - totalBytes: Total size of the resource. Must be `> 0`.
+    ///   - requestedSegments: Desired number of parallel connections.
+    ///   - minimumSegmentSize: Smallest worthwhile segment; the plan never produces a
+    ///     segment smaller than this (except a lone segment for a tiny file).
+    /// - Returns: Contiguous segments covering `[0, totalBytes - 1]`, ordered by offset.
+    ///   Always at least one segment.
+    public static func plan(
+        totalBytes: Int64,
+        requestedSegments: Int,
+        minimumSegmentSize: Int64
+    ) -> [DownloadSegment] {
+        guard totalBytes > 0 else {
+            return [DownloadSegment(id: 0, start: 0, end: 0)]
+        }
+
+        // How many segments can we make without any falling below the minimum size?
+        let minSize = max(1, minimumSegmentSize)
+        let capacityBySize = max(1, Int(totalBytes / minSize))
+        let count = max(1, min(requestedSegments, capacityBySize))
+
+        // Distribute bytes as evenly as possible: the first `remainder` segments get one extra.
+        let base = totalBytes / Int64(count)
+        let remainder = totalBytes % Int64(count)
+
+        var segments: [DownloadSegment] = []
+        segments.reserveCapacity(count)
+        var cursor: Int64 = 0
+        for index in 0..<count {
+            let extra: Int64 = index < Int(remainder) ? 1 : 0
+            let length = base + extra
+            let start = cursor
+            let end = start + length - 1
+            segments.append(DownloadSegment(id: index, start: start, end: end))
+            cursor = end + 1
+        }
+        return segments
+    }
+
+    /// Re-plan only the *unfinished* tail of a slow/stalled segment by splitting its
+    /// remaining range in two, without disturbing bytes already written. A building block for
+    /// dynamic re-segmentation (Phase 4 work-stealing); not yet wired into the live transfer
+    /// path. Returns `nil` if the remainder is too small to split.
+    ///
+    /// - Returns: `(updated, new)` where `updated` keeps the first half of the remaining
+    ///   range and `new` (with id `newSegmentID`) takes the second half.
+    public static func split(
+        _ segment: DownloadSegment,
+        newSegmentID: Int,
+        minimumSegmentSize: Int64
+    ) -> (updated: DownloadSegment, new: DownloadSegment)? {
+        let remaining = segment.remainingBytes
+        guard remaining >= max(1, minimumSegmentSize) * 2 else { return nil }
+
+        let splitPoint = segment.currentOffset + remaining / 2
+        // First half: from current offset up to splitPoint-1, plus the bytes already done.
+        let updated = DownloadSegment(
+            id: segment.id,
+            start: segment.start,
+            end: splitPoint - 1,
+            downloadedBytes: segment.downloadedBytes
+        )
+        let new = DownloadSegment(
+            id: newSegmentID,
+            start: splitPoint,
+            end: segment.end,
+            downloadedBytes: 0
+        )
+        return (updated, new)
+    }
+}

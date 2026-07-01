@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "CloakDrop",
+  "version": "1.0",
+  "description": "Send links and media to CloakDrop — a private, on-device, multi-segment download manager.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "cloakdrop@cloakyard.com",
+      "strict_min_version": "121.0"
+    }
+  },
+  "icons": {
+    "48": "icon-48.png",
+    "96": "icon-96.png",
+    "128": "icon-128.png",
+    "256": "icon-256.png",
+    "512": "icon-512.png"
+  },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "permissions": [
+    "contextMenus",
+    "cookies",
+    "activeTab",
+    "nativeMessaging"
+  ],
+  "host_permissions": [
+    "*://*/*"
+  ],
+  "action": {
+    "default_title": "CloakDrop",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icon-48.png",
+      "96": "icon-96.png"
+    }
+  }
+}

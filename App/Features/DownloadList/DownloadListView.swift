@@ -1,0 +1,256 @@
+import SwiftUI
+import DownloadModels
+
+/// The content column: searchable, sortable, multi-selectable list of downloads with a
+/// Liquid Glass toolbar above it.
+struct DownloadListView: View {
+    @Environment(AppModel.self) private var model
+
+    /// The downloads awaiting "delete the file(s) from disk too?" confirmation (one or many,
+    /// depending on the selection the row menu acted on).
+    @State private var pendingFileDeletes: [Download] = []
+
+    var body: some View {
+        @Bindable var model = model
+        Group {
+            if model.filteredDownloads.isEmpty {
+                emptyState
+            } else {
+                list
+            }
+        }
+        .navigationTitle(model.effectiveSelection.title)
+        .searchable(text: $model.searchText, placement: .toolbar, prompt: "Search downloads")
+        .toolbar { toolbarContent }
+        .safeAreaInset(edge: .top) {
+            VStack(spacing: 6) {
+                captureBanner
+                clipboardBanner
+            }
+        }
+        .dropDestination(for: URL.self) { urls, _ in
+            model.acceptDrop(urls: urls, strings: [])
+        }
+        .dropDestination(for: String.self) { strings, _ in
+            model.acceptDrop(urls: [], strings: strings)
+        }
+        .confirmationDialog(
+            pendingFileDeletes.count > 1 ? "Delete these files from your Mac?" : "Delete this file from your Mac?",
+            isPresented: Binding(get: { !pendingFileDeletes.isEmpty }, set: { if !$0 { pendingFileDeletes = [] } }),
+            titleVisibility: .visible
+        ) {
+            Button(deleteButtonTitle, role: .destructive) {
+                pendingFileDeletes.forEach { model.remove($0.id, deleteFile: true) }
+                pendingFileDeletes = []
+            }
+            Button("Cancel", role: .cancel) { pendingFileDeletes = [] }
+        } message: {
+            if pendingFileDeletes.count > 1 {
+                Text("\(pendingFileDeletes.count) files will be permanently deleted. This can’t be undone.")
+            } else if let only = pendingFileDeletes.first {
+                Text("“\(only.fileName)” will be permanently deleted. This can’t be undone.")
+            }
+        }
+    }
+
+    private var deleteButtonTitle: LocalizedStringKey {
+        pendingFileDeletes.count > 1 ? "Delete \(pendingFileDeletes.count) Files" : "Delete File"
+    }
+
+    /// Confirm-before-adding banner for a download captured from a `cloakdrop://` link (later:
+    /// browser/share extensions). Nothing is queued until the user taps "Add".
+    @ViewBuilder
+    private var captureBanner: some View {
+        if let capture = model.pendingCapture {
+            HStack(spacing: 10) {
+                Image(systemName: "arrow.down.circle.fill")
+                    .foregroundStyle(.tint)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Add this download?")
+                        .font(.callout.weight(.medium))
+                    Text(capture.url.absoluteString)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                Spacer()
+                Button("Add") { model.confirmPendingCapture() }
+                    .buttonStyle(.borderedProminent)
+                Button {
+                    model.dismissPendingCapture()
+                } label: {
+                    Image(systemName: "xmark")
+                }
+                .buttonStyle(.borderless)
+                .help("Dismiss")
+                .accessibilityLabel("Dismiss")
+            }
+            // Surface the banner as a grouped element so VoiceOver reads the prompt + URL together.
+            .accessibilityElement(children: .contain)
+            .padding(10)
+            .background(.regularMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .padding(.horizontal, 10)
+            .padding(.top, 6)
+            .transition(.move(edge: .top).combined(with: .opacity))
+        }
+    }
+
+    @ViewBuilder
+    private var clipboardBanner: some View {
+        if let url = model.detectedClipboardURL {
+            HStack(spacing: 10) {
+                Image(systemName: "link")
+                    .foregroundStyle(.tint)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Link copied")
+                        .font(.callout.weight(.medium))
+                    Text(url.absoluteString)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                Spacer()
+                Button("Add") { model.addDetectedClipboardURL() }
+                    .buttonStyle(.borderedProminent)
+                Button {
+                    model.dismissDetectedClipboardURL()
+                } label: {
+                    Image(systemName: "xmark")
+                }
+                .buttonStyle(.borderless)
+                .help("Dismiss")
+                .accessibilityLabel("Dismiss")
+            }
+            .accessibilityElement(children: .contain)
+            .padding(10)
+            .background(.regularMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .padding(.horizontal, 10)
+            .padding(.top, 6)
+            .transition(.move(edge: .top).combined(with: .opacity))
+        }
+    }
+
+    private var list: some View {
+        @Bindable var model = model
+        return List(selection: $model.selectedDownloadIDs) {
+            ForEach(model.filteredDownloads) { download in
+                DownloadRowView(download: download)
+                    .tag(download.id)
+                    .contextMenu { rowMenu(download) }
+            }
+        }
+        .listStyle(.inset)
+        .onDeleteCommand { model.removeSelected(deleteFile: false) }
+    }
+
+    @ViewBuilder
+    private var emptyState: some View {
+        if !model.searchText.trimmingCharacters(in: .whitespaces).isEmpty {
+            ContentUnavailableView.search(text: model.searchText)
+        } else if model.downloads.isEmpty {
+            EmptyStateView("No Downloads", systemImage: "arrow.down.circle") {
+                Text("Add a URL to start downloading. CloakDrop splits files into parallel streams for speed.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                Button("Add Download…") { model.isAddSheetPresented = true }
+                    .buttonStyle(.borderedProminent)
+                    .padding(.top, 4)
+            }
+        } else {
+            EmptyStateView("Nothing Here", systemImage: model.effectiveSelection.emptySymbol) {
+                Text("No downloads in “\(model.effectiveSelection.title)”.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    // MARK: Toolbar
+
+    private var hasPausable: Bool {
+        model.downloads.contains { $0.status == .downloading || $0.status == .queued }
+    }
+    private var hasResumable: Bool {
+        model.downloads.contains { $0.status.isResumable }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .primaryAction) {
+            Menu {
+                Button("Add Download…") { model.isAddSheetPresented = true }
+                Button("Add Batch…") { model.isBatchSheetPresented = true }
+            } label: {
+                Label("Add Download", systemImage: "plus")
+            } primaryAction: {
+                model.isAddSheetPresented = true
+            }
+            .help("Add a new download (⌘N) — or a batch from the menu")
+        }
+
+        ToolbarItemGroup {
+            Button {
+                model.pauseAll()
+            } label: {
+                Label("Pause All", systemImage: "pause.circle")
+            }
+            .help("Pause all active downloads")
+            .disabled(!hasPausable)
+
+            Button {
+                model.resumeAll()
+            } label: {
+                Label("Resume All", systemImage: "play.circle")
+            }
+            .help("Resume all paused downloads")
+            .disabled(!hasResumable)
+
+            Menu {
+                Picker("Sort By", selection: Binding(get: { model.sort }, set: { model.sort = $0 })) {
+                    ForEach(DownloadSort.allCases) { Text($0.label).tag($0) }
+                }
+            } label: {
+                Label("Sort", systemImage: "arrow.up.arrow.down")
+            }
+        }
+    }
+
+    // MARK: Per-row context menu
+
+    /// The rows a row action applies to: the whole selection when the clicked row is part of a
+    /// multi-selection (standard macOS behaviour), otherwise just the clicked row.
+    private func actionTargets(for download: Download) -> [Download] {
+        if model.selectedDownloadIDs.contains(download.id), model.selectedDownloadIDs.count > 1 {
+            return model.filteredDownloads.filter { model.selectedDownloadIDs.contains($0.id) }
+        }
+        return [download]
+    }
+
+    @ViewBuilder
+    private func rowMenu(_ download: Download) -> some View {
+        let targets = actionTargets(for: download)
+
+        if targets.contains(where: { $0.status.isActive }) {
+            Button("Pause") { targets.forEach { model.pause($0.id) } }
+        }
+        if targets.contains(where: { $0.status.isResumable }) {
+            Button("Resume") { targets.forEach { model.resume($0.id) } }
+        }
+        // Open / Reveal target a specific file, so only offer them for a single completed download.
+        if targets.count == 1, download.status == .completed {
+            Button("Open") { model.open(download) }
+            Button("Reveal in Finder") { model.revealInFinder(download) }
+        }
+        Divider()
+        Button("Copy Source URL") { model.copyURLs(targets) }
+        Divider()
+        Button("Remove from List") { targets.forEach { model.remove($0.id, deleteFile: false) } }
+        Button("Remove and Delete File…", role: .destructive) { pendingFileDeletes = targets }
+    }
+}

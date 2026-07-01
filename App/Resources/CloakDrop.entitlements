@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- App Sandbox: CloakDrop runs fully sandboxed. -->
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<!-- Outbound network access, for downloading the URLs the user requests. -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<!-- Read/write to folders the user explicitly picks as download destinations,
+	     persisted via security-scoped bookmarks. -->
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
+	<!-- Convenience access to the standard Downloads folder. -->
+	<key>com.apple.security.files.downloads.read-write</key>
+	<true/>
+	<!-- NOTE: the App Group that the bundled extensions share with the app (see CaptureInbox) is
+	     added only in the Release variant (CloakDrop.Release.entitlements), because App Groups
+	     require provisioning with a development team. Keeping it out of the Debug/base entitlements
+	     preserves team-less ad-hoc builds for fast local iteration. -->
+</dict>
+</plist>

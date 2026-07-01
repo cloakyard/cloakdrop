@@ -1,0 +1,116 @@
+import Foundation
+
+/// Engine-wide tunables. These are persisted and editable from Settings.
+///
+/// Defaults match the brief: 8 segments, sensible retry/backoff, no global speed cap.
+public struct EngineSettings: Sendable, Hashable, Codable {
+    /// Default number of parallel segments per download when the server supports Range.
+    public var defaultSegmentCount: Int
+    /// Hard cap on segments per download, regardless of per-download requests.
+    public var maxSegmentCount: Int
+    /// Global download speed limit in bytes/sec across all downloads. `nil` means unlimited.
+    public var globalSpeedLimitBytesPerSecond: Int64?
+    /// Maximum automatic retry attempts for a transient failure before giving up.
+    public var maxRetryAttempts: Int
+    /// Base delay (seconds) for exponential backoff between retries.
+    public var retryBaseDelaySeconds: Double
+    /// Ceiling (seconds) for a single backoff delay.
+    public var retryMaxDelaySeconds: Double
+    /// Smallest segment size (bytes) worth splitting; files below this stay single-stream.
+    public var minimumSegmentSizeBytes: Int64
+    /// Whether to verify provided checksums automatically on completion.
+    public var verifyChecksumsAutomatically: Bool
+    /// When a download finishes without a supplied checksum, whether to look for a sibling checksum
+    /// file next to it on the same server (`file.zip` → `file.zip.sha256`/`.sha1`/`.md5`) and verify
+    /// against it. Same-origin only, and additionally gated by `verifyChecksumsAutomatically`.
+    public var autoDiscoverChecksums: Bool
+    /// When true, completed files are filed into a per-type subfolder (Video, Documents, …)
+    /// of their destination directory.
+    public var autoCategorize: Bool
+    /// On launch, whether downloads that were mid-transfer when the app last quit resume
+    /// automatically. When false they come back paused, so the user starts them when they choose.
+    public var resumeDownloadsOnLaunch: Bool
+    /// How the engine routes connections. `nil` is treated as `.system` for backward
+    /// compatibility with settings saved before proxies existed.
+    public var proxy: ProxyConfiguration?
+    /// What to do once every download finishes. `nil` is treated as `.none`.
+    public var postCompletionAction: SchedulerPostAction?
+
+    public init(
+        defaultSegmentCount: Int = 8,
+        maxSegmentCount: Int = 16,
+        globalSpeedLimitBytesPerSecond: Int64? = nil,
+        maxRetryAttempts: Int = 5,
+        retryBaseDelaySeconds: Double = 1.0,
+        retryMaxDelaySeconds: Double = 30.0,
+        minimumSegmentSizeBytes: Int64 = 1 * 1024 * 1024,
+        verifyChecksumsAutomatically: Bool = true,
+        autoDiscoverChecksums: Bool = true,
+        autoCategorize: Bool = false,
+        resumeDownloadsOnLaunch: Bool = true,
+        proxy: ProxyConfiguration? = nil,
+        postCompletionAction: SchedulerPostAction? = nil
+    ) {
+        self.defaultSegmentCount = max(1, defaultSegmentCount)
+        self.maxSegmentCount = max(1, maxSegmentCount)
+        self.globalSpeedLimitBytesPerSecond = globalSpeedLimitBytesPerSecond
+        self.maxRetryAttempts = max(0, maxRetryAttempts)
+        self.retryBaseDelaySeconds = retryBaseDelaySeconds
+        self.retryMaxDelaySeconds = retryMaxDelaySeconds
+        self.minimumSegmentSizeBytes = max(0, minimumSegmentSizeBytes)
+        self.verifyChecksumsAutomatically = verifyChecksumsAutomatically
+        self.autoDiscoverChecksums = autoDiscoverChecksums
+        self.autoCategorize = autoCategorize
+        self.resumeDownloadsOnLaunch = resumeDownloadsOnLaunch
+        self.proxy = proxy
+        self.postCompletionAction = postCompletionAction
+    }
+
+    /// The effective proxy, treating an absent value as "use the system proxy".
+    public var resolvedProxy: ProxyConfiguration { proxy ?? .system }
+    /// The effective post-completion action, treating an absent value as "do nothing".
+    public var resolvedPostAction: SchedulerPostAction { postCompletionAction ?? .none }
+
+    public static let `default` = EngineSettings()
+
+    // MARK: Codable
+
+    private enum CodingKeys: String, CodingKey {
+        case defaultSegmentCount, maxSegmentCount, globalSpeedLimitBytesPerSecond
+        case maxRetryAttempts, retryBaseDelaySeconds, retryMaxDelaySeconds
+        case minimumSegmentSizeBytes, verifyChecksumsAutomatically, autoDiscoverChecksums, autoCategorize
+        case resumeDownloadsOnLaunch
+        case proxy, postCompletionAction
+    }
+
+    /// Tolerant decoder: any key absent from the stored payload falls back to its default.
+    ///
+    /// Settings are persisted as a single JSON blob that grows as the app evolves. Swift's
+    /// *synthesized* decoder throws `keyNotFound` for a missing non-optional key (it ignores
+    /// init defaults), so adding a field would otherwise break decode of every settings row
+    /// written by an older build — bricking launch on upgrade. Decoding each field with
+    /// `decodeIfPresent ?? default` keeps old blobs (and future additions) forward-compatible
+    /// while preserving every value that *is* present.
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let fallback = EngineSettings.default
+        func value<T: Decodable>(_ key: CodingKeys, _ defaultValue: T) throws -> T {
+            try container.decodeIfPresent(T.self, forKey: key) ?? defaultValue
+        }
+        self.init(
+            defaultSegmentCount: try value(.defaultSegmentCount, fallback.defaultSegmentCount),
+            maxSegmentCount: try value(.maxSegmentCount, fallback.maxSegmentCount),
+            globalSpeedLimitBytesPerSecond: try container.decodeIfPresent(Int64.self, forKey: .globalSpeedLimitBytesPerSecond),
+            maxRetryAttempts: try value(.maxRetryAttempts, fallback.maxRetryAttempts),
+            retryBaseDelaySeconds: try value(.retryBaseDelaySeconds, fallback.retryBaseDelaySeconds),
+            retryMaxDelaySeconds: try value(.retryMaxDelaySeconds, fallback.retryMaxDelaySeconds),
+            minimumSegmentSizeBytes: try value(.minimumSegmentSizeBytes, fallback.minimumSegmentSizeBytes),
+            verifyChecksumsAutomatically: try value(.verifyChecksumsAutomatically, fallback.verifyChecksumsAutomatically),
+            autoDiscoverChecksums: try value(.autoDiscoverChecksums, fallback.autoDiscoverChecksums),
+            autoCategorize: try value(.autoCategorize, fallback.autoCategorize),
+            resumeDownloadsOnLaunch: try value(.resumeDownloadsOnLaunch, fallback.resumeDownloadsOnLaunch),
+            proxy: try container.decodeIfPresent(ProxyConfiguration.self, forKey: .proxy),
+            postCompletionAction: try container.decodeIfPresent(SchedulerPostAction.self, forKey: .postCompletionAction)
+        )
+    }
+}

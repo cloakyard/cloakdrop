@@ -1,0 +1,483 @@
+import Foundation
+import DownloadModels
+import DownloadPersistence
+
+/// Initial state handed to the UI on launch.
+public struct EngineSnapshot: Sendable {
+    public let downloads: [Download]
+    public let queues: [DownloadQueue]
+    public let settings: EngineSettings
+}
+
+/// The engine's coordinator: the single entry point the app talks to.
+///
+/// Owns the catalog of downloads and queues, enforces per-queue concurrency, persists all
+/// state, and drives one `DownloadTask` per active transfer. Emits an `AsyncStream` of
+/// `EngineEvent`s the view model renders. Auto-resumes interrupted downloads when network
+/// connectivity returns. Being an actor, all of this mutable coordination state is race-free.
+public actor DownloadManager {
+    private let store: any DownloadStore
+    let httpClient: any HTTPClient
+    private let networkMonitor: any NetworkPathMonitoring
+    private let globalLimiter: BandwidthLimiter
+    private let remuxer: any Remuxer
+
+    private var settings: EngineSettings = .default
+    private var downloads: [UUID: Download] = [:]
+    private var queues: [UUID: DownloadQueue] = [:]
+    private var tasks: [UUID: DownloadTask] = [:]
+    private var handles: [UUID: Task<Void, Never>] = [:]
+    private var autoPaused: Set<UUID> = []
+    private var networkReachable = true
+
+    private let eventContinuation: AsyncStream<EngineEvent>.Continuation
+    /// Status-level engine events (add/update/remove/queues/settings/completion). Unbounded so a
+    /// burst of high-frequency progress can never evict a status event. One consumer.
+    public nonisolated let events: AsyncStream<EngineEvent>
+
+    private let progressContinuation: AsyncStream<EngineEvent>.Continuation
+    /// High-frequency `.progress` events on their own bounded, lossy stream (latest wins), kept
+    /// separate so shedding excess under load never drops a status event. One consumer.
+    public nonisolated let progressEvents: AsyncStream<EngineEvent>
+
+    private var monitorTask: Task<Void, Never>?
+    private var schedulerTask: Task<Void, Never>?
+
+    public init(
+        store: any DownloadStore,
+        httpClient: any HTTPClient = URLSessionHTTPClient(),
+        networkMonitor: any NetworkPathMonitoring = NetworkMonitor(),
+        remuxer: any Remuxer = AVFoundationRemuxer()
+    ) {
+        self.store = store
+        self.httpClient = httpClient
+        self.networkMonitor = networkMonitor
+        self.remuxer = remuxer
+        self.globalLimiter = BandwidthLimiter(bytesPerSecond: nil)
+        // Status events must not be dropped (a lost `.downloadAdded` strands a row in limbo), so
+        // they get an unbounded stream. Progress events are lossy-tolerant and ride a separate
+        // bounded stream that sheds the excess instead of evicting status events.
+        let (statusStream, statusContinuation) = AsyncStream<EngineEvent>.makeStream(bufferingPolicy: .unbounded)
+        self.events = statusStream
+        self.eventContinuation = statusContinuation
+        let (progressStream, progressCont) = AsyncStream<EngineEvent>.makeStream(bufferingPolicy: .bufferingNewest(64))
+        self.progressEvents = progressStream
+        self.progressContinuation = progressCont
+    }
+
+    /// Load persisted state, re-queue anything that was mid-flight, and begin monitoring the
+    /// network. Call once at launch.
+    public func start() async throws {
+        try await store.bootstrap()
+        settings = try await store.loadSettings()
+        await globalLimiter.setRate(bytesPerSecond: settings.globalSpeedLimitBytesPerSecond)
+        await httpClient.configure(proxy: settings.resolvedProxy)
+
+        for queue in try await store.allQueues() { queues[queue.id] = queue }
+        if queues[DownloadQueue.defaultQueueID] == nil {
+            let def = DownloadQueue.makeDefault
+            queues[def.id] = def
+        }
+
+        for var download in try await store.allDownloads() {
+            if settings.resumeDownloadsOnLaunch {
+                // Auto-resume: anything mid-transfer when we quit becomes queued to restart.
+                if download.status == .downloading { download.status = .queued }
+            } else if download.status == .downloading || download.status == .queued {
+                // The user chose to keep interrupted downloads paused until they start them.
+                download.status = .paused
+            }
+            downloads[download.id] = download
+        }
+
+        startNetworkMonitoring()
+        startScheduler()
+        promoteScheduled(asOf: Date())
+        scheduleAllQueues()
+    }
+
+    /// Snapshot for initial UI population.
+    public func snapshot() -> EngineSnapshot {
+        EngineSnapshot(
+            downloads: Array(downloads.values).sorted { ($0.order, $0.createdAt) < ($1.order, $1.createdAt) },
+            queues: Array(queues.values).sorted { $0.order < $1.order },
+            settings: settings
+        )
+    }
+
+    public func currentSettings() -> EngineSettings { settings }
+
+    // MARK: - Adding downloads
+
+    @discardableResult
+    public func add(_ request: DownloadRequest) async -> Download {
+        let fileName = request.suggestedFileName ?? Self.deriveFileName(from: request.url)
+        let order = (downloads.values.map(\.order).max() ?? -1) + 1
+
+        // Fold the convenience capture fields into standard request headers.
+        var headers = request.requestHeaders
+        if let referrer = request.referrer, !referrer.isEmpty { headers["Referer"] = referrer }
+        if let cookies = request.cookies, !cookies.isEmpty { headers["Cookie"] = cookies }
+
+        var download = Download(
+            url: request.url,
+            fileName: fileName,
+            destinationDirectoryPath: request.destinationDirectoryPath,
+            destinationBookmark: request.destinationBookmark,
+            queueID: queues[request.queueID] != nil ? request.queueID : DownloadQueue.defaultQueueID,
+            requestHeaders: headers,
+            speedLimitBytesPerSecond: request.speedLimitBytesPerSecond,
+            username: request.username,
+            password: request.password,
+            checksum: request.checksum,
+            scheduledStart: request.scheduledStart,
+            recurrence: request.recurrence,
+            order: order
+        )
+
+        if let scheduled = request.scheduledStart, scheduled > Date() {
+            download.status = .scheduled
+        } else {
+            download.status = request.startImmediately ? .queued : .paused
+        }
+
+        downloads[download.id] = download
+        try? await store.save(download)
+        eventContinuation.yield(.downloadAdded(download))
+
+        if download.status == .queued {
+            scheduleQueue(download.queueID)
+        }
+        return download
+    }
+
+    /// Add a media (HLS/DASH) grab: a resolved `MediaPlan` becomes a `Download` on the media
+    /// transfer path. Otherwise identical to `add` — same queue, persistence, and scheduling.
+    @discardableResult
+    public func addMedia(_ request: DownloadRequest, plan: MediaPlan) async -> Download {
+        let fileName = request.suggestedFileName ?? Self.deriveMediaFileName(from: request.url, plan: plan)
+        let order = (downloads.values.map(\.order).max() ?? -1) + 1
+
+        var headers = request.requestHeaders
+        if let referrer = request.referrer, !referrer.isEmpty { headers["Referer"] = referrer }
+        if let cookies = request.cookies, !cookies.isEmpty { headers["Cookie"] = cookies }
+
+        var download = Download(
+            url: request.url,
+            fileName: fileName,
+            destinationDirectoryPath: request.destinationDirectoryPath,
+            destinationBookmark: request.destinationBookmark,
+            queueID: queues[request.queueID] != nil ? request.queueID : DownloadQueue.defaultQueueID,
+            requestHeaders: headers,
+            speedLimitBytesPerSecond: request.speedLimitBytesPerSecond,
+            username: request.username,
+            password: request.password,
+            order: order,
+            mediaPlan: plan
+        )
+        download.status = request.startImmediately ? .queued : .paused
+
+        downloads[download.id] = download
+        try? await store.save(download)
+        eventContinuation.yield(.downloadAdded(download))
+
+        if download.status == .queued { scheduleQueue(download.queueID) }
+        return download
+    }
+
+    // MARK: - Lifecycle controls
+
+    public func pause(id: UUID) async {
+        guard let download = downloads[id] else { return }
+        if let task = tasks[id] {
+            let handle = handles[id]
+            await task.requestStop(.pause)
+            handle?.cancel()
+            // Wait for the task to fully unwind (its terminal ".paused" persist runs here) before
+            // returning. Otherwise a resume() issued in the gap sets .queued, then the task's late
+            // taskFinished() clobbers it back to .paused and the download is stuck. Mirrors cancel().
+            await handle?.value
+        } else if download.status.isActive || download.status == .scheduled {
+            update(id: id) { $0.status = .paused }
+        }
+    }
+
+    public func resume(id: UUID) async {
+        guard let download = downloads[id], !download.status.isTerminal else { return }
+        autoPaused.remove(id)
+        update(id: id) { $0.status = .queued }
+        scheduleQueue(download.queueID)
+    }
+
+    public func cancel(id: UUID) async {
+        guard let download = downloads[id] else { return }
+        if let task = tasks[id] {
+            let handle = handles[id]
+            await task.requestStop(.cancel)
+            handle?.cancel()
+            // Wait for the task to fully unwind (its terminal persist runs here) so a later
+            // remove() can't race with a resurrecting save.
+            await handle?.value
+        } else {
+            SegmentedFileWriter.discardPartData(for: download)
+            update(id: id) { $0.status = .canceled }
+        }
+    }
+
+    public func remove(id: UUID, deleteFile: Bool) async {
+        guard let download = downloads[id] else { return }
+        // Stop any running transfer and wait for it to fully unwind (its terminal save runs
+        // here) so it can't re-create the row after we delete it.
+        if let task = tasks[id] {
+            let handle = handles[id]
+            await task.requestStop(.cancel)
+            handle?.cancel()
+            await handle?.value
+        }
+        // Drop from memory, then discard files and delete from the store. We deliberately do
+        // NOT route through cancel()/update(): marking a terminal download ".canceled" and
+        // persisting it via a detached task would race with the delete below.
+        downloads[id] = nil
+        tasks[id] = nil
+        handles[id] = nil
+        SegmentedFileWriter.discardPartData(for: download)
+        if deleteFile {
+            try? FileManager.default.removeItem(atPath: download.destinationFilePath)
+        }
+        try? await store.delete(id: id)
+        eventContinuation.yield(.downloadRemoved(id))
+    }
+
+    public func pauseAll() async {
+        for id in downloads.keys where downloads[id]?.status.isActive == true {
+            await pause(id: id)
+        }
+    }
+
+    public func resumeAll() async {
+        for download in downloads.values where download.status.isResumable {
+            await resume(id: download.id)
+        }
+    }
+
+    /// Drop every completed download from the catalog and the store. The finished files on
+    /// disk are left untouched — this only clears them from the list.
+    public func clearCompleted() async {
+        let ids = downloads.values.filter { $0.status == .completed }.map(\.id)
+        guard !ids.isEmpty else { return }
+        for id in ids {
+            downloads[id] = nil
+            eventContinuation.yield(.downloadRemoved(id))
+        }
+        try? await store.deleteCompleted()
+    }
+
+    // MARK: - Settings & queues
+
+    public func updateSettings(_ newSettings: EngineSettings) async {
+        settings = newSettings
+        await globalLimiter.setRate(bytesPerSecond: newSettings.globalSpeedLimitBytesPerSecond)
+        await httpClient.configure(proxy: newSettings.resolvedProxy)
+        try? await store.save(settings: newSettings)
+        eventContinuation.yield(.settingsChanged(newSettings))
+    }
+
+    public func setGlobalSpeedLimit(bytesPerSecond: Int64?) async {
+        settings.globalSpeedLimitBytesPerSecond = bytesPerSecond
+        await updateSettings(settings)
+    }
+
+    public func createQueue(_ queue: DownloadQueue) async {
+        queues[queue.id] = queue
+        try? await store.save(queue)
+        eventContinuation.yield(.queuesChanged(Array(queues.values).sorted { $0.order < $1.order }))
+    }
+
+    // MARK: - Scheduling
+
+    private func scheduleAllQueues() {
+        for queueID in queues.keys { scheduleQueue(queueID) }
+    }
+
+    /// Start as many queued downloads in `queueID` as its concurrency budget allows.
+    private func scheduleQueue(_ queueID: UUID) {
+        guard networkReachable else { return }
+        let limit = queues[queueID]?.maxConcurrentDownloads ?? 1
+        var active = downloads.values.filter { $0.queueID == queueID && tasks[$0.id] != nil }.count
+
+        let waiting = downloads.values
+            .filter { $0.queueID == queueID && $0.status == .queued && tasks[$0.id] == nil }
+            .sorted { ($0.order, $0.createdAt) < ($1.order, $1.createdAt) }
+
+        for download in waiting where active < limit {
+            start(download)
+            active += 1
+        }
+    }
+
+    private func start(_ download: Download) {
+        var starting = download
+        starting.status = .downloading
+        downloads[download.id] = starting
+
+        let task = DownloadTask(
+            download: starting,
+            httpClient: httpClient,
+            store: store,
+            globalLimiter: globalLimiter,
+            settings: settings,
+            remuxer: remuxer,
+            emit: { [eventContinuation, progressContinuation] event in
+                // Route progress to its own lossy stream; everything else is a status event that
+                // must not be dropped.
+                if case .progress = event {
+                    progressContinuation.yield(event)
+                } else {
+                    eventContinuation.yield(event)
+                }
+            }
+        )
+        tasks[download.id] = task
+
+        let id = download.id
+        handles[id] = Task { [weak self] in
+            let final = await task.run()
+            await self?.taskFinished(id: id, result: final)
+        }
+    }
+
+    private func taskFinished(id: UUID, result: Download) {
+        downloads[id] = result
+        tasks[id] = nil
+        handles[id] = nil
+        if result.status == .completed { enqueueRecurrence(of: result) }
+        scheduleQueue(result.queueID)
+        signalIfQueueDrained(after: result)
+    }
+
+    /// When a recurring download completes, schedule a fresh copy for the next occurrence.
+    private func enqueueRecurrence(of completed: Download) {
+        guard let recurrence = completed.recurrence, recurrence != .none,
+              let next = recurrence.nextDate(after: Date()) else { return }
+
+        // If auto-categorize moved the finished file into a per-type subfolder, restore the
+        // original destination so the next run doesn't nest category folders.
+        var destination = completed.destinationDirectoryPath
+        if (destination as NSString).lastPathComponent == completed.category.displayName {
+            destination = (destination as NSString).deletingLastPathComponent
+        }
+
+        let order = (downloads.values.map(\.order).max() ?? -1) + 1
+        var nextRun = Download(
+            url: completed.url,
+            fileName: completed.fileName,
+            destinationDirectoryPath: destination,
+            destinationBookmark: completed.destinationBookmark,
+            queueID: completed.queueID,
+            requestHeaders: completed.requestHeaders,
+            speedLimitBytesPerSecond: completed.speedLimitBytesPerSecond,
+            username: completed.username,
+            password: completed.password,
+            checksum: completed.checksum,
+            scheduledStart: next,
+            recurrence: recurrence,
+            order: order
+        )
+        nextRun.status = .scheduled
+        downloads[nextRun.id] = nextRun
+        let snapshot = nextRun
+        Task { try? await store.save(snapshot) }
+        eventContinuation.yield(.downloadAdded(nextRun))
+    }
+
+    /// Emit `allDownloadsCompleted` when a completion leaves the queue with nothing pending,
+    /// so the app can apply the optional "quit when done" post-action.
+    private func signalIfQueueDrained(after finished: Download) {
+        guard finished.status == .completed else { return }
+        let hasPending = downloads.values.contains { download in
+            switch download.status {
+            case .downloading, .queued, .scheduled, .paused: return true
+            default: return false
+            }
+        }
+        if !hasPending { eventContinuation.yield(.allDownloadsCompleted) }
+    }
+
+    // MARK: - Scheduler
+
+    /// Periodically promote scheduled downloads whose start time has arrived.
+    private func startScheduler() {
+        schedulerTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(15))
+                await self?.promoteScheduled(asOf: Date())
+            }
+        }
+    }
+
+    /// Move any `.scheduled` download whose start time is at or before `date` into the queue.
+    /// Exposed (package-internal) so tests can drive it deterministically.
+    func promoteScheduled(asOf date: Date) {
+        var touchedQueues = Set<UUID>()
+        for download in downloads.values where download.status == .scheduled {
+            if let start = download.scheduledStart, start <= date {
+                update(id: download.id) { $0.status = .queued }
+                touchedQueues.insert(download.queueID)
+            }
+        }
+        for queueID in touchedQueues { scheduleQueue(queueID) }
+    }
+
+    // MARK: - Network auto-resume
+
+    private func startNetworkMonitoring() {
+        monitorTask = Task { [weak self, networkMonitor] in
+            for await reachable in networkMonitor.reachabilityUpdates() {
+                await self?.networkChanged(reachable: reachable)
+            }
+        }
+    }
+
+    private func networkChanged(reachable: Bool) async {
+        let wasReachable = networkReachable
+        networkReachable = reachable
+
+        if wasReachable && !reachable {
+            // Connectivity lost: pause active downloads and remember to resume them.
+            for download in downloads.values where download.status.isActive {
+                autoPaused.insert(download.id)
+                await pause(id: download.id)
+            }
+        } else if !wasReachable && reachable {
+            // Connectivity restored: resume what we auto-paused.
+            let toResume = autoPaused
+            autoPaused.removeAll()
+            for id in toResume { await resume(id: id) }
+            scheduleAllQueues()
+        }
+    }
+
+    // MARK: - Helpers
+
+    /// Mutate a download in place, persist, and emit an update.
+    private func update(id: UUID, _ mutate: (inout Download) -> Void) {
+        guard var download = downloads[id] else { return }
+        mutate(&download)
+        downloads[id] = download
+        let snapshot = download
+        Task { try? await store.save(snapshot) }
+        eventContinuation.yield(.downloadUpdated(download))
+    }
+
+    static func deriveFileName(from url: URL) -> String {
+        let last = url.lastPathComponent
+        if !last.isEmpty && last != "/" { return last }
+        if let host = url.host() { return host }
+        return "download"
+    }
+}
+
+private func < (lhs: (Int, Date), rhs: (Int, Date)) -> Bool {
+    if lhs.0 != rhs.0 { return lhs.0 < rhs.0 }
+    return lhs.1 < rhs.1
+}

@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "CloakDrop",
+  "version": "1.0",
+  "description": "Send links and media to CloakDrop — a private, on-device, multi-segment download manager.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAylN7xLC0GyaA3ZZEcfikuuGiD5XHWSEsiIIcvnGWTmpbOEhcQwyQ5DGf/YTOBIxPNMPHiPaJK8dB4rpZiKpw+/mFgwUWn36t0RWR3+ZSUtUK9mQZPidg9ZFCwpkS74rfiEinpa6k/QNh+i392ZrFJ28qZ+cNBkL5UuY2OuHMuFf+MP+RHwqSmG+oolrL4dVsQKUe3HnIkQeP/49WwdSa1/o39cepVuKkonrCx5BPTZVEOZI68UWMv6AOfsaUOGxAqlRBq+ZTwrru9RCs9L8u8V0Ja4qtzh91RD1DdKMfixb8LPoGwX8ve/2k+olQVuG3NsIJqNIidQr9ncQTey8NHQIDAQAB",
+  "icons": {
+    "48": "icon-48.png",
+    "96": "icon-96.png",
+    "128": "icon-128.png",
+    "256": "icon-256.png",
+    "512": "icon-512.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "contextMenus",
+    "cookies",
+    "activeTab",
+    "nativeMessaging"
+  ],
+  "host_permissions": [
+    "*://*/*"
+  ],
+  "action": {
+    "default_title": "CloakDrop",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icon-48.png",
+      "96": "icon-96.png"
+    }
+  }
+}

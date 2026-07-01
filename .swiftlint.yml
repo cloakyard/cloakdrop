@@ -1,0 +1,41 @@
+included:
+  - App
+  - Packages/DownloaderCore/Sources
+
+excluded:
+  - Packages/DownloaderCore/.build
+  - .build
+  - .build-xcode
+
+# Keep the signal high — opt out of rules that fight a clean, modern SwiftUI/actor codebase.
+disabled_rules:
+  - trailing_comma
+  - todo
+  - opening_brace
+  - nesting                     # nested helper enums (e.g. Action.Kind) read clearly here
+  - function_parameter_count    # the internal segment worker takes its inputs explicitly
+
+line_length:
+  warning: 140
+  error: 200
+  ignores_comments: true
+
+type_body_length:
+  warning: 400
+  error: 600
+
+file_length:
+  warning: 500
+  error: 800
+
+function_body_length:
+  warning: 80
+  error: 140
+
+identifier_name:
+  min_length: 1          # single-letter loop/closure params (a, b, h, d) are intentional
+  max_length: 60
+  allowed_symbols: ["_"]
+
+cyclomatic_complexity:
+  warning: 15
