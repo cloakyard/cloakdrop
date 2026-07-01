@@ -252,7 +252,11 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
             totalBytes: total,
             acceptsRanges: acceptsRanges,
             suggestedFilename: http.suggestedFilename,
-            etag: http.value(forHTTPHeaderField: "ETag")
+            etag: http.value(forHTTPHeaderField: "ETag"),
+            // `http.url` is the URL the request finally resolved to (URLSession follows redirects
+            // by default); `http.mimeType` is the Content-Type with parameters already stripped.
+            finalURL: http.url,
+            mimeType: http.mimeType?.lowercased()
         )
     }
 }

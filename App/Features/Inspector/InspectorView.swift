@@ -119,6 +119,12 @@ struct InspectorView: View {
                     verificationRow(passed: verified)
                 }
             }
+            if let signature = download.signature {
+                signatureRow(signature)
+                if let authority = signature.authority {
+                    detailRow("Signed by", value: authority)
+                }
+            }
             detailRow("Added", value: download.createdAt.formatted(date: .abbreviated, time: .shortened))
             if let completed = download.completedAt {
                 detailRow("Completed", value: completed.formatted(date: .abbreviated, time: .shortened))
@@ -152,6 +158,30 @@ struct InspectorView: View {
             )
             .font(.caption)
             .foregroundStyle(passed ? Color.green : Color.red)
+        }
+    }
+
+    /// Code-signature assessment for an installable download — green & sealed when signed and valid,
+    /// red when the signature failed to validate, neutral when the file carries none.
+    private func signatureRow(_ signature: SignatureAssessment) -> some View {
+        let label: LocalizedStringKey
+        let symbol: String
+        let color: Color
+        switch signature.status {
+        case .valid:
+            label = "Signed & valid"; symbol = "checkmark.seal.fill"; color = .green
+        case .invalid:
+            label = "Invalid signature"; symbol = "exclamationmark.triangle.fill"; color = .red
+        case .unsigned:
+            label = "Unsigned"; symbol = "seal"; color = .secondary
+        }
+        return VStack(alignment: .leading, spacing: 2) {
+            Text("Signature")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Label(label, systemImage: symbol)
+                .font(.caption)
+                .foregroundStyle(color)
         }
     }
 }

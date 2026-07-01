@@ -18,10 +18,12 @@ extension AppModel {
 
     /// Add a URL — routing an adaptive-streaming manifest through the media flow (resolve → quality
     /// picker) and everything else through the normal download path. If resolution fails or the
-    /// manifest turns out to carry no renditions, it quietly falls back to a normal download.
-    func grab(_ request: DownloadRequest) {
+    /// manifest turns out to carry no renditions, it quietly falls back to a normal download. A
+    /// `preview` (from the add sheet's pre-flight) is forwarded to `add` for content-addressed
+    /// duplicate detection; it's irrelevant to the media path (a manifest URL isn't a plain file).
+    func grab(_ request: DownloadRequest, preview: LinkPreview? = nil) {
         guard Self.isMediaManifest(request.url) else {
-            add(request)
+            add(request, preview: preview)
             return
         }
         isResolvingMedia = true

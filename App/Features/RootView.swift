@@ -1,4 +1,5 @@
 import SwiftUI
+import DownloadModels
 
 /// The main window: a sidebar + content list with a persistent detail inspector. The system
 /// supplies Liquid Glass for the sidebar, toolbar, and inspector chrome. The inspector stays
@@ -49,11 +50,21 @@ struct RootView: View {
             "Download Again?",
             isPresented: Binding(get: { model.currentDuplicateAdd != nil }, set: { _ in }),
             presenting: model.currentDuplicateAdd
-        ) { _ in
+        ) { duplicate in
             Button("Download Again") { model.confirmDuplicateAdd() }
+            if duplicate.existingIsOnDisk {
+                Button("Reveal in Finder") { model.revealExistingDuplicate() }
+            }
             Button("Cancel", role: .cancel) { model.cancelDuplicateAdd() }
         } message: { duplicate in
-            Text("“\(duplicate.existingFileName)” is already in your downloads. Download it again?")
+            switch duplicate.reason {
+            case .sameURL:
+                Text("“\(duplicate.existingFileName)” is already in your downloads. Download it again?")
+            case .sameETag:
+                Text("You already downloaded “\(duplicate.existingFileName)” from this server. Download it again?")
+            case .sameContent:
+                Text("“\(duplicate.existingFileName)” — same name and size — is already in your downloads. Download it again?")
+            }
         }
     }
 }

@@ -4,7 +4,7 @@ import DownloadModels
 /// The Settings window's tabs. Held as app state so a menu command (e.g. "About CloakDrop")
 /// can open Settings directly to a specific tab.
 enum SettingsTab: Hashable {
-    case general, network, browsers, privacy, about
+    case general, rules, network, browsers, privacy, about
 }
 
 /// Preferences: engine tunables, CloakDrop's privacy posture, and app/author info.
@@ -17,6 +17,9 @@ struct SettingsView: View {
             general
                 .tabItem { Label("General", systemImage: "gearshape") }
                 .tag(SettingsTab.general)
+            RulesSettingsView()
+                .tabItem { Label("Rules", systemImage: "wand.and.stars") }
+                .tag(SettingsTab.rules)
             network
                 .tabItem { Label("Network", systemImage: "point.3.connected.trianglepath.dotted") }
                 .tag(SettingsTab.network)
@@ -58,6 +61,7 @@ struct SettingsView: View {
                 Toggle("Verify checksums automatically", isOn: binding(\.verifyChecksumsAutomatically))
                 Toggle("Look for checksum files on the server", isOn: binding(\.autoDiscoverChecksums))
                     .disabled(!model.settings.verifyChecksumsAutomatically)
+                Toggle("Check app signatures", isOn: binding(\.assessSignatures))
                 Toggle("Sort completed files into type folders", isOn: binding(\.autoCategorize))
             } header: {
                 Text("On Completion")

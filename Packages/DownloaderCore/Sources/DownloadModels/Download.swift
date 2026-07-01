@@ -20,6 +20,9 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     public var totalBytes: Int64?
     /// Whether the server advertised `Accept-Ranges: bytes` (required for multi-segment & resume).
     public var supportsResume: Bool
+    /// The resource's `ETag` as reported by the server at probe time, if any. A content-derived
+    /// tag used to recognize a re-added download as a duplicate of one already in the catalog.
+    public var etag: String?
     /// The segments composing this download. A single element means single-stream.
     public var segments: [DownloadSegment]
 
@@ -41,6 +44,9 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     public var checksum: ChecksumExpectation?
     /// Whether the completed file passed checksum verification (`nil` if not yet verified).
     public var checksumVerified: Bool?
+    /// The code-signature assessment of the finished file, for installable types (`.app`/`.dmg`).
+    /// `nil` when not assessed (unsupported type, disabled, or not yet complete).
+    public var signature: SignatureAssessment?
 
     /// When the user added this download.
     public var createdAt: Date
@@ -73,6 +79,7 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
         destinationBookmark: Data? = nil,
         totalBytes: Int64? = nil,
         supportsResume: Bool = false,
+        etag: String? = nil,
         segments: [DownloadSegment] = [],
         status: DownloadStatus = .queued,
         category: FileCategory? = nil,
@@ -83,6 +90,7 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
         password: String? = nil,
         checksum: ChecksumExpectation? = nil,
         checksumVerified: Bool? = nil,
+        signature: SignatureAssessment? = nil,
         createdAt: Date = Date(),
         startedAt: Date? = nil,
         completedAt: Date? = nil,
@@ -100,6 +108,7 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
         self.destinationBookmark = destinationBookmark
         self.totalBytes = totalBytes
         self.supportsResume = supportsResume
+        self.etag = etag
         self.segments = segments
         self.status = status
         self.category = category ?? FileCategory.classify(fileName: fileName)
@@ -110,6 +119,7 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
         self.password = password
         self.checksum = checksum
         self.checksumVerified = checksumVerified
+        self.signature = signature
         self.createdAt = createdAt
         self.startedAt = startedAt
         self.completedAt = completedAt

@@ -121,6 +121,32 @@ struct GRDBDownloadStoreTests {
         #expect(try await store.allQueues().count == 1)
     }
 
+    @Test("Smart rules persist, upsert, order by priority, and delete")
+    func rules() async throws {
+        let store = try await makeStore()
+        #expect(try await store.allRules().isEmpty)
+
+        var first = SmartRule(name: "videos", order: 1, conditions: [.categoryIs(.video)], actions: [.limitSpeed(bytesPerSecond: 1000)])
+        let second = SmartRule(name: "archives", order: 0, conditions: [.fileExtensionIn(["zip"])])
+        try await store.save(first)
+        try await store.save(second)
+
+        // Returned ordered by `order` (priority), not insertion.
+        let all = try await store.allRules()
+        #expect(all.map(\.name) == ["archives", "videos"])
+        #expect(all.first?.conditions == [.fileExtensionIn(["zip"])])
+
+        // Upsert updates in place rather than duplicating.
+        first.isEnabled = false
+        try await store.save(first)
+        let afterUpsert = try await store.allRules()
+        #expect(afterUpsert.count == 2)
+        #expect(afterUpsert.first(where: { $0.id == first.id })?.isEnabled == false)
+
+        try await store.deleteRule(id: first.id)
+        #expect(try await store.allRules().map(\.name) == ["archives"])
+    }
+
     @Test("Settings persist across save/load")
     func settings() async throws {
         let store = try await makeStore()

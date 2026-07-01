@@ -12,12 +12,25 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
         public var acceptsRanges: Bool
         public var suggestedFilename: String?
         public var etag: String?
+        public var mimeType: String?
+        /// A URL to report as the request's final destination, emulating a redirect. `nil` means
+        /// "no redirect" — the head reports the requested URL as final.
+        public var finalURL: URL?
 
-        public init(data: Data, acceptsRanges: Bool = true, suggestedFilename: String? = nil, etag: String? = nil) {
+        public init(
+            data: Data,
+            acceptsRanges: Bool = true,
+            suggestedFilename: String? = nil,
+            etag: String? = nil,
+            mimeType: String? = nil,
+            finalURL: URL? = nil
+        ) {
             self.data = data
             self.acceptsRanges = acceptsRanges
             self.suggestedFilename = suggestedFilename
             self.etag = etag
+            self.mimeType = mimeType
+            self.finalURL = finalURL
         }
     }
 
@@ -62,7 +75,9 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
             totalBytes: Int64(resource.data.count),
             acceptsRanges: resource.acceptsRanges,
             suggestedFilename: resource.suggestedFilename,
-            etag: resource.etag
+            etag: resource.etag,
+            finalURL: resource.finalURL ?? request.url,
+            mimeType: resource.mimeType
         )
     }
 
@@ -103,7 +118,9 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
                 totalBytes: total,
                 acceptsRanges: resource.acceptsRanges,
                 suggestedFilename: resource.suggestedFilename,
-                etag: resource.etag
+                etag: resource.etag,
+                finalURL: resource.finalURL ?? request.url,
+                mimeType: resource.mimeType
             )
             return (head, stream)
         }
@@ -114,7 +131,9 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
             totalBytes: total,
             acceptsRanges: resource.acceptsRanges,
             suggestedFilename: resource.suggestedFilename,
-            etag: resource.etag
+            etag: resource.etag,
+            finalURL: resource.finalURL ?? request.url,
+            mimeType: resource.mimeType
         )
 
         let (stream, continuation) = AsyncThrowingStream<Data, Error>.makeStream()

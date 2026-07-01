@@ -13,13 +13,13 @@ private struct Harness {
     let manager: DownloadManager
     let url = URL(string: "https://example.com/payload.bin")!
 
-    init(data: Data, acceptsRanges: Bool = true, pendingDrops: Int = 0, dropAfterBytes: Int = 0) async throws {
+    init(data: Data, acceptsRanges: Bool = true, pendingDrops: Int = 0, dropAfterBytes: Int = 0, etag: String? = nil) async throws {
         directory = FileManager.default.temporaryDirectory.appendingPathComponent("cloakdrop-test-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         store = try GRDBDownloadStore.inMemory()
         mock = MockHTTPClient(pendingDrops: pendingDrops, dropAfterBytes: dropAfterBytes)
         mock.chunkSize = 4096
-        mock.setResource(.init(data: data, acceptsRanges: acceptsRanges, suggestedFilename: "payload.bin"), for: url)
+        mock.setResource(.init(data: data, acceptsRanges: acceptsRanges, suggestedFilename: "payload.bin", etag: etag), for: url)
         manager = DownloadManager(store: store, httpClient: mock, networkMonitor: AlwaysReachableMonitor())
         try await manager.start()
         // Small segments so test payloads still split into several connections.
@@ -66,6 +66,26 @@ private func makePayload(_ count: Int) -> Data {
 
 @Suite("Engine integration (mock server)")
 struct EngineIntegrationTests {
+
+    @Test("A completed download records the server's ETag (for later duplicate detection)")
+    func recordsETag() async throws {
+        let payload = makePayload(60_000)
+        let h = try await Harness(data: payload, etag: "\"abc-123\"")
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        let done = try await h.waitFor(download.id) { $0.status == .completed }
+        #expect(done.etag == "\"abc-123\"")
+
+        // And the recorded ETag makes a re-add of the same content a detectable duplicate.
+        let candidate = DuplicateCandidate(
+            url: URL(string: "https://example.com/other-link.bin")!,
+            etag: "\"abc-123\"",
+            totalBytes: Int64(payload.count),
+            fileName: "payload.bin"
+        )
+        #expect(DuplicateDetector.findDuplicate(of: candidate, in: [done])?.reason == .sameETag)
+    }
 
     @Test("Multi-segment download completes and reassembles byte-perfectly")
     func multiSegmentCompletes() async throws {

@@ -18,6 +18,27 @@ struct DownloadRowView: View {
         return plan.format == .hls ? "HLS" : "DASH"
     }
 
+    /// An at-a-glance integrity seal for a finished download: green when a checksum matched or the
+    /// code signature is valid, red when either failed. Nothing to show otherwise. Semantic colors
+    /// are kept even on the selection highlight — a warning must always read as a warning.
+    @ViewBuilder
+    private var trustBadge: some View {
+        switch download.trustLevel {
+        case .verified:
+            Image(systemName: "checkmark.seal.fill")
+                .font(.caption)
+                .foregroundStyle(.green)
+                .accessibilityLabel(Text("Verified"))
+        case .warning:
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.caption)
+                .foregroundStyle(.red)
+                .accessibilityLabel(Text("Integrity warning"))
+        case .unknown:
+            EmptyView()
+        }
+    }
+
     var body: some View {
         // The leading icon and trailing action align to a shared row midline. Normally that's
         // the row's vertical center; while downloading, the progress bar overrides it to its own
@@ -34,6 +55,7 @@ struct DownloadRowView: View {
                         .fontWeight(.medium)
                         .lineLimit(1)
                         .truncationMode(.middle)
+                    trustBadge
                     if let badge = mediaBadge {
                         Text(badge)
                             .font(.caption2.weight(.semibold))

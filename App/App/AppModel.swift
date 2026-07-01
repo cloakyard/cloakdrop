@@ -3,12 +3,19 @@ import Observation
 import DownloadModels
 import DownloadEngine
 
-/// An add that matched an existing download by URL, awaiting the user's "download again?"
-/// decision. Held in a FIFO so several at once (e.g. a re-pasted batch) confirm one at a time.
+/// An add that matched a download already in the catalog — by URL, by same-origin ETag, or by an
+/// already-completed file of the same name and size — awaiting the user's "download again?" decision.
+/// Held in a FIFO so several at once (e.g. a re-pasted batch) confirm one at a time.
 struct DuplicateAdd: Identifiable, Equatable {
     let id = UUID()
     var request: DownloadRequest
-    let existingFileName: String
+    /// The existing download this add matched, and why.
+    let match: DuplicateMatch
+
+    var existingFileName: String { match.existing.fileName }
+    var reason: DuplicateReason { match.reason }
+    /// Whether the matched download has finished (so we can offer "Reveal in Finder").
+    var existingIsOnDisk: Bool { match.existing.status == .completed }
 }
 
 /// The single source of UI truth. Owns the `DownloadManager`, mirrors its event stream into
@@ -23,6 +30,8 @@ final class AppModel {
     private(set) var progress: [UUID: DownloadProgress] = [:]
     private(set) var queues: [DownloadQueue] = []
     private(set) var settings: EngineSettings = .default
+    /// User-defined routing rules, in evaluation order. Mirrored from the engine.
+    private(set) var rules: [SmartRule] = []
 
     /// Poster-frame thumbnails for completed video grabs, keyed by download id (see
     /// `AppModel+Thumbnails`). Settable within the module so that extension can populate it.
@@ -121,6 +130,7 @@ final class AppModel {
         downloads = snapshot.downloads
         queues = snapshot.queues
         settings = snapshot.settings
+        rules = snapshot.rules
         startObservingEvents()
         refreshAmbient()
 
@@ -175,6 +185,8 @@ final class AppModel {
             queues = q
         case .settingsChanged(let s):
             settings = s
+        case .rulesChanged(let r):
+            rules = r
         case .allDownloadsCompleted:
             applyPostCompletionAction()
         }
@@ -266,19 +278,38 @@ final class AppModel {
 
     // MARK: Actions
 
-    /// Enqueue an add — but if a download for this exact URL already exists, don't silently create a
-    /// duplicate; surface a confirmation instead (the user can still choose to re-download via
+    /// Enqueue an add — but if the catalog already holds this download (same URL, same-origin ETag,
+    /// or an already-completed file of the same name and size), don't silently create a duplicate;
+    /// surface a confirmation instead (the user can still choose to re-download via
     /// `confirmDuplicateAdd`). Every intake path funnels through here, so the guard applies uniformly.
-    func add(_ request: DownloadRequest) {
-        if let existing = downloads.first(where: { $0.url == request.url }) {
-            pendingDuplicateAdds.append(DuplicateAdd(request: request, existingFileName: existing.fileName))
+    /// A `preview` from the add sheet's pre-flight sharpens detection with the resource's ETag/size.
+    func add(_ request: DownloadRequest, preview: LinkPreview? = nil) {
+        let fileName = request.suggestedFileName ?? Self.fileName(fromURL: request.url)
+        let candidate = DuplicateCandidate(request: request.url, fileName: fileName, preview: preview)
+        if let match = DuplicateDetector.findDuplicate(of: candidate, in: downloads) {
+            pendingDuplicateAdds.append(DuplicateAdd(request: request, match: match))
         } else {
-            commitAdd(request)
+            commitAdd(request, preview: preview)
         }
     }
 
-    private func commitAdd(_ request: DownloadRequest) {
-        Task { await manager.add(request) }
+    private func commitAdd(_ request: DownloadRequest, preview: LinkPreview? = nil) {
+        Task { await manager.add(request, preview: preview) }
+    }
+
+    // MARK: Link intelligence (pre-flight)
+
+    /// Pre-flight a URL against the server — best-effort — so the add sheet can show what's actually
+    /// there (final URL after redirects, size, type, resumability, connection estimate) before the
+    /// user commits. Returns `nil` when the server can't be reached; the caller degrades gracefully.
+    func preview(
+        url: URL,
+        referrer: String? = nil,
+        cookies: String? = nil,
+        username: String? = nil,
+        password: String? = nil
+    ) async -> LinkPreview? {
+        await manager.preview(url: url, username: username, password: password, referrer: referrer, cookies: cookies)
     }
 
     /// User chose to re-download a duplicate: give it a unique file name so the new transfer doesn't
@@ -294,6 +325,14 @@ final class AppModel {
 
     func cancelDuplicateAdd() {
         if !pendingDuplicateAdds.isEmpty { pendingDuplicateAdds.removeFirst() }
+    }
+
+    /// User chose to look at the file they already have instead of downloading it again: reveal the
+    /// matched download in Finder and dismiss the prompt.
+    func revealExistingDuplicate() {
+        guard let pending = pendingDuplicateAdds.first else { return }
+        pendingDuplicateAdds.removeFirst()
+        revealInFinder(pending.match.existing)
     }
 
     /// A file name not already used (in the catalog or on disk) in `directory`, appending " (2)",
@@ -440,6 +479,23 @@ final class AppModel {
     func updateSettings(_ newSettings: EngineSettings) {
         settings = newSettings
         Task { await manager.updateSettings(newSettings) }
+    }
+
+    // MARK: Smart rules
+
+    /// The next `order` value for a newly-created rule (appends to the end of the priority list).
+    var nextRuleOrder: Int { (rules.map(\.order).max() ?? -1) + 1 }
+
+    func saveRule(_ rule: SmartRule) { Task { await manager.saveRule(rule) } }
+    func deleteRule(_ id: UUID) { Task { await manager.deleteRule(id: id) } }
+
+    /// Reorder rules from a SwiftUI `.onMove` (source offsets → destination), then persist the new
+    /// priority order.
+    func moveRules(fromOffsets source: IndexSet, toOffset destination: Int) {
+        var reordered = rules
+        reordered.move(fromOffsets: source, toOffset: destination)
+        rules = reordered   // optimistic local update so the list doesn't jump before the event
+        Task { await manager.reorderRules(reordered.map(\.id)) }
     }
 
     /// Turn "open at login" on or off. Reflects the actual resulting OS state afterward (so a failed

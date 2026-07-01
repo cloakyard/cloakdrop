@@ -7,6 +7,7 @@ public struct EngineSnapshot: Sendable {
     public let downloads: [Download]
     public let queues: [DownloadQueue]
     public let settings: EngineSettings
+    public let rules: [SmartRule]
 }
 
 /// The engine's coordinator: the single entry point the app talks to.
@@ -21,10 +22,13 @@ public actor DownloadManager {
     private let networkMonitor: any NetworkPathMonitoring
     private let globalLimiter: BandwidthLimiter
     private let remuxer: any Remuxer
+    private let signatureInspector: any CodeSignatureInspecting
 
     private var settings: EngineSettings = .default
     private var downloads: [UUID: Download] = [:]
     private var queues: [UUID: DownloadQueue] = [:]
+    /// User-defined routing rules, kept sorted by `order` (evaluation priority).
+    private var rules: [SmartRule] = []
     private var tasks: [UUID: DownloadTask] = [:]
     private var handles: [UUID: Task<Void, Never>] = [:]
     private var autoPaused: Set<UUID> = []
@@ -47,12 +51,14 @@ public actor DownloadManager {
         store: any DownloadStore,
         httpClient: any HTTPClient = URLSessionHTTPClient(),
         networkMonitor: any NetworkPathMonitoring = NetworkMonitor(),
-        remuxer: any Remuxer = AVFoundationRemuxer()
+        remuxer: any Remuxer = AVFoundationRemuxer(),
+        signatureInspector: any CodeSignatureInspecting = SecCodeSignatureInspector()
     ) {
         self.store = store
         self.httpClient = httpClient
         self.networkMonitor = networkMonitor
         self.remuxer = remuxer
+        self.signatureInspector = signatureInspector
         self.globalLimiter = BandwidthLimiter(bytesPerSecond: nil)
         // Status events must not be dropped (a lost `.downloadAdded` strands a row in limbo), so
         // they get an unbounded stream. Progress events are lossy-tolerant and ride a separate
@@ -79,6 +85,8 @@ public actor DownloadManager {
             queues[def.id] = def
         }
 
+        rules = (try await store.allRules()).sorted { $0.order < $1.order }
+
         for var download in try await store.allDownloads() {
             if settings.resumeDownloadsOnLaunch {
                 // Auto-resume: anything mid-transfer when we quit becomes queued to restart.
@@ -101,44 +109,88 @@ public actor DownloadManager {
         EngineSnapshot(
             downloads: Array(downloads.values).sorted { ($0.order, $0.createdAt) < ($1.order, $1.createdAt) },
             queues: Array(queues.values).sorted { $0.order < $1.order },
-            settings: settings
+            settings: settings,
+            rules: rules
         )
     }
 
     public func currentSettings() -> EngineSettings { settings }
+    public func currentRules() -> [SmartRule] { rules }
+
+    // MARK: - Link intelligence (pre-flight)
+
+    /// Pre-flight a URL against the server *without* committing a download: resolve redirects and
+    /// read size, range-support, file name, and type, then compute how many connections the engine
+    /// would open. Referrer/cookies are folded into headers exactly as `add` does, so the preview
+    /// reflects the request the download would actually make.
+    ///
+    /// Best-effort: returns `nil` when the server can't be reached or refuses the probe — a preview
+    /// is a convenience, never a precondition for adding.
+    public func preview(
+        url: URL,
+        headers: [String: String] = [:],
+        username: String? = nil,
+        password: String? = nil,
+        referrer: String? = nil,
+        cookies: String? = nil
+    ) async -> LinkPreview? {
+        var merged = headers
+        if let referrer, !referrer.isEmpty { merged["Referer"] = referrer }
+        if let cookies, !cookies.isEmpty { merged["Cookie"] = cookies }
+        return try? await LinkInspector(httpClient: httpClient).inspect(
+            url: url,
+            headers: merged,
+            username: username,
+            password: password,
+            settings: settings
+        )
+    }
 
     // MARK: - Adding downloads
 
     @discardableResult
-    public func add(_ request: DownloadRequest) async -> Download {
+    public func add(_ request: DownloadRequest, preview: LinkPreview? = nil) async -> Download {
         let fileName = request.suggestedFileName ?? Self.deriveFileName(from: request.url)
+
+        // Apply the first matching smart rule (routing to a folder/queue, a speed cap, auto-start).
+        // The pre-flight preview, when present, contributes MIME/size so those conditions can fire —
+        // all evaluated on-device, no extra network call.
+        let ruleInput = RuleInput(
+            url: request.url,
+            fileName: fileName,
+            category: FileCategory.classify(fileName: fileName),
+            mimeType: preview?.mimeType,
+            sizeBytes: preview?.totalBytes
+        )
+        let effectiveRequest = SmartRuleEngine.resolve(request, input: ruleInput, rules: rules).request
+
         let order = (downloads.values.map(\.order).max() ?? -1) + 1
 
         // Fold the convenience capture fields into standard request headers.
-        var headers = request.requestHeaders
-        if let referrer = request.referrer, !referrer.isEmpty { headers["Referer"] = referrer }
-        if let cookies = request.cookies, !cookies.isEmpty { headers["Cookie"] = cookies }
+        var headers = effectiveRequest.requestHeaders
+        if let referrer = effectiveRequest.referrer, !referrer.isEmpty { headers["Referer"] = referrer }
+        if let cookies = effectiveRequest.cookies, !cookies.isEmpty { headers["Cookie"] = cookies }
 
         var download = Download(
-            url: request.url,
+            url: effectiveRequest.url,
             fileName: fileName,
-            destinationDirectoryPath: request.destinationDirectoryPath,
-            destinationBookmark: request.destinationBookmark,
-            queueID: queues[request.queueID] != nil ? request.queueID : DownloadQueue.defaultQueueID,
+            destinationDirectoryPath: effectiveRequest.destinationDirectoryPath,
+            destinationBookmark: effectiveRequest.destinationBookmark,
+            queueID: queues[effectiveRequest.queueID] != nil ? effectiveRequest.queueID : DownloadQueue.defaultQueueID,
             requestHeaders: headers,
-            speedLimitBytesPerSecond: request.speedLimitBytesPerSecond,
-            username: request.username,
-            password: request.password,
-            checksum: request.checksum,
-            scheduledStart: request.scheduledStart,
-            recurrence: request.recurrence,
+            speedLimitBytesPerSecond: effectiveRequest.speedLimitBytesPerSecond,
+            username: effectiveRequest.username,
+            password: effectiveRequest.password,
+            checksum: effectiveRequest.checksum,
+            scheduledStart: effectiveRequest.scheduledStart,
+            recurrence: effectiveRequest.recurrence,
             order: order
         )
 
-        if let scheduled = request.scheduledStart, scheduled > Date() {
+        if let scheduled = effectiveRequest.scheduledStart, scheduled > Date() {
             download.status = .scheduled
         } else {
-            download.status = request.startImmediately ? .queued : .paused
+            download.status = effectiveRequest.startImmediately ? .queued : .paused
         }
 
         downloads[download.id] = download
@@ -293,6 +345,38 @@ public actor DownloadManager {
         eventContinuation.yield(.queuesChanged(Array(queues.values).sorted { $0.order < $1.order }))
     }
 
+    // MARK: - Smart rules
+
+    /// Insert or update a rule, then persist and publish the new rule list.
+    public func saveRule(_ rule: SmartRule) async {
+        if let index = rules.firstIndex(where: { $0.id == rule.id }) {
+            rules[index] = rule
+        } else {
+            rules.append(rule)
+        }
+        rules.sort { $0.order < $1.order }
+        try? await store.save(rule)
+        eventContinuation.yield(.rulesChanged(rules))
+    }
+
+    public func deleteRule(id: UUID) async {
+        rules.removeAll { $0.id == id }
+        try? await store.deleteRule(id: id)
+        eventContinuation.yield(.rulesChanged(rules))
+    }
+
+    /// Persist a full reordering (drag-to-reorder in the UI): renumber `order` to the given sequence
+    /// of rule IDs and save each. Rules not named are left as-is.
+    public func reorderRules(_ orderedIDs: [UUID]) async {
+        for (index, id) in orderedIDs.enumerated() {
+            guard let ruleIndex = rules.firstIndex(where: { $0.id == id }) else { continue }
+            rules[ruleIndex].order = index
+        }
+        rules.sort { $0.order < $1.order }
+        for rule in rules { try? await store.save(rule) }
+        eventContinuation.yield(.rulesChanged(rules))
+    }
+
     // MARK: - Scheduling
 
     private func scheduleAllQueues() {
@@ -327,6 +411,7 @@ public actor DownloadManager {
             globalLimiter: globalLimiter,
             settings: settings,
             remuxer: remuxer,
+            signatureInspector: signatureInspector,
             emit: { [eventContinuation, progressContinuation] event in
                 // Route progress to its own lossy stream; everything else is a status event that
                 // must not be dropped.

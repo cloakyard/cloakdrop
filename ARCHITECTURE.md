@@ -29,7 +29,12 @@ Pure, `Sendable` value types with **no dependencies**: `Download`, `DownloadSegm
 (`MediaStream` → `MediaVariant` → `MediaSegment`, plus tracks/init/encryption) with the I/O-free
 `HLSParser` and `DASHParser`; the checksum-sibling logic (`ChecksumDiscovery`); and the capture
 payload (`CapturedDownload`) and stdio framing (`NativeMessaging`) shared by every intake path.
-Because they're plain values, they cross actor boundaries freely and are trivial to test.
+Because they're plain values, they cross actor boundaries freely and are trivial to test. The
+on-device *intake intelligence* lives here too, all pure and I/O-free: `LinkPreview` (the pre-flight
+result), `DuplicateDetector`/`DuplicateCandidate` (content-addressed duplicate detection by URL /
+same-origin ETag / completed name+size), `SignatureAssessment` + `TrustLevel` (the unified trust
+signal from checksum + code signature), and the smart-rule model (`SmartRule`, `SmartRuleCondition`,
+`SmartRuleAction`, `RuleInput`) with its evaluator `SmartRuleEngine`.
 
 ### `DownloadPersistence`
 A `DownloadStore` **protocol** (so the engine can be tested against an in-memory fake) and a
@@ -54,6 +59,11 @@ The concurrency core. Everything mutable is actor-isolated.
 - **Pure helpers** — `SegmentPlanner` (segmentation math), `BandwidthLimiter` (token bucket),
   `BackoffPolicy` (retry timing), `ChecksumVerifier` (CryptoKit), `SpeedSampler` (rate
   estimate). Each is isolated from I/O so it is exhaustively unit-tested.
+- **Intake seams** — `LinkInspector` turns one `HTTPClient.probe` into a `LinkPreview` (final URL
+  after redirects, size, range-support, MIME, ETag, connection estimate) for the add sheet's live
+  pre-flight; `CodeSignatureInspector` (protocol → `SecCodeSignatureInspector`, Security framework,
+  in-process, no network) assesses a finished `.app`/`.dmg`'s code signature in `DownloadTask.finalize`.
+  Smart-rule routing is applied in `DownloadManager.add` (folder / queue / speed cap / auto-start).
 - **Media** — `MediaResolver` fetches + parses a manifest URL into a ready `MediaPlan`;
   `DownloadTask` grabs the segments over the same engine, decrypting AES-128 (`AES128`);
   `Remuxer` (protocol → `AVFoundationRemuxer`) passthrough-remuxes the result into a clean

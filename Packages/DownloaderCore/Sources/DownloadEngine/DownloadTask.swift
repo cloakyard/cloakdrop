@@ -21,6 +21,7 @@ actor DownloadTask {
     private let globalLimiter: BandwidthLimiter
     private let settings: EngineSettings
     private let remuxer: any Remuxer
+    private let signatureInspector: any CodeSignatureInspecting
     private let emit: @Sendable (EngineEvent) -> Void
 
     private var stopReason: StopReason?
@@ -36,6 +37,7 @@ actor DownloadTask {
         globalLimiter: BandwidthLimiter,
         settings: EngineSettings,
         remuxer: any Remuxer = PassthroughRemuxer(),
+        signatureInspector: any CodeSignatureInspecting = SecCodeSignatureInspector(),
         emit: @escaping @Sendable (EngineEvent) -> Void
     ) {
         self.download = download
@@ -44,6 +46,7 @@ actor DownloadTask {
         self.globalLimiter = globalLimiter
         self.settings = settings
         self.remuxer = remuxer
+        self.signatureInspector = signatureInspector
         self.emit = emit
         let now = ContinuousClock().now
         self.lastEmit = now
@@ -107,6 +110,7 @@ actor DownloadTask {
             )
             download.totalBytes = head.totalBytes
             download.supportsResume = head.acceptsRanges && head.totalBytes != nil
+            download.etag = head.etag
 
             if let total = head.totalBytes, head.acceptsRanges, total >= settings.minimumSegmentSizeBytes * 2 {
                 let requested = min(settings.maxSegmentCount, max(1, segmentCountForThisDownload()))
@@ -445,6 +449,15 @@ actor DownloadTask {
         )
         download.checksum = checksum.expectation
         download.checksumVerified = checksum.verified
+
+        // Assess the code signature of installable downloads (.app/.dmg) on-device — reads the
+        // signature already in the file; no network, no Gatekeeper round-trip. Best-effort: an
+        // unrecognized code object records no signature rather than a misleading "unsigned".
+        if settings.assessSignatures, SignatureAssessment.isAssessable(fileName: download.fileName) {
+            download.signature = signatureInspector.assess(
+                fileURL: URL(fileURLWithPath: download.destinationFilePath)
+            )
+        }
     }
 
     // MARK: Stop / persistence helpers

@@ -13,6 +13,7 @@ public enum EngineEvent: Sendable {
     case progress(DownloadProgress)
     case queuesChanged([DownloadQueue])
     case settingsChanged(EngineSettings)
+    case rulesChanged([SmartRule])
     /// Emitted when a download completes and the queue is then idle — drives the optional
     /// "quit when done" post-action.
     case allDownloadsCompleted

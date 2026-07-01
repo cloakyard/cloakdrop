@@ -24,6 +24,10 @@ public struct EngineSettings: Sendable, Hashable, Codable {
     /// file next to it on the same server (`file.zip` → `file.zip.sha256`/`.sha1`/`.md5`) and verify
     /// against it. Same-origin only, and additionally gated by `verifyChecksumsAutomatically`.
     public var autoDiscoverChecksums: Bool
+    /// When a download of an installable type (`.app`/`.dmg`) finishes, whether to assess its code
+    /// signature on-device (via the Security framework) and record the result — signed & valid,
+    /// invalid, or unsigned — so the UI can show a trust badge. Fully local; no network egress.
+    public var assessSignatures: Bool
     /// When true, completed files are filed into a per-type subfolder (Video, Documents, …)
     /// of their destination directory.
     public var autoCategorize: Bool
@@ -46,6 +50,7 @@ public struct EngineSettings: Sendable, Hashable, Codable {
         minimumSegmentSizeBytes: Int64 = 1 * 1024 * 1024,
         verifyChecksumsAutomatically: Bool = true,
         autoDiscoverChecksums: Bool = true,
+        assessSignatures: Bool = true,
         autoCategorize: Bool = false,
         resumeDownloadsOnLaunch: Bool = true,
         proxy: ProxyConfiguration? = nil,
@@ -60,6 +65,7 @@ public struct EngineSettings: Sendable, Hashable, Codable {
         self.minimumSegmentSizeBytes = max(0, minimumSegmentSizeBytes)
         self.verifyChecksumsAutomatically = verifyChecksumsAutomatically
         self.autoDiscoverChecksums = autoDiscoverChecksums
+        self.assessSignatures = assessSignatures
         self.autoCategorize = autoCategorize
         self.resumeDownloadsOnLaunch = resumeDownloadsOnLaunch
         self.proxy = proxy
@@ -79,6 +85,7 @@ public struct EngineSettings: Sendable, Hashable, Codable {
         case defaultSegmentCount, maxSegmentCount, globalSpeedLimitBytesPerSecond
         case maxRetryAttempts, retryBaseDelaySeconds, retryMaxDelaySeconds
         case minimumSegmentSizeBytes, verifyChecksumsAutomatically, autoDiscoverChecksums, autoCategorize
+        case assessSignatures
         case resumeDownloadsOnLaunch
         case proxy, postCompletionAction
     }
@@ -107,6 +114,7 @@ public struct EngineSettings: Sendable, Hashable, Codable {
             minimumSegmentSizeBytes: try value(.minimumSegmentSizeBytes, fallback.minimumSegmentSizeBytes),
             verifyChecksumsAutomatically: try value(.verifyChecksumsAutomatically, fallback.verifyChecksumsAutomatically),
             autoDiscoverChecksums: try value(.autoDiscoverChecksums, fallback.autoDiscoverChecksums),
+            assessSignatures: try value(.assessSignatures, fallback.assessSignatures),
             autoCategorize: try value(.autoCategorize, fallback.autoCategorize),
             resumeDownloadsOnLaunch: try value(.resumeDownloadsOnLaunch, fallback.resumeDownloadsOnLaunch),
             proxy: try container.decodeIfPresent(ProxyConfiguration.self, forKey: .proxy),

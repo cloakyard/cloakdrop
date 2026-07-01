@@ -29,6 +29,15 @@ struct AddDownloadSheet: View {
     @State private var referrer = ""
     @State private var cookies = ""
 
+    // On-device link intelligence: a debounced pre-flight of the entered URL, so the sheet shows
+    // what's actually there (size, type, resumability, connection estimate) before the user commits.
+    @State private var preview: LinkPreview?
+    @State private var isInspecting = false
+    @State private var previewFailed = false
+    /// The URL a preview was last resolved (or attempted) for, so re-typing the same link doesn't reprobe.
+    @State private var lastInspectedURL: URL?
+    @State private var inspectionTask: Task<Void, Never>?
+
     private var resolvedURL: URL? { AppModel.normalizedURL(urlString) }
     private var canAdd: Bool { resolvedURL != nil }
 
@@ -48,7 +57,13 @@ struct AddDownloadSheet: View {
                 Section("Source") {
                     TextField("URL", text: $urlString, prompt: Text("https://example.com/file.zip"))
                         .textFieldStyle(.roundedBorder)
-                        .onChange(of: urlString) { _, _ in deriveFileNameIfNeeded() }
+                        .onChange(of: urlString) { _, _ in
+                            deriveFileNameIfNeeded()
+                            scheduleInspection()
+                        }
+                    if isInspecting || preview != nil || previewFailed {
+                        linkPreviewRow
+                    }
                     TextField("Save As", text: $fileName, prompt: Text("File name"))
                         .textFieldStyle(.roundedBorder)
                 }
@@ -129,6 +144,107 @@ struct AddDownloadSheet: View {
         }
         .frame(width: 520, height: 600)
         .onAppear(perform: prefill)
+        .onDisappear { inspectionTask?.cancel() }
+    }
+
+    // MARK: Link preview
+
+    /// The pre-flight summary row shown under the URL field: a spinner while probing, a compact
+    /// file card once resolved, or a muted note if the server couldn't be reached.
+    @ViewBuilder
+    private var linkPreviewRow: some View {
+        if isInspecting {
+            HStack(spacing: 8) {
+                ProgressView().controlSize(.small)
+                Text("Checking link…")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+            .transition(.opacity)
+        } else if let preview {
+            HStack(spacing: 10) {
+                Image(systemName: FileIcon.symbol(forFileName: preview.suggestedFileName))
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 24)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(preview.suggestedFileName)
+                        .font(.callout)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Text(previewDetailLine(preview))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    if preview.wasRedirected, let host = preview.finalURL.host() {
+                        Label("Redirects to \(host)", systemImage: "arrow.turn.down.right")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+            .transition(.opacity)
+        } else if previewFailed {
+            Label("Couldn’t preview this link — you can still add it.", systemImage: "wifi.exclamationmark")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .transition(.opacity)
+        }
+    }
+
+    /// "1.4 GB · Resumable · 8 connections" — only the parts we actually know, joined by dots.
+    private func previewDetailLine(_ preview: LinkPreview) -> String {
+        var parts: [String] = []
+        if preview.hasKnownSize { parts.append(Format.bytes(preview.totalBytes)) }
+        parts.append(preview.isResumable ? String(localized: "Resumable") : String(localized: "Not resumable"))
+        if preview.isMultiSegment { parts.append(String(localized: "\(preview.plannedSegmentCount) connections")) }
+        return parts.joined(separator: " · ")
+    }
+
+    /// Debounced pre-flight: wait for typing to settle, then probe the (valid) URL once. Cancels any
+    /// in-flight probe when the URL changes, and skips re-probing a URL already inspected.
+    private func scheduleInspection() {
+        inspectionTask?.cancel()
+        guard let url = resolvedURL else {
+            withAnimation(.smooth(duration: 0.2)) { preview = nil; isInspecting = false; previewFailed = false }
+            lastInspectedURL = nil
+            return
+        }
+        guard url != lastInspectedURL else { return }   // already have (or attempted) this exact URL
+        inspectionTask = Task {
+            try? await Task.sleep(for: .milliseconds(500))   // debounce keystrokes
+            guard !Task.isCancelled else { return }
+            withAnimation(.smooth(duration: 0.2)) { isInspecting = true; previewFailed = false }
+            let result = await model.preview(
+                url: url,
+                referrer: trimmedOrNil(referrer),
+                cookies: trimmedOrNil(cookies),
+                username: trimmedOrNil(username),
+                password: password.isEmpty ? nil : password
+            )
+            guard !Task.isCancelled else { return }
+            lastInspectedURL = url
+            withAnimation(.smooth(duration: 0.2)) {
+                isInspecting = false
+                preview = result
+                previewFailed = (result == nil)
+            }
+            if let result { adoptPreviewFileName(result) }
+        }
+    }
+
+    /// Adopt the server's file name when the user hasn't typed their own — the pre-flight often
+    /// knows a better name (from `Content-Disposition`) than the raw URL's last path component.
+    private func adoptPreviewFileName(_ preview: LinkPreview) {
+        guard fileName.isEmpty || fileName == lastAutoName else { return }
+        fileName = preview.suggestedFileName
+        lastAutoName = preview.suggestedFileName
+    }
+
+    private func trimmedOrNil(_ value: String) -> String? {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 
     // MARK: Actions
@@ -180,11 +296,6 @@ struct AddDownloadSheet: View {
             return expectation.isWellFormed ? expectation : nil
         }()
 
-        func trimmedOrNil(_ value: String) -> String? {
-            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-            return trimmed.isEmpty ? nil : trimmed
-        }
-
         let request = DownloadRequest(
             url: url,
             suggestedFileName: fileName.isEmpty ? nil : fileName,
@@ -200,7 +311,10 @@ struct AddDownloadSheet: View {
             referrer: trimmedOrNil(referrer),
             cookies: trimmedOrNil(cookies)
         )
-        model.grab(request)
+        // Only hand the pre-flight to duplicate detection if it's for the URL we're actually adding
+        // (the user may have edited the URL after the last probe resolved).
+        let effectivePreview = preview?.requestedURL == url ? preview : nil
+        model.grab(request, preview: effectivePreview)
         dismiss()
     }
 }

@@ -53,6 +53,14 @@ public final class GRDBDownloadStore: DownloadStore {
                 t.column("payload", .blob).notNull()
             }
         }
+        migrator.registerMigration("v2.createRuleTable") { db in
+            try db.create(table: "rule") { t in
+                t.primaryKey("id", .text)
+                t.column("orderIndex", .integer).notNull()
+                t.column("isEnabled", .boolean).notNull()
+                t.column("payload", .blob).notNull()
+            }
+        }
         return migrator
     }
 
@@ -136,6 +144,43 @@ public final class GRDBDownloadStore: DownloadStore {
         guard id != DownloadQueue.defaultQueueID else { return } // never delete the default queue
         _ = try await dbQueue.write { db in
             try db.execute(sql: "DELETE FROM queue WHERE id = ?", arguments: [id.uuidString])
+        }
+    }
+
+    // MARK: Smart rules
+
+    public func allRules() async throws -> [SmartRule] {
+        try await dbQueue.read { [decoder] db in
+            let payloads = try Row
+                .fetchAll(db, sql: "SELECT payload FROM rule ORDER BY orderIndex")
+                .map { $0["payload"] as Data? }
+            return payloads.compactMap { data in
+                guard let data else { return nil }
+                return try? decoder.decode(SmartRule.self, from: data)
+            }
+        }
+    }
+
+    public func save(_ rule: SmartRule) async throws {
+        try await dbQueue.write { [encoder] db in
+            let payload = try encoder.encode(rule)
+            try db.execute(
+                sql: """
+                INSERT INTO rule (id, orderIndex, isEnabled, payload)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    orderIndex = excluded.orderIndex,
+                    isEnabled = excluded.isEnabled,
+                    payload = excluded.payload
+                """,
+                arguments: [rule.id.uuidString, rule.order, rule.isEnabled, payload]
+            )
+        }
+    }
+
+    public func deleteRule(id: UUID) async throws {
+        _ = try await dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM rule WHERE id = ?", arguments: [id.uuidString])
         }
     }
 

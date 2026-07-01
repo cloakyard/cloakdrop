@@ -22,6 +22,11 @@ public protocol DownloadStore: Sendable {
     func save(_ queue: DownloadQueue) async throws
     func deleteQueue(id: UUID) async throws
 
+    // MARK: Smart rules
+    func allRules() async throws -> [SmartRule]
+    func save(_ rule: SmartRule) async throws
+    func deleteRule(id: UUID) async throws
+
     // MARK: Settings
     func loadSettings() async throws -> EngineSettings
     func save(settings: EngineSettings) async throws
