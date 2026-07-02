@@ -265,7 +265,7 @@ actor DownloadTask {
 
     /// Transfer a media plan: fetch the fMP4 init segment and any AES-128 keys, then each media
     /// segment in parallel (rate-limited, retrying on drops), decrypting as needed. Every segment
-    /// lands in its own file in the `.cloakparts` directory, so an interrupted grab resumes by
+    /// lands in its own file in the `.cdparts` directory, so an interrupted grab resumes by
     /// skipping the files already on disk — the same "disk is the source of truth" invariant the
     /// file path relies on, so it survives force-quit and reboot.
     private func transferMedia() async throws {

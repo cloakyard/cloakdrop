@@ -142,10 +142,10 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     }
 
     /// Path of the in-progress part file the engine writes into before finalizing (file downloads).
-    public var partFilePath: String { destinationFilePath + ".cloakpart" }
+    public var partFilePath: String { destinationFilePath + ".cdpart" }
 
     /// Directory of the in-progress media segment files (media downloads write one file per segment).
-    public var mediaPartDirectoryPath: String { destinationFilePath + ".cloakparts" }
+    public var mediaPartDirectoryPath: String { destinationFilePath + ".cdparts" }
 
     /// Bytes downloaded so far: the running media byte count for a media grab, else the sum across
     /// byte-range segments.

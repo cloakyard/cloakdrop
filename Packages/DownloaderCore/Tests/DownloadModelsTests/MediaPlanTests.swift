@@ -79,7 +79,7 @@ struct MediaPlanTests {
         var download = Download(url: URL(string: "https://x/master.m3u8")!, fileName: "video.mp4",
                                 destinationDirectoryPath: "/tmp/dl", mediaPlan: plan)
         #expect(download.isMedia)
-        #expect(download.mediaPartDirectoryPath == "/tmp/dl/video.mp4.cloakparts")
+        #expect(download.mediaPartDirectoryPath == "/tmp/dl/video.mp4.cdparts")
         #expect(download.fractionCompleted == 0)
         #expect(download.allSegmentsComplete == false)
 

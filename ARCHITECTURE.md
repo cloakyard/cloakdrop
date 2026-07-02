@@ -92,14 +92,14 @@ The concurrency core. Everything mutable is actor-isolated.
 2. Manager creates a `Download`, persists it, emits `.downloadAdded`, and schedules it if a queue
    slot is free.
 3. `DownloadTask.run`: probe → plan segments (or single-stream fallback) → pre-size the
-   `.cloakpart` file → transfer segments in parallel with retry/resume + throttle → emit throttled
+   `.cdpart` file → transfer segments in parallel with retry/resume + throttle → emit throttled
    `.progress` events and periodically persist.
 4. On completion: move part file → destination, verify checksum, mark completed, emit update.
    The manager fills the freed queue slot.
 
 ## Persistence & resume
 
-Bytes are written into a single sparse `*.cloakpart` file; each segment owns a contiguous byte
+Bytes are written into a single sparse `*.cdpart` file; each segment owns a contiguous byte
 region. Per-segment `downloadedBytes` is persisted, so a resume request starts exactly at
 `segment.start + downloadedBytes`. This is what makes **resume survive force-quit and reboot** —
 verified by an integration test that pauses mid-flight, discards the manager, and resumes a
