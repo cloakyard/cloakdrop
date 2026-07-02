@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The bundled ffmpeg is spawned by the sandboxed app to mux a grab's separate video/audio
+	     into one file. It must run inside the SAME sandbox as the app, not its own: `inherit`
+	     makes the child share the parent's container and its dynamically-acquired access — the
+	     Downloads entitlement and any security-scoped destination folder the transfer has open —
+	     so ffmpeg can read the `.cdparts` next to the destination and write the muxed output there.
+	     `inherit` requires app-sandbox and must be the ONLY sandbox key present. -->
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<key>com.apple.security.inherit</key>
+	<true/>
+</dict>
+</plist>

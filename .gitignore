@@ -35,6 +35,10 @@ Package.resolved
 # Xcode SPM integration caches
 *.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
 
+# Vendored ffmpeg — build artifact, produced by scripts/fetch-ffmpeg.sh (README is tracked)
+Vendor/ffmpeg/ffmpeg
+Vendor/ffmpeg/build/
+
 # Accidental secrets / local config
 *.xcconfig.local
 secrets.plist

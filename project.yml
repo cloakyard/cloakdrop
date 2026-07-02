@@ -98,6 +98,37 @@ targets:
         product: DownloadEngine
       - package: DownloaderCore
         product: DownloadPersistence
+    postCompileScripts:
+      # Bundle the optional, git-ignored static ffmpeg (built by scripts/fetch-ffmpeg.sh) into
+      # Contents/MacOS and sign it with the app's identity + inherit entitlements, so it runs in the
+      # app's sandbox and FFmpegMuxer.locate() finds it. Runs before Xcode's CodeSign so the app
+      # seal covers it. No-ops (with a warning) when the binary isn't present, so a checkout without
+      # it still builds — the app just remuxes with AVFoundation.
+      - name: Bundle & sign ffmpeg (optional; adds VP9/AV1/Opus muxing)
+        basedOnDependencyAnalysis: false
+        script: |
+          set -euo pipefail
+          FFMPEG_SRC="${SRCROOT}/Vendor/ffmpeg/ffmpeg"
+          if [ ! -f "${FFMPEG_SRC}" ]; then
+            echo "warning: Vendor/ffmpeg/ffmpeg not found — CloakDrop will remux with AVFoundation only. Run scripts/fetch-ffmpeg.sh to add VP9/AV1/Opus muxing."
+            exit 0
+          fi
+          DEST_DIR="${CODESIGNING_FOLDER_PATH}/Contents/MacOS"
+          mkdir -p "${DEST_DIR}"
+          cp -f "${FFMPEG_SRC}" "${DEST_DIR}/ffmpeg"
+          chmod +x "${DEST_DIR}/ffmpeg"
+          ENTITLEMENTS="${SRCROOT}/App/Resources/FFmpegHelper.entitlements"
+          IDENTITY="${EXPANDED_CODE_SIGN_IDENTITY:-}"
+          NAME="${EXPANDED_CODE_SIGN_IDENTITY_NAME:-}"
+          if [ -z "${IDENTITY}" ] || [ "${IDENTITY}" = "-" ] || [ "${NAME}" = "-" ] || [ "${NAME}" = "Sign to Run Locally" ]; then
+            # Local / ad-hoc: no hardened-runtime opts, no secure timestamp (needs a real identity + network).
+            echo "note: ad-hoc signing bundled ffmpeg"
+            codesign --force --sign - --entitlements "${ENTITLEMENTS}" "${DEST_DIR}/ffmpeg"
+          else
+            # Real identity (Developer ID for distribution): hardened runtime + secure timestamp so it notarizes.
+            echo "note: signing bundled ffmpeg with ${NAME}"
+            codesign --force --options runtime --timestamp --sign "${IDENTITY}" --entitlements "${ENTITLEMENTS}" "${DEST_DIR}/ffmpeg"
+          fi
 
   # Safari Web Extension: the native "Download with CloakDrop" path. The web half (manifest +
   # background service worker) lives in SafariExtension/WebExtension; the native handler validates
