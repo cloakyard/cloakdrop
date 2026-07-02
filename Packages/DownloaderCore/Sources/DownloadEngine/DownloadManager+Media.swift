@@ -18,8 +18,14 @@ public extension DownloadManager {
         guard let variant = stream.variants.first(where: { $0.id == variantID }) else {
             throw MediaParseError.noContent
         }
-        let resolved = try await MediaResolver(httpClient: httpClient).resolveVariant(variant, headers: headers)
-        return stream.plan(for: resolved)
+        let resolver = MediaResolver(httpClient: httpClient)
+        let resolved = try await resolver.resolveVariant(variant, headers: headers)
+        // Pair the variant with its separate audio track (HLS AUDIO group / DASH audio set) and
+        // resolve its playlist too, so a chosen video quality always downloads with sound. A failed
+        // audio resolution degrades to a video-only grab rather than failing the whole download.
+        var audio = stream.audioTrack(for: resolved)
+        if let track = audio { audio = try? await resolver.resolveAudioTrack(track, headers: headers) }
+        return stream.plan(for: resolved, audio: audio)
     }
 
     /// A sensible output name for a media grab, whose URL is a playlist (`master.m3u8`, `manifest.mpd`)

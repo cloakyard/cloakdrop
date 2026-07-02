@@ -11,58 +11,96 @@ import Foundation
 public struct MediaPlan: Sendable, Hashable, Codable {
     public var format: MediaFormat
     public var initSegment: MediaInitSegment?
-    /// The ordered segments to download and concatenate.
+    /// The ordered video (or muxed) segments to download and concatenate.
     public var segments: [MediaSegment]
     /// Carried from the chosen variant, for the row/inspector.
     public var resolution: MediaResolution?
     public var bandwidth: Int
+    /// For an adaptive rendition whose audio is a *separate* stream, the audio init segment and the
+    /// ordered audio segments to fetch alongside the video and mux in — so a "video" download always
+    /// has sound. Both are absent when the chosen rendition is already muxed (a plain HLS variant),
+    /// is itself audio-only, or the source has no separate audio. Optional so plans persisted before
+    /// this existed still decode.
+    public var audioInitSegment: MediaInitSegment?
+    public var audioSegments: [MediaSegment]?
 
     public init(
         format: MediaFormat,
         initSegment: MediaInitSegment? = nil,
         segments: [MediaSegment],
         resolution: MediaResolution? = nil,
-        bandwidth: Int = 0
+        bandwidth: Int = 0,
+        audioInitSegment: MediaInitSegment? = nil,
+        audioSegments: [MediaSegment]? = nil
     ) {
         self.format = format
         self.initSegment = initSegment
         self.segments = segments
         self.resolution = resolution
         self.bandwidth = bandwidth
+        self.audioInitSegment = audioInitSegment
+        self.audioSegments = audioSegments
     }
 
-    public var totalSegments: Int { segments.count }
+    /// Whether this plan carries a separate audio stream to download and mux into the video.
+    public var hasSeparateAudio: Bool { !(audioSegments ?? []).isEmpty }
 
-    /// Total media duration in seconds (sum of segment durations).
+    /// Total segments to download — video plus any separate audio — the progress denominator.
+    public var totalSegments: Int { segments.count + (audioSegments?.count ?? 0) }
+
+    /// Total media duration in seconds (sum of the video segment durations).
     public var duration: Double { segments.reduce(0) { $0 + $1.duration } }
 
-    /// Whether any segment is encrypted with a scheme we can't decrypt (e.g. SAMPLE-AES). The UI
+    /// Whether any segment (video or audio) uses a scheme we can't decrypt (e.g. SAMPLE-AES). The UI
     /// uses this to refuse a grab up front rather than fail mid-transfer.
-    public var hasUnsupportedEncryption: Bool { segments.contains { !$0.encryption.isDecryptable } }
+    public var hasUnsupportedEncryption: Bool {
+        (segments + (audioSegments ?? [])).contains { !$0.encryption.isDecryptable }
+    }
 
-    /// The distinct key URLs across the segments — the transfer fetches each once and caches it.
+    /// The distinct key URLs across all segments (video and audio) — fetched once each and cached.
     public var keyURLs: Set<URL> {
-        Set(segments.compactMap { $0.encryption.method == .aes128 ? $0.encryption.keyURL : nil })
+        Set((segments + (audioSegments ?? [])).compactMap { $0.encryption.method == .aes128 ? $0.encryption.keyURL : nil })
     }
 }
 
 public extension MediaStream {
-    /// A transfer plan for `variant`, which must already be resolved (its `segments` populated).
-    func plan(for variant: MediaVariant) -> MediaPlan {
+    /// A transfer plan for `variant`, which must already be resolved (its `segments` populated),
+    /// optionally muxing in a separate `audio` track (also resolved).
+    func plan(for variant: MediaVariant, audio: MediaTrack? = nil) -> MediaPlan {
         MediaPlan(
             format: format,
             initSegment: variant.initSegment,
             segments: variant.segments,
             resolution: variant.resolution,
-            bandwidth: variant.bandwidth
+            bandwidth: variant.bandwidth,
+            audioInitSegment: audio?.initSegment,
+            audioSegments: (audio?.segments).flatMap { $0.isEmpty ? nil : $0 }
         )
     }
 
-    /// A plan for the highest-bandwidth *resolved* variant — the default when the user doesn't pick.
+    /// The audio track to pair with `variant` so the download has sound, or `nil` when the variant is
+    /// already muxed / audio-only / the stream has no separate audio.
+    func audioTrack(for variant: MediaVariant) -> MediaTrack? {
+        guard variant.hasVideo, !audioTracks.isEmpty else { return nil }
+        switch format {
+        case .hls:
+            // Only an HLS variant that references an AUDIO rendition group is video-only; a variant
+            // with no group is muxed and already carries its audio.
+            guard let group = variant.audioGroupID else { return nil }
+            let inGroup = audioTracks.filter { $0.groupID == group }
+            return inGroup.first(where: \.isDefault) ?? inGroup.first
+        case .dash:
+            // DASH video representations never carry audio; pair the default (else first) audio set.
+            return audioTracks.first(where: \.isDefault) ?? audioTracks.first
+        }
+    }
+
+    /// A plan for the highest-bandwidth *resolved* variant — the default when the user doesn't pick —
+    /// paired with its audio track.
     var bestPlan: MediaPlan? {
         variants
             .filter { !$0.segments.isEmpty }
             .max { $0.bandwidth < $1.bandwidth }
-            .map { plan(for: $0) }
+            .map { plan(for: $0, audio: audioTrack(for: $0)) }
     }
 }

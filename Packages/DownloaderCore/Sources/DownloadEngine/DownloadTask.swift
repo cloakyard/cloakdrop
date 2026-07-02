@@ -364,17 +364,14 @@ actor DownloadTask {
         try FileManager.default.createDirectory(atPath: partDir, withIntermediateDirectories: true)
         let headers = download.requestHeaders
 
-        // fMP4 init segment — small, fetched once and reused across a resume.
-        if let initSegment = plan.initSegment {
-            let path = (partDir as NSString).appendingPathComponent("init.part")
-            if !FileManager.default.fileExists(atPath: path) {
-                let range = initSegment.byteRange.map { $0.offset...$0.end }
-                let data = try await fetchResource(url: initSegment.url, byteRange: range, headers: headers)
-                try data.write(to: URL(fileURLWithPath: path), options: .atomic)
-            }
+        // fMP4 init segments — small, fetched once and reused across a resume. A separate audio stream
+        // has its own init.
+        try await fetchInitIfNeeded(plan.initSegment, named: "init.part", partDir: partDir, headers: headers)
+        if plan.hasSeparateAudio {
+            try await fetchInitIfNeeded(plan.audioInitSegment, named: "audio-init.part", partDir: partDir, headers: headers)
         }
 
-        // AES-128 keys — usually one for the whole stream; fetch each distinct key once.
+        // AES-128 keys across video + audio — usually one for the whole stream; fetch each once.
         var keys: [URL: Data] = [:]
         for keyURL in plan.keyURLs {
             keys[keyURL] = try await fetchResource(url: keyURL, byteRange: nil, headers: headers)
@@ -385,7 +382,10 @@ actor DownloadTask {
         await persist()
         emitMediaProgress(plan: plan)
 
-        let remaining = plan.segments.filter { !FileManager.default.fileExists(atPath: segmentPath(partDir, $0)) }
+        // One work list over the video (or muxed) segments and any separate audio segments; each
+        // lands in its own file, so an interrupted grab resumes by skipping what's already there.
+        let remaining = mediaWorkItems(plan: plan, partDir: partDir)
+            .filter { !FileManager.default.fileExists(atPath: $0.path) }
         guard !remaining.isEmpty else { return }
 
         let limiters = perDownloadLimiters()
@@ -394,8 +394,9 @@ actor DownloadTask {
 
         for batch in remaining.chunked(into: concurrency) {
             try await withThrowingTaskGroup(of: Int.self) { group in
-                for segment in batch {
-                    let path = segmentPath(partDir, segment)
+                for item in batch {
+                    let path = item.path
+                    let segment = item.segment
                     let key = segment.encryption.method == .aes128 ? segment.encryption.keyURL.flatMap { keys[$0] } : nil
                     group.addTask { [httpClient] in
                         try await runMediaSegment(
@@ -417,12 +418,39 @@ actor DownloadTask {
         }
     }
 
-    /// Recompute completed-segment progress from the files already on disk (the resume basis).
+    /// One downloadable unit: a segment and the file it lands in. Video and audio share this list so
+    /// the transfer, resume, and progress logic treat both streams uniformly.
+    private struct MediaWorkItem { let segment: MediaSegment; let path: String }
+
+    /// Every segment to fetch for a plan — the video (or muxed) segments plus any separate audio —
+    /// each mapped to its own on-disk part file (audio in a distinct `audio-` namespace).
+    private func mediaWorkItems(plan: MediaPlan, partDir: String) -> [MediaWorkItem] {
+        var items = plan.segments.map { MediaWorkItem(segment: $0, path: segmentPath(partDir, $0)) }
+        for segment in (plan.audioSegments ?? []) {
+            items.append(MediaWorkItem(segment: segment, path: audioSegmentPath(partDir, segment)))
+        }
+        return items
+    }
+
+    /// Fetch an fMP4 init segment into `named` under the part dir, unless it's already there (resume).
+    private func fetchInitIfNeeded(
+        _ initSegment: MediaInitSegment?, named: String, partDir: String, headers: [String: String]
+    ) async throws {
+        guard let initSegment else { return }
+        let path = (partDir as NSString).appendingPathComponent(named)
+        guard !FileManager.default.fileExists(atPath: path) else { return }
+        let range = initSegment.byteRange.map { $0.offset...$0.end }
+        let data = try await fetchResource(url: initSegment.url, byteRange: range, headers: headers)
+        try data.write(to: URL(fileURLWithPath: path), options: .atomic)
+    }
+
+    /// Recompute completed-segment progress from the files already on disk (the resume basis) —
+    /// counting video and audio parts alike.
     private func syncMediaProgressFromDisk(plan: MediaPlan, partDir: String) {
         var completed = 0
         var bytes: Int64 = 0
-        for segment in plan.segments {
-            if let size = fileSize(segmentPath(partDir, segment)) {
+        for item in mediaWorkItems(plan: plan, partDir: partDir) {
+            if let size = fileSize(item.path) {
                 completed += 1
                 bytes += size
             }
@@ -492,24 +520,35 @@ actor DownloadTask {
         guard let plan = download.mediaPlan else { return }
         let partDir = download.mediaPartDirectoryPath
 
-        // Concatenate into one file inside the part directory, named with a content-appropriate
-        // extension so the remuxer's asset loader sniffs the right container: an fMP4 (init + `.m4s`)
-        // concatenation is an MP4; otherwise keep the segments' own extension (`.ts`, `.aac`, …) so
-        // raw elementary streams are recognised rather than mislabelled `.mp4`.
-        let assemblyExt: String
-        if plan.initSegment != nil {
-            assemblyExt = "mp4"
-        } else {
-            let segExt = plan.segments.first?.url.pathExtension.lowercased() ?? ""
-            assemblyExt = segExt.isEmpty ? "mp4" : segExt
-        }
-        let assemblyPath = (partDir as NSString).appendingPathComponent("assembly.\(assemblyExt)")
-        try concatenateMedia(plan: plan, partDir: partDir, into: assemblyPath)
+        // Assemble the video (or muxed) stream by concatenating its init + segments into one file,
+        // named with a content-appropriate extension so the remuxer's asset loader sniffs the right
+        // container: an fMP4 (init + `.m4s`) concatenation is an MP4; otherwise keep the segments'
+        // own extension (`.ts`, `.aac`, …) so raw elementary streams aren't mislabelled `.mp4`.
+        let videoExt = assemblyExtension(initSegment: plan.initSegment, segments: plan.segments)
+        let videoAssembly = (partDir as NSString).appendingPathComponent("assembly.\(videoExt)")
+        try concatenate(initNamed: "init.part", segments: plan.segments,
+                        pathFor: { segmentPath(partDir, $0) }, partDir: partDir, into: videoAssembly)
 
-        // Remux into a clean container when possible; otherwise keep the raw concatenation.
-        var sourcePath = assemblyPath
-        var container = assemblyExt
-        if let result = try? await remuxer.remux(sourcePath: assemblyPath) {
+        var sourcePath = videoAssembly
+        var container = videoExt
+        if plan.hasSeparateAudio {
+            // Assemble the separate audio stream and mux it into the video so the result has sound.
+            let audioSegs = plan.audioSegments ?? []
+            let audioExt = assemblyExtension(initSegment: plan.audioInitSegment, segments: audioSegs)
+            let audioAssembly = (partDir as NSString).appendingPathComponent("assembly-audio.\(audioExt)")
+            try concatenate(initNamed: "audio-init.part", segments: audioSegs,
+                            pathFor: { audioSegmentPath(partDir, $0) }, partDir: partDir, into: audioAssembly)
+            if let muxed = try? await remuxer.mux(videoPath: videoAssembly, audioPath: audioAssembly) {
+                sourcePath = muxed.outputPath
+                container = muxed.fileExtension
+            } else if let result = try? await remuxer.remux(sourcePath: videoAssembly) {
+                // Muxing these codecs isn't supported (e.g. VP9/Opus without the ffmpeg backend): ship
+                // a clean video-only file rather than fail the whole grab.
+                sourcePath = result.outputPath
+                container = result.fileExtension
+            }
+        } else if let result = try? await remuxer.remux(sourcePath: videoAssembly) {
+            // Single muxed stream — repackage into a clean container when possible.
             sourcePath = result.outputPath
             container = result.fileExtension
         }
@@ -530,9 +569,22 @@ actor DownloadTask {
         download.mediaDownloadedBytes = download.totalBytes ?? download.mediaDownloadedBytes
     }
 
-    /// Concatenate the fMP4 init segment (if any) and every media segment, in order, into a single
-    /// file at `assemblyPath` (created fresh inside the part directory).
-    private func concatenateMedia(plan: MediaPlan, partDir: String, into assemblyPath: String) throws {
+    /// The container extension for a concatenation: `mp4` for an fMP4 stream (has an init segment),
+    /// else the segments' own extension (`.ts`, `.aac`, …) so raw elementary streams aren't
+    /// mislabelled and the remuxer's loader sniffs the right container.
+    private func assemblyExtension(initSegment: MediaInitSegment?, segments: [MediaSegment]) -> String {
+        if initSegment != nil { return "mp4" }
+        let ext = segments.first?.url.pathExtension.lowercased() ?? ""
+        return ext.isEmpty ? "mp4" : ext
+    }
+
+    /// Concatenate an init segment (named file, if present) and every segment, in order, into a
+    /// single file at `assemblyPath`. `pathFor` maps a segment to its on-disk part file, so the same
+    /// routine assembles both the video and the separate audio stream.
+    private func concatenate(
+        initNamed initName: String, segments: [MediaSegment],
+        pathFor: (MediaSegment) -> String, partDir: String, into assemblyPath: String
+    ) throws {
         let fm = FileManager.default
         if !fm.fileExists(atPath: partDir) {
             try fm.createDirectory(atPath: partDir, withIntermediateDirectories: true)
@@ -554,13 +606,19 @@ actor DownloadTask {
             }
         }
 
-        let initPath = (partDir as NSString).appendingPathComponent("init.part")
+        let initPath = (partDir as NSString).appendingPathComponent(initName)
         if fm.fileExists(atPath: initPath) { try append(initPath) }
-        for segment in plan.segments { try append(segmentPath(partDir, segment)) }
+        for segment in segments { try append(pathFor(segment)) }
     }
 
     private func segmentPath(_ partDir: String, _ segment: MediaSegment) -> String {
         (partDir as NSString).appendingPathComponent("seg-\(segment.id).part")
+    }
+
+    /// Audio part files live in a distinct namespace so an audio segment can't collide with a video
+    /// segment that happens to share its media-sequence id.
+    private func audioSegmentPath(_ partDir: String, _ segment: MediaSegment) -> String {
+        (partDir as NSString).appendingPathComponent("audio-\(segment.id).part")
     }
 
     private func fileSize(_ path: String) -> Int64? {
