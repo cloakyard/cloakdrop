@@ -48,6 +48,24 @@ struct RemuxerTests {
         #expect(try await !asset.loadTracks(withMediaType: .audio).isEmpty)
     }
 
+    @Test("Muxes a separate video-only and audio-only file into one file carrying both tracks")
+    func muxesVideoAndAudioIntoOneFile() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let video = dir.appendingPathComponent("video.mp4")
+        let audio = dir.appendingPathComponent("audio.m4a")
+        try await MediaFixtures.writeVideoMP4(to: video)     // video-only (adaptive video stream)
+        try MediaFixtures.writeAudioM4A(to: audio)           // audio-only (matching audio stream)
+
+        let result = try await AVFoundationRemuxer().mux(videoPath: video.path, audioPath: audio.path)
+
+        #expect(result.fileExtension == "mp4")
+        let asset = AVURLAsset(url: URL(fileURLWithPath: result.outputPath))
+        #expect(try await !asset.loadTracks(withMediaType: .video).isEmpty)   // video kept
+        #expect(try await !asset.loadTracks(withMediaType: .audio).isEmpty)   // ...now WITH audio
+        #expect(try await asset.load(.duration).seconds > 0)
+    }
+
     @Test("A non-media file is rejected as unsupported so the caller keeps the raw concatenation")
     func rejectsNonMedia() async throws {
         let dir = try tempDir()

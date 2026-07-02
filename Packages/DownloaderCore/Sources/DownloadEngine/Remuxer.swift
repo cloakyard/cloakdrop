@@ -18,6 +18,21 @@ public protocol Remuxer: Sendable {
     /// keeps the raw concatenation, which is still playable. Implementations must not mutate or
     /// remove `sourcePath`; the caller owns its lifecycle.
     func remux(sourcePath: String) async throws -> RemuxResult
+
+    /// Combine a separate video-only file and audio-only file into one clean container carrying
+    /// both tracks — how an adaptive source's split video/audio streams become a single playable
+    /// file, so a "video" download always has sound. Throws `RemuxError.unsupported` when this
+    /// muxer can't combine the given codecs (the AVFoundation implementation handles H.264/HEVC +
+    /// AAC; VP9/AV1/Opus need the ffmpeg backend). Neither input is mutated.
+    func mux(videoPath: String, audioPath: String) async throws -> RemuxResult
+}
+
+public extension Remuxer {
+    /// Default: no muxing capability (the passthrough/test remuxer). Callers fall back to shipping
+    /// the video-only file when this throws.
+    func mux(videoPath: String, audioPath: String) async throws -> RemuxResult {
+        throw RemuxError.unsupported
+    }
 }
 
 /// The outcome of a successful remux: the file to hand to the destination and the container's
