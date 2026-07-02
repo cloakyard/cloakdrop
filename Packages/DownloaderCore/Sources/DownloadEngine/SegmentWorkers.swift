@@ -11,7 +11,8 @@ import DownloadModels
 /// cancellation. Returns when the segment is complete (or the open-ended stream ends).
 func runSegment(
     segment: DownloadSegment,
-    url: URL,
+    sources: [URL],
+    mirrorStart: Int,
     headers: [String: String],
     username: String?,
     password: String?,
@@ -30,6 +31,10 @@ func runSegment(
     var currentEnd = segment.end
     var attempt = 0
     var progressMark = local.currentOffset
+    // Which mirror this worker pulls from. It starts at `mirrorStart` (segments are seeded at
+    // different offsets so they spread across mirrors for parallel throughput) and advances on every
+    // failure, so a dead or throttling mirror is abandoned for the next one. `% sources.count` wraps.
+    var sourceIndex = mirrorStart
 
     while true {
         try Task.checkCancellation()
@@ -47,6 +52,7 @@ func runSegment(
         }
 
         let range: ClosedRange<Int64>? = canResume ? (local.currentOffset...currentEnd) : nil
+        let url = sources[sourceIndex % sources.count]
         do {
             let request = HTTPDownloadRequest(url: url, headers: headers, byteRange: range, username: username, password: password)
             let (_, stream) = try await httpClient.stream(request)
@@ -84,6 +90,7 @@ func runSegment(
             throw CancellationError()
         } catch {
             if Task.isCancelled { throw CancellationError() }
+            sourceIndex += 1   // failover: the next attempt pulls from the next mirror (no-op if single-source)
             try await accountRetry(error: error, attempt: &attempt, progressMark: &progressMark,
                                    progress: local.currentOffset, settings: settings)
         }

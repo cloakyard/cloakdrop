@@ -62,10 +62,16 @@ struct CloakDropCommands: Commands {
                 model.settingsSelection = .about
                 openSettings()
             }
+            Button("Download Stats…") {
+                model.settingsSelection = .stats
+                openSettings()
+            }
         }
         CommandGroup(replacing: .newItem) {
             Button("New Download…") { model.isAddSheetPresented = true }
                 .keyboardShortcut("n", modifiers: .command)
+            Button("Open Metalink…") { model.importMetalink() }
+                .keyboardShortcut("o", modifiers: .command)
         }
         CommandMenu("Downloads") {
             Button("Pause All") { model.pauseAll() }

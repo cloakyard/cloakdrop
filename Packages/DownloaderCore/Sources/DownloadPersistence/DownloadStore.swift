@@ -30,4 +30,13 @@ public protocol DownloadStore: Sendable {
     // MARK: Settings
     func loadSettings() async throws -> EngineSettings
     func save(settings: EngineSettings) async throws
+
+    // MARK: Stats
+    /// Add `bytes` to the bucket for the local day `date` falls in — called once when a download
+    /// completes. A non-positive `bytes` is ignored.
+    func recordDownloadedBytes(_ bytes: Int64, on date: Date) async throws
+    /// Today's, this month's, and all-time download totals, evaluated relative to `date`.
+    func loadStats(asOf date: Date) async throws -> DownloadStats
+    /// Clear every recorded total (the Settings ▸ Stats "Reset" action).
+    func resetStats() async throws
 }

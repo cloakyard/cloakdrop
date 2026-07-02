@@ -61,6 +61,15 @@ public final class GRDBDownloadStore: DownloadStore {
                 t.column("payload", .blob).notNull()
             }
         }
+        // Lifetime download stats: one row per calendar day (key "yyyy-MM-dd", the user's local day),
+        // so today / this-month / all-time totals are all derivable by SQL sum. Accumulated once per
+        // completed download.
+        migrator.registerMigration("v3.createStatsTable") { db in
+            try db.create(table: "statsDaily") { t in
+                t.primaryKey("day", .text)
+                t.column("bytes", .integer).notNull().defaults(to: 0)
+            }
+        }
         return migrator
     }
 
@@ -206,6 +215,51 @@ public final class GRDBDownloadStore: DownloadStore {
                 arguments: [data]
             )
         }
+    }
+
+    // MARK: Stats
+
+    public func recordDownloadedBytes(_ bytes: Int64, on date: Date) async throws {
+        guard bytes > 0 else { return }
+        let day = Self.dayKey(date)
+        try await dbQueue.write { db in
+            try db.execute(
+                sql: "INSERT INTO statsDaily (day, bytes) VALUES (?, ?) ON CONFLICT(day) DO UPDATE SET bytes = bytes + excluded.bytes",
+                arguments: [day, bytes]
+            )
+        }
+    }
+
+    public func loadStats(asOf date: Date) async throws -> DownloadStats {
+        let day = Self.dayKey(date)
+        let monthLike = Self.monthPrefix(date) + "-%"
+        return try await dbQueue.read { db in
+            let today = try Int64.fetchOne(db, sql: "SELECT bytes FROM statsDaily WHERE day = ?", arguments: [day]) ?? 0
+            let month = try Int64.fetchOne(
+                db, sql: "SELECT COALESCE(SUM(bytes), 0) FROM statsDaily WHERE day LIKE ?", arguments: [monthLike]
+            ) ?? 0
+            let all = try Int64.fetchOne(db, sql: "SELECT COALESCE(SUM(bytes), 0) FROM statsDaily") ?? 0
+            return DownloadStats(todayBytes: today, monthBytes: month, allTimeBytes: all)
+        }
+    }
+
+    public func resetStats() async throws {
+        try await dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM statsDaily")
+        }
+    }
+
+    /// "yyyy-MM-dd" for the day `date` falls in, in the user's local time zone (POSIX locale so the
+    /// key is stable regardless of UI language). A fresh formatter per call keeps this thread-safe on
+    /// the database queue.
+    private static func dayKey(_ date: Date) -> String { formatted(date, "yyyy-MM-dd") }
+    private static func monthPrefix(_ date: Date) -> String { formatted(date, "yyyy-MM") }
+    private static func formatted(_ date: Date, _ format: String) -> String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = .current
+        f.dateFormat = format
+        return f.string(from: date)
     }
 
     // MARK: - Row mapping helpers

@@ -32,6 +32,8 @@ final class AppModel {
     private(set) var settings: EngineSettings = .default
     /// User-defined routing rules, in evaluation order. Mirrored from the engine.
     private(set) var rules: [SmartRule] = []
+    /// Lifetime download totals (today / this month / all-time), shown in Settings ▸ Stats.
+    private(set) var stats: DownloadStats = .empty
 
     /// Poster-frame thumbnails for completed video grabs, keyed by download id (see
     /// `AppModel+Thumbnails`). Settable within the module so that extension can populate it.
@@ -145,6 +147,7 @@ final class AppModel {
         queues = snapshot.queues
         settings = snapshot.settings
         rules = snapshot.rules
+        stats = snapshot.stats
         startObservingEvents()
         refreshAmbient()
 
@@ -214,6 +217,8 @@ final class AppModel {
             settings = s
         case .rulesChanged(let r):
             rules = r
+        case .statsChanged(let s):
+            stats = s
         case .allDownloadsCompleted:
             applyPostCompletionAction()
         }
@@ -460,9 +465,14 @@ final class AppModel {
 
     // MARK: External capture (cloakdrop:// link, Safari/browser extension, share sheet)
 
-    /// Handle an incoming deep link. Parses a `cloakdrop://add?…` URL into a validated
-    /// `CapturedDownload` and starts it; non-cloakdrop or malformed links are ignored.
+    /// Handle an incoming deep link or opened file. A `cloakdrop://add?…` URL becomes a
+    /// `CapturedDownload`; a `.metalink`/`.meta4` file becomes one or more multi-source downloads;
+    /// anything else is ignored.
     func handleIncomingURL(_ url: URL) {
+        if url.isFileURL {
+            if Self.isMetalink(url) { openMetalink(url) }
+            return
+        }
         guard url.scheme?.lowercased() == "cloakdrop" else { return }
         guard let capture = try? CapturedDownload.parse(cloakdropURL: url) else { return }
         enqueueCapture(capture)
@@ -513,6 +523,11 @@ final class AppModel {
     func pauseAll() { Task { await manager.pauseAll() } }
     func resumeAll() { Task { await manager.resumeAll() } }
     func clearCompleted() { Task { await manager.clearCompleted() } }
+
+    /// Recompute lifetime stats (e.g. when the Stats tab appears, so "today" is fresh after midnight).
+    func refreshStats() { Task { await manager.reloadStats() } }
+    /// Clear every recorded download total (Settings ▸ Stats ▸ Reset).
+    func resetStats() { Task { await manager.resetStats() } }
 
     /// Whether any completed download is present (drives the "Clear Completed" command).
     var hasCompleted: Bool { downloads.contains { $0.status == .completed } }

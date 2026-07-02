@@ -9,6 +9,10 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     public let id: UUID
     /// The source URL being downloaded.
     public var url: URL
+    /// Additional mirror URLs for the *same* content (from a Metalink), strongest-first and
+    /// excluding `url`. The segment workers spread across these for parallel throughput and fail
+    /// over between them on a transient error. Optional so older persisted records still decode.
+    public var mirrors: [URL]?
     /// The final file name on disk (including extension).
     public var fileName: String
     /// Absolute path of the destination directory chosen by the user.
@@ -81,6 +85,7 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     public init(
         id: UUID = UUID(),
         url: URL,
+        mirrors: [URL]? = nil,
         fileName: String,
         destinationDirectoryPath: String,
         destinationBookmark: Data? = nil,
@@ -112,6 +117,7 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     ) {
         self.id = id
         self.url = url
+        self.mirrors = mirrors
         self.fileName = fileName
         self.destinationDirectoryPath = destinationDirectoryPath
         self.destinationBookmark = destinationBookmark
@@ -146,6 +152,14 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
 
     /// Whether this is a media (HLS/DASH) grab rather than a normal file download.
     public var isMedia: Bool { mediaPlan != nil }
+
+    /// Every source to pull bytes from, best-first and de-duplicated: the primary `url` followed by
+    /// any Metalink `mirrors`. The segment workers round-robin across this list (each segment starts
+    /// on a different entry for parallel throughput) and advance to the next on a transient failure.
+    public var transferSources: [URL] {
+        var seen = Set<URL>()
+        return ([url] + (mirrors ?? [])).filter { seen.insert($0).inserted }
+    }
 
     /// Absolute destination path of the finished file.
     public var destinationFilePath: String {

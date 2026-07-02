@@ -67,6 +67,14 @@ targets:
             CFBundleTypeRole: Viewer
             CFBundleURLSchemes:
               - cloakdrop
+        # Open Metalink documents (.metalink/.meta4) → one multi-source (multi-mirror) download each.
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Metalink
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Default
+            CFBundleTypeExtensions:
+              - metalink
+              - meta4
         # "Send to CloakDrop" Services item: select a link in any app, right-click ▸ Services.
         # Handled in-process by ServicesProvider (registered as NSApp.servicesProvider at launch).
         NSServices:

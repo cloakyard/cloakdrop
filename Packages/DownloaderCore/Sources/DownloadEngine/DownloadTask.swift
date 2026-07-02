@@ -141,14 +141,29 @@ actor DownloadTask {
         }
 
         if download.segments.isEmpty {
-            let head = try await httpClient.probe(
-                HTTPDownloadRequest(
-                    url: download.url,
-                    headers: download.requestHeaders,
-                    username: download.username,
-                    password: download.password
-                )
-            )
+            // Probe mirrors best-first, falling over to the next when one is unreachable, so a dead
+            // primary doesn't sink a download that other Metalink mirrors could serve. (Single-source
+            // downloads just probe their one URL.)
+            var probed: HTTPResponseHead?
+            var probeError: Error?
+            for source in download.transferSources {
+                do {
+                    probed = try await httpClient.probe(
+                        HTTPDownloadRequest(
+                            url: source,
+                            headers: download.requestHeaders,
+                            username: download.username,
+                            password: download.password
+                        )
+                    )
+                    break
+                } catch is CancellationError {
+                    throw CancellationError()
+                } catch {
+                    probeError = error
+                }
+            }
+            guard let head = probed else { throw probeError ?? DownloadError.networkLost }
             download.totalBytes = head.totalBytes
             download.supportsResume = head.acceptsRanges && head.totalBytes != nil
             download.etag = head.etag
@@ -230,7 +245,7 @@ actor DownloadTask {
         let incomplete = download.segments.enumerated().filter { !$0.element.isComplete || download.totalBytes == nil }
         guard !incomplete.isEmpty else { return }
 
-        let url = download.url
+        let sources = download.transferSources
         let headers = download.requestHeaders
         let username = download.username
         let password = download.password
@@ -246,7 +261,8 @@ actor DownloadTask {
                 group.addTask { [httpClient] in
                     try await runSegment(
                         segment: segment,
-                        url: url,
+                        sources: sources,
+                        mirrorStart: segmentID,
                         headers: headers,
                         username: username,
                         password: password,

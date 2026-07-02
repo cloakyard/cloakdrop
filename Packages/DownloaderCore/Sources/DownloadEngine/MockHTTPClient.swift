@@ -46,6 +46,7 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
     private var _probeCount = 0
     private var _streamCount = 0
     private var _lastRequest: HTTPDownloadRequest?
+    private var _streamedURLs: [URL] = []
 
     /// Bytes per yielded chunk; small values stress chunk reassembly.
     public var chunkSize: Int = 16 * 1024
@@ -77,6 +78,9 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
     public var streamCount: Int { lock.withLock { _streamCount } }
     /// The most recent request seen by `probe`/`stream`, for asserting threaded values (auth, headers).
     public var lastRequest: HTTPDownloadRequest? { lock.withLock { _lastRequest } }
+    /// Every URL `stream` was called with, in order — lets a test assert which mirrors were used
+    /// (multi-source spread) and that a dead mirror was retried against a live one (failover).
+    public var streamedURLs: [URL] { lock.withLock { _streamedURLs } }
 
     public func probe(_ request: HTTPDownloadRequest) async throws -> HTTPResponseHead {
         let resource: Resource? = lock.withLock {
@@ -115,6 +119,7 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
         let plan: StreamPlan? = lock.withLock {
             _streamCount += 1
             _lastRequest = request
+            _streamedURLs.append(request.url)
             guard let resource = resources[request.url] else { return nil }
             let willDrop = pendingDrops > 0
             if willDrop { pendingDrops -= 1 }

@@ -8,6 +8,7 @@ public struct EngineSnapshot: Sendable {
     public let queues: [DownloadQueue]
     public let settings: EngineSettings
     public let rules: [SmartRule]
+    public let stats: DownloadStats
 }
 
 /// The engine's coordinator: the single entry point the app talks to.
@@ -27,6 +28,9 @@ public actor DownloadManager {
     private var settings: EngineSettings = .default
     private var downloads: [UUID: Download] = [:]
     private var queues: [UUID: DownloadQueue] = [:]
+    /// Cached lifetime download totals, loaded at `start()` and refreshed on each completion, so
+    /// `snapshot()` can stay synchronous. The store holds the durable per-day buckets.
+    private var currentStats: DownloadStats = .empty
     /// User-defined routing rules, kept sorted by `order` (evaluation priority).
     private var rules: [SmartRule] = []
     private var tasks: [UUID: DownloadTask] = [:]
@@ -97,6 +101,7 @@ public actor DownloadManager {
             }
             downloads[download.id] = download
         }
+        currentStats = (try? await store.loadStats(asOf: Date())) ?? .empty
 
         startNetworkMonitoring()
         startScheduler()
@@ -110,11 +115,26 @@ public actor DownloadManager {
             downloads: Array(downloads.values).sorted { ($0.order, $0.createdAt) < ($1.order, $1.createdAt) },
             queues: Array(queues.values).sorted { $0.order < $1.order },
             settings: settings,
-            rules: rules
+            rules: rules,
+            stats: currentStats
         )
     }
 
     public func currentSettings() -> EngineSettings { settings }
+
+    /// Recompute lifetime totals from the store (e.g. when the Stats tab opens, or after midnight has
+    /// rolled the "today" bucket) and publish the result.
+    public func reloadStats() async {
+        currentStats = (try? await store.loadStats(asOf: Date())) ?? currentStats
+        eventContinuation.yield(.statsChanged(currentStats))
+    }
+
+    /// Clear every recorded download total (Settings ▸ Stats ▸ Reset).
+    public func resetStats() async {
+        try? await store.resetStats()
+        currentStats = .empty
+        eventContinuation.yield(.statsChanged(.empty))
+    }
     public func currentRules() -> [SmartRule] { rules }
 
     // MARK: - Link intelligence (pre-flight)
@@ -173,6 +193,7 @@ public actor DownloadManager {
 
         var download = Download(
             url: effectiveRequest.url,
+            mirrors: effectiveRequest.mirrors.isEmpty ? nil : effectiveRequest.mirrors,
             fileName: fileName,
             destinationDirectoryPath: effectiveRequest.destinationDirectoryPath,
             destinationBookmark: effectiveRequest.destinationBookmark,
@@ -431,11 +452,17 @@ public actor DownloadManager {
         }
     }
 
-    private func taskFinished(id: UUID, result: Download) {
+    private func taskFinished(id: UUID, result: Download) async {
         downloads[id] = result
         tasks[id] = nil
         handles[id] = nil
-        if result.status == .completed { enqueueRecurrence(of: result) }
+        if result.status == .completed {
+            enqueueRecurrence(of: result)
+            // Fold this download's bytes into the lifetime stats (once — taskFinished runs once per run).
+            try? await store.recordDownloadedBytes(result.downloadedBytes, on: Date())
+            currentStats = (try? await store.loadStats(asOf: Date())) ?? currentStats
+            eventContinuation.yield(.statsChanged(currentStats))
+        }
         scheduleQueue(result.queueID)
         signalIfQueueDrained(after: result)
     }

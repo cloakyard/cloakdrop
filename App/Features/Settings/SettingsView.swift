@@ -4,7 +4,7 @@ import DownloadModels
 /// The Settings window's tabs. Held as app state so a menu command (e.g. "About CloakDrop")
 /// can open Settings directly to a specific tab.
 enum SettingsTab: Hashable {
-    case general, rules, network, browsers, privacy, about
+    case general, rules, network, browsers, privacy, stats, about
 }
 
 /// Preferences: engine tunables, CloakDrop's privacy posture, and app/author info.
@@ -26,6 +26,9 @@ struct SettingsView: View {
             BrowsersSettingsView()
                 .tabItem { Label("Browsers", systemImage: "globe") }
                 .tag(SettingsTab.browsers)
+            StatsSettingsView()
+                .tabItem { Label("Stats", systemImage: "medal.fill") }
+                .tag(SettingsTab.stats)
             privacy
                 .tabItem { Label("Privacy", systemImage: "lock.shield") }
                 .tag(SettingsTab.privacy)
@@ -223,13 +226,8 @@ struct SettingsView: View {
 
     private var about: some View {
         VStack(spacing: 14) {
-            // A dedicated asset, not `NSApp.applicationIconImage`: the latter is served from
-            // macOS's icon cache, which can lag a rebuilt icon (showing a stale version). This
-            // loads the exact shipped artwork straight from the catalog.
-            Image("AboutAppIcon")
-                .resizable()
-                .interpolation(.high)
-                .frame(width: 96, height: 96)
+            // Tap it more than five times for a Matrix easter egg (see AboutIconView).
+            AboutIconView()
                 .padding(.top, 4)
 
             VStack(spacing: 3) {
