@@ -39,6 +39,16 @@ enum AppEnvironment {
     static func makeManager() throws -> DownloadManager {
         let dbPath = try supportDirectory().appendingPathComponent("cloakdrop.sqlite").path
         let store = try GRDBDownloadStore(path: dbPath)
-        return DownloadManager(store: store)
+        return DownloadManager(store: store, remuxer: makeRemuxer())
+    }
+
+    /// The media remuxer that assembles adaptive grabs into a clean, single file with sound.
+    /// AVFoundation runs first (fast, in-process, no bundled dependency — H.264/HEVC + AAC), falling
+    /// back to a bundled ffmpeg for the codecs it can't mux (VP9/AV1/Opus). Without a bundled ffmpeg
+    /// this is just AVFoundation, and grabs of those exotic codecs ship video-only.
+    private static func makeRemuxer() -> any Remuxer {
+        var remuxers: [any Remuxer] = [AVFoundationRemuxer()]
+        if let ffmpeg = FFmpegMuxer.locate() { remuxers.append(ffmpeg) }
+        return remuxers.count == 1 ? remuxers[0] : CompositeRemuxer(remuxers)
     }
 }

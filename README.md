@@ -27,7 +27,7 @@ Serious multi-segment download power with the look and feel of a first-party app
 | 🗂️ **Queues & categories** | Per-queue concurrency limits, smart filters, and auto-sorting of finished files into per-type folders. |
 | 📋 **Effortless capture** | Clipboard watching, drag & drop, batch/bulk add with pattern expansion (`file[01-50].zip`), scheduler, HTTP auth, cookies/referrer, and system/direct/manual proxy. |
 | 🌐 **Browser & system capture** | A bundled Safari Web Extension, a Chrome/Edge/Brave/Firefox extension over a native-messaging host, plus a Share Extension and a "Send to CloakDrop" Services item — all funnelling through one privacy-preserving on-device inbox. |
-| 🎬 **Media grabbing** | Detects HLS (`.m3u8`) and DASH (`.mpd`) streams, lists qualities, downloads the segments over the same engine, decrypts AES-128, and remuxes into a clean, playable `.mp4`/`.m4a` (AVFoundation passthrough — no re-encode). |
+| 🎬 **Media grabbing** | Detects HLS (`.m3u8`) and DASH (`.mpd`) streams, lists qualities, downloads the segments over the same engine, decrypts AES-128, and always pairs a video rendition with its separate audio track so a grab is never silent — muxing and remuxing into a clean, playable file (AVFoundation passthrough → `.mp4`/`.m4a`; a bundled ffmpeg stream-copies VP9/AV1/Opus → `.mkv`; no re-encode either way). |
 | 🌍 **Fully localized** | Every UI string translated into 11 languages (English, Spanish, French, German, Simplified Chinese, Japanese, Korean, Brazilian Portuguese, Russian, Arabic, Hindi). |
 | 🪟 **Native to the bone** | SwiftUI + Liquid Glass, full light/dark, VoiceOver + full-keyboard access, a live menu-bar extra, and a Dock icon that shows overall progress at a glance. |
 
@@ -49,7 +49,7 @@ CloakDrop makes **no** network requests except to the URLs you choose to downloa
 | Networking | `URLSession` with HTTP Range for segmentation & resume |
 | Persistence | GRDB (SQLite) |
 | Integrity | CryptoKit |
-| Media | AVFoundation for passthrough remux (HLS/DASH → clean `.mp4`/`.m4a`) and poster-frame thumbnails |
+| Media | AVFoundation for passthrough remux/mux (HLS/DASH → clean `.mp4`/`.m4a`) with a bundled ffmpeg fallback for VP9/AV1/Opus (→ `.mkv`), plus poster-frame thumbnails |
 | Capture | Safari/WebExtension + native-messaging host + Share/Services, bridged through a shared App Group inbox |
 | Build | XcodeGen (`project.yml` → `.xcodeproj`), SwiftLint |
 

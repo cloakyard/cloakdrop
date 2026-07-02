@@ -64,12 +64,16 @@ The concurrency core. Everything mutable is actor-isolated.
   pre-flight; `CodeSignatureInspector` (protocol → `SecCodeSignatureInspector`, Security framework,
   in-process, no network) assesses a finished `.app`/`.dmg`'s code signature in `DownloadTask.finalize`.
   Smart-rule routing is applied in `DownloadManager.add` (folder / queue / speed cap / auto-start).
-- **Media** — `MediaResolver` fetches + parses a manifest URL into a ready `MediaPlan`;
-  `DownloadTask` grabs the segments over the same engine, decrypting AES-128 (`AES128`);
-  `Remuxer` (protocol → `AVFoundationRemuxer`) passthrough-remuxes the result into a clean
-  container; `MediaThumbnailer` renders a poster frame. `ChecksumResolver` fetches a sibling
-  checksum for auto-verification. All behind protocols / injected, so the transfer path stays
-  testable against `MockHTTPClient`.
+- **Media** — `MediaResolver` fetches + parses a manifest URL into a ready `MediaPlan`, pairing an
+  adaptive video rendition with its separate audio track so a "video" grab always has sound;
+  `DownloadTask` grabs the video *and* audio segments over the same engine, decrypting AES-128
+  (`AES128`), then muxes and passthrough-remuxes the result into a clean container. The `Remuxer`
+  protocol has two backends behind a `CompositeRemuxer` (tries each in order): `AVFoundationRemuxer`
+  first — fast, in-process, no dependency, H.264/HEVC + AAC → `.mp4`/`.m4a` — falling back to a
+  bundled `FFmpegMuxer` (stream-copy via a `Process`) for the codecs AVFoundation can't carry
+  (VP9/AV1/Opus → `.mkv`). `MediaThumbnailer` renders a poster frame; `ChecksumResolver` fetches a
+  sibling checksum for auto-verification. All behind protocols / injected, so the transfer path
+  stays testable against `MockHTTPClient`.
 
 ## Concurrency model
 

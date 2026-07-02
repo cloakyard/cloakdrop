@@ -51,22 +51,28 @@ public struct AVFoundationRemuxer: Remuxer {
         guard let sourceVideo = (try? await videoAsset.loadTracks(withMediaType: .video))?.first else {
             throw RemuxError.unsupported
         }
-        let videoDuration = (try? await videoAsset.load(.duration)) ?? .zero
-        let composition = AVMutableComposition()
-        let videoTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
-        do {
-            try videoTrack?.insertTimeRange(CMTimeRange(start: .zero, duration: videoDuration), of: sourceVideo, at: .zero)
-        } catch {
-            throw RemuxError.failed(error.localizedDescription)
+        // Audio is mandatory: the whole point of muxing is to give the video sound. If AVFoundation
+        // can't read the audio (e.g. Opus), report `.unsupported` and let the ffmpeg backend mux it
+        // rather than silently exporting a soundless video — which would satisfy the caller and
+        // strand the download without audio.
+        guard let sourceAudio = (try? await audioAsset.loadTracks(withMediaType: .audio))?.first else {
+            throw RemuxError.unsupported
         }
+        let videoDuration = (try? await videoAsset.load(.duration)) ?? .zero
+        let audioDuration = (try? await audioAsset.load(.duration)) ?? videoDuration
 
-        // Audio is best-effort: if it can't be read, we still emit a (silent) video rather than fail.
-        if let sourceAudio = (try? await audioAsset.loadTracks(withMediaType: .audio))?.first {
-            let audioDuration = (try? await audioAsset.load(.duration)) ?? videoDuration
-            // Clamp to the video's length so a slightly longer/shorter audio track can't skew A/V sync.
+        let composition = AVMutableComposition()
+        guard let videoTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid),
+              let audioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) else {
+            throw RemuxError.unsupported
+        }
+        do {
+            try videoTrack.insertTimeRange(CMTimeRange(start: .zero, duration: videoDuration), of: sourceVideo, at: .zero)
+            // Clamp audio to the video's length so a slightly longer/shorter track can't skew A/V sync.
             let span = CMTimeMinimum(videoDuration, audioDuration)
-            let audioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
-            try? audioTrack?.insertTimeRange(CMTimeRange(start: .zero, duration: span), of: sourceAudio, at: .zero)
+            try audioTrack.insertTimeRange(CMTimeRange(start: .zero, duration: span), of: sourceAudio, at: .zero)
+        } catch {
+            throw RemuxError.unsupported     // couldn't assemble these tracks → let ffmpeg try
         }
 
         guard let session = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetPassthrough) else {

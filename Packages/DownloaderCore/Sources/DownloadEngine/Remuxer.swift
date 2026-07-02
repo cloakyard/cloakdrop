@@ -57,6 +57,47 @@ public enum RemuxError: Error, Sendable, Equatable {
     case failed(String)
 }
 
+/// A `Remuxer` that tries an ordered list of backends and uses the first that succeeds. Each
+/// operation runs every backend in turn, falling through to the next on **any** throw
+/// (`.unsupported` or `.failed`), and only rethrows the last backend's error when they all fail.
+///
+/// This is how CloakDrop pairs a fast in-process backend with a heavier, more capable one:
+/// `AVFoundationRemuxer` first (no subprocess, no bundled dependency — handles H.264/HEVC + AAC),
+/// then a bundled `FFmpegMuxer` for the codecs AVFoundation rejects (VP9/AV1/Opus). A "video" grab
+/// gets its audio muxed in whenever *either* backend can do it, and only ships video-only when
+/// neither can.
+public struct CompositeRemuxer: Remuxer {
+    private let remuxers: [any Remuxer]
+
+    /// Order matters: earlier backends are preferred, later ones are fallbacks. An empty list makes
+    /// every operation throw `.unsupported`.
+    public init(_ remuxers: [any Remuxer]) {
+        self.remuxers = remuxers
+    }
+
+    public func remux(sourcePath: String) async throws -> RemuxResult {
+        try await firstSuccess { try await $0.remux(sourcePath: sourcePath) }
+    }
+
+    public func mux(videoPath: String, audioPath: String) async throws -> RemuxResult {
+        try await firstSuccess { try await $0.mux(videoPath: videoPath, audioPath: audioPath) }
+    }
+
+    /// Run `operation` against each backend in order, returning the first success and remembering the
+    /// most recent error to rethrow if every backend fails.
+    private func firstSuccess(_ operation: (any Remuxer) async throws -> RemuxResult) async throws -> RemuxResult {
+        var lastError: any Error = RemuxError.unsupported
+        for remuxer in remuxers {
+            do {
+                return try await operation(remuxer)
+            } catch {
+                lastError = error
+            }
+        }
+        throw lastError
+    }
+}
+
 /// A `Remuxer` that performs **no** repackaging: it returns the concatenation unchanged. Used as
 /// the deterministic remuxer in tests and as an explicit opt-out where a clean container isn't
 /// wanted. The `fileExtension` reflects the source file's own extension, so the caller's
