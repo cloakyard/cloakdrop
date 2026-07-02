@@ -31,6 +31,14 @@ actor DownloadTask {
     private var lastPersist: ContinuousClock.Instant
     /// Timestamp of the last forward-progress sample, for accumulating active-transfer time.
     private var lastStatSample: ContinuousClock.Instant?
+    /// Live byte tallies of the *in-flight* media segments (keyed by part-file path) — the
+    /// mid-segment progress the completed count can't see, so a paired grab whose whole video is
+    /// one segment still shows moving bytes. Entries clear as their segments complete.
+    private var mediaInflight: [String: Int64] = [:]
+    /// Expected size per media segment (keyed by part-file path), reported by workers from the
+    /// response head / seeded from completed files on disk. Once every segment is present the sum
+    /// becomes the grab's byte total, giving the UI a real fraction and ETA.
+    private var mediaExpected: [String: Int64] = [:]
 
     init(
         download: Download,
@@ -393,13 +401,13 @@ actor DownloadTask {
         let settings = self.settings
 
         for batch in remaining.chunked(into: concurrency) {
-            try await withThrowingTaskGroup(of: Int.self) { group in
+            try await withThrowingTaskGroup(of: (String, Int).self) { group in
                 for item in batch {
                     let path = item.path
                     let segment = item.segment
                     let key = segment.encryption.method == .aes128 ? segment.encryption.keyURL.flatMap { keys[$0] } : nil
                     group.addTask { [httpClient] in
-                        try await runMediaSegment(
+                        let bytes = try await runMediaSegment(
                             segment: segment,
                             filePath: path,
                             key: key,
@@ -407,12 +415,14 @@ actor DownloadTask {
                             httpClient: httpClient,
                             limiters: limiters,
                             settings: settings,
-                            onBytes: { delta in await self.recordMediaBytes(delta) }
+                            onExpectedBytes: { total in await self.recordMediaExpected(path: path, bytes: total) },
+                            onBytes: { delta in await self.recordMediaBytes(path: path, delta: delta) }
                         )
+                        return (path, bytes)
                     }
                 }
-                for try await bytes in group {
-                    markMediaSegmentComplete(bytes: Int64(bytes), plan: plan)
+                for try await (path, bytes) in group {
+                    markMediaSegmentComplete(path: path, bytes: Int64(bytes), plan: plan)
                 }
             }
         }
@@ -449,17 +459,29 @@ actor DownloadTask {
     private func syncMediaProgressFromDisk(plan: MediaPlan, partDir: String) {
         var completed = 0
         var bytes: Int64 = 0
+        mediaInflight = [:]
+        mediaExpected = [:]
         for item in mediaWorkItems(plan: plan, partDir: partDir) {
             if let size = fileSize(item.path) {
                 completed += 1
                 bytes += size
+                mediaExpected[item.path] = size   // a finished file *is* its expected size
             }
         }
         download.mediaCompletedSegments = completed
         download.mediaDownloadedBytes = bytes
     }
 
-    private func recordMediaBytes(_ delta: Int) {
+    /// Record a worker's transfer delta for one segment. A negative delta retracts bytes a restart
+    /// discarded (a refused resume) — it adjusts the in-flight tally without polluting the speed
+    /// stats. The tally from a *previous* run's partial isn't counted here (it was never added), so
+    /// the clamp to zero keeps a retraction from bleeding into other segments' bytes.
+    private func recordMediaBytes(path: String, delta: Int) {
+        guard delta >= 0 else {
+            mediaInflight[path] = max(0, (mediaInflight[path] ?? 0) + Int64(delta))
+            return
+        }
+        mediaInflight[path, default: 0] += Int64(delta)
         let now = clock.now
         speedSampler.add(bytes: Int64(delta), at: now)
         recordStats(at: now)
@@ -467,6 +489,11 @@ actor DownloadTask {
             lastEmit = now
             emitMediaProgress(plan: plan)
         }
+    }
+
+    /// Record a segment's expected size (from its response head) — see `mediaExpected`.
+    private func recordMediaExpected(path: String, bytes: Int64) {
+        mediaExpected[path] = bytes
     }
 
     /// Update the peak-rate and active-transfer-time stats from the current sample. Called only on
@@ -482,9 +509,11 @@ actor DownloadTask {
         lastStatSample = now
     }
 
-    private func markMediaSegmentComplete(bytes: Int64, plan: MediaPlan) {
+    private func markMediaSegmentComplete(path: String, bytes: Int64, plan: MediaPlan) {
         download.mediaCompletedSegments += 1
         download.mediaDownloadedBytes += bytes
+        mediaInflight[path] = nil                 // its bytes now live in the completed tally
+        mediaExpected[path] = bytes               // the actual size is authoritative
         emitMediaProgress(plan: plan)
         let now = clock.now
         // Persist less often than the file path: a media resume recomputes progress from the segment
@@ -499,10 +528,17 @@ actor DownloadTask {
     }
 
     private func emitMediaProgress(plan: MediaPlan) {
+        // Live bytes include the in-flight segments; the total appears once every segment's size is
+        // known (immediately for a paired grab, whose 1–2 segments all start at once) — giving the
+        // UI a byte-accurate bar and ETA instead of a frozen "0 of 2 segments".
+        let inflight = mediaInflight.values.reduce(0, +)
+        let totalBytes: Int64? = mediaExpected.count == plan.totalSegments
+            ? mediaExpected.values.reduce(0, +)
+            : nil
         emit(.progress(DownloadProgress(
             id: download.id,
-            downloadedBytes: download.mediaDownloadedBytes,
-            totalBytes: nil,
+            downloadedBytes: download.mediaDownloadedBytes + inflight,
+            totalBytes: totalBytes,
             bytesPerSecond: speedSampler.rate(now: clock.now),
             peakBytesPerSecond: download.peakBytesPerSecond ?? 0,
             averageBytesPerSecond: download.averageBytesPerSecond ?? 0,

@@ -91,10 +91,19 @@ func runSegment(
 
 // MARK: - Media segment worker
 
-/// Fetch one media segment fully (retrying with backoff on drops), decrypt it if AES-128, and write
-/// it to its own file. Returns the bytes written. The whole segment is the resume unit: a failed
-/// segment is re-fetched from scratch, and a completed segment leaves a file the next run skips.
-/// Honors pause/cancel via task cancellation.
+/// Fetch one media segment (retrying with backoff on drops) and write it to its own file. Returns
+/// the bytes written. A completed segment leaves a file the next run skips; pause/cancel is honored
+/// via task cancellation.
+///
+/// A *cleartext* segment streams straight to a sibling `.partial` file — constant memory even when
+/// the "segment" is a whole adaptive video (a paired video/audio grab is one file per stream) — and
+/// a retry resumes from the bytes already on disk with a ranged request, so a drop late in a
+/// gigabyte file doesn't start over. An AES-128 segment is buffered and decrypted whole; those are
+/// small HLS chunks by construction, and CBC needs the complete ciphertext anyway.
+///
+/// `onExpectedBytes` reports the segment's expected size once known (explicit byte range, or the
+/// response's total), so the caller can surface byte-accurate totals. `onBytes` reports transfer
+/// deltas; a *negative* delta retracts bytes discarded by a restart (a resume the server refused).
 func runMediaSegment(
     segment: MediaSegment,
     filePath: String,
@@ -103,35 +112,26 @@ func runMediaSegment(
     httpClient: any HTTPClient,
     limiters: [BandwidthLimiter],
     settings: EngineSettings,
+    onExpectedBytes: @Sendable (Int64) async -> Void,
     onBytes: @Sendable (Int) async -> Void
 ) async throws -> Int {
-    let byteRange = segment.byteRange.map { $0.offset...$0.end }
+    var fetch = MediaSegmentFetch(segment: segment, filePath: filePath)
     var attempt = 0
 
     while true {
         try Task.checkCancellation()
         do {
-            let request = HTTPDownloadRequest(url: segment.url, headers: headers, byteRange: byteRange)
-            let (_, stream) = try await httpClient.stream(request)
-            var buffer = Data()
-            for try await chunk in stream {
-                try Task.checkCancellation()
-                if chunk.isEmpty { continue }
-                for limiter in limiters { await limiter.awaitAllowance(byteCount: chunk.count) }
-                buffer.append(chunk)
-                await onBytes(chunk.count)
+            if key != nil {
+                return try await fetchEncryptedMediaSegment(
+                    segment: segment, filePath: filePath, key: key, headers: headers,
+                    httpClient: httpClient, limiters: limiters,
+                    onExpectedBytes: onExpectedBytes, onBytes: onBytes
+                )
             }
-            // A pause/cancel can end the stream early (a cancelled consumer's iterator just finishes),
-            // so re-check before committing — otherwise we'd write a truncated segment and count it done.
-            try Task.checkCancellation()
-
-            var output = buffer
-            if let key {
-                let iv = AES128.iv(explicit: segment.encryption.iv, sequenceNumber: segment.id)
-                output = try AES128.decryptCBC(buffer, key: key, iv: iv)
-            }
-            try output.write(to: URL(fileURLWithPath: filePath), options: .atomic)
-            return output.count
+            return try await streamMediaSegmentToDisk(
+                fetch: &fetch, headers: headers, httpClient: httpClient, limiters: limiters,
+                onExpectedBytes: onExpectedBytes, onBytes: onBytes
+            )
         } catch is CancellationError {
             throw CancellationError()
         } catch {
@@ -140,6 +140,152 @@ func runMediaSegment(
             try await backoffOrThrow(attempt: attempt, settings: settings, lastError: error)
         }
     }
+}
+
+/// Per-segment fetch state carried across retries: where the segment starts in its resource, the
+/// (inclusive) end once known — from an explicit byte range, a response's total, or a probe — and
+/// whether the expected size was already reported.
+private struct MediaSegmentFetch {
+    let segment: MediaSegment
+    let filePath: String
+    var knownEnd: Int64?
+    var expectedNotified = false
+
+    init(segment: MediaSegment, filePath: String) {
+        self.segment = segment
+        self.filePath = filePath
+        self.knownEnd = segment.byteRange?.end
+    }
+
+    var partialPath: String { filePath + ".partial" }
+    var base: Int64 { segment.byteRange?.offset ?? 0 }
+
+    /// The segment's expected byte count: an explicit range's length, else the response's total.
+    func expectedLength(head: HTTPResponseHead) -> Int64? {
+        segment.byteRange?.length ?? head.totalBytes
+    }
+}
+
+/// One streaming attempt: resume from any `.partial` bytes with a ranged request (falling back to a
+/// clean restart when the server won't honor it), append arriving chunks to disk, and promote the
+/// partial to the final part file once the byte count checks out. Throws to signal "retry".
+private func streamMediaSegmentToDisk(
+    fetch: inout MediaSegmentFetch,
+    headers: [String: String],
+    httpClient: any HTTPClient,
+    limiters: [BandwidthLimiter],
+    onExpectedBytes: @Sendable (Int64) async -> Void,
+    onBytes: @Sendable (Int) async -> Void
+) async throws -> Int {
+    let fm = FileManager.default
+    var resumeFrom = partialSize(fetch.partialPath)
+
+    // Resuming needs a bounded range. When a previous *run* left a partial (relaunch) we don't know
+    // the end yet — learn it with a probe, or start clean if the server can't tell us / won't range.
+    if resumeFrom > 0, fetch.knownEnd == nil {
+        let head = try? await httpClient.probe(HTTPDownloadRequest(url: fetch.segment.url, headers: headers))
+        if let head, head.acceptsRanges, let total = head.totalBytes {
+            fetch.knownEnd = total - 1
+        } else {
+            try? fm.removeItem(atPath: fetch.partialPath)
+            resumeFrom = 0
+        }
+    }
+
+    let range: ClosedRange<Int64>?
+    if resumeFrom > 0, let end = fetch.knownEnd {
+        range = (fetch.base + resumeFrom)...end
+    } else {
+        range = fetch.segment.byteRange.map { $0.offset...$0.end }
+    }
+    let request = HTTPDownloadRequest(url: fetch.segment.url, headers: headers, byteRange: range)
+    let (head, stream) = try await httpClient.stream(request)
+
+    // We asked to resume but the server sent the whole body (no 206): retract the bytes we'd
+    // already counted and restart from scratch — appending a full body would corrupt the segment.
+    if resumeFrom > 0, head.statusCode != 206 {
+        await onBytes(-Int(resumeFrom))
+        try? fm.removeItem(atPath: fetch.partialPath)
+        resumeFrom = 0
+    }
+    if fetch.knownEnd == nil, let total = head.totalBytes { fetch.knownEnd = total - 1 }
+    if !fetch.expectedNotified, let expected = fetch.expectedLength(head: head) {
+        fetch.expectedNotified = true
+        await onExpectedBytes(expected)
+    }
+
+    if resumeFrom == 0 { fm.createFile(atPath: fetch.partialPath, contents: nil) }
+    guard let handle = FileHandle(forWritingAtPath: fetch.partialPath) else {
+        throw DownloadError.fileSystem(reason: "Could not open \(fetch.partialPath) for writing.")
+    }
+    var written = resumeFrom
+    do {
+        try handle.seekToEnd()
+        for try await chunk in stream {
+            try Task.checkCancellation()
+            if chunk.isEmpty { continue }
+            for limiter in limiters { await limiter.awaitAllowance(byteCount: chunk.count) }
+            try handle.write(contentsOf: chunk)
+            written += Int64(chunk.count)
+            await onBytes(chunk.count)
+        }
+        try handle.close()
+    } catch {
+        try? handle.close()   // keep the partial — the next attempt resumes from it
+        throw error
+    }
+    // A pause/cancel can end the stream early (a cancelled consumer's iterator just finishes), so
+    // re-check before committing — the partial stays for the resume.
+    try Task.checkCancellation()
+
+    // When the length is known, a short body is a silent drop — retry (and resume) instead of
+    // promoting a truncated segment.
+    if let end = fetch.knownEnd, written < end - fetch.base + 1 {
+        throw DownloadError.networkLost
+    }
+    try? fm.removeItem(atPath: fetch.filePath)
+    try fm.moveItem(atPath: fetch.partialPath, toPath: fetch.filePath)
+    return Int(written)
+}
+
+/// One buffered attempt for an AES-128 segment: fetch fully, decrypt, write atomically.
+private func fetchEncryptedMediaSegment(
+    segment: MediaSegment,
+    filePath: String,
+    key: Data?,
+    headers: [String: String],
+    httpClient: any HTTPClient,
+    limiters: [BandwidthLimiter],
+    onExpectedBytes: @Sendable (Int64) async -> Void,
+    onBytes: @Sendable (Int) async -> Void
+) async throws -> Int {
+    let byteRange = segment.byteRange.map { $0.offset...$0.end }
+    let request = HTTPDownloadRequest(url: segment.url, headers: headers, byteRange: byteRange)
+    let (head, stream) = try await httpClient.stream(request)
+    if let expected = segment.byteRange?.length ?? head.totalBytes {
+        await onExpectedBytes(expected)
+    }
+    var buffer = Data()
+    for try await chunk in stream {
+        try Task.checkCancellation()
+        if chunk.isEmpty { continue }
+        for limiter in limiters { await limiter.awaitAllowance(byteCount: chunk.count) }
+        buffer.append(chunk)
+        await onBytes(chunk.count)
+    }
+    try Task.checkCancellation()
+
+    var output = buffer
+    if let key {
+        let iv = AES128.iv(explicit: segment.encryption.iv, sequenceNumber: segment.id)
+        output = try AES128.decryptCBC(buffer, key: key, iv: iv)
+    }
+    try output.write(to: URL(fileURLWithPath: filePath), options: .atomic)
+    return output.count
+}
+
+private func partialSize(_ path: String) -> Int64 {
+    ((try? FileManager.default.attributesOfItem(atPath: path)[.size] as? NSNumber)?.int64Value) ?? 0
 }
 
 /// Sleep with jittered backoff before the next retry, or throw `retriesExhausted` once the attempt

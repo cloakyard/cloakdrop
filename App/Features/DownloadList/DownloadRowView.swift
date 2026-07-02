@@ -188,12 +188,15 @@ struct DownloadRowView: View {
     private var detailLine: String {
         switch download.status {
         case .downloading:
-            if let segments = model.liveMediaSegments(download) {
+            // A media grab shows its segment count only until the engine learns the byte total
+            // (immediately for a paired video+audio grab) — then the byte/ETA line takes over,
+            // which moves smoothly even when the whole video is a single segment.
+            if let segments = model.liveMediaSegments(download), model.liveTotalBytes(download) == nil {
                 let speed = Format.speed(model.liveSpeed(download))
                 return String(localized: "\(segments.completed) of \(segments.total) segments · \(speed)")
             }
             let done = Format.bytes(model.liveDownloadedBytes(download))
-            let total = Format.bytes(download.totalBytes)
+            let total = Format.bytes(model.liveTotalBytes(download))
             let speed = Format.speed(model.liveSpeed(download))
             let eta = Format.eta(model.eta(download))
             return String(localized: "\(done) of \(total) · \(speed) · \(eta) left")

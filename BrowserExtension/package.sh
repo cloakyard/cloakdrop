@@ -31,6 +31,15 @@ build() {
 build chrome  manifest.chrome.json
 build firefox manifest.firefox.json
 
+# The Safari Web Extension bundles the SAME shared assets (its manifest stays its own, inside the
+# Xcode target). It can't reference shared/ directly, so keep its copies in lockstep here — drift
+# means Safari silently ships an older extension than Chrome/Firefox.
+SAFARI="../SafariExtension/WebExtension"
+if [[ -d "$SAFARI" ]]; then
+  find shared -maxdepth 1 -type f ! -name "manifest*" -exec cp {} "$SAFARI/" \;
+  echo "synced $SAFARI"
+fi
+
 if [[ "${1:-}" == "--zip" ]]; then
   ( cd "$DIST/chrome"  && zip -qr "../cloakdrop-chrome.zip"  . )
   ( cd "$DIST/firefox" && zip -qr "../cloakdrop-firefox.zip" . )

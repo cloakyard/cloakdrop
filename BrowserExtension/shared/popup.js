@@ -58,11 +58,14 @@ function extractYouTube() {
     const extOf = (f) => ((f.mimeType || "").indexOf("webm") >= 0 ? "webm" : "mp4");
     const resOf = (f) => f.qualityLabel || (f.height ? f.height + "p" : "video");
 
-    // The best audio-only adaptive track (highest bitrate, direct url) to pair with video-only renditions.
+    // The audio track to pair with a video-only rendition: highest bitrate *in the video's own
+    // container* (AAC for mp4, Opus for webm — the pairing the app muxes without re-encoding),
+    // falling back to the best of any container.
     const adaptive = streaming.adaptiveFormats || [];
-    const bestAudio = adaptive
+    const audios = adaptive
       .filter((f) => f.url && (f.mimeType || "").indexOf("audio/") === 0)
-      .sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0))[0];
+      .sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
+    const audioFor = (ext) => audios.find((f) => (f.mimeType || "").indexOf(ext) >= 0) || audios[0];
 
     // Gather candidates from both sources, skipping ciphered entries (no direct `url`).
     const candidates = [];
@@ -71,17 +74,19 @@ function extractYouTube() {
         candidates.push({ url: f.url, height: f.height || 0, ext: extOf(f), res: resOf(f), muxed: true });
       }
     }
-    if (bestAudio) {
-      for (const f of adaptive) {                         // adaptive video-only: pair with the audio track
+    if (audios.length) {
+      for (const f of adaptive) {                         // adaptive video-only: pair with an audio track
         if (f.url && isVideo(f)) {
-          candidates.push({ url: f.url, audioUrl: bestAudio.url, height: f.height || 0, ext: extOf(f), res: resOf(f), muxed: false });
+          const ext = extOf(f);
+          candidates.push({ url: f.url, audioUrl: audioFor(ext).url, height: f.height || 0, ext, res: resOf(f), muxed: false });
         }
       }
     }
 
     // One entry per resolution, preferring: progressive (no mux needed) > H.264/mp4 (muxed in-process
     // by AVFoundation) > VP9/AV1 webm (needs the bundled ffmpeg) — the rendition that assembles most
-    // cheaply, keeping the list short.
+    // cheaply, keeping the list short. Every entry downloads with sound (progressive carries its own;
+    // adaptive is paired above), so the label doesn't need to say so.
     const rank = (c) => (c.muxed ? 3 : (c.ext === "mp4" ? 2 : 1));
     const byHeight = new Map();
     for (const c of candidates) {
@@ -95,7 +100,7 @@ function extractYouTube() {
         url: c.url,
         audioUrl: c.audioUrl,                             // undefined for progressive (already has audio)
         type: "video",
-        label: c.res + " · " + c.ext + (c.muxed ? " (with audio)" : ""),
+        label: c.res + " · " + c.ext,
         quality: c.height,
         filename: title + "." + c.ext
       }));

@@ -267,6 +267,13 @@ final class AppModel {
         progress[download.id]?.downloadedBytes ?? download.downloadedBytes
     }
 
+    /// The byte total to show — live from the engine when it has one (a media grab learns its total
+    /// from the segments' response heads), else the persisted value (`nil` while a media grab's
+    /// total is still unknown).
+    func liveTotalBytes(_ download: Download) -> Int64? {
+        progress[download.id]?.totalBytes ?? download.totalBytes
+    }
+
     func liveSpeed(_ download: Download) -> Double {
         progress[download.id]?.bytesPerSecond ?? 0
     }

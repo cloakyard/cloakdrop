@@ -44,14 +44,18 @@ public struct DownloadProgress: Sendable, Hashable, Identifiable {
         self.totalSegments = totalSegments
     }
 
-    /// Fraction complete in `0...1`, or `nil` if it can't be determined. Media uses the segment
-    /// share; a file download uses bytes over the total.
+    /// Fraction complete in `0...1`, or `nil` if it can't be determined. Bytes over the total when
+    /// the total is known — the accurate measure, and the only smooth one for a media grab whose
+    /// whole video is a single segment (a paired video+audio grab). The segment share is the
+    /// fallback for media whose byte total isn't known (typical HLS/DASH).
     public var fractionCompleted: Double? {
+        if let totalBytes, totalBytes > 0 {
+            return min(1.0, Double(downloadedBytes) / Double(totalBytes))
+        }
         if let completedSegments, let totalSegments, totalSegments > 0 {
             return min(1.0, Double(completedSegments) / Double(totalSegments))
         }
-        guard let totalBytes, totalBytes > 0 else { return nil }
-        return min(1.0, Double(downloadedBytes) / Double(totalBytes))
+        return nil
     }
 
     /// Estimated time remaining in seconds, or `nil` if it cannot be computed.

@@ -31,9 +31,11 @@ async function init() {
 }
 
 // YouTube serves adaptive audio/video from googlevideo with no manifest, so the network sniffer can't
-// reconstruct resolutions. Instead read the page's own player data (in the page's JS world) and list
-// the *progressive* formats — the ones that download as a single file with audio. These top out around
-// 720p; higher resolutions are audio-less adaptive streams, so they're intentionally not offered.
+// reconstruct resolutions. Instead read the page's own player data (in the page's JS world): the
+// *progressive* formats (muxed, one playable file, ≤720p) plus the higher-resolution *adaptive*
+// formats — each video-only rendition paired with the best audio track, which the app downloads
+// alongside and muxes in, so every offered resolution has sound. Ciphered (signatureCipher) URLs need
+// JS descrambling we don't do, so they're skipped.
 async function youTubeFormats(tabId, tabUrl) {
   if (!/(^|\.)youtube\.com$|(^|\.)youtu\.be$/.test(hostOf(tabUrl))) return [];
   try {
@@ -45,27 +47,63 @@ async function youTubeFormats(tabId, tabUrl) {
 // Runs in the page's own JS context (world: MAIN) so it can read `ytInitialPlayerResponse`.
 function extractYouTube() {
   try {
-    const streaming = window.ytInitialPlayerResponse && window.ytInitialPlayerResponse.streamingData;
+    const player = window.ytInitialPlayerResponse;
+    const streaming = player && player.streamingData;
     if (!streaming) return [];
-    const details = window.ytInitialPlayerResponse.videoDetails || {};
+    const details = player.videoDetails || {};
     const title = ((details.title || "video")
       .replace(/[\/\\:*?"<>|\n\r\t]+/g, "_").replace(/\s+/g, " ").trim().slice(0, 120)) || "video";
-    const out = [];
-    for (const f of (streaming.formats || [])) {   // progressive = muxed audio+video, one playable file
-      if (!f.url) continue;                         // ciphered (signatureCipher) — needs JS descrambling, skip
-      const mime = f.mimeType || "";
-      if (mime.indexOf("video/") !== 0) continue;
-      const ext = mime.indexOf("webm") >= 0 ? "webm" : "mp4";
-      const resolution = f.qualityLabel || (f.height ? f.height + "p" : "video");
-      out.push({
-        url: f.url,
-        type: "video",
-        label: resolution + " · " + ext + " (with audio)",
-        quality: f.height || 0,
-        filename: title + "." + ext
-      });
+
+    const isVideo = (f) => (f.mimeType || "").indexOf("video/") === 0;
+    const extOf = (f) => ((f.mimeType || "").indexOf("webm") >= 0 ? "webm" : "mp4");
+    const resOf = (f) => f.qualityLabel || (f.height ? f.height + "p" : "video");
+
+    // The audio track to pair with a video-only rendition: highest bitrate *in the video's own
+    // container* (AAC for mp4, Opus for webm — the pairing the app muxes without re-encoding),
+    // falling back to the best of any container.
+    const adaptive = streaming.adaptiveFormats || [];
+    const audios = adaptive
+      .filter((f) => f.url && (f.mimeType || "").indexOf("audio/") === 0)
+      .sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
+    const audioFor = (ext) => audios.find((f) => (f.mimeType || "").indexOf(ext) >= 0) || audios[0];
+
+    // Gather candidates from both sources, skipping ciphered entries (no direct `url`).
+    const candidates = [];
+    for (const f of (streaming.formats || [])) {          // progressive: already muxed, ≤720p
+      if (f.url && isVideo(f)) {
+        candidates.push({ url: f.url, height: f.height || 0, ext: extOf(f), res: resOf(f), muxed: true });
+      }
     }
-    return out.sort((a, b) => (b.quality || 0) - (a.quality || 0));
+    if (audios.length) {
+      for (const f of adaptive) {                         // adaptive video-only: pair with an audio track
+        if (f.url && isVideo(f)) {
+          const ext = extOf(f);
+          candidates.push({ url: f.url, audioUrl: audioFor(ext).url, height: f.height || 0, ext, res: resOf(f), muxed: false });
+        }
+      }
+    }
+
+    // One entry per resolution, preferring: progressive (no mux needed) > H.264/mp4 (muxed in-process
+    // by AVFoundation) > VP9/AV1 webm (needs the bundled ffmpeg) — the rendition that assembles most
+    // cheaply, keeping the list short. Every entry downloads with sound (progressive carries its own;
+    // adaptive is paired above), so the label doesn't need to say so.
+    const rank = (c) => (c.muxed ? 3 : (c.ext === "mp4" ? 2 : 1));
+    const byHeight = new Map();
+    for (const c of candidates) {
+      const current = byHeight.get(c.height);
+      if (!current || rank(c) > rank(current)) byHeight.set(c.height, c);
+    }
+
+    return [...byHeight.values()]
+      .sort((a, b) => b.height - a.height)
+      .map((c) => ({
+        url: c.url,
+        audioUrl: c.audioUrl,                             // undefined for progressive (already has audio)
+        type: "video",
+        label: c.res + " · " + c.ext,
+        quality: c.height,
+        filename: title + "." + c.ext
+      }));
   } catch (_) { return []; }
 }
 
@@ -187,7 +225,7 @@ async function sendDownload(item, referrer, button) {
   button.textContent = "Sent";
   button.classList.add("sent");
   try {
-    await api.runtime.sendMessage({ action: "download", url: item.url, referrer, filename: item.filename });
+    await api.runtime.sendMessage({ action: "download", url: item.url, audioUrl: item.audioUrl, referrer, filename: item.filename });
   } catch (_) {
     button.textContent = "Retry";
     button.classList.remove("sent");
