@@ -17,10 +17,11 @@
 # build phase copies+signs it into CloakDrop.app/Contents/MacOS on the next build; without it the
 # app just falls back to AVFoundation (H.264/HEVC + AAC only).
 #
+# CloakDrop ships Apple Silicon only, so this builds an arm64 binary and must run on Apple Silicon.
+#
 # Usage:
-#   scripts/fetch-ffmpeg.sh                 # build for the host architecture
-#   FFMPEG_UNIVERSAL=1 scripts/fetch-ffmpeg.sh   # build a universal arm64+x86_64 binary
-#   FFMPEG_SHA256=<hash> scripts/fetch-ffmpeg.sh # pin/verify the source tarball checksum
+#   scripts/fetch-ffmpeg.sh                       # build the arm64 (Apple Silicon) binary
+#   FFMPEG_SHA256=<hash> scripts/fetch-ffmpeg.sh  # override/verify the source tarball checksum
 #
 set -euo pipefail
 
@@ -92,37 +93,20 @@ COMMON_FLAGS=(
   --disable-debug
 )
 
-build_one() {   # build_one <arch> <install-dir>
-  local arch="$1" dest="$2"
-  local src="${SRC_DIR}-${arch}"
-  rm -rf "${src}"; cp -R "${SRC_DIR}" "${src}"
-  local sdk; sdk="$(xcrun --sdk macosx --show-sdk-path)"
-  local cross=()
-  if [ "${arch}" != "$(uname -m)" ]; then
-    cross=(--enable-cross-compile --arch="${arch}")
-  fi
-  info "Configuring (${arch})"
-  ( cd "${src}" && ./configure \
-      "${COMMON_FLAGS[@]}" \
-      "${cross[@]}" \
-      --cc="xcrun --sdk macosx clang -arch ${arch}" \
-      --extra-cflags="-arch ${arch} -isysroot ${sdk} -mmacosx-version-min=26.0" \
-      --extra-ldflags="-arch ${arch} -isysroot ${sdk} -mmacosx-version-min=26.0" \
-      --prefix="${dest}" >/dev/null )
-  info "Building (${arch}) — this takes a few minutes"
-  ( cd "${src}" && make -j"$(sysctl -n hw.ncpu)" >/dev/null && make install >/dev/null )
-}
+# --- Build (arm64 — CloakDrop is Apple Silicon only) -------------------------------------------
+[ "$(uname -m)" = "arm64" ] || fail "This builds arm64 only and must run on Apple Silicon (got $(uname -m))."
 
-# --- Build (host arch, or universal on request) ------------------------------------------------
-if [ "${FFMPEG_UNIVERSAL:-0}" = "1" ]; then
-  build_one arm64  "${BUILD_DIR}/out-arm64"
-  build_one x86_64 "${BUILD_DIR}/out-x86_64"
-  info "Creating universal binary"
-  lipo -create "${BUILD_DIR}/out-arm64/bin/ffmpeg" "${BUILD_DIR}/out-x86_64/bin/ffmpeg" -output "${OUTPUT}"
-else
-  build_one "$(uname -m)" "${BUILD_DIR}/out"
-  cp -f "${BUILD_DIR}/out/bin/ffmpeg" "${OUTPUT}"
-fi
+SDK="$(xcrun --sdk macosx --show-sdk-path)"
+info "Configuring (arm64)"
+( cd "${SRC_DIR}" && ./configure \
+    "${COMMON_FLAGS[@]}" \
+    --cc="xcrun --sdk macosx clang -arch arm64" \
+    --extra-cflags="-arch arm64 -isysroot ${SDK} -mmacosx-version-min=26.0" \
+    --extra-ldflags="-arch arm64 -isysroot ${SDK} -mmacosx-version-min=26.0" \
+    --prefix="${BUILD_DIR}/out" >/dev/null )
+info "Building (arm64) — this takes a few minutes"
+( cd "${SRC_DIR}" && make -j"$(sysctl -n hw.ncpu)" >/dev/null && make install >/dev/null )
+cp -f "${BUILD_DIR}/out/bin/ffmpeg" "${OUTPUT}"
 
 strip -S "${OUTPUT}" || true
 chmod +x "${OUTPUT}"
