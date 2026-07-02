@@ -102,6 +102,29 @@ struct EngineIntegrationTests {
         #expect(!FileManager.default.fileExists(atPath: done.partFilePath))  // part file cleaned up
     }
 
+    @Test("A slow straggler segment gets its tail stolen, splitting into more segments, and still reassembles byte-perfectly")
+    func dynamicResplittingStealsStragglerTail() async throws {
+        let payload = makePayload(1_000_000)
+        let h = try await Harness(data: payload)
+        // Four ~250 KB segments. The last quarter streams slowly, so the first three finish and steal
+        // its tail; the others race ahead at full speed.
+        var settings = await h.manager.currentSettings()
+        settings.defaultSegmentCount = 4
+        settings.minimumSegmentSizeBytes = 32 * 1024   // split threshold 64 KB ⇒ several splits, no tiny ones
+        await h.manager.updateSettings(settings)
+        h.mock.chunkSize = 8192
+        h.mock.slowFromOffset = 750_000
+        h.mock.slowChunkDelay = .milliseconds(4)
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        let done = try await h.waitFor(download.id, timeout: .seconds(30)) { $0.status == .completed }
+
+        #expect(done.segments.count > 4)          // the straggler's tail was split off at least once
+        #expect(try h.fileData(done) == payload)  // every split half landed in the right place
+        #expect(done.totalBytes == Int64(payload.count))
+    }
+
     @Test("A completed download records peak and average speed stats")
     func recordsSpeedStats() async throws {
         let payload = makePayload(200_000)

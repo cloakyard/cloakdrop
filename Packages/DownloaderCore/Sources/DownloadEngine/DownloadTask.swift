@@ -233,7 +233,7 @@ actor DownloadTask {
         let settings = self.settings
 
         try await withThrowingTaskGroup(of: Void.self) { group in
-            for (_, segment) in incomplete {
+            func spawn(_ segment: DownloadSegment) {
                 let segmentID = segment.id
                 group.addTask { [httpClient] in
                     try await runSegment(
@@ -252,9 +252,61 @@ actor DownloadTask {
                     )
                 }
             }
-            try await group.waitForAll()
+
+            for (_, segment) in incomplete { spawn(segment) }
+
+            // Work-stealing: as each connection finishes, hand it the unfinished tail of the segment
+            // with the most bytes left, so a slow straggler doesn't leave the other connections idle
+            // at the end. `stealWork` splits the victim at a point safely ahead of its write head and
+            // returns the new tail; the victim learns its reduced end via its next progress callback
+            // and stops there, so the two halves never overlap. Returns nil once nothing is worth
+            // splitting, at which point the group simply drains.
+            while try await group.next() != nil {
+                if let stolen = stealWork() { spawn(stolen) }
+            }
         }
     }
+
+    /// Reassign a just-freed connection to the biggest remaining segment by splitting its unfetched
+    /// tail into a fresh segment. Returns the new tail segment, or nil when no in-flight segment has
+    /// enough left to be worth splitting (each half must clear the minimum segment size) or the
+    /// transfer can't be range-resumed. Runs on the actor, so it observes a consistent segment table.
+    private func stealWork() -> DownloadSegment? {
+        // Only a range-resumable, known-size transfer can be safely re-split; an open-ended or
+        // non-resumable stream has no offsets to divide.
+        guard download.supportsResume, download.totalBytes != nil else { return nil }
+        // Bound the segment table so a pathological download can't split without end.
+        guard download.segments.count < 4 * settings.maxSegmentCount else { return nil }
+
+        // A worthwhile split leaves both halves at or above the minimum segment size; the resulting
+        // gap between the victim's write head and the split point (≥ half the remaining bytes) also
+        // dwarfs the sub-chunk lag in the victim's reported progress, so the halves can't overlap.
+        let minRemaining = 2 * settings.minimumSegmentSizeBytes
+        var victimIndex: Int?
+        var mostRemaining: Int64 = 0
+        for (index, segment) in download.segments.enumerated() {
+            let remaining = segment.end - segment.currentOffset + 1
+            if remaining >= minRemaining, remaining > mostRemaining {
+                victimIndex = index
+                mostRemaining = remaining
+            }
+        }
+        guard let victimIndex else { return nil }
+
+        let victim = download.segments[victimIndex]
+        let mid = victim.currentOffset + (victim.end - victim.currentOffset + 1) / 2
+        let oldEnd = victim.end
+        // Shrink the victim to [start, mid]; the freed worker takes the tail [mid + 1, oldEnd].
+        download.segments[victimIndex] = DownloadSegment(
+            id: victim.id, start: victim.start, end: mid, downloadedBytes: victim.downloadedBytes
+        )
+        let tail = DownloadSegment(id: nextSegmentID(), start: mid + 1, end: oldEnd, downloadedBytes: 0)
+        download.segments.append(tail)
+        return tail
+    }
+
+    /// A fresh, unused segment id (ids only ever grow, so splits never collide with existing ones).
+    private func nextSegmentID() -> Int { (download.segments.map(\.id).max() ?? -1) + 1 }
 
     private func perDownloadLimiters() -> [BandwidthLimiter] {
         var limiters = [globalLimiter]
@@ -264,9 +316,11 @@ actor DownloadTask {
         return limiters
     }
 
-    /// Apply a worker's byte delta to the authoritative record and stream throttled progress.
-    private func recordBytes(segmentID: Int, delta: Int) {
-        guard let index = download.segments.firstIndex(where: { $0.id == segmentID }) else { return }
+    /// Apply a worker's byte delta to the authoritative record and stream throttled progress, then
+    /// return the segment's current end offset — which work-stealing may have shrunk since the worker
+    /// last checked, telling it to stop early. `Int64.max` for an unknown segment id means "keep going".
+    private func recordBytes(segmentID: Int, delta: Int) -> Int64 {
+        guard let index = download.segments.firstIndex(where: { $0.id == segmentID }) else { return .max }
         download.segments[index].downloadedBytes = max(0, download.segments[index].downloadedBytes + Int64(delta))
 
         let now = clock.now
@@ -294,6 +348,7 @@ actor DownloadTask {
             let snapshot = download
             Task { try? await store.save(snapshot) }
         }
+        return download.segments[index].end
     }
 
     // MARK: Media transfer (HLS/DASH)

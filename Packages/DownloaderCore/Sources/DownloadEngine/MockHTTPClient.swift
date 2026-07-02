@@ -51,6 +51,11 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
     public var chunkSize: Int = 16 * 1024
     /// Artificial delay between chunks, to make transfers slow enough to pause mid-flight in tests.
     public var perChunkDelay: Duration = .zero
+    /// Requests whose range starts at or beyond this offset deliver at `slowChunkDelay` per chunk
+    /// instead of `perChunkDelay`, making that tail a deterministic straggler — used to exercise
+    /// dynamic segment re-splitting (work-stealing).
+    public var slowFromOffset: Int64?
+    public var slowChunkDelay: Duration = .zero
 
     public init(resources: [URL: Resource] = [:], pendingDrops: Int = 0, dropAfterBytes: Int = 0) {
         self.resources = resources
@@ -87,21 +92,26 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
     }
 
     public func stream(_ request: HTTPDownloadRequest) async throws -> (HTTPResponseHead, AsyncThrowingStream<Data, Error>) {
-        struct StreamPlan { let resource: Resource; let willDrop: Bool; let dropAt: Int; let chunk: Int; let delay: Duration }
+        struct StreamPlan {
+            let resource: Resource; let willDrop: Bool; let dropAt: Int; let chunk: Int
+            let delay: Duration; let slowFromOffset: Int64?; let slowDelay: Duration
+        }
         let plan: StreamPlan? = lock.withLock {
             _streamCount += 1
             _lastRequest = request
             guard let resource = resources[request.url] else { return nil }
             let willDrop = pendingDrops > 0
             if willDrop { pendingDrops -= 1 }
-            return StreamPlan(resource: resource, willDrop: willDrop, dropAt: dropAfterBytes, chunk: chunkSize, delay: perChunkDelay)
+            return StreamPlan(
+                resource: resource, willDrop: willDrop, dropAt: dropAfterBytes, chunk: chunkSize,
+                delay: perChunkDelay, slowFromOffset: slowFromOffset, slowDelay: slowChunkDelay
+            )
         }
         guard let plan else { throw DownloadError.httpStatus(code: 404) }
         let resource = plan.resource
         let willDrop = plan.willDrop
         let dropAt = plan.dropAt
         let chunk = plan.chunk
-        let delay = plan.delay
 
         // Resolve the byte slice this request is for. `total` drives slicing; `reportedTotal` is what
         // the head advertises — `nil` when the resource emulates an unknown-size (chunked) response.
@@ -131,6 +141,9 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
             )
             return (head, stream)
         }
+
+        // A tail past `slowFromOffset` streams at the slow rate, making it a deterministic straggler.
+        let delay: Duration = (plan.slowFromOffset.map { lower >= $0 } ?? false) ? plan.slowDelay : plan.delay
 
         let slice = resource.data.subdata(in: Int(lower)..<Int(upper + 1))
         let head = HTTPResponseHead(

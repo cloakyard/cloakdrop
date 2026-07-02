@@ -21,14 +21,18 @@ func runSegment(
     httpClient: any HTTPClient,
     limiters: [BandwidthLimiter],
     settings: EngineSettings,
-    onBytes: @Sendable (Int) async -> Void
+    onBytes: @Sendable (Int) async -> Int64
 ) async throws {
     var local = segment
+    // The authoritative end offset, refreshed from every progress report. Work-stealing can shrink
+    // it mid-transfer when another connection claims this segment's tail, at which point this worker
+    // stops early at the new boundary. `end` on the value-type snapshot never changes.
+    var currentEnd = segment.end
     var attempt = 0
 
     while true {
         try Task.checkCancellation()
-        if totalKnown && local.isComplete { return }
+        if totalKnown && local.currentOffset > currentEnd { return }   // done (possibly via a stolen tail)
 
         let canResume = supportsRanges && totalKnown
         // A server without range support replays the whole body from byte 0 on every (re)connection,
@@ -37,11 +41,11 @@ func runSegment(
         // (or a resume of a paused non-resumable download) writes byte-0 data at the advanced offset
         // and silently corrupts the file.
         if !canResume && local.downloadedBytes > 0 {
-            await onBytes(-Int(local.downloadedBytes))
+            currentEnd = await onBytes(-Int(local.downloadedBytes))
             local.downloadedBytes = 0
         }
 
-        let range: ClosedRange<Int64>? = canResume ? (local.currentOffset...local.end) : nil
+        let range: ClosedRange<Int64>? = canResume ? (local.currentOffset...currentEnd) : nil
         do {
             let request = HTTPDownloadRequest(url: url, headers: headers, byteRange: range, username: username, password: password)
             let (_, stream) = try await httpClient.stream(request)
@@ -54,7 +58,8 @@ func runSegment(
 
                 var data = chunk
                 if totalKnown && supportsRanges {
-                    let remaining = local.remainingBytes
+                    let remaining = currentEnd - local.currentOffset + 1
+                    if remaining <= 0 { break }                  // our tail was stolen; nothing left to write
                     if Int64(data.count) > remaining {
                         data = data.prefix(Int(remaining))
                     }
@@ -64,14 +69,14 @@ func runSegment(
                 }
                 try handle.write(data)
                 local.downloadedBytes += Int64(data.count)
-                await onBytes(data.count)
+                currentEnd = await onBytes(data.count)           // report progress; learn our (maybe shrunk) end
 
-                if totalKnown && supportsRanges && local.isComplete { break }
+                if totalKnown && supportsRanges && local.currentOffset > currentEnd { break }
             }
             handle.synchronize()
 
-            if !totalKnown { return }            // open-ended stream finished
-            if local.isComplete { return }
+            if !totalKnown { return }                             // open-ended stream finished
+            if local.currentOffset > currentEnd { return }        // segment complete (up to its current end)
             // Stream ended before the segment completed — treat as a drop and resume.
             throw DownloadError.networkLost
         } catch is CancellationError {
@@ -79,15 +84,7 @@ func runSegment(
         } catch {
             if Task.isCancelled { throw CancellationError() }
             attempt += 1
-            guard attempt <= settings.maxRetryAttempts else {
-                throw DownloadError.retriesExhausted(lastReason: failureMessage(error))
-            }
-            let delay = BackoffPolicy.jittered(
-                attempt: attempt,
-                base: settings.retryBaseDelaySeconds,
-                maximum: settings.retryMaxDelaySeconds
-            )
-            try await Task.sleep(for: .seconds(delay))
+            try await backoffOrThrow(attempt: attempt, settings: settings, lastError: error)
         }
     }
 }
@@ -140,17 +137,23 @@ func runMediaSegment(
         } catch {
             if Task.isCancelled { throw CancellationError() }
             attempt += 1
-            guard attempt <= settings.maxRetryAttempts else {
-                throw DownloadError.retriesExhausted(lastReason: failureMessage(error))
-            }
-            let delay = BackoffPolicy.jittered(
-                attempt: attempt,
-                base: settings.retryBaseDelaySeconds,
-                maximum: settings.retryMaxDelaySeconds
-            )
-            try await Task.sleep(for: .seconds(delay))
+            try await backoffOrThrow(attempt: attempt, settings: settings, lastError: error)
         }
     }
+}
+
+/// Sleep with jittered backoff before the next retry, or throw `retriesExhausted` once the attempt
+/// budget is spent. Shared by the file and media segment workers.
+private func backoffOrThrow(attempt: Int, settings: EngineSettings, lastError: any Error) async throws {
+    guard attempt <= settings.maxRetryAttempts else {
+        throw DownloadError.retriesExhausted(lastReason: failureMessage(lastError))
+    }
+    let delay = BackoffPolicy.jittered(
+        attempt: attempt,
+        base: settings.retryBaseDelaySeconds,
+        maximum: settings.retryMaxDelaySeconds
+    )
+    try await Task.sleep(for: .seconds(delay))
 }
 
 private func failureMessage(_ error: any Error) -> String {
