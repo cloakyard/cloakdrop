@@ -320,6 +320,32 @@ struct EngineIntegrationTests {
         #expect(try h.fileData(done) == payload)
     }
 
+    @Test("Resume restarts cleanly when the part file has vanished (no corrupt stitch)")
+    func resumeRestartsWhenPartFileMissing() async throws {
+        let payload = makePayload(400_000)
+        let h = try await Harness(data: payload)
+        h.mock.chunkSize = 2048
+        h.mock.perChunkDelay = .milliseconds(8)   // slow enough to pause mid-flight
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        try await awaitFirstBytes(h.manager, download.id)
+        await h.manager.pause(id: download.id)
+        let paused = try await h.waitFor(download.id) { $0.status == .paused }
+        #expect(paused.downloadedBytes > 0)
+        #expect(paused.downloadedBytes < Int64(payload.count))   // a genuine partial to resume from
+
+        // The part file that backs the persisted segment offsets disappears — deleted, moved, or
+        // orphaned by a format change. Resuming from those offsets into a fresh, zero-filled file
+        // would stitch garbage into the output; the engine must discard the stale progress instead.
+        try FileManager.default.removeItem(atPath: paused.partFilePath)
+
+        h.mock.perChunkDelay = .zero
+        await h.manager.resume(id: download.id)
+        let done = try await h.waitFor(download.id) { $0.status == .completed }
+        #expect(try h.fileData(done) == payload)   // byte-perfect ⇒ a clean restart, not a corrupt resume
+    }
+
     @Test("Resume issued immediately after pause is honored (no stuck-paused race)")
     func pauseThenImmediateResumeCompletes() async throws {
         let payload = makePayload(400_000)

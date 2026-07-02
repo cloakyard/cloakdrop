@@ -108,6 +108,19 @@ actor DownloadTask {
 
     /// Probe the server, plan segments, and create the part file (skipped on resume).
     private func prepareIfNeeded() async throws {
+        // Resuming a partial download whose part file can no longer back the persisted segment
+        // offsets — deleted, moved, on a now-unmounted volume, or orphaned by a part-file format
+        // change (e.g. a `.cloakpart` left behind when the extension became `.cdpart`) — would seek
+        // past the end of a freshly created, zero-filled file and stitch garbage into the output.
+        // Detect that up front, before any network probe, and restart cleanly from scratch.
+        if !download.segments.isEmpty, download.downloadedBytes > 0, !partFileBacksProgress() {
+            SegmentedFileWriter.discardPartData(for: download)
+            download.segments = []
+            download.startedAt = Date()
+            await persist()
+            emit(.downloadUpdated(download))
+        }
+
         // Resuming a partial, resumable download: make sure the server's copy hasn't changed under us.
         // If the ETag (or size) differs from probe time, the bytes on disk are stale — discard them
         // and start over, rather than stitching old and new content into a corrupt file.
@@ -186,6 +199,21 @@ actor DownloadTask {
             return oldSize != newSize
         }
         return false
+    }
+
+    /// True when the `.cdpart` file on disk can actually back the segments' persisted progress: it
+    /// exists and is at least large enough to hold the highest byte any segment claims to have
+    /// written (`start + downloadedBytes`). False means those bytes are gone — the part file was
+    /// deleted, moved, left on an unmounted volume, or orphaned by a format change — so resuming
+    /// from the persisted offsets would read zeros. Callers restart cleanly when this is false.
+    private func partFileBacksProgress() -> Bool {
+        let highestWrittenOffset = download.segments.reduce(Int64(0)) { highest, segment in
+            segment.downloadedBytes > 0 ? max(highest, segment.start + segment.downloadedBytes) : highest
+        }
+        guard highestWrittenOffset > 0 else { return true }   // no progress claimed ⇒ nothing to back
+        let attributes = try? FileManager.default.attributesOfItem(atPath: download.partFilePath)
+        let size = (attributes?[.size] as? NSNumber)?.int64Value ?? 0
+        return size >= highestWrittenOffset
     }
 
     // MARK: Transfer
