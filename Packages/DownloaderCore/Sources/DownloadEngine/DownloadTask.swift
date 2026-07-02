@@ -146,6 +146,18 @@ actor DownloadTask {
             await persist()
             emit(.downloadUpdated(download))
         }
+        // Fail early if the destination volume can't hold the bytes still to be written, rather than
+        // filling the disk and erroring out mid-transfer.
+        if let total = download.totalBytes {
+            let remaining = max(0, total - download.downloadedBytes)
+            let available = (try? URL(fileURLWithPath: download.destinationDirectoryPath)
+                .resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey]))?
+                .volumeAvailableCapacityForImportantUsage
+            if DiskSpace.isInsufficient(needed: remaining, available: available) {
+                throw DownloadError.insufficientDiskSpace(needed: remaining, available: available ?? 0)
+            }
+        }
+
         try SegmentedFileWriter.prepare(partPath: download.partFilePath, totalBytes: download.totalBytes)
     }
 

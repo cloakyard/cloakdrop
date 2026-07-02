@@ -94,6 +94,7 @@ final class AppModel {
     private let notifications = NotificationManager()
     private let clipboard = ClipboardMonitor()
     private let loginItem = LoginItemService()
+    private let sleepPreventer = SleepPreventer()
     private var eventTask: Task<Void, Never>?
     private var progressTask: Task<Void, Never>?
     private var didBootstrap = false
@@ -523,7 +524,9 @@ final class AppModel {
 
     private func refreshAmbient() {
         lastAmbientRefresh = ambientClock.now
-        dock.update(fraction: aggregateFraction, activeCount: activeCount)
+        let active = activeCount
+        dock.update(fraction: aggregateFraction, activeCount: active)
+        sleepPreventer.update(active: active > 0)
     }
 
     private func announce(transition download: Download, from previous: DownloadStatus?) {
