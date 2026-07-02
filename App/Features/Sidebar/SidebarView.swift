@@ -59,6 +59,7 @@ struct SidebarView: View {
         return HStack(spacing: 0) {
             Label {
                 Text(title)
+                    .foregroundStyle(isSelected ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
             } icon: {
                 Image(systemName: symbol)
                     .foregroundStyle(contentColor)
@@ -72,6 +73,14 @@ struct SidebarView: View {
         }
         .padding(.vertical, 1)
         .tag(selection)
+        // Draw the selection pill ourselves so the active filter stays accent-colored when focus
+        // moves to the download list (the system's source-list pill fades to an inactive grey,
+        // which reads as *losing* the selection — Music/Photos keep theirs, and so do we).
+        .listRowBackground(
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(isSelected ? Color.accentColor : .clear)
+                .padding(.horizontal, 5)
+        )
         // VoiceOver reads the filter name and its count; the List provides the "selected" trait.
         .accessibilityValue(count > 0 ? Text(verbatim: String(count)) : Text(verbatim: ""))
     }

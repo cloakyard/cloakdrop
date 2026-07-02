@@ -14,20 +14,20 @@ struct DownloadListView: View {
         @Bindable var model = model
         Group {
             if model.filteredDownloads.isEmpty {
+                // Float the banners over the placeholder: an inset would shrink this pane and push
+                // the empty state's fractional anchor out of line with the inspector's (its title is
+                // meant to sit on the same line as "No Selection" — see EmptyStateView).
                 emptyState
+                    .overlay(alignment: .top) { banners }
             } else {
+                // With real rows, the banners must push content down, never cover it.
                 list
+                    .safeAreaInset(edge: .top) { banners }
             }
         }
         .navigationTitle(model.effectiveSelection.title)
         .searchable(text: $model.searchText, placement: .toolbar, prompt: "Search downloads")
         .toolbar { toolbarContent }
-        .safeAreaInset(edge: .top) {
-            VStack(spacing: 6) {
-                captureBanner
-                clipboardBanner
-            }
-        }
         .dropDestination(for: URL.self) { urls, _ in
             model.acceptDrop(urls: urls, strings: [])
         }
@@ -55,6 +55,15 @@ struct DownloadListView: View {
 
     private var deleteButtonTitle: LocalizedStringKey {
         pendingFileDeletes.count > 1 ? "Delete \(pendingFileDeletes.count) Files" : "Delete File"
+    }
+
+    /// The transient capture/clipboard banners, stacked. Floated over the empty state (keeping the
+    /// pane's full height) or inset above the list (pushing rows down) — see `body`.
+    private var banners: some View {
+        VStack(spacing: 6) {
+            captureBanner
+            clipboardBanner
+        }
     }
 
     /// Confirm-before-adding banner for a download captured from a `cloakdrop://` link (later:
