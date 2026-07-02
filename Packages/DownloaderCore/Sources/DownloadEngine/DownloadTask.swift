@@ -68,10 +68,17 @@ actor DownloadTask {
 
         // Authorize writes into a user-chosen, sandboxed destination for the whole transfer.
         let scope = SecurityScope(bookmark: download.destinationBookmark)
-        scope.start()
+        let accessGranted = scope.start()
         defer { scope.stop() }
 
         do {
+            // A user- or rule-chosen destination whose security-scoped bookmark no longer resolves
+            // (folder moved/deleted, or access revoked) can't be written to. Fail fast with a clear
+            // reason instead of a cryptic write error mid-transfer. The default Downloads folder
+            // carries no bookmark and is covered by the entitlement, so it's unaffected.
+            if scope.hasBookmark && !accessGranted {
+                throw DownloadError.fileSystem(reason: "the destination folder is no longer accessible — choose it again")
+            }
             if download.mediaPlan != nil {
                 try await transferMedia()
             } else {
@@ -304,7 +311,11 @@ actor DownloadTask {
         download.mediaDownloadedBytes += bytes
         emitMediaProgress(plan: plan)
         let now = clock.now
-        if Self.seconds(from: lastPersist, to: now) >= 1.0 {
+        // Persist less often than the file path: a media resume recomputes progress from the segment
+        // files already on disk (`syncMediaProgressFromDisk`), so these snapshots only keep the
+        // displayed count fresh after a force-quit — not worth re-encoding the whole (immutable,
+        // possibly thousands-of-segments) `mediaPlan` every second.
+        if Self.seconds(from: lastPersist, to: now) >= 5.0 {
             lastPersist = now
             let snapshot = download
             Task { try? await store.save(snapshot) }

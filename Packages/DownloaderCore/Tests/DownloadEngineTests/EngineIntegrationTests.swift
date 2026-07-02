@@ -147,6 +147,24 @@ struct EngineIntegrationTests {
         #expect(h.mock.streamCount > done.segments.count) // retries actually happened
     }
 
+    @Test("A destination bookmark that no longer resolves fails the download with a clear reason")
+    func unresolvableDestinationBookmarkFails() async throws {
+        let payload = makePayload(20_000)
+        let h = try await Harness(data: payload)
+        defer { h.cleanup() }
+
+        // A non-nil bookmark that can't be resolved to a security-scoped URL (folder moved/revoked,
+        // here simulated with garbage) must fail fast — not attempt to write and error cryptically.
+        var request = h.request()
+        request.destinationBookmark = Data("not-a-resolvable-bookmark".utf8)
+        let download = await h.manager.add(request)
+
+        let done = try await h.waitFor(download.id) { if case .failed = $0.status { return true } else { return false } }
+        guard case .failed(let reason) = done.status else { Issue.record("expected a failed status"); return }
+        #expect(reason.contains("no longer accessible"))
+        #expect(!FileManager.default.fileExists(atPath: download.destinationFilePath))   // nothing written
+    }
+
     @Test("Verifies a correct checksum and fails a wrong one")
     func checksumVerification() async throws {
         let payload = makePayload(50_000)

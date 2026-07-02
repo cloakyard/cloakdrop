@@ -6,9 +6,13 @@ import Foundation
 /// the entitlement covers directly).
 struct SecurityScope {
     private let url: URL?
+    /// Whether a bookmark was supplied at all — lets the caller tell "no scope needed" (the default,
+    /// entitlement-covered Downloads folder) apart from "a scope was expected but couldn't be opened".
+    let hasBookmark: Bool
 
     init(bookmark: Data?) {
-        guard let bookmark else { self.url = nil; return }
+        guard let bookmark else { self.url = nil; self.hasBookmark = false; return }
+        self.hasBookmark = true
         var stale = false
         self.url = try? URL(
             resolvingBookmarkData: bookmark,
