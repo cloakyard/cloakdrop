@@ -105,4 +105,60 @@ struct MetalinkMultiSourceTests {
 
         #expect(done.checksumVerified == true)
     }
+
+    @Test("A mirror that ignores Range (200 full body) fails over instead of corrupting mid-file")
+    func mirrorIgnoringRangeFailsOverNotCorrupts() async throws {
+        let payload = makePayload(120_000)
+        let ranged = URL(string: "https://ranged.example.com/file.bin")!
+        let whole = URL(string: "https://whole.example.com/file.bin")!
+        let h = try await MirrorHarness(payload: payload, liveMirrors: [ranged])   // ranged: honors Range (206)
+        defer { h.cleanup() }
+        // A mirror that ignores Range: every request gets 200 + the whole body from byte 0. Appended at
+        // a segment's non-zero offset that would stitch byte-0 data into the wrong region of the file.
+        h.mock.setResource(.init(data: payload, acceptsRanges: false, suggestedFilename: "payload.bin"), for: whole)
+
+        let dl = await h.add(primary: ranged, mirrors: [whole])
+        let done = try await h.waitFor(dl.id) { $0.status == .completed }
+
+        #expect(try h.fileData(done) == payload)   // byte-perfect — the 200 mirror never corrupted a segment
+    }
+
+    @Test("Every mirror is tried before giving up, even with a one-retry budget")
+    func sweepsAllMirrorsBeforeGivingUp() async throws {
+        let payload = makePayload(60_000)
+        let dead1 = URL(string: "https://dead1.example.com/file.bin")!   // unregistered → 404
+        let dead2 = URL(string: "https://dead2.example.com/file.bin")!   // unregistered → 404
+        let live = URL(string: "https://live.example.com/file.bin")!
+        let h = try await MirrorHarness(payload: payload, liveMirrors: [live])
+        defer { h.cleanup() }
+        // With a shared budget, a 1-retry setting would try only two sources — never reaching the live
+        // third mirror. Failover must sweep every source regardless of the transient-drop retry budget.
+        var settings = await h.manager.currentSettings()
+        settings.maxRetryAttempts = 1
+        await h.manager.updateSettings(settings)
+
+        let dl = await h.add(primary: dead1, mirrors: [dead2, live])
+        let done = try await h.waitFor(dl.id) { $0.status == .completed }
+
+        #expect(try h.fileData(done) == payload)
+        #expect(h.mock.streamedURLs.contains(live))
+    }
+
+    @Test("A mirror serving a different-sized file is rejected, not stitched in")
+    func mismatchedSizeMirrorRejected() async throws {
+        let payload = makePayload(120_000)
+        let good = URL(string: "https://good.example.com/file.bin")!
+        let wrong = URL(string: "https://wrong.example.com/file.bin")!
+        let h = try await MirrorHarness(payload: payload, liveMirrors: [good])
+        defer { h.cleanup() }
+        // A range-honoring mirror, but a DIFFERENT file (different size and content). Its bytes must
+        // never be stitched in — even absent a whole-file checksum to catch the corruption afterward.
+        let other = Data((0..<90_000).map { UInt8(($0 + 13) % 251) })
+        h.mock.setResource(.init(data: other, acceptsRanges: true, suggestedFilename: "payload.bin"), for: wrong)
+
+        let dl = await h.add(primary: good, mirrors: [wrong])
+        let done = try await h.waitFor(dl.id) { $0.status == .completed }
+
+        #expect(try h.fileData(done) == payload)   // assembled only from the correctly-sized mirror
+    }
 }

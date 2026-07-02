@@ -252,6 +252,7 @@ actor DownloadTask {
         let partPath = download.partFilePath
         let supportsRanges = download.supportsResume
         let totalKnown = download.totalBytes != nil
+        let expectedTotal = download.totalBytes
         let limiters = perDownloadLimiters()
         let settings = self.settings
 
@@ -269,6 +270,7 @@ actor DownloadTask {
                         partPath: partPath,
                         supportsRanges: supportsRanges,
                         totalKnown: totalKnown,
+                        expectedTotal: expectedTotal,
                         httpClient: httpClient,
                         limiters: limiters,
                         settings: settings,

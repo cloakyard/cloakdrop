@@ -19,6 +19,7 @@ func runSegment(
     partPath: String,
     supportsRanges: Bool,
     totalKnown: Bool,
+    expectedTotal: Int64?,
     httpClient: any HTTPClient,
     limiters: [BandwidthLimiter],
     settings: EngineSettings,
@@ -55,7 +56,14 @@ func runSegment(
         let url = sources[sourceIndex % sources.count]
         do {
             let request = HTTPDownloadRequest(url: url, headers: headers, byteRange: range, username: username, password: password)
-            let (_, stream) = try await httpClient.stream(request)
+            let (head, stream) = try await httpClient.stream(request)
+            // Reject an untrustworthy mirror before writing a byte, failing over to the next source
+            // (see `mirrorServesThisSegment`). A Metalink mirror was never probed, so its range support
+            // and identity must be checked here rather than assumed from the download-level probe.
+            guard mirrorServesThisSegment(head: head, requestedRange: range,
+                                          offset: local.currentOffset, expectedTotal: expectedTotal) else {
+                throw DownloadError.networkLost
+            }
             let handle = try SegmentFileHandle(partPath: partPath, startingAtOffset: local.currentOffset)
             defer { handle.close() }
 
@@ -63,14 +71,9 @@ func runSegment(
                 try Task.checkCancellation()
                 if chunk.isEmpty { continue }
 
-                var data = chunk
-                if totalKnown && supportsRanges {
-                    let remaining = currentEnd - local.currentOffset + 1
-                    if remaining <= 0 { break }                  // our tail was stolen; nothing left to write
-                    if Int64(data.count) > remaining {
-                        data = data.prefix(Int(remaining))
-                    }
-                }
+                // Trim to what this segment still needs; nil means its tail was stolen — stop writing.
+                guard let data = capToSegment(chunk, totalKnown: totalKnown, supportsRanges: supportsRanges,
+                                              offset: local.currentOffset, end: currentEnd) else { break }
                 for limiter in limiters {
                     await limiter.awaitAllowance(byteCount: data.count)
                 }
@@ -91,10 +94,37 @@ func runSegment(
         } catch {
             if Task.isCancelled { throw CancellationError() }
             sourceIndex += 1   // failover: the next attempt pulls from the next mirror (no-op if single-source)
+            // Never give up before every mirror has been tried at least once: a late-but-live source
+            // shouldn't be abandoned because earlier ones were dead. A working mirror still resets the
+            // budget on progress (below), so a long, repeatedly-dropping transfer isn't killed early.
             try await accountRetry(error: error, attempt: &attempt, progressMark: &progressMark,
-                                   progress: local.currentOffset, settings: settings)
+                                   progress: local.currentOffset, settings: settings,
+                                   maxAttempts: max(settings.maxRetryAttempts, sources.count - 1))
         }
     }
+}
+
+/// Whether a mirror's response can back *this* ranged segment, checked before any byte is written: a
+/// non-206 answer to an offset request means the mirror ignored our `Range` and is replaying the whole
+/// body from byte 0 (which would corrupt a mid-file segment), and a differing advertised total means
+/// it's serving a different file. Either way the caller fails over to another source. The optional
+/// whole-file checksum is only a last-resort backstop for anything that slips past this.
+private func mirrorServesThisSegment(
+    head: HTTPResponseHead, requestedRange: ClosedRange<Int64>?, offset: Int64, expectedTotal: Int64?
+) -> Bool {
+    if requestedRange != nil, head.statusCode != 206, offset > 0 { return false }
+    if let expectedTotal, let advertised = head.totalBytes, advertised != expectedTotal { return false }
+    return true
+}
+
+/// Trim an arriving chunk to the bytes this segment still needs. Returns `nil` when nothing remains —
+/// work-stealing may have handed this segment's tail to another connection, shrinking its end. Only a
+/// bounded, range-backed transfer caps; an open-ended stream of unknown size writes every chunk whole.
+private func capToSegment(_ chunk: Data, totalKnown: Bool, supportsRanges: Bool, offset: Int64, end: Int64) -> Data? {
+    guard totalKnown, supportsRanges else { return chunk }
+    let remaining = end - offset + 1
+    if remaining <= 0 { return nil }
+    return Int64(chunk.count) > remaining ? chunk.prefix(Int(remaining)) : chunk
 }
 
 // MARK: - Media segment worker
@@ -341,17 +371,20 @@ private func probedInclusiveEnd(url: URL, headers: [String: String], httpClient:
 /// the transfer advanced past `progressMark` — so `maxRetryAttempts` counts *consecutive stalled*
 /// attempts, and a long, repeatedly-dropping transfer isn't killed while it's still making headway.
 private func accountRetry(
-    error: any Error, attempt: inout Int, progressMark: inout Int64, progress: Int64, settings: EngineSettings
+    error: any Error, attempt: inout Int, progressMark: inout Int64, progress: Int64,
+    settings: EngineSettings, maxAttempts: Int? = nil
 ) async throws {
     attempt += 1
     if progress > progressMark { attempt = 0; progressMark = progress }
-    try await backoffOrThrow(attempt: attempt, settings: settings, lastError: error)
+    try await backoffOrThrow(attempt: attempt, settings: settings, lastError: error,
+                             maxAttempts: maxAttempts ?? settings.maxRetryAttempts)
 }
 
 /// Sleep with jittered backoff before the next retry, or throw `retriesExhausted` once the attempt
-/// budget is spent. Shared by the file and media segment workers.
-private func backoffOrThrow(attempt: Int, settings: EngineSettings, lastError: any Error) async throws {
-    guard attempt <= settings.maxRetryAttempts else {
+/// budget is spent. `maxAttempts` lets the multi-source file worker guarantee a full mirror sweep
+/// (≥ `sources.count - 1`) independent of the user's transient-drop retry setting.
+private func backoffOrThrow(attempt: Int, settings: EngineSettings, lastError: any Error, maxAttempts: Int) async throws {
+    guard attempt <= maxAttempts else {
         throw DownloadError.retriesExhausted(lastReason: failureMessage(lastError))
     }
     let delay = BackoffPolicy.jittered(
