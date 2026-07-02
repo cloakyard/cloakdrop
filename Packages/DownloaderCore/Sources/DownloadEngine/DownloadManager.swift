@@ -150,7 +150,7 @@ public actor DownloadManager {
 
     @discardableResult
     public func add(_ request: DownloadRequest, preview: LinkPreview? = nil) async -> Download {
-        let fileName = request.suggestedFileName ?? Self.deriveFileName(from: request.url)
+        let fileName = request.suggestedFileName ?? FileNaming.fileName(url: request.url)
 
         // Apply the first matching smart rule (routing to a folder/queue, a speed cap, auto-start).
         // The pre-flight preview, when present, contributes MIME/size so those conditions can fire —
@@ -554,12 +554,6 @@ public actor DownloadManager {
         eventContinuation.yield(.downloadUpdated(download))
     }
 
-    static func deriveFileName(from url: URL) -> String {
-        let last = url.lastPathComponent
-        if !last.isEmpty && last != "/" { return last }
-        if let host = url.host() { return host }
-        return "download"
-    }
 }
 
 private func < (lhs: (Int, Date), rhs: (Int, Date)) -> Bool {

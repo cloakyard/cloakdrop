@@ -165,6 +165,46 @@ struct EngineIntegrationTests {
         #expect(!FileManager.default.fileExists(atPath: download.destinationFilePath))   // nothing written
     }
 
+    @Test("A resumable download restarts cleanly when the server's copy changes while paused")
+    func resumeRestartsOnServerContentChange() async throws {
+        let original = makePayload(300_000)
+        let h = try await Harness(data: original, etag: "\"v1\"")
+        h.mock.chunkSize = 2048
+        h.mock.perChunkDelay = .milliseconds(8)   // stay in-flight long enough to pause mid-transfer
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        _ = try await h.waitFor(download.id) { $0.status == .downloading }
+        try await Task.sleep(for: .milliseconds(120))
+        await h.manager.pause(id: download.id)
+        let paused = try await h.waitFor(download.id) { $0.status == .paused }
+        #expect(paused.downloadedBytes > 0)
+
+        // The server swaps in different content (new bytes, new size, new ETag) while it's paused.
+        let replacement = Data((0..<180_000).map { UInt8(($0 &+ 100) % 251) })
+        h.mock.setResource(.init(data: replacement, acceptsRanges: true, suggestedFilename: "payload.bin", etag: "\"v2\""), for: h.url)
+        h.mock.perChunkDelay = .zero
+
+        await h.manager.resume(id: download.id)
+        let done = try await h.waitFor(download.id) { $0.status == .completed }
+        #expect(try h.fileData(done) == replacement)      // the NEW content, not old+new stitched together
+        #expect(done.etag == "\"v2\"")
+        #expect(done.totalBytes == Int64(replacement.count))
+    }
+
+    @Test("An unknown-size response that yields zero bytes fails instead of completing empty")
+    func unknownSizeZeroBytesFails() async throws {
+        let h = try await Harness(data: Data())
+        // Emulate a server that advertises no size and then sends nothing (truncated/empty response).
+        h.mock.setResource(.init(data: Data(), acceptsRanges: false, advertisesSize: false), for: h.url)
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        let done = try await h.waitFor(download.id) { if case .failed = $0.status { return true } else { return false } }
+        if case .failed = done.status {} else { Issue.record("expected a failed status") }
+        #expect(!FileManager.default.fileExists(atPath: download.destinationFilePath))
+    }
+
     @Test("Verifies a correct checksum and fails a wrong one")
     func checksumVerification() async throws {
         let payload = makePayload(50_000)

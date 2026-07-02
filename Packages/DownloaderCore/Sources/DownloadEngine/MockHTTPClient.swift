@@ -16,6 +16,9 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
         /// A URL to report as the request's final destination, emulating a redirect. `nil` means
         /// "no redirect" — the head reports the requested URL as final.
         public var finalURL: URL?
+        /// Whether the server advertises the resource size (`Content-Length`). `false` emulates a
+        /// chunked/streamed response with an unknown total.
+        public var advertisesSize: Bool
 
         public init(
             data: Data,
@@ -23,7 +26,8 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
             suggestedFilename: String? = nil,
             etag: String? = nil,
             mimeType: String? = nil,
-            finalURL: URL? = nil
+            finalURL: URL? = nil,
+            advertisesSize: Bool = true
         ) {
             self.data = data
             self.acceptsRanges = acceptsRanges
@@ -31,6 +35,7 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
             self.etag = etag
             self.mimeType = mimeType
             self.finalURL = finalURL
+            self.advertisesSize = advertisesSize
         }
     }
 
@@ -72,7 +77,7 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
         guard let resource else { throw DownloadError.httpStatus(code: 404) }
         return HTTPResponseHead(
             statusCode: resource.acceptsRanges ? 206 : 200,
-            totalBytes: Int64(resource.data.count),
+            totalBytes: resource.advertisesSize ? Int64(resource.data.count) : nil,
             acceptsRanges: resource.acceptsRanges,
             suggestedFilename: resource.suggestedFilename,
             etag: resource.etag,
@@ -98,8 +103,10 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
         let chunk = plan.chunk
         let delay = plan.delay
 
-        // Resolve the byte slice this request is for.
+        // Resolve the byte slice this request is for. `total` drives slicing; `reportedTotal` is what
+        // the head advertises — `nil` when the resource emulates an unknown-size (chunked) response.
         let total = Int64(resource.data.count)
+        let reportedTotal: Int64? = resource.advertisesSize ? total : nil
         let lower: Int64
         let upper: Int64
         if resource.acceptsRanges, let range = request.byteRange {
@@ -115,7 +122,7 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
             continuation.finish()
             let head = HTTPResponseHead(
                 statusCode: 206,
-                totalBytes: total,
+                totalBytes: reportedTotal,
                 acceptsRanges: resource.acceptsRanges,
                 suggestedFilename: resource.suggestedFilename,
                 etag: resource.etag,

@@ -291,7 +291,7 @@ final class AppModel {
     /// `confirmDuplicateAdd`). Every intake path funnels through here, so the guard applies uniformly.
     /// A `preview` from the add sheet's pre-flight sharpens detection with the resource's ETag/size.
     func add(_ request: DownloadRequest, preview: LinkPreview? = nil) {
-        let fileName = request.suggestedFileName ?? Self.fileName(fromURL: request.url)
+        let fileName = request.suggestedFileName ?? FileNaming.fileName(url: request.url)
         let candidate = DuplicateCandidate(request: request.url, fileName: fileName, preview: preview)
         if let match = DuplicateDetector.findDuplicate(of: candidate, in: downloads) {
             pendingDuplicateAdds.append(DuplicateAdd(request: request, match: match))
@@ -325,7 +325,7 @@ final class AppModel {
     func confirmDuplicateAdd() {
         guard var pending = pendingDuplicateAdds.first else { return }
         pendingDuplicateAdds.removeFirst()
-        let base = pending.request.suggestedFileName ?? Self.fileName(fromURL: pending.request.url)
+        let base = pending.request.suggestedFileName ?? FileNaming.fileName(url: pending.request.url)
         pending.request.suggestedFileName = uniqueFileName(base: base, inDirectory: pending.request.destinationDirectoryPath)
         commitAdd(pending.request)
     }
@@ -360,12 +360,6 @@ final class AppModel {
             counter += 1
         }
         return base
-    }
-
-    /// The file name the engine would derive from a bare URL — the base for de-collision.
-    static func fileName(fromURL url: URL) -> String {
-        let last = url.lastPathComponent
-        return (last.isEmpty || last == "/") ? "download" : last
     }
 
     /// Build a request from a raw URL string and the default destination, then enqueue it.

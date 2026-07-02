@@ -38,22 +38,6 @@ struct LinkInspectorTests {
         #expect(LinkInspector.plannedSegmentCount(totalBytes: nil, acceptsRanges: true, settings: settings) == 1)
     }
 
-    // MARK: File-name derivation
-
-    @Test("A server-suggested file name wins, reduced to its last path component")
-    func fileNameFromSuggestion() {
-        let url = URL(string: "https://host.example/dl?id=42")!
-        #expect(LinkInspector.fileName(from: "installer.dmg", finalURL: url) == "installer.dmg")
-        #expect(LinkInspector.fileName(from: "/packages/installer.dmg", finalURL: url) == "installer.dmg")
-    }
-
-    @Test("With no usable suggestion, the file name comes from the (redirected) URL, then host")
-    func fileNameFromURL() {
-        #expect(LinkInspector.fileName(from: nil, finalURL: URL(string: "https://host.example/files/app.zip")!) == "app.zip")
-        #expect(LinkInspector.fileName(from: "   ", finalURL: URL(string: "https://host.example/files/app.zip")!) == "app.zip")
-        #expect(LinkInspector.fileName(from: nil, finalURL: URL(string: "https://host.example")!) == "host.example")
-    }
-
     // MARK: inspect() over the mock client
 
     @Test("Inspecting a resumable resource reports size, type, resumability, and the segment estimate")

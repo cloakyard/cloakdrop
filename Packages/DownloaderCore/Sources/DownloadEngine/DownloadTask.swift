@@ -106,6 +106,17 @@ actor DownloadTask {
 
     /// Probe the server, plan segments, and create the part file (skipped on resume).
     private func prepareIfNeeded() async throws {
+        // Resuming a partial, resumable download: make sure the server's copy hasn't changed under us.
+        // If the ETag (or size) differs from probe time, the bytes on disk are stale — discard them
+        // and start over, rather than stitching old and new content into a corrupt file.
+        if !download.segments.isEmpty, download.supportsResume, await remoteContentChanged() {
+            SegmentedFileWriter.discardPartData(for: download)
+            download.segments = []
+            download.startedAt = Date()
+            await persist()
+            emit(.downloadUpdated(download))
+        }
+
         if download.segments.isEmpty {
             let head = try await httpClient.probe(
                 HTTPDownloadRequest(
@@ -140,6 +151,27 @@ actor DownloadTask {
 
     private func segmentCountForThisDownload() -> Int {
         settings.defaultSegmentCount
+    }
+
+    /// Best-effort check that the remote resource is still the one we began downloading. Returns
+    /// `true` only on positive evidence of change (a differing ETag, or a differing size) — a failed
+    /// or inconclusive probe returns `false`, so a transient hiccup never triggers a needless restart.
+    private func remoteContentChanged() async -> Bool {
+        guard let head = try? await httpClient.probe(
+            HTTPDownloadRequest(
+                url: download.url,
+                headers: download.requestHeaders,
+                username: download.username,
+                password: download.password
+            )
+        ) else { return false }
+        if let old = download.etag, let new = head.etag, !old.isEmpty, !new.isEmpty {
+            return old != new
+        }
+        if let oldSize = download.totalBytes, let newSize = head.totalBytes {
+            return oldSize != newSize
+        }
+        return false
     }
 
     // MARK: Transfer
@@ -433,6 +465,13 @@ actor DownloadTask {
         }
         // For unknown-size single streams, the total is whatever we transferred.
         if download.totalBytes == nil {
+            // A server that never advertised a size and then delivered zero bytes (an empty or
+            // truncated response that ended without erroring) is not a real download — fail instead
+            // of presenting a bogus completed 0-byte file. A genuinely empty resource advertises
+            // `Content-Length: 0`, which reaches finalize with a non-nil `totalBytes` and is kept.
+            guard download.downloadedBytes > 0 else {
+                throw DownloadError.underlying(reason: "The server sent no data for this download.")
+            }
             download.totalBytes = download.downloadedBytes
             if !download.segments.isEmpty {
                 download.segments[0] = DownloadSegment(

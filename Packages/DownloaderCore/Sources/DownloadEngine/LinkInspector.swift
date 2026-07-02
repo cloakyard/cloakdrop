@@ -27,7 +27,7 @@ public struct LinkInspector: Sendable {
             HTTPDownloadRequest(url: url, headers: headers, username: username, password: password)
         )
         let finalURL = head.finalURL ?? url
-        let fileName = Self.fileName(from: head.suggestedFilename, finalURL: finalURL)
+        let fileName = FileNaming.fileName(suggested: head.suggestedFilename, url: finalURL)
         return LinkPreview(
             requestedURL: url,
             finalURL: finalURL,
@@ -56,19 +56,5 @@ public struct LinkInspector: Sendable {
             requestedSegments: requested,
             minimumSegmentSize: settings.minimumSegmentSizeBytes
         ).count
-    }
-
-    /// The best name for the resource: the server's `Content-Disposition` name when it offers a
-    /// usable one, otherwise the (redirected) URL's last path component, falling back to the host
-    /// and finally a generic name. Mirrors `DownloadManager.deriveFileName` for the URL cases.
-    static func fileName(from suggested: String?, finalURL: URL) -> String {
-        if let suggested {
-            let last = (suggested as NSString).lastPathComponent.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !last.isEmpty { return last }
-        }
-        let last = finalURL.lastPathComponent
-        if !last.isEmpty, last != "/" { return last }
-        if let host = finalURL.host() { return host }
-        return "download"
     }
 }
