@@ -17,6 +17,9 @@
     "contextMenus",
     "cookies",
     "activeTab",
+    "tabs",
+    "scripting",
+    "webRequest",
     "nativeMessaging"
   ],
   "host_permissions": [

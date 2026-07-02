@@ -1,18 +1,25 @@
 // CloakDrop — cross-browser (Chrome / Edge / Firefox) background script, MV3.
 //
-// Mirrors the bundled Safari extension: it adds "Download with CloakDrop" to the link and media
-// (video/audio/image) context menus, and when chosen gathers just enough to reproduce the browser's
-// request for THAT download — the page URL as referrer, the user-agent, and the cookies scoped to
-// the target — then hands it to the native app.
+// Two ways to hand a download to the app:
+//   1. Right-click a link/video/audio/image → "Download with CloakDrop" (context menu).
+//   2. Open the toolbar popup, which lists media detected on the current tab — both the media
+//      already in the page's DOM and any streaming manifests (HLS `.m3u8` / DASH `.mpd`) or media
+//      responses seen going over the wire, which the DOM never exposes. This script is the sniffer
+//      for that second path: it watches the tab's network requests and keeps a per-tab list.
 //
-// The channel here is a native-messaging host (see NativeMessagingHost/): `sendNativeMessage` wakes
-// the small helper bundled in CloakDrop.app, which drops the capture into the app's shared inbox.
-// That fatter channel exists because a large `Cookie` header can exceed the `cloakdrop://` URL
-// length. If the host isn't installed, or has no shared container (an unsigned/dev build), we fall
-// back to the deep link. Either way the app shows a confirm banner before anything is queued.
+// Either way, choosing a download gathers just enough to reproduce the browser's request for THAT
+// resource — the page URL as referrer, the user-agent, and the cookies scoped to the target — then
+// hands it to the native app, which shows a confirm banner before anything is queued.
 //
-// Privacy: nothing here leaves the device. The native message goes only to the containing app;
-// cookies are read for the specific download URL and forwarded once, never stored by the extension.
+// The channel is a native-messaging host (see NativeMessagingHost/): `sendNativeMessage` wakes the
+// helper bundled in CloakDrop.app, which drops the capture into the app's shared inbox. That fatter
+// channel exists because a large `Cookie` header can exceed the `cloakdrop://` URL length. If the
+// host isn't installed, or has no shared container (an unsigned/dev build), we fall back to the deep
+// link. For a streaming manifest the app resolves the renditions and shows a quality picker.
+//
+// Privacy: nothing here leaves the device. Detected URLs live only in this script's memory (a
+// per-tab list, cleared on navigation); cookies are read for the specific download URL and forwarded
+// once to the containing app, never stored by the extension, never sent anywhere else.
 
 // Firefox exposes `browser` (promises); Chrome/Edge expose `chrome` (promises in MV3). One shim
 // covers all three.
@@ -23,18 +30,29 @@ const HOST_NAME = "com.cloakyard.cloakdrop";
 const MENU_LINK = "cloakdrop-link";
 const MENU_MEDIA = "cloakdrop-media";
 
+// Streaming manifests (resolved by the app into a quality picker) and self-contained media files.
+// Segment extensions are deliberately excluded from network sniffing so a stream's thousands of
+// chunks don't flood the list — the manifest is what we want.
+const STREAM_EXT = ["m3u8", "m3u", "mpd"];
+const MEDIA_EXT = [
+  "mp4", "m4v", "mov", "webm", "mkv", "avi", "flv", "wmv", "mpg", "mpeg", "3gp", "ogv",
+  "mp3", "m4a", "aac", "flac", "wav", "ogg", "oga", "opus", "weba"
+];
+const SEGMENT_EXT = ["ts", "m4s"];
+const MAX_ITEMS_PER_TAB = 60;
+
+// Detected streaming/media URLs seen on the wire, keyed by tab id, then by URL (dedup). In-memory:
+// under MV3 the service worker can be evicted and this cleared, but ongoing segment traffic keeps it
+// alive across a typical "load page → open popup" flow, and the popup's DOM scan is an independent
+// second source. Cleared per tab on main-frame navigation.
+const mediaByTab = new Map();
+
+// MARK: - Context menu (unchanged path)
+
 api.runtime.onInstalled.addListener(() => {
   api.contextMenus.removeAll(() => {
-    api.contextMenus.create({
-      id: MENU_LINK,
-      title: "Download with CloakDrop",
-      contexts: ["link"]
-    });
-    api.contextMenus.create({
-      id: MENU_MEDIA,
-      title: "Download with CloakDrop",
-      contexts: ["video", "audio", "image"]
-    });
+    api.contextMenus.create({ id: MENU_LINK, title: "Download with CloakDrop", contexts: ["link"] });
+    api.contextMenus.create({ id: MENU_MEDIA, title: "Download with CloakDrop", contexts: ["video", "audio", "image"] });
   });
 });
 
@@ -44,6 +62,124 @@ api.contextMenus.onClicked.addListener((info, tab) => {
   const referrer = info.pageUrl || (tab && tab.url) || "";
   capture(target, referrer);
 });
+
+// MARK: - Network sniffing (streams + media the DOM doesn't expose)
+
+// Record media discovered by URL extension as each request starts.
+api.webRequest.onBeforeRequest.addListener(
+  (details) => {
+    const item = classifyByURL(details.url);
+    if (item) record(details.tabId, item);
+  },
+  { urls: ["<all_urls>"], types: ["media", "xmlhttprequest", "other", "object", "sub_frame"] }
+);
+
+// Record media discovered by response content-type (manifests/streams often have no file extension
+// on the URL — a query-string-only endpoint — but declare their type in the header).
+api.webRequest.onHeadersReceived.addListener(
+  (details) => {
+    const contentType = headerValue(details.responseHeaders, "content-type");
+    const item = classifyByContentType(details.url, contentType);
+    if (item) record(details.tabId, item);
+  },
+  { urls: ["<all_urls>"], types: ["media", "xmlhttprequest", "other", "object", "sub_frame"] },
+  ["responseHeaders"]
+);
+
+// Drop a tab's list when it navigates to a new page (or is closed) so stale hits don't linger.
+api.webRequest.onBeforeRequest.addListener(
+  (details) => {
+    if (details.type === "main_frame") { mediaByTab.delete(details.tabId); updateBadge(details.tabId); }
+  },
+  { urls: ["<all_urls>"], types: ["main_frame"] }
+);
+api.tabs.onRemoved.addListener((tabId) => mediaByTab.delete(tabId));
+
+function record(tabId, item) {
+  if (tabId < 0) return;                       // not tied to a tab (e.g. the extension's own fetches)
+  let forTab = mediaByTab.get(tabId);
+  if (!forTab) { forTab = new Map(); mediaByTab.set(tabId, forTab); }
+  if (forTab.has(item.url) || forTab.size >= MAX_ITEMS_PER_TAB) return;
+  forTab.set(item.url, item);
+  updateBadge(tabId);
+}
+
+function updateBadge(tabId) {
+  const count = mediaByTab.get(tabId)?.size ?? 0;
+  try {
+    api.action.setBadgeText({ tabId, text: count ? String(count) : "" });
+    api.action.setBadgeBackgroundColor({ tabId, color: "#5B4CE0" });
+  } catch (_) { /* action.badge unsupported in this browser — the popup list still works */ }
+}
+
+// MARK: - Popup messaging
+
+api.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  // `return true` keeps the response channel open — the one pattern that delivers a reply on both
+  // Chrome (which ignores a returned Promise) and Firefox — even though we answer synchronously here.
+  if (message?.action === "getMedia") {
+    const forTab = mediaByTab.get(message.tabId);
+    sendResponse({ items: forTab ? Array.from(forTab.values()) : [] });
+    return true;
+  }
+  if (message?.action === "download") {
+    capture(message.url, message.referrer || "");
+    sendResponse({ ok: true });
+    return true;
+  }
+  return false;                                // not one of ours
+});
+
+// MARK: - Classification
+
+// A media item derived from a URL alone, or null if the URL isn't recognisably media.
+function classifyByURL(url) {
+  const ext = extensionOf(url);
+  if (!ext || SEGMENT_EXT.includes(ext)) return null;
+  if (STREAM_EXT.includes(ext)) return makeItem(url, "stream");
+  if (MEDIA_EXT.includes(ext)) return makeItem(url, audioExt(ext) ? "audio" : "video");
+  return null;
+}
+
+// A media item derived from a response's content-type, for URLs without a telltale extension.
+function classifyByContentType(url, contentType) {
+  if (!contentType) return null;
+  const type = contentType.split(";")[0].trim().toLowerCase();
+  const ext = extensionOf(url);
+  if (ext && SEGMENT_EXT.includes(ext)) return null;   // never surface individual stream chunks
+  if (type === "application/vnd.apple.mpegurl" || type === "application/x-mpegurl" || type === "application/dash+xml") {
+    return makeItem(url, "stream");
+  }
+  if (type.startsWith("video/")) return makeItem(url, "video");
+  if (type.startsWith("audio/")) return makeItem(url, "audio");
+  return null;
+}
+
+function makeItem(url, type) {
+  return { url, type, label: fileNameFromURL(url) || url };
+}
+
+function extensionOf(url) {
+  try {
+    const path = new URL(url).pathname;
+    const last = path.split("/").pop() || "";
+    const dot = last.lastIndexOf(".");
+    return dot >= 0 ? last.slice(dot + 1).toLowerCase() : "";
+  } catch (_) { return ""; }
+}
+
+function audioExt(ext) {
+  return ["mp3", "m4a", "aac", "flac", "wav", "ogg", "oga", "opus", "weba"].includes(ext);
+}
+
+function headerValue(headers, name) {
+  if (!headers) return "";
+  const wanted = name.toLowerCase();
+  for (const h of headers) { if (h.name.toLowerCase() === wanted) return h.value || ""; }
+  return "";
+}
+
+// MARK: - Hand-off to the app (shared by both paths)
 
 async function capture(target, referrer) {
   const payload = {

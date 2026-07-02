@@ -1,19 +1,34 @@
 # CloakDrop browser extension (Chrome · Edge · Firefox)
 
-The cross-browser sibling of the bundled Safari extension. It adds **Download with CloakDrop** to
-the link and media context menus and hands each capture to CloakDrop, carrying the page's referrer,
-user-agent, and the cookies scoped to that download — so gated files download correctly.
+The cross-browser sibling of the bundled Safari extension. Two ways to send a download to CloakDrop:
 
-Everything stays on device: the extension talks only to the local app, never the network.
+- **Context menu** — right-click any link, video, audio, or image → **Download with CloakDrop**.
+- **Toolbar popup** — lists the downloadable media detected on the current tab and sends any of it
+  with one click. Detection merges two sources: media already in the page's DOM (`<video>`/`<audio>`/
+  `<source>` and direct media/file links, scanned on demand only when you open the popup) and the
+  streaming manifests (HLS `.m3u8` / DASH `.mpd`) or media responses the background script sees go
+  past on the network — which the DOM never exposes. A badge shows how many were found.
+
+Either way, the capture carries the page's referrer, user-agent, and the cookies scoped to that
+download — so gated files download correctly — and a streaming manifest is resolved by the app into
+a quality picker.
+
+Everything stays on device: the extension talks only to the local app, never the network. Detected
+URLs live only in the background script's memory (per tab, cleared on navigation); cookies are read
+for the chosen download only and forwarded once to the app, never stored, never sent elsewhere.
 
 ## Layout
 
 ```
-shared/            background.js, popup.html, icons — the single source of truth
+shared/            background.js, popup.html, popup.js, icons — the single source of truth
 manifest.chrome.json    Chrome & Edge manifest (MV3, service worker). Pins the extension ID via "key".
-manifest.firefox.json   Firefox manifest (MV3, event page + gecko id).
+manifest.firefox.json   Firefox manifest (MV3, event page + gecko id; min 128 for scripting `func`).
 package.sh              Stitches shared/ + a manifest into dist/chrome and dist/firefox.
 ```
+
+Detection needs `webRequest` (observe stream/media responses), `scripting` (inject the on-demand DOM
+scan), and `tabs` (identify the active tab) on top of the original `contextMenus`/`cookies`/
+`activeTab`/`nativeMessaging`. `webRequest` is observational only (no blocking), so it stays MV3-clean.
 
 Run `./package.sh` (add `--zip` for distributable archives) to produce the loadable folders under
 `dist/`.
@@ -57,8 +72,9 @@ openssl rsa -in key.pem -pubout -outform DER | base64   # → the manifest "key"
 - **Firefox:** `./package.sh`, then `about:debugging` → This Firefox → **Load Temporary Add-on** →
   select `dist/firefox/manifest.json`.
 
-Then enable the native host from CloakDrop ▸ Settings ▸ Browsers and right-click a link → **Download
-with CloakDrop**.
+Then enable the native host from CloakDrop ▸ Settings ▸ Browsers. Right-click a link → **Download
+with CloakDrop**, or open a page with video and click the CloakDrop toolbar button to pick from the
+detected media.
 
 > Native-messaging hosts can't be sandboxed, so this path ships in the **Developer ID (direct
 > download)** build of CloakDrop, not the Mac App Store build. The bundled **Safari** extension
