@@ -4,10 +4,12 @@ import DownloadModels
 /// Smart categories, file-type categories, and user queues. Selecting a row filters the
 /// content list.
 ///
-/// Uses a native `List(selection:)` so the source list gets real keyboard navigation (↑/↓ move the
-/// selection, like Finder) and VoiceOver selection semantics for free — the standard macOS source
-/// list. The selected row draws the system's accent highlight (white content on the app accent); an
-/// unselected row shows a secondary-tinted icon and a regular label.
+/// Uses a native `List(selection:)` — the standard macOS source list, exactly like Finder: real
+/// keyboard navigation (↑/↓), VoiceOver selection semantics, and the system's own selection highlight
+/// in every state. The system draws the accent pill when the sidebar has focus and the standard
+/// inactive (grey) pill when focus moves to the download list — the OS's way of showing which pane
+/// keys go to. We deliberately don't override any of that (an earlier custom pill mismatched the
+/// system's press/hover highlight width); the row just supplies content and a `tag`.
 struct SidebarView: View {
     @Environment(AppModel.self) private var model
 
@@ -52,35 +54,21 @@ struct SidebarView: View {
     }
 
     private func row(_ selection: SidebarSelection, title: String, symbol: String) -> some View {
-        let isSelected = model.effectiveSelection == selection
         let count = model.downloads.lazy.filter(selection.matches).count
-        // On the accent selection the whole row goes white; unselected shows a secondary-tinted icon.
-        let contentColor: AnyShapeStyle = isSelected ? AnyShapeStyle(.white) : AnyShapeStyle(.secondary)
+        // No forced colors: the native source list renders the label for the current selection/focus
+        // state (white on the active accent, primary on the inactive grey) — the count rides along as
+        // a dimmed trailing badge, like Mail. This is what keeps it identical to Finder.
         return HStack(spacing: 0) {
-            Label {
-                Text(title)
-                    .foregroundStyle(isSelected ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
-            } icon: {
-                Image(systemName: symbol)
-                    .foregroundStyle(contentColor)
-            }
+            Label(title, systemImage: symbol)
             Spacer(minLength: 8)
             if count > 0 {
                 Text("\(count)")
-                    .foregroundStyle(contentColor)
+                    .foregroundStyle(.secondary)
                     .monospacedDigit()
             }
         }
         .padding(.vertical, 1)
         .tag(selection)
-        // Draw the selection pill ourselves so the active filter stays accent-colored when focus
-        // moves to the download list (the system's source-list pill fades to an inactive grey,
-        // which reads as *losing* the selection — Music/Photos keep theirs, and so do we).
-        .listRowBackground(
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(isSelected ? Color.accentColor : .clear)
-                .padding(.horizontal, 5)
-        )
         // VoiceOver reads the filter name and its count; the List provides the "selected" trait.
         .accessibilityValue(count > 0 ? Text(verbatim: String(count)) : Text(verbatim: ""))
     }
