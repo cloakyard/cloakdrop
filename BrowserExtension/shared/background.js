@@ -9,7 +9,9 @@
 //
 // Either way, choosing a download gathers just enough to reproduce the browser's request for THAT
 // resource — the page URL as referrer, the user-agent, and the cookies scoped to the target — then
-// hands it to the native app, which shows a confirm banner before anything is queued.
+// hands it to the native app, which starts the download immediately (no extra confirm). A "page"
+// hand-off (the in-page pill's "Download this video") passes the page URL with an `extract` flag; the
+// app resolves it with its bundled yt-dlp into real quality tiers and grabs the best one.
 //
 // The channel is a native-messaging host (see NativeMessagingHost/): `sendNativeMessage` wakes the
 // helper bundled in CloakDrop.app, which drops the capture into the app's shared inbox. That fatter
@@ -25,20 +27,18 @@
 // covers all three.
 const api = globalThis.browser ?? globalThis.chrome;
 
+// Shared media classifier/filter (dedupe, noise-filtering, content-type/URL classification). Chrome
+// and Safari run this file as a classic service worker, so we pull the core in with importScripts;
+// Firefox's MV3 background has no importScripts and instead lists media.js ahead of background.js in
+// `background.scripts` (see manifest.firefox.json). Either way it lands on the global as
+// `CloakDropMedia`.
+if (typeof importScripts === "function") { try { importScripts("media.js"); } catch (_) { /* already loaded */ } }
+const M = globalThis.CloakDropMedia;
+
 // Must match the native host manifest's "name" and the installer (NativeMessagingInstaller).
 const HOST_NAME = "com.cloakyard.cloakdrop";
 const MENU_LINK = "cloakdrop-link";
 const MENU_MEDIA = "cloakdrop-media";
-
-// Streaming manifests (resolved by the app into a quality picker) and self-contained media files.
-// Segment extensions are deliberately excluded from network sniffing so a stream's thousands of
-// chunks don't flood the list — the manifest is what we want.
-const STREAM_EXT = ["m3u8", "m3u", "mpd"];
-const MEDIA_EXT = [
-  "mp4", "m4v", "mov", "webm", "mkv", "avi", "flv", "wmv", "mpg", "mpeg", "3gp", "ogv",
-  "mp3", "m4a", "aac", "flac", "wav", "ogg", "oga", "opus", "weba"
-];
-const SEGMENT_EXT = ["ts", "m4s"];
 const MAX_ITEMS_PER_TAB = 60;
 
 // Detected streaming/media URLs seen on the wire, keyed by tab id, then by URL (dedup). In-memory:
@@ -68,18 +68,20 @@ api.contextMenus.onClicked.addListener((info, tab) => {
 // Record media discovered by URL extension as each request starts.
 api.webRequest.onBeforeRequest.addListener(
   (details) => {
-    const item = classifyByURL(details.url);
+    const item = M.classifyByURL(details.url);
     if (item) record(details.tabId, item);
   },
   { urls: ["<all_urls>"], types: ["media", "xmlhttprequest", "other", "object", "sub_frame"] }
 );
 
 // Record media discovered by response content-type (manifests/streams often have no file extension
-// on the URL — a query-string-only endpoint — but declare their type in the header).
+// on the URL — a query-string-only endpoint — but declare their type in the header). Content-Length
+// also lets us drop sub-1 KB "media" (UI sounds / beacons) that slip past the URL filter.
 api.webRequest.onHeadersReceived.addListener(
   (details) => {
     const contentType = headerValue(details.responseHeaders, "content-type");
-    const item = classifyByContentType(details.url, contentType);
+    const contentLength = Number(headerValue(details.responseHeaders, "content-length")) || undefined;
+    const item = M.classifyByContentType(details.url, contentType, contentLength);
     if (item) record(details.tabId, item);
   },
   { urls: ["<all_urls>"], types: ["media", "xmlhttprequest", "other", "object", "sub_frame"] },
@@ -102,6 +104,30 @@ function record(tabId, item) {
   if (forTab.has(item.url) || forTab.size >= MAX_ITEMS_PER_TAB) return;
   forTab.set(item.url, item);
   updateBadge(tabId);
+  notifyTab(tabId);
+}
+
+// The tab's detected media as a plain array (deduped/ordered), shared by the popup and content script.
+function mediaList(tabId) {
+  const forTab = mediaByTab.get(tabId);
+  return forTab ? M.dedupeAndRank(Array.from(forTab.values())) : [];
+}
+
+// Push the current list to the tab's in-page widget so it updates live — not only when the popup is
+// opened. Throttled per tab (~300 ms) and silently ignored on pages with no content script
+// (chrome:// pages, the web store, the PDF viewer).
+const notifyTimers = new Map();
+function notifyTab(tabId) {
+  if (tabId < 0 || notifyTimers.has(tabId)) return;
+  notifyTimers.set(tabId, setTimeout(() => {
+    notifyTimers.delete(tabId);
+    const items = mediaList(tabId);
+    if (!items.length) return;
+    try {
+      const sent = api.tabs.sendMessage(tabId, { type: "cloakdrop:media", items });
+      if (sent && sent.catch) sent.catch(() => {});   // no receiver on this page — fine
+    } catch (_) { /* restricted page */ }
+  }, 300));
 }
 
 function updateBadge(tabId) {
@@ -114,16 +140,17 @@ function updateBadge(tabId) {
 
 // MARK: - Popup messaging
 
-api.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+api.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // `return true` keeps the response channel open — the one pattern that delivers a reply on both
   // Chrome (which ignores a returned Promise) and Firefox — even though we answer synchronously here.
   if (message?.action === "getMedia") {
-    const forTab = mediaByTab.get(message.tabId);
-    sendResponse({ items: forTab ? Array.from(forTab.values()) : [] });
+    // The popup passes an explicit tabId; the content script omits it and we read its own tab.
+    const tabId = message.tabId ?? sender?.tab?.id;
+    sendResponse({ items: tabId == null ? [] : mediaList(tabId) });
     return true;
   }
   if (message?.action === "download") {
-    capture(message.url, message.referrer || "", message.filename, message.audioUrl);
+    capture(message.url, message.referrer || "", message.filename, message.audioUrl, message.extract);
     sendResponse({ ok: true });
     return true;
   }
@@ -131,54 +158,11 @@ api.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 });
 
 // MARK: - Classification
-
-// A media item derived from a URL alone, or null if the URL isn't recognisably media.
-function classifyByURL(url) {
-  if (isAdaptiveChunkNoise(url)) return null;
-  const ext = extensionOf(url);
-  if (!ext || SEGMENT_EXT.includes(ext)) return null;
-  if (STREAM_EXT.includes(ext)) return makeItem(url, "stream");
-  if (MEDIA_EXT.includes(ext)) return makeItem(url, audioExt(ext) ? "audio" : "video");
-  return null;
-}
-
-// A media item derived from a response's content-type, for URLs without a telltale extension.
-function classifyByContentType(url, contentType) {
-  if (!contentType || isAdaptiveChunkNoise(url)) return null;
-  const type = contentType.split(";")[0].trim().toLowerCase();
-  const ext = extensionOf(url);
-  if (ext && SEGMENT_EXT.includes(ext)) return null;   // never surface individual stream chunks
-  if (type === "application/vnd.apple.mpegurl" || type === "application/x-mpegurl" || type === "application/dash+xml") {
-    return makeItem(url, "stream");
-  }
-  if (type.startsWith("video/")) return makeItem(url, "video");
-  if (type.startsWith("audio/")) return makeItem(url, "audio");
-  return null;
-}
-
-function makeItem(url, type) {
-  return { url, type, label: fileNameFromURL(url) || url };
-}
-
-// Hosts that serve chunked, signed adaptive streams (video and audio split, no manifest, URLs that
-// expire and change per range) — surfacing raw chunks is useless. YouTube's googlevideo traffic is
-// handled instead by the popup's player-response extractor, which lists real resolutions.
-function isAdaptiveChunkNoise(url) {
-  try { return new URL(url).hostname.endsWith("googlevideo.com"); } catch (_) { return false; }
-}
-
-function extensionOf(url) {
-  try {
-    const path = new URL(url).pathname;
-    const last = path.split("/").pop() || "";
-    const dot = last.lastIndexOf(".");
-    return dot >= 0 ? last.slice(dot + 1).toLowerCase() : "";
-  } catch (_) { return ""; }
-}
-
-function audioExt(ext) {
-  return ["mp3", "m4a", "aac", "flac", "wav", "ogg", "oga", "opus", "weba"].includes(ext);
-}
+//
+// URL/content-type classification, noise filtering, and dedupe now live in the shared media core
+// (media.js → `M.*`), so the popup, content script, and this worker all agree and the logic is
+// unit-tested under Node. googlevideo traffic is filtered as noise here; the YouTube player-data
+// extraction that lists real resolutions lives in the popup/content path.
 
 function headerValue(headers, name) {
   if (!headers) return "";
@@ -189,19 +173,23 @@ function headerValue(headers, name) {
 
 // MARK: - Hand-off to the app (shared by both paths)
 
-async function capture(target, referrer, filenameOverride, audioURL) {
+async function capture(target, referrer, filenameOverride, audioURL, extractFromPage) {
   const payload = {
     url: target,
     referrer: referrer,
     userAgent: navigator.userAgent,
     cookies: await cookieHeader(target),
-    // A caller-supplied name (e.g. a YouTube video title) wins over the URL's — a googlevideo URL has
-    // no usable filename of its own.
-    filename: filenameOverride || fileNameFromURL(target)
+    // A caller-supplied name (e.g. a video title) wins over the URL's — a googlevideo URL has no
+    // usable filename of its own.
+    filename: filenameOverride || M.fileNameFromURL(target)
   };
   // Adaptive grab (e.g. a higher-res YouTube rendition): a separate audio-only URL the app downloads
   // alongside the video and muxes in, so the file has sound. Absent for a normal single-file download.
   if (audioURL) payload.audioURL = audioURL;
+  // A "page" hand-off: `target` is a page URL (a YouTube watch page, etc.); the app runs its bundled
+  // yt-dlp to resolve it into real quality tiers, then grabs the best one (with audio). The cookies
+  // gathered above let it authenticate exactly as the browser did.
+  if (extractFromPage) payload.extract = true;
   // Preferred path: the native host relays into the shared App Group inbox (carries big cookies).
   // On any failure — host not installed, or a dev build without the shared container — fall back to
   // the cloakdrop:// deep link, which needs no shared container.
@@ -221,6 +209,7 @@ function openViaURLScheme(p) {
   const params = new URLSearchParams();
   params.set("url", p.url);
   if (p.audioURL) params.set("audio", p.audioURL);
+  if (p.extract) params.set("extract", "1");
   if (p.referrer) params.set("referer", p.referrer);
   if (p.userAgent) params.set("ua", p.userAgent);
   if (p.cookies) params.set("cookie", p.cookies);
@@ -234,17 +223,6 @@ async function cookieHeader(target) {
   try {
     const cookies = await api.cookies.getAll({ url: target });
     return cookies.map((c) => `${c.name}=${c.value}`).join("; ");
-  } catch (error) {
-    return "";
-  }
-}
-
-// Best-effort filename from the URL path; the app sanitizes and can still override it.
-function fileNameFromURL(target) {
-  try {
-    const path = new URL(target).pathname;
-    const last = path.split("/").filter(Boolean).pop() || "";
-    return decodeURIComponent(last);
   } catch (error) {
     return "";
   }

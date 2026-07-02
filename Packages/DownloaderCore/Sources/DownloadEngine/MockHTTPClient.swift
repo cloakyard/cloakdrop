@@ -56,6 +56,11 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
     /// dynamic segment re-splitting (work-stealing).
     public var slowFromOffset: Int64?
     public var slowChunkDelay: Duration = .zero
+    /// The first `stream` finishes *cleanly* (no error) after this many delivered bytes, emulating a
+    /// silent throttle-close that ends the body early — with no `Content-Length` to reveal it was
+    /// short. `0` disables. Pair with `advertisesSize: false` to exercise truncation detection.
+    public var cleanCloseAfterBytes: Int = 0
+    private var _cleanCloseUsed = false
 
     public init(resources: [URL: Resource] = [:], pendingDrops: Int = 0, dropAfterBytes: Int = 0) {
         self.resources = resources
@@ -82,7 +87,10 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
         guard let resource else { throw DownloadError.httpStatus(code: 404) }
         return HTTPResponseHead(
             statusCode: resource.acceptsRanges ? 206 : 200,
-            totalBytes: resource.advertisesSize ? Int64(resource.data.count) : nil,
+            // A 0-0 ranged probe returns Content-Range (hence the total) whenever the server supports
+            // ranges — even if the plain GET omits Content-Length. A non-range server only reveals the
+            // total via Content-Length (advertisesSize).
+            totalBytes: (resource.acceptsRanges || resource.advertisesSize) ? Int64(resource.data.count) : nil,
             acceptsRanges: resource.acceptsRanges,
             suggestedFilename: resource.suggestedFilename,
             etag: resource.etag,
@@ -91,10 +99,18 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
         )
     }
 
+    private func makeHead(_ resource: Resource, statusCode: Int, totalBytes: Int64?, request: HTTPDownloadRequest) -> HTTPResponseHead {
+        HTTPResponseHead(
+            statusCode: statusCode, totalBytes: totalBytes, acceptsRanges: resource.acceptsRanges,
+            suggestedFilename: resource.suggestedFilename, etag: resource.etag,
+            finalURL: resource.finalURL ?? request.url, mimeType: resource.mimeType
+        )
+    }
+
     public func stream(_ request: HTTPDownloadRequest) async throws -> (HTTPResponseHead, AsyncThrowingStream<Data, Error>) {
         struct StreamPlan {
             let resource: Resource; let willDrop: Bool; let dropAt: Int; let chunk: Int
-            let delay: Duration; let slowFromOffset: Int64?; let slowDelay: Duration
+            let delay: Duration; let slowFromOffset: Int64?; let slowDelay: Duration; let cleanCloseAt: Int
         }
         let plan: StreamPlan? = lock.withLock {
             _streamCount += 1
@@ -102,9 +118,11 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
             guard let resource = resources[request.url] else { return nil }
             let willDrop = pendingDrops > 0
             if willDrop { pendingDrops -= 1 }
+            let cleanCloseAt = (cleanCloseAfterBytes > 0 && !_cleanCloseUsed) ? cleanCloseAfterBytes : 0
+            if cleanCloseAt > 0 { _cleanCloseUsed = true }
             return StreamPlan(
                 resource: resource, willDrop: willDrop, dropAt: dropAfterBytes, chunk: chunkSize,
-                delay: perChunkDelay, slowFromOffset: slowFromOffset, slowDelay: slowChunkDelay
+                delay: perChunkDelay, slowFromOffset: slowFromOffset, slowDelay: slowChunkDelay, cleanCloseAt: cleanCloseAt
             )
         }
         guard let plan else { throw DownloadError.httpStatus(code: 404) }
@@ -130,30 +148,18 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
             // Empty range — return an immediately-finishing stream.
             let (stream, continuation) = AsyncThrowingStream<Data, Error>.makeStream()
             continuation.finish()
-            let head = HTTPResponseHead(
-                statusCode: 206,
-                totalBytes: reportedTotal,
-                acceptsRanges: resource.acceptsRanges,
-                suggestedFilename: resource.suggestedFilename,
-                etag: resource.etag,
-                finalURL: resource.finalURL ?? request.url,
-                mimeType: resource.mimeType
-            )
-            return (head, stream)
+            return (makeHead(resource, statusCode: 206, totalBytes: reportedTotal, request: request), stream)
         }
 
         // A tail past `slowFromOffset` streams at the slow rate, making it a deterministic straggler.
         let delay: Duration = (plan.slowFromOffset.map { lower >= $0 } ?? false) ? plan.slowDelay : plan.delay
 
         let slice = resource.data.subdata(in: Int(lower)..<Int(upper + 1))
-        let head = HTTPResponseHead(
-            statusCode: (resource.acceptsRanges && request.byteRange != nil) ? 206 : 200,
-            totalBytes: total,
-            acceptsRanges: resource.acceptsRanges,
-            suggestedFilename: resource.suggestedFilename,
-            etag: resource.etag,
-            finalURL: resource.finalURL ?? request.url,
-            mimeType: resource.mimeType
+        // Respect `advertisesSize`: a chunked/streamed response omits Content-Length, so the head
+        // reports no total (reportedTotal) even though the mock knows the full size internally.
+        let head = makeHead(
+            resource, statusCode: (resource.acceptsRanges && request.byteRange != nil) ? 206 : 200,
+            totalBytes: reportedTotal, request: request
         )
 
         let (stream, continuation) = AsyncThrowingStream<Data, Error>.makeStream()
@@ -161,6 +167,10 @@ public final class MockHTTPClient: HTTPClient, @unchecked Sendable {
             var delivered = 0
             var offset = 0
             while offset < slice.count {
+                if plan.cleanCloseAt > 0 && delivered >= plan.cleanCloseAt {
+                    continuation.finish()          // clean EOF (no error) — a silent throttle-close
+                    return
+                }
                 if willDrop && delivered >= dropAt {
                     continuation.finish(throwing: DownloadError.networkLost)
                     return

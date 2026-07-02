@@ -92,11 +92,19 @@ struct SettingsView: View {
                 Text("Applies across all active downloads combined.")
             }
 
-            Section("Capture") {
+            Section {
                 Toggle("Watch clipboard for links", isOn: Binding(
                     get: { model.clipboardMonitoringEnabled },
                     set: { model.clipboardMonitoringEnabled = $0 }
                 ))
+                Toggle("Ask which quality to download", isOn: Binding(
+                    get: { model.askQualityEnabled },
+                    set: { model.askQualityEnabled = $0 }
+                ))
+            } header: {
+                Text("Capture")
+            } footer: {
+                Text("Off grabs the best quality automatically — one click. On shows a picker for videos that offer several resolutions.")
             }
 
             Section("Reliability") {

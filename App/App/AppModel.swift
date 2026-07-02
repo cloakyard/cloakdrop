@@ -54,16 +54,28 @@ final class AppModel {
     /// A clipboard-detected link awaiting the user's "Add" / "Dismiss" decision.
     private(set) var detectedClipboardURL: URL?
 
-    /// A download captured from a `cloakdrop://` link (and, later, a browser/share extension),
-    /// held for a confirm-before-adding decision so nothing is ever queued silently.
-    private(set) var pendingCapture: CapturedDownload?
-
     /// A resolved media stream awaiting the user's quality selection in the picker (see
     /// `AppModel+Media`). Settable within the module rather than `private(set)` so the media-intake
     /// extension can drive it.
     var pendingMediaSelection: MediaSelection?
-    /// True while a manifest URL is being fetched and parsed, before the picker appears.
+    /// True while a manifest/page URL is being fetched and parsed, before a grab starts.
     var isResolvingMedia = false
+    /// A transient, human-readable reason a media grab couldn't be prepared (protected stream, sign-in
+    /// wall, unavailable video) — surfaced as an auto-dismissing toast. Set via `presentMediaError`.
+    var mediaExtractionError: String?
+
+    /// Whether to show the quality picker for a multi-tier grab. Off (default) grabs the best tier
+    /// immediately — one click, no dialog; on offers every resolution. Persisted in UserDefaults.
+    var askQualityEnabled: Bool {
+        didSet { UserDefaults.standard.set(askQualityEnabled, forKey: Self.askQualityKey) }
+    }
+    private static let askQualityKey = "askQualityEnabled"
+
+    /// The bundled page extractor (yt-dlp), if present — resolves page URLs (YouTube & 1800+ sites)
+    /// into real format tiers. `nil` in a checkout/build without the vendored binary.
+    private(set) var mediaExtractor: (any MediaExtractor)?
+    /// Whether the bundled extractor actually ran (its version probe succeeded in-sandbox at launch).
+    private(set) var isPageExtractionAvailable = false
 
     /// Adds that matched an existing download by URL, each awaiting a "download again?" decision.
     /// FIFO so several confirm one at a time; the alert binds to the head.
@@ -102,6 +114,7 @@ final class AppModel {
     init(manager: DownloadManager) {
         self.manager = manager
         self.clipboardMonitoringEnabled = UserDefaults.standard.bool(forKey: Self.clipboardKey)
+        self.askQualityEnabled = UserDefaults.standard.bool(forKey: Self.askQualityKey)
         self.launchAtLoginEnabled = loginItem.isEnabled
     }
 
@@ -134,6 +147,19 @@ final class AppModel {
         rules = snapshot.rules
         startObservingEvents()
         refreshAmbient()
+
+        // Locate the bundled page extractor (yt-dlp) and confirm it actually runs inside our sandbox —
+        // a launch-time smoke test of the bundled binary. `isPageExtractionAvailable` reflects the
+        // probe; page grabs (YouTube etc.) route through it.
+        let extractor = YtDlpExtractor.locate()
+        mediaExtractor = extractor
+        if let extractor {
+            Task { [weak self] in
+                let version = await extractor.version()
+                self?.isPageExtractionAvailable = (version != nil)
+                NSLog("[CloakDrop] page extractor (yt-dlp): %@", version ?? "unavailable")
+            }
+        }
 
         clipboard.onURLDetected = { [weak self] url in
             guard let self else { return }
@@ -434,56 +460,45 @@ final class AppModel {
 
     // MARK: External capture (cloakdrop:// link, Safari/browser extension, share sheet)
 
-    /// Captures waiting behind `pendingCapture` when several land at once — e.g. a burst from the
-    /// browser extension, or an inbox drained on launch. The banner confirms one at a time.
-    private var captureQueue: [CapturedDownload] = []
-
     /// Handle an incoming deep link. Parses a `cloakdrop://add?…` URL into a validated
-    /// `CapturedDownload` and surfaces it for confirmation; non-cloakdrop or malformed links are
-    /// ignored (nothing is queued without the user's explicit "Add").
+    /// `CapturedDownload` and starts it; non-cloakdrop or malformed links are ignored.
     func handleIncomingURL(_ url: URL) {
         guard url.scheme?.lowercased() == "cloakdrop" else { return }
         guard let capture = try? CapturedDownload.parse(cloakdropURL: url) else { return }
         enqueueCapture(capture)
     }
 
-    /// Pull every capture the bundled extensions dropped into the shared App Group inbox and queue
-    /// them for confirmation. Called on the Darwin wake signal and once on launch (for anything
-    /// that arrived while the app was closed).
+    /// Pull every capture the bundled extensions dropped into the shared App Group inbox and start
+    /// them. Called on the Darwin wake signal and once on launch (for anything that arrived while the
+    /// app was closed).
     func drainCaptureInbox() {
         for capture in CaptureInbox.drain() { enqueueCapture(capture) }
     }
 
-    /// User accepted the captured download: enqueue it into the default downloads folder,
-    /// carrying its referrer/cookies/user-agent, then advance to the next pending capture.
-    func confirmPendingCapture() {
-        guard let capture = pendingCapture else { return }
+    /// Start a captured download immediately — no confirm step, since the user already chose to
+    /// download it in the browser (the pill) or share sheet. A *page* capture goes to the extractor
+    /// (auto-best tier, or the picker when "Ask me quality" is on); a video+audio pair is muxed;
+    /// anything else takes the normal download path. Duplicate detection still guards a re-add.
+    func enqueueCapture(_ capture: CapturedDownload) {
         let request = capture.toRequest(destinationDirectoryPath: AppEnvironment.defaultDownloadsDirectory().path)
-        if let audioURL = capture.audioURL {
-            // A video URL paired with a separate audio URL (adaptive source with no manifest, e.g.
-            // YouTube): grab both and mux them so the download has sound.
+        if capture.extractFromPage == true {
+            grabFromPage(capture)
+        } else if let audioURL = capture.audioURL {
+            // A video URL paired with a separate audio URL (adaptive source with no manifest): grab
+            // both and mux them so the download has sound.
             grabPairedMedia(request, audioURL: audioURL)
         } else {
             grab(request)
         }
-        advancePendingCapture()
     }
 
-    func dismissPendingCapture() {
-        advancePendingCapture()
-    }
-
-    /// Surface a capture for confirmation, or hold it behind the one showing (reused by system capture).
-    func enqueueCapture(_ capture: CapturedDownload) {
-        if pendingCapture == nil {
-            pendingCapture = capture
-        } else {
-            captureQueue.append(capture)
+    /// Surface a transient, auto-dismissing media error (protected stream, sign-in wall, unavailable).
+    func presentMediaError(_ message: String) {
+        mediaExtractionError = message
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(5))
+            if self?.mediaExtractionError == message { self?.mediaExtractionError = nil }
         }
-    }
-
-    private func advancePendingCapture() {
-        pendingCapture = captureQueue.isEmpty ? nil : captureQueue.removeFirst()
     }
 
     func pause(_ id: UUID) { Task { await manager.pause(id: id) } }

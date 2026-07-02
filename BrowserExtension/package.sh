@@ -37,6 +37,10 @@ build firefox manifest.firefox.json
 SAFARI="../SafariExtension/WebExtension"
 if [[ -d "$SAFARI" ]]; then
   find shared -maxdepth 1 -type f ! -name "manifest*" -exec cp {} "$SAFARI/" \;
+  # Safari keeps its own hand-maintained manifest (content_scripts/permissions must stay in lockstep
+  # with the chrome/firefox ones). Validate it so a drift/typo fails loudly instead of shipping broken.
+  python3 -c "import json; json.load(open('$SAFARI/manifest.json'))" \
+    || { echo "error: $SAFARI/manifest.json is not valid JSON"; exit 1; }
   echo "synced $SAFARI"
 fi
 

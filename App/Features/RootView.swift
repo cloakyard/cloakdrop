@@ -29,10 +29,10 @@ struct RootView: View {
         .sheet(item: $model.pendingMediaSelection) { selection in
             MediaPickerSheet(selection: selection)
         }
-        // Brief, non-blocking indicator while a manifest URL is being fetched and parsed.
+        // Brief, non-blocking indicator while a manifest/page URL is being fetched and parsed.
         .overlay(alignment: .bottom) {
             if model.isResolvingMedia {
-                Label("Checking stream…", systemImage: "antenna.radiowaves.left.and.right")
+                Label("Reading video…", systemImage: "antenna.radiowaves.left.and.right")
                     .font(.callout)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
@@ -43,6 +43,21 @@ struct RootView: View {
             }
         }
         .animation(.default, value: model.isResolvingMedia)
+        // Auto-dismissing toast when a media grab couldn't be prepared (protected / unavailable /
+        // needs sign-in). The message is already localized by `friendlyExtractionMessage`.
+        .overlay(alignment: .bottom) {
+            if let error = model.mediaExtractionError {
+                Label(error, systemImage: "exclamationmark.triangle.fill")
+                    .font(.callout)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(.regularMaterial, in: Capsule())
+                    .shadow(radius: 8, y: 2)
+                    .padding(.bottom, 24)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.default, value: model.mediaExtractionError)
         // A download for the same URL already exists — confirm before adding a duplicate. Fires for
         // every intake path (sheet, batch, drop, clipboard, browser/`cloakdrop://` capture). The
         // buttons drive the FIFO, so the isPresented setter is intentionally a no-op.

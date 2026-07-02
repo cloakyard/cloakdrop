@@ -339,6 +339,78 @@ struct MediaTransferTests {
         #expect(sawTotal)
     }
 
+    @Test("A fresh whole-file grab is bounded: probes the size, then requests bytes 0-N")
+    func pairedGrabUsesRangedRequests() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let data = payload(4, 30_000)
+        let url = URL(string: "https://cdn/x/whole.mp4")!
+        let mock = MockHTTPClient()
+        mock.setResource(.init(data: data), for: url)
+        let plan = MediaPlan(format: .dash, segments: [MediaSegment(id: 0, url: url, duration: 0)])
+
+        let store = try GRDBDownloadStore.inMemory()
+        let manager = try await makeManager(store: store, mock: mock)
+        let request = DownloadRequest(url: url, suggestedFileName: "v.mp4", destinationDirectoryPath: dir.path)
+        let download = await manager.addMedia(request, plan: plan)
+        let done = try await waitFor(manager, download.id) { $0.status == .completed }
+
+        #expect(try Data(contentsOf: URL(fileURLWithPath: done.destinationFilePath)) == data)
+        #expect(mock.probeCount >= 1)                        // learned the size up front
+        let ranged = try #require(mock.lastRequest?.byteRange)
+        #expect(ranged.lowerBound == 0)                      // the first GET was bounded…
+        #expect(ranged.upperBound == Int64(data.count - 1))  // …not open-ended (throttle mitigation)
+    }
+
+    @Test("A long transfer that drops and resumes repeatedly isn't killed while it's still advancing")
+    func longTransferSurvivesRepeatedDrops() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        // 8 drops against the default 5-retry budget — only survivable if the budget resets on progress.
+        let data = payload(5, 40_000)
+        let url = URL(string: "https://cdn/x/flaky.mp4")!
+        let mock = MockHTTPClient(pendingDrops: 8, dropAfterBytes: 3000)
+        mock.chunkSize = 1000
+        mock.setResource(.init(data: data), for: url)
+        let plan = MediaPlan(format: .dash, segments: [MediaSegment(id: 0, url: url, duration: 0)])
+
+        let store = try GRDBDownloadStore.inMemory()
+        let manager = try await makeManager(store: store, mock: mock)
+        let request = DownloadRequest(url: url, suggestedFileName: "v.mp4", destinationDirectoryPath: dir.path)
+        let download = await manager.addMedia(request, plan: plan)
+        let done = try await waitFor(manager, download.id) { $0.status == .completed }
+
+        #expect(try Data(contentsOf: URL(fileURLWithPath: done.destinationFilePath)) == data)
+    }
+
+    @Test("A body that closes clean with no Content-Length is caught (probed) and resumed, not promoted")
+    func truncatedNoLengthBodyIsNotPromoted() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        // An HLS-style segment (a duration, so no up-front bound) served WITHOUT Content-Length whose
+        // first fetch throttle-closes clean at 5 KB. A post-hoc ranged probe reveals the true size, so
+        // the short body must be caught and resumed — never silently promoted as complete.
+        let data = payload(6, 20_000)
+        let url = URL(string: "https://cdn/x/segment.ts")!
+        let mock = MockHTTPClient()
+        mock.chunkSize = 1000
+        mock.cleanCloseAfterBytes = 5000
+        mock.setResource(.init(data: data, acceptsRanges: true, advertisesSize: false), for: url)
+        let plan = MediaPlan(format: .hls, segments: [MediaSegment(id: 0, url: url, duration: 6)])
+
+        let store = try GRDBDownloadStore.inMemory()
+        let manager = try await makeManager(store: store, mock: mock)
+        let request = DownloadRequest(url: url, suggestedFileName: "v.ts", destinationDirectoryPath: dir.path)
+        let download = await manager.addMedia(request, plan: plan)
+        let done = try await waitFor(manager, download.id) { $0.status == .completed }
+
+        #expect(try Data(contentsOf: URL(fileURLWithPath: done.destinationFilePath)) == data)
+        #expect(mock.probeCount >= 1)                        // the probe that revealed the real size
+    }
+
     @Test("Cancelling a media grab discards its part directory")
     func cancelDiscardsParts() async throws {
         let dir = try tempDir()

@@ -1,14 +1,16 @@
 // CloakDrop toolbar popup — lists downloadable media on the current tab and sends any of it to the
-// app. Two sources are merged: what's already in the page's DOM (scanned on demand, only when you
-// open this popup) and what the background script saw stream past on the network (HLS/DASH manifests
-// and media responses the DOM never exposes). Nothing is collected until you open the popup, and a
-// download only leaves the browser when you click it.
+// app. Sources merged: media already in the page's DOM (scanned on demand when you open this popup),
+// what the background script saw stream past on the network (HLS/DASH manifests and media responses
+// the DOM never exposes), and — for an adaptive player with no grabbable file (YouTube et al.) — a
+// "Download this video" item that hands the page URL to the app, which resolves it with its bundled
+// yt-dlp into real quality tiers. Nothing is collected until you open the popup, and a download only
+// leaves the browser when you click it.
 
 const api = globalThis.browser ?? globalThis.chrome;
 
-// Type ordering for the list: streams (the prize on video sites) first, then plain media, then files.
-const TYPE_RANK = { stream: 0, video: 1, audio: 2, file: 3 };
-const TYPE_LABEL = { stream: "STREAM", video: "VIDEO", audio: "AUDIO", file: "FILE" };
+// List ordering: a page-extraction item first, then streams, plain media, files.
+const TYPE_RANK = { page: 0, stream: 1, video: 2, audio: 3, file: 4 };
+const TYPE_LABEL = { page: "VIDEO", stream: "STREAM", video: "VIDEO", audio: "AUDIO", file: "FILE" };
 
 init();
 
@@ -16,95 +18,16 @@ async function init() {
   const tab = await activeTab();
   if (!tab || tab.id == null) { showEmpty(); return; }
 
-  const [youtube, sniffed, dom] = await Promise.all([
-    youTubeFormats(tab.id, tab.url || ""),
+  const [sniffed, dom] = await Promise.all([
     sniffedMedia(tab.id),
     scanPageDOM(tab.id)
   ]);
-  // YouTube's own format list (real resolutions, with audio) leads; everything else follows, ordered
-  // streams → video → audio → file.
-  const rest = dedupe([...sniffed, ...dom]).sort((a, b) => (TYPE_RANK[a.type] ?? 9) - (TYPE_RANK[b.type] ?? 9));
-  const items = dedupe([...youtube, ...rest]);
+  // The DOM scan may prepend a "page" item (an adaptive <video> the app resolves via yt-dlp); order
+  // everything page → stream → video → audio → file.
+  const items = dedupe([...dom, ...sniffed]).sort((a, b) => (TYPE_RANK[a.type] ?? 9) - (TYPE_RANK[b.type] ?? 9));
 
   if (!items.length) { showEmpty(); return; }
   render(items, tab.url || "");
-}
-
-// YouTube serves adaptive audio/video from googlevideo with no manifest, so the network sniffer can't
-// reconstruct resolutions. Instead read the page's own player data (in the page's JS world): the
-// *progressive* formats (muxed, one playable file, ≤720p) plus the higher-resolution *adaptive*
-// formats — each video-only rendition paired with the best audio track, which the app downloads
-// alongside and muxes in, so every offered resolution has sound. Ciphered (signatureCipher) URLs need
-// JS descrambling we don't do, so they're skipped.
-async function youTubeFormats(tabId, tabUrl) {
-  if (!/(^|\.)youtube\.com$|(^|\.)youtu\.be$/.test(hostOf(tabUrl))) return [];
-  try {
-    const results = await api.scripting.executeScript({ target: { tabId }, world: "MAIN", func: extractYouTube });
-    return (results && results[0] && results[0].result) || [];
-  } catch (_) { return []; }   // MAIN world unsupported, or player data absent
-}
-
-// Runs in the page's own JS context (world: MAIN) so it can read `ytInitialPlayerResponse`.
-function extractYouTube() {
-  try {
-    const player = window.ytInitialPlayerResponse;
-    const streaming = player && player.streamingData;
-    if (!streaming) return [];
-    const details = player.videoDetails || {};
-    const title = ((details.title || "video")
-      .replace(/[\/\\:*?"<>|\n\r\t]+/g, "_").replace(/\s+/g, " ").trim().slice(0, 120)) || "video";
-
-    const isVideo = (f) => (f.mimeType || "").indexOf("video/") === 0;
-    const extOf = (f) => ((f.mimeType || "").indexOf("webm") >= 0 ? "webm" : "mp4");
-    const resOf = (f) => f.qualityLabel || (f.height ? f.height + "p" : "video");
-
-    // The audio track to pair with a video-only rendition: highest bitrate *in the video's own
-    // container* (AAC for mp4, Opus for webm — the pairing the app muxes without re-encoding),
-    // falling back to the best of any container.
-    const adaptive = streaming.adaptiveFormats || [];
-    const audios = adaptive
-      .filter((f) => f.url && (f.mimeType || "").indexOf("audio/") === 0)
-      .sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
-    const audioFor = (ext) => audios.find((f) => (f.mimeType || "").indexOf(ext) >= 0) || audios[0];
-
-    // Gather candidates from both sources, skipping ciphered entries (no direct `url`).
-    const candidates = [];
-    for (const f of (streaming.formats || [])) {          // progressive: already muxed, ≤720p
-      if (f.url && isVideo(f)) {
-        candidates.push({ url: f.url, height: f.height || 0, ext: extOf(f), res: resOf(f), muxed: true });
-      }
-    }
-    if (audios.length) {
-      for (const f of adaptive) {                         // adaptive video-only: pair with an audio track
-        if (f.url && isVideo(f)) {
-          const ext = extOf(f);
-          candidates.push({ url: f.url, audioUrl: audioFor(ext).url, height: f.height || 0, ext, res: resOf(f), muxed: false });
-        }
-      }
-    }
-
-    // One entry per resolution, preferring: progressive (no mux needed) > H.264/mp4 (muxed in-process
-    // by AVFoundation) > VP9/AV1 webm (needs the bundled ffmpeg) — the rendition that assembles most
-    // cheaply, keeping the list short. Every entry downloads with sound (progressive carries its own;
-    // adaptive is paired above), so the label doesn't need to say so.
-    const rank = (c) => (c.muxed ? 3 : (c.ext === "mp4" ? 2 : 1));
-    const byHeight = new Map();
-    for (const c of candidates) {
-      const current = byHeight.get(c.height);
-      if (!current || rank(c) > rank(current)) byHeight.set(c.height, c);
-    }
-
-    return [...byHeight.values()]
-      .sort((a, b) => b.height - a.height)
-      .map((c) => ({
-        url: c.url,
-        audioUrl: c.audioUrl,                             // undefined for progressive (already has audio)
-        type: "video",
-        label: c.res + " · " + c.ext,
-        quality: c.height,
-        filename: title + "." + c.ext
-      }));
-  } catch (_) { return []; }
 }
 
 async function activeTab() {
@@ -171,6 +94,13 @@ function pageScan() {
     else if (MEDIA.includes(ext)) push(a.href, AUDIO.includes(ext) ? "audio" : "video");
     else if (FILE.includes(ext)) push(a.href, "file");
   });
+  // An adaptive <video> (blob:/MediaSource, no direct file) → offer "Download this video", which the
+  // app resolves with yt-dlp into real quality tiers. location.href is the page handed off.
+  const adaptive = [...document.querySelectorAll("video")].some((v) => !/^https?:/i.test(v.currentSrc || v.src || ""));
+  if (adaptive) {
+    const title = (document.title || "This video").replace(/\s*[-–|]\s*YouTube\s*$/i, "").trim();
+    out.push({ url: location.href, type: "page", label: title || "This video", extract: true });
+  }
   return out;
 }
 
@@ -203,7 +133,7 @@ function render(items, referrer) {
     meta.className = "meta";
     const name = document.createElement("div");
     name.className = "name";
-    name.textContent = item.label || item.url;
+    name.textContent = item.type === "page" ? "Download this video" : (item.label || item.url);
     name.title = item.url;
     const host = document.createElement("div");
     host.className = "host";
@@ -225,7 +155,10 @@ async function sendDownload(item, referrer, button) {
   button.textContent = "Sent";
   button.classList.add("sent");
   try {
-    await api.runtime.sendMessage({ action: "download", url: item.url, audioUrl: item.audioUrl, referrer, filename: item.filename });
+    await api.runtime.sendMessage({
+      action: "download", url: item.url, audioUrl: item.audioUrl,
+      referrer, filename: item.filename, extract: item.extract === true
+    });
   } catch (_) {
     button.textContent = "Retry";
     button.classList.remove("sent");

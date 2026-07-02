@@ -21,6 +21,10 @@ public struct CapturedDownload: Sendable, Hashable, Codable {
     /// single-file download. Always http/https after validation. Optional so captures serialized
     /// before this field existed still decode.
     public var audioURL: URL?
+    /// When true, `url` is a *page* (a YouTube watch page, a Vimeo page, …) to hand to the media
+    /// extractor (yt-dlp), which resolves it into the real video/audio formats — rather than a direct
+    /// file to download. Optional so captures serialized before this field existed still decode.
+    public var extractFromPage: Bool?
     /// A name suggested by the source; sanitized of path separators, may still be overridden.
     public var suggestedFileName: String?
     /// The page the download was initiated from (sent as `Referer`).
@@ -68,6 +72,7 @@ public struct CapturedDownload: Sendable, Hashable, Codable {
     public init(
         url: URL,
         audioURL: URL? = nil,
+        extractFromPage: Bool? = nil,
         suggestedFileName: String? = nil,
         referrer: String? = nil,
         cookies: String? = nil,
@@ -77,6 +82,7 @@ public struct CapturedDownload: Sendable, Hashable, Codable {
     ) {
         self.url = url
         self.audioURL = audioURL
+        self.extractFromPage = extractFromPage
         self.suggestedFileName = suggestedFileName
         self.referrer = referrer
         self.cookies = cookies
@@ -152,6 +158,7 @@ public struct CapturedDownload: Sendable, Hashable, Codable {
             url: target,
             // A malformed audio value degrades to a video-only grab rather than failing the capture.
             audioURL: firstValue(["audio", "audiourl"]).flatMap { URL(string: $0) },
+            extractFromPage: firstValue(["extract", "page"]).map { $0 == "1" || $0.lowercased() == "true" },
             suggestedFileName: sanitizedFileName(firstValue(["filename", "name"])),
             referrer: firstValue(["referer", "referrer"]),
             cookies: firstValue(["cookie", "cookies"]),
@@ -172,6 +179,7 @@ public struct CapturedDownload: Sendable, Hashable, Codable {
         comps.host = "add"
         var items = [URLQueryItem(name: "url", value: url.absoluteString)]
         if let audioURL { items.append(URLQueryItem(name: "audio", value: audioURL.absoluteString)) }
+        if extractFromPage == true { items.append(URLQueryItem(name: "extract", value: "1")) }
         if let suggestedFileName { items.append(URLQueryItem(name: "filename", value: suggestedFileName)) }
         if let referrer { items.append(URLQueryItem(name: "referer", value: referrer)) }
         if let cookies { items.append(URLQueryItem(name: "cookie", value: cookies)) }
@@ -211,6 +219,7 @@ public struct CapturedDownload: Sendable, Hashable, Codable {
             url: target,
             // A malformed audio value degrades to a video-only grab rather than failing the capture.
             audioURL: (string("audioURL") ?? string("audio")).flatMap { URL(string: $0) },
+            extractFromPage: (message["extract"] as? Bool) ?? (message["page"] as? Bool) ?? (string("extract") == "1"),
             suggestedFileName: sanitizedFileName(string("filename")),
             referrer: string("referrer"),
             cookies: string("cookies"),

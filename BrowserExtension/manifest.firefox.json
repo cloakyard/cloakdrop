@@ -17,8 +17,15 @@
     "512": "icon-512.png"
   },
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["media.js", "background.js"]
   },
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["media.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
   "permissions": [
     "contextMenus",
     "cookies",
@@ -26,7 +33,8 @@
     "tabs",
     "scripting",
     "webRequest",
-    "nativeMessaging"
+    "nativeMessaging",
+    "storage"
   ],
   "host_permissions": [
     "*://*/*"

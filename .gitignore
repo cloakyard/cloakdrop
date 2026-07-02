@@ -39,6 +39,11 @@ Package.resolved
 Vendor/ffmpeg/ffmpeg
 Vendor/ffmpeg/build/
 
+# Vendored yt-dlp (onedir) — build artifact, produced by scripts/fetch-ytdlp.sh
+Vendor/yt-dlp/yt-dlp
+Vendor/yt-dlp/_internal/
+Vendor/yt-dlp/build/
+
 # Accidental secrets / local config
 *.xcconfig.local
 secrets.plist

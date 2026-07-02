@@ -29,6 +29,7 @@ func runSegment(
     // stops early at the new boundary. `end` on the value-type snapshot never changes.
     var currentEnd = segment.end
     var attempt = 0
+    var progressMark = local.currentOffset
 
     while true {
         try Task.checkCancellation()
@@ -83,8 +84,8 @@ func runSegment(
             throw CancellationError()
         } catch {
             if Task.isCancelled { throw CancellationError() }
-            attempt += 1
-            try await backoffOrThrow(attempt: attempt, settings: settings, lastError: error)
+            try await accountRetry(error: error, attempt: &attempt, progressMark: &progressMark,
+                                   progress: local.currentOffset, settings: settings)
         }
     }
 }
@@ -117,6 +118,7 @@ func runMediaSegment(
 ) async throws -> Int {
     var fetch = MediaSegmentFetch(segment: segment, filePath: filePath)
     var attempt = 0
+    var progressMark = partialSize(fetch.partialPath)
 
     while true {
         try Task.checkCancellation()
@@ -136,10 +138,21 @@ func runMediaSegment(
             throw CancellationError()
         } catch {
             if Task.isCancelled { throw CancellationError() }
-            attempt += 1
-            try await backoffOrThrow(attempt: attempt, settings: settings, lastError: error)
+            // An expired/forbidden media link won't come back on retry — a googlevideo URL carries a
+            // ~6 h `expire` and answers 403/410 once it lapses. Fail fast instead of spending the whole
+            // retry budget (and the backoff delays) discovering the same permanent failure.
+            if isPermanentHTTPFailure(error) { throw error }
+            try await accountRetry(error: error, attempt: &attempt, progressMark: &progressMark,
+                                   progress: partialSize(fetch.partialPath), settings: settings)
         }
     }
+}
+
+/// HTTP failures a retry won't fix: an expired signed URL (403), an unauthorized request (401), or a
+/// resource that's gone (410). Retrying just burns the budget and the backoff delays.
+private func isPermanentHTTPFailure(_ error: any Error) -> Bool {
+    if case DownloadError.httpStatus(let code) = error { return code == 401 || code == 403 || code == 410 }
+    return false
 }
 
 /// Per-segment fetch state carried across retries: where the segment starts in its resource, the
@@ -183,21 +196,24 @@ private func streamMediaSegmentToDisk(
     // Resuming needs a bounded range. When a previous *run* left a partial (relaunch) we don't know
     // the end yet — learn it with a probe, or start clean if the server can't tell us / won't range.
     if resumeFrom > 0, fetch.knownEnd == nil {
-        let head = try? await httpClient.probe(HTTPDownloadRequest(url: fetch.segment.url, headers: headers))
-        if let head, head.acceptsRanges, let total = head.totalBytes {
-            fetch.knownEnd = total - 1
+        if let end = await probedInclusiveEnd(url: fetch.segment.url, headers: headers, httpClient: httpClient) {
+            fetch.knownEnd = end
         } else {
             try? fm.removeItem(atPath: fetch.partialPath)
             resumeFrom = 0
         }
     }
 
-    let range: ClosedRange<Int64>?
-    if resumeFrom > 0, let end = fetch.knownEnd {
-        range = (fetch.base + resumeFrom)...end
-    } else {
-        range = fetch.segment.byteRange.map { $0.offset...$0.end }
+    // A fresh whole-file grab (a paired video/audio stream: one file, no manifest byte range, no HLS
+    // duration): probe for the size up front so the very first GET is *bounded* (bytes=0-(total-1)).
+    // A bounded request sidesteps some CDNs' default-stream throttling — googlevideo's `n`-throttle in
+    // particular crawls an open-ended GET — and makes completion verifiable. Segments carrying their
+    // own byte range or an HLS duration keep the plain un-ranged first fetch.
+    if resumeFrom == 0, fetch.knownEnd == nil, fetch.segment.byteRange == nil, fetch.segment.duration == 0 {
+        fetch.knownEnd = await probedInclusiveEnd(url: fetch.segment.url, headers: headers, httpClient: httpClient)
     }
+
+    let range = resolveMediaRange(fetch, resumeFrom: resumeFrom)
     let request = HTTPDownloadRequest(url: fetch.segment.url, headers: headers, byteRange: range)
     let (head, stream) = try await httpClient.stream(request)
 
@@ -238,6 +254,14 @@ private func streamMediaSegmentToDisk(
     // re-check before committing — the partial stays for the resume.
     try Task.checkCancellation()
 
+    // If the length was never advertised (no Content-Length, and nothing above set it), a "clean" EOF
+    // can be a silent throttle-close that truncated the file. A 0-0 ranged probe returns Content-Range
+    // with the true total even when the GET omitted Content-Length — use it to verify before promoting.
+    // When the size is genuinely undiscoverable, EOF is accepted (documented limit). Here `base` is 0
+    // (a segment with a byte range would already have `knownEnd`), so the probed end is the segment's.
+    if fetch.knownEnd == nil {
+        fetch.knownEnd = await probedInclusiveEnd(url: fetch.segment.url, headers: headers, httpClient: httpClient)
+    }
     // When the length is known, a short body is a silent drop — retry (and resume) instead of
     // promoting a truncated segment.
     if let end = fetch.knownEnd, written < end - fetch.base + 1 {
@@ -286,6 +310,35 @@ private func fetchEncryptedMediaSegment(
 
 private func partialSize(_ path: String) -> Int64 {
     ((try? FileManager.default.attributesOfItem(atPath: path)[.size] as? NSNumber)?.int64Value) ?? 0
+}
+
+/// The byte range to request this attempt: resume from `resumeFrom` when a partial and a known end
+/// exist; bound a fresh whole-file grab to its probed end; otherwise honor the segment's own byte
+/// range (or nil for an open-ended fetch of an unknown-size stream).
+private func resolveMediaRange(_ fetch: MediaSegmentFetch, resumeFrom: Int64) -> ClosedRange<Int64>? {
+    if resumeFrom > 0, let end = fetch.knownEnd { return (fetch.base + resumeFrom)...end }
+    if fetch.segment.byteRange == nil, let end = fetch.knownEnd { return fetch.base...end }
+    return fetch.segment.byteRange.map { $0.offset...$0.end }
+}
+
+/// A 0-0 ranged probe's inclusive end (`total - 1`) when the server supports ranges, else nil. Range
+/// support means a `Content-Range` header reveals the total even when the plain GET omitted
+/// `Content-Length` — how we recover an unknown size to bound a request and verify completeness.
+private func probedInclusiveEnd(url: URL, headers: [String: String], httpClient: any HTTPClient) async -> Int64? {
+    guard let head = try? await httpClient.probe(HTTPDownloadRequest(url: url, headers: headers)),
+          head.acceptsRanges, let total = head.totalBytes else { return nil }
+    return total - 1
+}
+
+/// Shared retry accounting for both segment workers: count the attempt, but reset the budget whenever
+/// the transfer advanced past `progressMark` — so `maxRetryAttempts` counts *consecutive stalled*
+/// attempts, and a long, repeatedly-dropping transfer isn't killed while it's still making headway.
+private func accountRetry(
+    error: any Error, attempt: inout Int, progressMark: inout Int64, progress: Int64, settings: EngineSettings
+) async throws {
+    attempt += 1
+    if progress > progressMark { attempt = 0; progressMark = progress }
+    try await backoffOrThrow(attempt: attempt, settings: settings, lastError: error)
 }
 
 /// Sleep with jittered backoff before the next retry, or throw `retriesExhausted` once the attempt

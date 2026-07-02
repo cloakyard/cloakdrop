@@ -61,49 +61,7 @@ struct DownloadListView: View {
     /// pane's full height) or inset above the list (pushing rows down) — see `body`.
     private var banners: some View {
         VStack(spacing: 6) {
-            captureBanner
             clipboardBanner
-        }
-    }
-
-    /// Confirm-before-adding banner for a download captured from a `cloakdrop://` link (later:
-    /// browser/share extensions). Nothing is queued until the user taps "Add".
-    @ViewBuilder
-    private var captureBanner: some View {
-        if let capture = model.pendingCapture {
-            HStack(spacing: 10) {
-                Image(systemName: "arrow.down.circle.fill")
-                    .foregroundStyle(.tint)
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("Add this download?")
-                        .font(.callout.weight(.medium))
-                    Text(capture.url.absoluteString)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
-                Spacer()
-                Button("Add") { model.confirmPendingCapture() }
-                    .buttonStyle(.borderedProminent)
-                Button {
-                    model.dismissPendingCapture()
-                } label: {
-                    Image(systemName: "xmark")
-                }
-                .buttonStyle(.borderless)
-                .help("Dismiss")
-                .accessibilityLabel("Dismiss")
-            }
-            // Surface the banner as a grouped element so VoiceOver reads the prompt + URL together.
-            .accessibilityElement(children: .contain)
-            .padding(10)
-            .background(.regularMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-            .padding(.horizontal, 10)
-            .padding(.top, 6)
-            .transition(.move(edge: .top).combined(with: .opacity))
         }
     }
 

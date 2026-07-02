@@ -86,6 +86,38 @@ struct CapturedDownloadTests {
         #expect(parsed.source == .urlScheme)
     }
 
+    @Test("The extract flag routes a page URL to the media extractor (deep link + round-trip)")
+    func extractFlagDeepLink() throws {
+        // A "page" hand-off: cloakdrop://add?url=<page>&extract=1 → resolve via the app's yt-dlp.
+        let link = URL(string: "cloakdrop://add?url=https://www.youtube.com/watch%3Fv%3Dabc&extract=1")!
+        let parsed = try CapturedDownload.parse(cloakdropURL: link)
+        #expect(parsed.extractFromPage == true)
+        #expect(parsed.url.absoluteString == "https://www.youtube.com/watch?v=abc")
+
+        // A page capture round-trips its flag through cloakdropURL().
+        let capture = CapturedDownload(
+            url: URL(string: "https://www.youtube.com/watch?v=abc")!,
+            extractFromPage: true, source: .browserExtension
+        )
+        let round = try CapturedDownload.parse(cloakdropURL: #require(capture.cloakdropURL()))
+        #expect(round.extractFromPage == true)
+    }
+
+    @Test("A non-page capture doesn't set the extract flag")
+    func noExtractByDefault() throws {
+        let parsed = try CapturedDownload.parse(cloakdropURL: URL(string: "cloakdrop://add?url=https://x/y.mp4")!)
+        #expect(parsed.extractFromPage != true)
+    }
+
+    @Test("The extension message extract:true routes to the extractor")
+    func extractFlagExtensionMessage() throws {
+        let capture = try CapturedDownload.parse(
+            extensionMessage: ["url": "https://www.youtube.com/watch?v=abc", "extract": true],
+            source: .browserExtension
+        )
+        #expect(capture.extractFromPage == true)
+    }
+
     @Test("Missing url query item is rejected")
     func rejectsMissingURL() {
         #expect(throws: CapturedDownload.CaptureError.missingURL) {
