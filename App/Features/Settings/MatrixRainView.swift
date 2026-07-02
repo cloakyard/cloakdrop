@@ -31,8 +31,10 @@ struct AboutIconView: View {
         .accessibilityLabel(Text(verbatim: "CloakDrop"))
     }
 
-    // A dedicated asset, not `NSApp.applicationIconImage`: the latter is served from macOS's icon
-    // cache, which can lag a rebuilt icon. This loads the exact shipped artwork from the catalog.
+    // A pre-glassed copy of the app icon (baked by scripts/bake_about_icon.swift from how macOS
+    // composites it for the Dock), not `NSApp.applicationIconImage` — which lags a rebuilt icon via
+    // the OS icon cache. SwiftUI's `Image` won't apply Tahoe's Liquid Glass to the flat AppIcon, so
+    // the glass is baked into this asset to match how the icon actually looks in the Dock.
     private var icon: some View {
         Image("AboutAppIcon").resizable().interpolation(.high)
     }
