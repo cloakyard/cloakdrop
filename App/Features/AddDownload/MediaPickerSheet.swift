@@ -101,11 +101,12 @@ struct MediaPickerSheet: View {
         .padding(16)
     }
 
-    /// A concise quality label — "1080p", "720p", … from the height; otherwise "Audio" for an
-    /// audio-only rendition or "Video" for a video rendition that omits `RESOLUTION` (some HLS
-    /// masters do, while still declaring a video codec — those must not read as "Audio").
+    /// A concise quality label — "1080p", "2160p", … by the streaming convention (so portrait/Shorts
+    /// read "1080p" not "1920p", and a cinematic 2:1 master reads "2160p" as YouTube labels it);
+    /// otherwise "Audio" for an audio-only rendition or "Video" for a video rendition that omits
+    /// `RESOLUTION` (some HLS masters do, while still declaring a video codec — not "Audio").
     private func qualityLabel(_ variant: MediaVariant) -> String {
-        if let height = variant.resolution?.height { return "\(height)p" }
+        if let resolution = variant.resolution { return "\(resolution.qualityHeight)p" }
         return variant.isAudioOnly ? String(localized: "Audio") : String(localized: "Video")
     }
 

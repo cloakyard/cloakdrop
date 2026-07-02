@@ -16,6 +16,18 @@ public struct MediaResolution: Sendable, Hashable, Codable {
     }
     /// Total pixels — a format-free way to rank variants by quality.
     public var pixelCount: Int { width * height }
+    /// The quality tier this resolution maps to by the streaming convention — the "p" number YouTube,
+    /// IDM, and browsers show (144p, 360p, 720p, 1080p, 1440p, 2160p…). For 16:9-or-taller content
+    /// (standard, 4:3, portrait/Shorts) that's the shorter side, so a 1080×1920 vertical video reads
+    /// "1080p", not "1920p". For content *wider* than 16:9 (cinematic 2:1, ultrawide) the tier is
+    /// binned by width, not height — a 3840×1920 (2:1) master is "2160p", exactly as YouTube labels
+    /// it — so we scale the width to its 16:9-equivalent height. Reproduces yt-dlp's own ladder
+    /// labels across every aspect ratio.
+    public var qualityHeight: Int {
+        width * 9 > height * 16                        // wider than 16:9?
+            ? Int((Double(width) * 9 / 16).rounded())  // bin by width (its 16:9-equivalent height)
+            : min(width, height)                       // 16:9 or taller → the shorter side
+    }
 }
 
 /// A byte range within a resource (HLS `#EXT-X-BYTERANGE`, DASH `mediaRange`), stored as the

@@ -11,10 +11,12 @@ struct DownloadRowView: View {
     private var fraction: Double? { model.liveFraction(download) }
     private var isSelected: Bool { model.selectedDownloadIDs.contains(download.id) }
 
-    /// A compact quality/format badge for a media grab — "1080p", "HLS", … `nil` for file downloads.
+    /// A compact quality/format badge for a media grab — "1080p", "2160p", "HLS", … `nil` for file
+    /// downloads. Labels by the streaming convention (`qualityHeight`), so a portrait/Shorts grab
+    /// reads "1080p" (not "1920p") and a cinematic 2:1 grab reads "2160p", matching YouTube.
     private var mediaBadge: String? {
         guard let plan = download.mediaPlan else { return nil }
-        if let height = plan.resolution?.height { return "\(height)p" }
+        if let resolution = plan.resolution { return "\(resolution.qualityHeight)p" }
         return plan.format == .hls ? "HLS" : "DASH"
     }
 
