@@ -12,10 +12,15 @@ struct AboutIconView: View {
         ZStack {
             icon.opacity(matrixMode ? 0 : 1)
 
-            MatrixRainView()
-                .mask { icon }
-                .opacity(matrixMode ? 1 : 0)
-                .shadow(color: .green.opacity(matrixMode ? 0.55 : 0), radius: 10)
+            // Only mount the Canvas while the egg is active: `TimelineView(.animation)` redraws every
+            // display frame as long as it's in the tree, so a permanently-present-but-hidden rain would
+            // burn CPU/GPU the whole time the About pane is open. Gating it keeps it idle when off.
+            if matrixMode {
+                MatrixRainView()
+                    .mask { icon }
+                    .shadow(color: .green.opacity(0.55), radius: 10)
+                    .transition(.opacity)
+            }
         }
         .frame(width: 96, height: 96)
         .scaleEffect(matrixMode ? 1.04 : 1)
@@ -73,6 +78,7 @@ struct MatrixRainView: View {
     private static let fontSize: CGFloat = 11
     private static let cell: CGFloat = 12
     private static let tail = 14
+    private static let font = Font.system(size: fontSize, weight: .semibold, design: .monospaced)
 
     /// Half-width katakana (the canonical Matrix glyphs) plus digits.
     private static let glyphs: [String] = {
@@ -84,7 +90,6 @@ struct MatrixRainView: View {
     private static func draw(in context: inout GraphicsContext, size: CGSize, time: TimeInterval) {
         let cols = max(1, Int(size.width / cell))
         let rows = max(1, Int(size.height / cell) + 1)
-        let font = Font.system(size: fontSize, weight: .semibold, design: .monospaced)
         let gap = 6.0
         let cycle = Double(rows) + Double(tail) + gap   // rows the head travels before repeating
 

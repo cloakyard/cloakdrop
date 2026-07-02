@@ -7,8 +7,7 @@ import DownloadModels
 ///
 /// `title`/`blurb` are English strings that double as String Catalog keys; views render them via
 /// `Text(LocalizedStringKey(...))` so they localize while the type stays `Sendable`. SF Symbols only.
-struct StatsBadge: Identifiable {
-    let id: String
+struct StatsBadge {
     let title: String
     let blurb: String
     let symbol: String
@@ -22,28 +21,25 @@ enum DownloadTier {
 
     /// Monthly tiers, ascending — five rungs before the 3 TB+ badge of honour at the top.
     static let ladder: [StatsBadge] = [
-        StatsBadge(id: "warming", title: "Warming Up",
+        StatsBadge(title: "Warming Up",
                    blurb: "The month is young. So are your downloads.",
                    symbol: "tortoise.fill", threshold: 0),
-        StatsBadge(id: "nibbler", title: "Byte Nibbler",
+        StatsBadge(title: "Byte Nibbler",
                    blurb: "A hundred gigs this month. Peckish.",
                    symbol: "ant.fill", threshold: 100 * gb),
-        StatsBadge(id: "bandit", title: "Bandwidth Bandit",
+        StatsBadge(title: "Bandwidth Bandit",
                    blurb: "The router is starting to sweat.",
                    symbol: "theatermasks.fill", threshold: 500 * gb),
-        StatsBadge(id: "hoarder", title: "Data Hoarder",
+        StatsBadge(title: "Data Hoarder",
                    blurb: "A terabyte this month. Marie Kondo is concerned.",
                    symbol: "archivebox.fill", threshold: tb),
-        StatsBadge(id: "warlord", title: "Warlord of the Wires",
+        StatsBadge(title: "Warlord of the Wires",
                    blurb: "Two terabytes. ISPs whisper your name.",
                    symbol: "crown.fill", threshold: 2 * tb),
-        StatsBadge(id: "nightmare", title: "ISP’s Worst Nightmare",
+        StatsBadge(title: "ISP’s Worst Nightmare",
                    blurb: "3 TB in one month. Somewhere, a fair-use policy weeps.",
                    symbol: "flame.fill", threshold: 3 * tb)
     ]
-
-    /// Bytes at which the special top honour unlocks (3 TB in a single month).
-    static var honourThreshold: Int64 { ladder.last!.threshold }
 
     /// The badge for this month's volume — the highest tier its bytes have unlocked.
     static func current(for stats: DownloadStats) -> StatsBadge {
@@ -57,11 +53,6 @@ enum DownloadTier {
     /// The next tier above `monthBytes`, or nil at the summit — drives the "progress to next" bar.
     static func next(after monthBytes: Int64) -> StatsBadge? {
         ladder.first { monthBytes < $0.threshold }
-    }
-
-    /// Whether the 3 TB/month honour is currently held.
-    static func hasHonour(_ stats: DownloadStats) -> Bool {
-        stats.monthBytes >= honourThreshold
     }
 
     /// Progress in `0...1` from the current tier toward the next (1 at the summit).

@@ -132,8 +132,10 @@ public actor DownloadManager {
     /// Clear every recorded download total (Settings ▸ Stats ▸ Reset).
     public func resetStats() async {
         try? await store.resetStats()
-        currentStats = .empty
-        eventContinuation.yield(.statsChanged(.empty))
+        // Reload rather than assume empty: if a download completed during the reset, its bytes are
+        // already back in the store — publish the store's truth so the two can't disagree.
+        currentStats = (try? await store.loadStats(asOf: Date())) ?? .empty
+        eventContinuation.yield(.statsChanged(currentStats))
     }
     public func currentRules() -> [SmartRule] { rules }
 
@@ -458,13 +460,16 @@ public actor DownloadManager {
         handles[id] = nil
         if result.status == .completed {
             enqueueRecurrence(of: result)
-            // Fold this download's bytes into the lifetime stats (once — taskFinished runs once per run).
+        }
+        scheduleQueue(result.queueID)
+        signalIfQueueDrained(after: result)
+        if result.status == .completed {
+            // Fold this download's bytes into the lifetime stats (once — taskFinished runs once per
+            // run). Done after scheduling the queue so stats I/O never delays the next download's start.
             try? await store.recordDownloadedBytes(result.downloadedBytes, on: Date())
             currentStats = (try? await store.loadStats(asOf: Date())) ?? currentStats
             eventContinuation.yield(.statsChanged(currentStats))
         }
-        scheduleQueue(result.queueID)
-        signalIfQueueDrained(after: result)
     }
 
     /// When a recurring download completes, schedule a fresh copy for the next occurrence.
