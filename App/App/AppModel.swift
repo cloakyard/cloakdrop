@@ -451,7 +451,14 @@ final class AppModel {
     /// carrying its referrer/cookies/user-agent, then advance to the next pending capture.
     func confirmPendingCapture() {
         guard let capture = pendingCapture else { return }
-        grab(capture.toRequest(destinationDirectoryPath: AppEnvironment.defaultDownloadsDirectory().path))
+        let request = capture.toRequest(destinationDirectoryPath: AppEnvironment.defaultDownloadsDirectory().path)
+        if let audioURL = capture.audioURL {
+            // A video URL paired with a separate audio URL (adaptive source with no manifest, e.g.
+            // YouTube): grab both and mux them so the download has sound.
+            grabPairedMedia(request, audioURL: audioURL)
+        } else {
+            grab(request)
+        }
         advancePendingCapture()
     }
 

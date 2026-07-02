@@ -123,7 +123,7 @@ api.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true;
   }
   if (message?.action === "download") {
-    capture(message.url, message.referrer || "", message.filename);
+    capture(message.url, message.referrer || "", message.filename, message.audioUrl);
     sendResponse({ ok: true });
     return true;
   }
@@ -189,7 +189,7 @@ function headerValue(headers, name) {
 
 // MARK: - Hand-off to the app (shared by both paths)
 
-async function capture(target, referrer, filenameOverride) {
+async function capture(target, referrer, filenameOverride, audioURL) {
   const payload = {
     url: target,
     referrer: referrer,
@@ -199,6 +199,9 @@ async function capture(target, referrer, filenameOverride) {
     // no usable filename of its own.
     filename: filenameOverride || fileNameFromURL(target)
   };
+  // Adaptive grab (e.g. a higher-res YouTube rendition): a separate audio-only URL the app downloads
+  // alongside the video and muxes in, so the file has sound. Absent for a normal single-file download.
+  if (audioURL) payload.audioURL = audioURL;
   // Preferred path: the native host relays into the shared App Group inbox (carries big cookies).
   // On any failure — host not installed, or a dev build without the shared container — fall back to
   // the cloakdrop:// deep link, which needs no shared container.
@@ -217,6 +220,7 @@ async function capture(target, referrer, filenameOverride) {
 function openViaURLScheme(p) {
   const params = new URLSearchParams();
   params.set("url", p.url);
+  if (p.audioURL) params.set("audio", p.audioURL);
   if (p.referrer) params.set("referer", p.referrer);
   if (p.userAgent) params.set("ua", p.userAgent);
   if (p.cookies) params.set("cookie", p.cookies);

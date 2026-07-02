@@ -156,6 +156,41 @@ struct RemuxerTests {
         #expect(!FileManager.default.fileExists(atPath: done.mediaPartDirectoryPath))  // parts cleaned up
     }
 
+    @Test("A pairedFiles plan (direct video + audio URLs, no manifest) grabs both and muxes them")
+    func grabPairedFilesMuxes() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let videoFile = dir.appendingPathComponent("v.mp4")
+        let audioFile = dir.appendingPathComponent("a.m4a")
+        try await MediaFixtures.writeVideoMP4(to: videoFile)
+        try MediaFixtures.writeAudioM4A(to: audioFile)
+
+        // YouTube-style adaptive URLs: video-only and audio-only, no extension, no manifest.
+        let videoURL = URL(string: "https://cdn/videoplayback?itag=137")!
+        let audioURL = URL(string: "https://cdn/videoplayback?itag=140")!
+        let mock = MockHTTPClient()
+        mock.setResource(.init(data: try Data(contentsOf: videoFile)), for: videoURL)
+        mock.setResource(.init(data: try Data(contentsOf: audioFile)), for: audioURL)
+
+        // The exact plan the app builds for a capture carrying a separate audio URL (AppModel.grabPairedMedia).
+        let plan = MediaPlan.pairedFiles(video: videoURL, audio: audioURL)
+
+        let store = try GRDBDownloadStore.inMemory()
+        let manager = DownloadManager(
+            store: store, httpClient: mock,
+            networkMonitor: AlwaysReachableMonitor(), remuxer: AVFoundationRemuxer()
+        )
+        try await manager.start()
+        let request = DownloadRequest(url: videoURL, suggestedFileName: "clip.mp4", destinationDirectoryPath: dir.path)
+        let download = await manager.addMedia(request, plan: plan)
+
+        let done = try await waitForCompletion(manager, download.id)
+        let asset = AVURLAsset(url: URL(fileURLWithPath: done.destinationFilePath))
+        #expect(try await !asset.loadTracks(withMediaType: .video).isEmpty)   // video present
+        #expect(try await !asset.loadTracks(withMediaType: .audio).isEmpty)   // ...and it has sound
+        #expect(!FileManager.default.fileExists(atPath: done.mediaPartDirectoryPath))
+    }
+
     // MARK: - Helpers
 
     private func waitForCompletion(_ manager: DownloadManager, _ id: UUID) async throws -> Download {

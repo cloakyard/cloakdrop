@@ -61,6 +61,20 @@ public struct MediaPlan: Sendable, Hashable, Codable {
     public var keyURLs: Set<URL> {
         Set((segments + (audioSegments ?? [])).compactMap { $0.encryption.method == .aes128 ? $0.encryption.keyURL : nil })
     }
+
+    /// A plan for a single video-only file plus a separate single audio-only file, built from direct
+    /// URLs with no manifest — how an adaptive source like YouTube serves its `adaptiveFormats`. The
+    /// engine downloads both and muxes them (`hasSeparateAudio` is true), so a "video" grab has
+    /// sound. Each URL is one whole file rather than a timed segment, so duration is 0 (unused off
+    /// the manifest path — progress is byte- and segment-count-based).
+    public static func pairedFiles(video: URL, audio: URL, resolution: MediaResolution? = nil) -> MediaPlan {
+        MediaPlan(
+            format: .dash,
+            segments: [MediaSegment(id: 0, url: video, duration: 0)],
+            resolution: resolution,
+            audioSegments: [MediaSegment(id: 0, url: audio, duration: 0)]
+        )
+    }
 }
 
 public extension MediaStream {

@@ -39,6 +39,15 @@ extension AppModel {
         }
     }
 
+    /// Grab an adaptive source that exposes video and audio as *separate direct URLs* with no
+    /// manifest (e.g. YouTube's `adaptiveFormats`): build a paired plan and enqueue it through the
+    /// same media path, which downloads both streams and muxes them so the file has sound. No
+    /// quality picker — the resolution was already chosen at capture time.
+    func grabPairedMedia(_ request: DownloadRequest, audioURL: URL) {
+        let plan = MediaPlan.pairedFiles(video: request.url, audio: audioURL)
+        Task { await manager.addMedia(request, plan: plan) }
+    }
+
     /// The user picked a variant in the picker: resolve it to a concrete plan and enqueue the grab.
     func confirmMediaSelection(variantID: String) {
         guard let selection = pendingMediaSelection else { return }

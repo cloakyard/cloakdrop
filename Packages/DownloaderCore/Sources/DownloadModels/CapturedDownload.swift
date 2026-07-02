@@ -15,6 +15,12 @@ import Foundation
 public struct CapturedDownload: Sendable, Hashable, Codable {
     /// The file to download. Always http/https after validation.
     public var url: URL
+    /// For an adaptive source that serves video and audio as *separate* URLs with no manifest (e.g.
+    /// YouTube's `adaptiveFormats`), the matching audio-only URL. When present, the app grabs both
+    /// `url` (video) and this, and muxes them so the download has sound. Absent for a normal
+    /// single-file download. Always http/https after validation. Optional so captures serialized
+    /// before this field existed still decode.
+    public var audioURL: URL?
     /// A name suggested by the source; sanitized of path separators, may still be overridden.
     public var suggestedFileName: String?
     /// The page the download was initiated from (sent as `Referer`).
@@ -61,6 +67,7 @@ public struct CapturedDownload: Sendable, Hashable, Codable {
 
     public init(
         url: URL,
+        audioURL: URL? = nil,
         suggestedFileName: String? = nil,
         referrer: String? = nil,
         cookies: String? = nil,
@@ -69,6 +76,7 @@ public struct CapturedDownload: Sendable, Hashable, Codable {
         source: Source
     ) {
         self.url = url
+        self.audioURL = audioURL
         self.suggestedFileName = suggestedFileName
         self.referrer = referrer
         self.cookies = cookies
@@ -84,6 +92,11 @@ public struct CapturedDownload: Sendable, Hashable, Codable {
     public func validated() throws -> CapturedDownload {
         guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else {
             throw CaptureError.insecureScheme(url.scheme ?? "")
+        }
+        if let audioURL {
+            guard let audioScheme = audioURL.scheme?.lowercased(), audioScheme == "http" || audioScheme == "https" else {
+                throw CaptureError.insecureScheme(audioURL.scheme ?? "")
+            }
         }
         func check(_ value: String?, _ field: String, _ max: Int) throws {
             if let value, value.count > max { throw CaptureError.fieldTooLong(field: field, max: max) }
@@ -102,9 +115,10 @@ public struct CapturedDownload: Sendable, Hashable, Codable {
 
     // MARK: - URL scheme
 
-    /// Parse a `cloakdrop://add?url=…&filename=…&referer=…&cookie=…&ua=…&header=Name:Value` link
-    /// into a validated capture. Query values are percent-decoded by `URLComponents`; the target
-    /// `url` param must therefore be percent-encoded by the caller when it contains `&`/`=`.
+    /// Parse a `cloakdrop://add?url=…&audio=…&filename=…&referer=…&cookie=…&ua=…&header=Name:Value`
+    /// link into a validated capture. Query values are percent-decoded by `URLComponents`; the target
+    /// `url` (and `audio`) param must therefore be percent-encoded by the caller when it contains
+    /// `&`/`=`. `audio` is the separate audio-only URL for an adaptive grab (video + audio, muxed).
     public static func parse(cloakdropURL url: URL) throws -> CapturedDownload {
         guard let comps = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             throw CaptureError.invalidURL
@@ -136,6 +150,8 @@ public struct CapturedDownload: Sendable, Hashable, Codable {
 
         let captured = CapturedDownload(
             url: target,
+            // A malformed audio value degrades to a video-only grab rather than failing the capture.
+            audioURL: firstValue(["audio", "audiourl"]).flatMap { URL(string: $0) },
             suggestedFileName: sanitizedFileName(firstValue(["filename", "name"])),
             referrer: firstValue(["referer", "referrer"]),
             cookies: firstValue(["cookie", "cookies"]),
@@ -155,6 +171,7 @@ public struct CapturedDownload: Sendable, Hashable, Codable {
         comps.scheme = "cloakdrop"
         comps.host = "add"
         var items = [URLQueryItem(name: "url", value: url.absoluteString)]
+        if let audioURL { items.append(URLQueryItem(name: "audio", value: audioURL.absoluteString)) }
         if let suggestedFileName { items.append(URLQueryItem(name: "filename", value: suggestedFileName)) }
         if let referrer { items.append(URLQueryItem(name: "referer", value: referrer)) }
         if let cookies { items.append(URLQueryItem(name: "cookie", value: cookies)) }
@@ -170,9 +187,9 @@ public struct CapturedDownload: Sendable, Hashable, Codable {
 
     /// Build a validated capture from a browser extension's native message — the loosely-typed
     /// dictionary `runtime.sendNativeMessage` delivers to the Safari handler (keys: `url`,
-    /// `filename`, `referrer`, `cookies`, `userAgent`, `headers`). Blank strings are treated as
-    /// absent so the extension can always send the full key set. Runs the same bounds/scheme
-    /// checks as every other intake path.
+    /// `audioURL`, `filename`, `referrer`, `cookies`, `userAgent`, `headers`). Blank strings are
+    /// treated as absent so the extension can always send the full key set. Runs the same
+    /// bounds/scheme checks as every other intake path.
     public static func parse(extensionMessage message: [String: Any], source: Source = .safariExtension) throws -> CapturedDownload {
         func string(_ key: String) -> String? {
             guard let value = message[key] as? String else { return nil }
@@ -192,6 +209,8 @@ public struct CapturedDownload: Sendable, Hashable, Codable {
 
         let captured = CapturedDownload(
             url: target,
+            // A malformed audio value degrades to a video-only grab rather than failing the capture.
+            audioURL: (string("audioURL") ?? string("audio")).flatMap { URL(string: $0) },
             suggestedFileName: sanitizedFileName(string("filename")),
             referrer: string("referrer"),
             cookies: string("cookies"),
