@@ -123,7 +123,7 @@ api.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true;
   }
   if (message?.action === "download") {
-    capture(message.url, message.referrer || "");
+    capture(message.url, message.referrer || "", message.filename);
     sendResponse({ ok: true });
     return true;
   }
@@ -134,6 +134,7 @@ api.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
 // A media item derived from a URL alone, or null if the URL isn't recognisably media.
 function classifyByURL(url) {
+  if (isAdaptiveChunkNoise(url)) return null;
   const ext = extensionOf(url);
   if (!ext || SEGMENT_EXT.includes(ext)) return null;
   if (STREAM_EXT.includes(ext)) return makeItem(url, "stream");
@@ -143,7 +144,7 @@ function classifyByURL(url) {
 
 // A media item derived from a response's content-type, for URLs without a telltale extension.
 function classifyByContentType(url, contentType) {
-  if (!contentType) return null;
+  if (!contentType || isAdaptiveChunkNoise(url)) return null;
   const type = contentType.split(";")[0].trim().toLowerCase();
   const ext = extensionOf(url);
   if (ext && SEGMENT_EXT.includes(ext)) return null;   // never surface individual stream chunks
@@ -157,6 +158,13 @@ function classifyByContentType(url, contentType) {
 
 function makeItem(url, type) {
   return { url, type, label: fileNameFromURL(url) || url };
+}
+
+// Hosts that serve chunked, signed adaptive streams (video and audio split, no manifest, URLs that
+// expire and change per range) — surfacing raw chunks is useless. YouTube's googlevideo traffic is
+// handled instead by the popup's player-response extractor, which lists real resolutions.
+function isAdaptiveChunkNoise(url) {
+  try { return new URL(url).hostname.endsWith("googlevideo.com"); } catch (_) { return false; }
 }
 
 function extensionOf(url) {
@@ -181,13 +189,15 @@ function headerValue(headers, name) {
 
 // MARK: - Hand-off to the app (shared by both paths)
 
-async function capture(target, referrer) {
+async function capture(target, referrer, filenameOverride) {
   const payload = {
     url: target,
     referrer: referrer,
     userAgent: navigator.userAgent,
     cookies: await cookieHeader(target),
-    filename: fileNameFromURL(target)
+    // A caller-supplied name (e.g. a YouTube video title) wins over the URL's — a googlevideo URL has
+    // no usable filename of its own.
+    filename: filenameOverride || fileNameFromURL(target)
   };
   // Preferred path: the native host relays into the shared App Group inbox (carries big cookies).
   // On any failure — host not installed, or a dev build without the shared container — fall back to

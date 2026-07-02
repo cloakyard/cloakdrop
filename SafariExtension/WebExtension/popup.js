@@ -16,13 +16,57 @@ async function init() {
   const tab = await activeTab();
   if (!tab || tab.id == null) { showEmpty(); return; }
 
-  const [sniffed, dom] = await Promise.all([sniffedMedia(tab.id), scanPageDOM(tab.id)]);
-  const items = dedupe([...sniffed, ...dom]).sort(
-    (a, b) => (TYPE_RANK[a.type] ?? 9) - (TYPE_RANK[b.type] ?? 9)
-  );
+  const [youtube, sniffed, dom] = await Promise.all([
+    youTubeFormats(tab.id, tab.url || ""),
+    sniffedMedia(tab.id),
+    scanPageDOM(tab.id)
+  ]);
+  // YouTube's own format list (real resolutions, with audio) leads; everything else follows, ordered
+  // streams → video → audio → file.
+  const rest = dedupe([...sniffed, ...dom]).sort((a, b) => (TYPE_RANK[a.type] ?? 9) - (TYPE_RANK[b.type] ?? 9));
+  const items = dedupe([...youtube, ...rest]);
 
   if (!items.length) { showEmpty(); return; }
   render(items, tab.url || "");
+}
+
+// YouTube serves adaptive audio/video from googlevideo with no manifest, so the network sniffer can't
+// reconstruct resolutions. Instead read the page's own player data (in the page's JS world) and list
+// the *progressive* formats — the ones that download as a single file with audio. These top out around
+// 720p; higher resolutions are audio-less adaptive streams, so they're intentionally not offered.
+async function youTubeFormats(tabId, tabUrl) {
+  if (!/(^|\.)youtube\.com$|(^|\.)youtu\.be$/.test(hostOf(tabUrl))) return [];
+  try {
+    const results = await api.scripting.executeScript({ target: { tabId }, world: "MAIN", func: extractYouTube });
+    return (results && results[0] && results[0].result) || [];
+  } catch (_) { return []; }   // MAIN world unsupported, or player data absent
+}
+
+// Runs in the page's own JS context (world: MAIN) so it can read `ytInitialPlayerResponse`.
+function extractYouTube() {
+  try {
+    const streaming = window.ytInitialPlayerResponse && window.ytInitialPlayerResponse.streamingData;
+    if (!streaming) return [];
+    const details = window.ytInitialPlayerResponse.videoDetails || {};
+    const title = ((details.title || "video")
+      .replace(/[\/\\:*?"<>|\n\r\t]+/g, "_").replace(/\s+/g, " ").trim().slice(0, 120)) || "video";
+    const out = [];
+    for (const f of (streaming.formats || [])) {   // progressive = muxed audio+video, one playable file
+      if (!f.url) continue;                         // ciphered (signatureCipher) — needs JS descrambling, skip
+      const mime = f.mimeType || "";
+      if (mime.indexOf("video/") !== 0) continue;
+      const ext = mime.indexOf("webm") >= 0 ? "webm" : "mp4";
+      const resolution = f.qualityLabel || (f.height ? f.height + "p" : "video");
+      out.push({
+        url: f.url,
+        type: "video",
+        label: resolution + " · " + ext + " (with audio)",
+        quality: f.height || 0,
+        filename: title + "." + ext
+      });
+    }
+    return out.sort((a, b) => (b.quality || 0) - (a.quality || 0));
+  } catch (_) { return []; }
 }
 
 async function activeTab() {
@@ -143,7 +187,7 @@ async function sendDownload(item, referrer, button) {
   button.textContent = "Sent";
   button.classList.add("sent");
   try {
-    await api.runtime.sendMessage({ action: "download", url: item.url, referrer });
+    await api.runtime.sendMessage({ action: "download", url: item.url, referrer, filename: item.filename });
   } catch (_) {
     button.textContent = "Retry";
     button.classList.remove("sent");
