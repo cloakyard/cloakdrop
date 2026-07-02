@@ -102,6 +102,22 @@ struct EngineIntegrationTests {
         #expect(!FileManager.default.fileExists(atPath: done.partFilePath))  // part file cleaned up
     }
 
+    @Test("A completed download records peak and average speed stats")
+    func recordsSpeedStats() async throws {
+        let payload = makePayload(200_000)
+        let h = try await Harness(data: payload)
+        h.mock.chunkSize = 2048
+        h.mock.perChunkDelay = .milliseconds(8)   // span the transfer past the sampler's 50ms floor
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        let done = try await h.waitFor(download.id) { $0.status == .completed }
+
+        #expect((done.peakBytesPerSecond ?? 0) > 0)          // saw a positive peak rate
+        #expect((done.activeSeconds ?? 0) > 0)               // accumulated active transfer time
+        #expect((done.averageBytesPerSecond ?? 0) > 0)       // ⇒ a computable average
+    }
+
     @Test("Falls back to a single stream when the server lacks Range support")
     func singleStreamFallback() async throws {
         let payload = makePayload(120_000)
@@ -174,8 +190,7 @@ struct EngineIntegrationTests {
         defer { h.cleanup() }
 
         let download = await h.manager.add(h.request())
-        _ = try await h.waitFor(download.id) { $0.status == .downloading }
-        try await Task.sleep(for: .milliseconds(120))
+        try await awaitFirstBytes(h.manager, download.id)   // deterministic: pause only after real bytes land
         await h.manager.pause(id: download.id)
         let paused = try await h.waitFor(download.id) { $0.status == .paused }
         #expect(paused.downloadedBytes > 0)
@@ -293,8 +308,7 @@ struct EngineIntegrationTests {
         defer { h.cleanup() }
 
         let download = await h.manager.add(h.request())
-        _ = try await h.waitFor(download.id) { $0.status == .downloading }
-        try await Task.sleep(for: .milliseconds(120))   // let several chunks land
+        try await awaitFirstBytes(h.manager, download.id)   // deterministic: pause only after real bytes land
         await h.manager.pause(id: download.id)
         let paused = try await h.waitFor(download.id) { $0.status == .paused }
         #expect(paused.downloadedBytes > 0)
@@ -315,8 +329,7 @@ struct EngineIntegrationTests {
         defer { h.cleanup() }
 
         let download = await h.manager.add(h.request())
-        _ = try await h.waitFor(download.id) { $0.status == .downloading }
-        try await Task.sleep(for: .milliseconds(60))   // let some bytes land
+        try await awaitFirstBytes(h.manager, download.id)   // deterministic: pause only after real bytes land
 
         // Pause then resume back-to-back, without waiting for `.paused` in between. Because
         // pause() awaits the task's full unwind, the resume's `.queued` can't be clobbered by
@@ -356,11 +369,7 @@ struct EngineIntegrationTests {
         let added = await manager1.add(DownloadRequest(url: url, suggestedFileName: "relaunch.bin", destinationDirectoryPath: directory.path))
         // Let it get in-flight and transfer some bytes, then pause.
         let deadline = ContinuousClock().now + .seconds(10)
-        while ContinuousClock().now < deadline {
-            if let d = await manager1.snapshot().downloads.first(where: { $0.id == added.id }), d.status == .downloading { break }
-            try await Task.sleep(for: .milliseconds(15))
-        }
-        try await Task.sleep(for: .milliseconds(120))
+        try await awaitFirstBytes(manager1, added.id)   // deterministic: pause only after real bytes land
         await manager1.pause(id: added.id)
         var partialBytes: Int64 = 0
         while ContinuousClock().now < deadline {

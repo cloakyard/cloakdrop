@@ -35,6 +35,13 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     /// Optional per-download speed limit in bytes/sec; `nil` uses the global setting.
     public var speedLimitBytesPerSecond: Int64?
 
+    /// Peak transfer rate observed over the download (bytes/sec), for the per-item stats summary.
+    /// `nil` until bytes have flowed. Optional so older persisted records still decode.
+    public var peakBytesPerSecond: Double?
+    /// Accumulated *active* transfer time in seconds — idle/paused gaps excluded — the denominator
+    /// for the average-speed stat. `nil` until bytes have flowed.
+    public var activeSeconds: Double?
+
     /// HTTP authentication for the source server (Basic/Digest), if required. Persisted with
     /// the rest of the local, user-deletable download state.
     public var username: String?
@@ -86,6 +93,8 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
         queueID: UUID = DownloadQueue.defaultQueueID,
         requestHeaders: [String: String] = [:],
         speedLimitBytesPerSecond: Int64? = nil,
+        peakBytesPerSecond: Double? = nil,
+        activeSeconds: Double? = nil,
         username: String? = nil,
         password: String? = nil,
         checksum: ChecksumExpectation? = nil,
@@ -115,6 +124,8 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
         self.queueID = queueID
         self.requestHeaders = requestHeaders
         self.speedLimitBytesPerSecond = speedLimitBytesPerSecond
+        self.peakBytesPerSecond = peakBytesPerSecond
+        self.activeSeconds = activeSeconds
         self.username = username
         self.password = password
         self.checksum = checksum
@@ -151,6 +162,13 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     /// byte-range segments.
     public var downloadedBytes: Int64 {
         isMedia ? mediaDownloadedBytes : segments.reduce(0) { $0 + $1.downloadedBytes }
+    }
+
+    /// Average transfer rate (bytes/sec) over the download's active time, or `nil` if not yet
+    /// measurable. The companion to `peakBytesPerSecond` for the per-item stats summary.
+    public var averageBytesPerSecond: Double? {
+        guard let activeSeconds, activeSeconds > 0 else { return nil }
+        return Double(downloadedBytes) / activeSeconds
     }
 
     /// Fraction complete in `0...1`, or `nil` when it can't be determined. For media it's the share

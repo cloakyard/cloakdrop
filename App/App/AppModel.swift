@@ -271,6 +271,16 @@ final class AppModel {
         progress[download.id]?.bytesPerSecond ?? 0
     }
 
+    /// Peak transfer rate to show in the summary — live while downloading, else the persisted value.
+    func peakSpeed(_ download: Download) -> Double {
+        progress[download.id]?.peakBytesPerSecond ?? download.peakBytesPerSecond ?? 0
+    }
+
+    /// Average transfer rate over active time — live while downloading, else the persisted value.
+    func averageSpeed(_ download: Download) -> Double {
+        progress[download.id]?.averageBytesPerSecond ?? download.averageBytesPerSecond ?? 0
+    }
+
     func liveFraction(_ download: Download) -> Double? {
         progress[download.id]?.fractionCompleted ?? download.fractionCompleted
     }

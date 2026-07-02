@@ -10,6 +10,10 @@ public struct DownloadProgress: Sendable, Hashable, Identifiable {
     public let totalBytes: Int64?
     /// Instantaneous transfer rate in bytes/sec (smoothed by the engine).
     public let bytesPerSecond: Double
+    /// Peak transfer rate observed so far (bytes/sec) and the average over active time — the live
+    /// feed for the per-item stats summary. `0` when nothing has been measured yet.
+    public let peakBytesPerSecond: Double
+    public let averageBytesPerSecond: Double
     /// Per-segment downloaded byte counts, for the inspector's segment view.
     public let segmentBytes: [Int: Int64]
 
@@ -23,6 +27,8 @@ public struct DownloadProgress: Sendable, Hashable, Identifiable {
         downloadedBytes: Int64,
         totalBytes: Int64?,
         bytesPerSecond: Double,
+        peakBytesPerSecond: Double = 0,
+        averageBytesPerSecond: Double = 0,
         segmentBytes: [Int: Int64] = [:],
         completedSegments: Int? = nil,
         totalSegments: Int? = nil
@@ -31,6 +37,8 @@ public struct DownloadProgress: Sendable, Hashable, Identifiable {
         self.downloadedBytes = downloadedBytes
         self.totalBytes = totalBytes
         self.bytesPerSecond = bytesPerSecond
+        self.peakBytesPerSecond = peakBytesPerSecond
+        self.averageBytesPerSecond = averageBytesPerSecond
         self.segmentBytes = segmentBytes
         self.completedSegments = completedSegments
         self.totalSegments = totalSegments

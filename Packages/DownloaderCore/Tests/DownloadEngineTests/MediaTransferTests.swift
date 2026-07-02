@@ -175,8 +175,7 @@ struct MediaTransferTests {
         await manager1.updateSettings(settings)
 
         let added = await manager1.addMedia(request, plan: plan)
-        _ = try await waitFor(manager1, added.id) { $0.status == .downloading }
-        try await Task.sleep(for: .milliseconds(140))
+        try await awaitFirstBytes(manager1, added.id)   // deterministic: pause only after a segment lands
         await manager1.pause(id: added.id)
         let paused = try await waitFor(manager1, added.id) { $0.status == .paused }
         #expect(paused.mediaCompletedSegments > 0)                 // some finished

@@ -29,6 +29,8 @@ actor DownloadTask {
     private var speedSampler = SpeedSampler()
     private var lastEmit: ContinuousClock.Instant
     private var lastPersist: ContinuousClock.Instant
+    /// Timestamp of the last forward-progress sample, for accumulating active-transfer time.
+    private var lastStatSample: ContinuousClock.Instant?
 
     init(
         download: Download,
@@ -242,7 +244,10 @@ actor DownloadTask {
         let now = clock.now
         // A negative delta is a rewind (a non-resumable segment restarting from the top): correct the
         // running total but don't feed it to the speed sampler, which only measures forward progress.
-        if delta > 0 { speedSampler.add(bytes: Int64(delta), at: now) }
+        if delta > 0 {
+            speedSampler.add(bytes: Int64(delta), at: now)
+            recordStats(at: now)
+        }
 
         if Self.seconds(from: lastEmit, to: now) >= 0.1 {
             lastEmit = now
@@ -251,6 +256,8 @@ actor DownloadTask {
                 downloadedBytes: download.downloadedBytes,
                 totalBytes: download.totalBytes,
                 bytesPerSecond: speedSampler.rate(now: now),
+                peakBytesPerSecond: download.peakBytesPerSecond ?? 0,
+                averageBytesPerSecond: download.averageBytesPerSecond ?? 0,
                 segmentBytes: Dictionary(uniqueKeysWithValues: download.segments.map { ($0.id, $0.downloadedBytes) })
             )))
         }
@@ -344,10 +351,24 @@ actor DownloadTask {
     private func recordMediaBytes(_ delta: Int) {
         let now = clock.now
         speedSampler.add(bytes: Int64(delta), at: now)
+        recordStats(at: now)
         if Self.seconds(from: lastEmit, to: now) >= 0.1, let plan = download.mediaPlan {
             lastEmit = now
             emitMediaProgress(plan: plan)
         }
+    }
+
+    /// Update the peak-rate and active-transfer-time stats from the current sample. Called only on
+    /// forward progress. Active time ignores gaps ≥ 2s (a stall or pause), so the average reflects
+    /// real transfer speed rather than wall-clock elapsed.
+    private func recordStats(at now: ContinuousClock.Instant) {
+        let rate = speedSampler.rate(now: now)
+        if rate > (download.peakBytesPerSecond ?? 0) { download.peakBytesPerSecond = rate }
+        if let last = lastStatSample {
+            let gap = Self.seconds(from: last, to: now)
+            if gap > 0, gap < 2.0 { download.activeSeconds = (download.activeSeconds ?? 0) + gap }
+        }
+        lastStatSample = now
     }
 
     private func markMediaSegmentComplete(bytes: Int64, plan: MediaPlan) {
@@ -372,6 +393,8 @@ actor DownloadTask {
             downloadedBytes: download.mediaDownloadedBytes,
             totalBytes: nil,
             bytesPerSecond: speedSampler.rate(now: clock.now),
+            peakBytesPerSecond: download.peakBytesPerSecond ?? 0,
+            averageBytesPerSecond: download.averageBytesPerSecond ?? 0,
             completedSegments: download.mediaCompletedSegments,
             totalSegments: plan.totalSegments
         )))

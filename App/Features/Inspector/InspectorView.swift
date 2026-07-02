@@ -56,7 +56,7 @@ struct InspectorView: View {
     }
 
     private func overview(_ download: Download) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 14) {
             if let fraction = model.liveFraction(download), download.status != .completed {
                 ProgressView(value: fraction) {
                     HStack {
@@ -69,12 +69,57 @@ struct InspectorView: View {
                 }
                 .tint(download.status.tint)
             }
-            LabeledContent("Size", value: Format.bytes(download.totalBytes))
-            LabeledContent("Downloaded", value: Format.bytes(model.liveDownloadedBytes(download)))
-            if download.status == .downloading {
-                LabeledContent("Time Left", value: Format.eta(model.eta(download)))
+
+            // Size / progress, in a clean baseline-aligned key–value grid.
+            Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 20, verticalSpacing: 8) {
+                statRow("Size", Format.bytes(download.totalBytes))
+                statRow("Downloaded", Format.bytes(model.liveDownloadedBytes(download)))
+                if download.status == .downloading {
+                    statRow("Time Left", Format.eta(model.eta(download)))
+                }
+            }
+
+            // Per-download speed summary — live while transferring, the final figures once done.
+            let peak = model.peakSpeed(download)
+            let average = model.averageSpeed(download)
+            if peak > 0 || average > 0 {
+                speedStats(peak: peak, average: average)
             }
         }
+    }
+
+    /// One `label — value` line in the overview grid: a secondary label and a monospaced value that
+    /// lines up in a column with its neighbours.
+    private func statRow(_ label: LocalizedStringKey, _ value: String) -> some View {
+        GridRow {
+            Text(label).foregroundStyle(.secondary)
+            Text(value).monospacedDigit().gridColumnAlignment(.leading)
+        }
+    }
+
+    /// The peak/average transfer rates presented as two side-by-side stat tiles — a compact, scannable
+    /// summary of how the download performed.
+    private func speedStats(peak: Double, average: Double) -> some View {
+        HStack(spacing: 10) {
+            if peak > 0 { speedTile("Peak Speed", value: peak, symbol: "gauge.high") }
+            if average > 0 { speedTile("Average Speed", value: average, symbol: "gauge.medium") }
+        }
+    }
+
+    private func speedTile(_ label: LocalizedStringKey, value: Double, symbol: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Label(label, systemImage: symbol)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .labelStyle(.titleAndIcon)
+            Text(Format.speed(value))
+                .font(.title3.weight(.semibold).monospacedDigit())
+                .contentTransition(.numericText())
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 10))
     }
 
     private func segments(_ download: Download) -> some View {
