@@ -66,7 +66,7 @@ struct SmartRuleEngineIntegrationTests {
             LinkPreview(
                 requestedURL: url, finalURL: url, suggestedFileName: "data.bin", totalBytes: size,
                 isResumable: true, mimeType: "application/octet-stream", etag: nil,
-                plannedSegmentCount: 1, category: .other, statusCode: 200
+                plannedSegmentCount: 1, statusCode: 200
             )
         }
 

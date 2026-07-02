@@ -18,7 +18,7 @@ struct SettingsView: View {
                 .tabItem { Label("General", systemImage: "gearshape") }
                 .tag(SettingsTab.general)
             RulesSettingsView()
-                .tabItem { Label("Rules", systemImage: "wand.and.stars") }
+                .tabItem { Label("Rules", systemImage: "arrow.triangle.branch") }
                 .tag(SettingsTab.rules)
             network
                 .tabItem { Label("Network", systemImage: "point.3.connected.trianglepath.dotted") }

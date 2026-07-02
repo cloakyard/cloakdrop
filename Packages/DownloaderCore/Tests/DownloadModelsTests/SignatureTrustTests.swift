@@ -24,13 +24,6 @@ struct SignatureTrustTests {
         #expect(!SignatureAssessment.isAssessable(fileName: "archive.zip"))
     }
 
-    @Test("isTrusted is true only for a valid signature")
-    func isTrusted() {
-        #expect(SignatureAssessment(status: .valid).isTrusted)
-        #expect(!SignatureAssessment(status: .invalid).isTrusted)
-        #expect(!SignatureAssessment(status: .unsigned).isTrusted)
-    }
-
     // MARK: Unified trust level (checksum + signature)
 
     @Test("A matched checksum or a valid signature reads as verified")

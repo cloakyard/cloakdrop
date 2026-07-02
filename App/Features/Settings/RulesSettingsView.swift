@@ -39,7 +39,7 @@ struct RulesSettingsView: View {
     }
 
     private var emptyState: some View {
-        EmptyStateView("No Rules", systemImage: "wand.and.stars") {
+        EmptyStateView("No Rules", systemImage: "arrow.triangle.branch") {
             Text("Route downloads into folders or queues by URL, type, or size — all on your Mac.")
                 .font(.callout)
                 .foregroundStyle(.secondary)

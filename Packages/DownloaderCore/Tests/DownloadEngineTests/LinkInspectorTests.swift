@@ -78,7 +78,6 @@ struct LinkInspectorTests {
         #expect(preview.isMultiSegment == true)
         #expect(preview.mimeType == "application/x-apple-diskimage")
         #expect(preview.etag == "\"v1\"")
-        #expect(preview.category == .archive)   // .dmg → archive
     }
 
     @Test("Inspecting a range-less server reports non-resumable and a single connection")
@@ -105,7 +104,6 @@ struct LinkInspectorTests {
         #expect(preview.finalURL == landed)
         #expect(preview.wasRedirected == true)
         #expect(preview.suggestedFileName == "tool.pkg")   // derived from the landing URL
-        #expect(preview.category == .program)              // .pkg → program
     }
 
     @Test("Inspecting an unreachable resource throws (a preview is best-effort, not a guess)")

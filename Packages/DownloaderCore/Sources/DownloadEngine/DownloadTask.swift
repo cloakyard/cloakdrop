@@ -186,10 +186,12 @@ actor DownloadTask {
     /// Apply a worker's byte delta to the authoritative record and stream throttled progress.
     private func recordBytes(segmentID: Int, delta: Int) {
         guard let index = download.segments.firstIndex(where: { $0.id == segmentID }) else { return }
-        download.segments[index].downloadedBytes += Int64(delta)
+        download.segments[index].downloadedBytes = max(0, download.segments[index].downloadedBytes + Int64(delta))
 
         let now = clock.now
-        speedSampler.add(bytes: Int64(delta), at: now)
+        // A negative delta is a rewind (a non-resumable segment restarting from the top): correct the
+        // running total but don't feed it to the speed sampler, which only measures forward progress.
+        if delta > 0 { speedSampler.add(bytes: Int64(delta), at: now) }
 
         if Self.seconds(from: lastEmit, to: now) >= 0.1 {
             lastEmit = now
@@ -454,9 +456,11 @@ actor DownloadTask {
         // signature already in the file; no network, no Gatekeeper round-trip. Best-effort: an
         // unrecognized code object records no signature rather than a misleading "unsigned".
         if settings.assessSignatures, SignatureAssessment.isAssessable(fileName: download.fileName) {
-            download.signature = signatureInspector.assess(
-                fileURL: URL(fileURLWithPath: download.destinationFilePath)
-            )
+            // Validating a large bundle's seal can take a moment; run it off the actor so this task
+            // stays responsive to pause/cancel while the check completes.
+            let inspector = signatureInspector
+            let fileURL = URL(fileURLWithPath: download.destinationFilePath)
+            download.signature = await Task.detached { inspector.assess(fileURL: fileURL) }.value
         }
     }
 

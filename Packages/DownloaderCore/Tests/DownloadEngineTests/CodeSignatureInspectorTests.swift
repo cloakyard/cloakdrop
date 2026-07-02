@@ -76,7 +76,7 @@ struct SignatureFinalizeTests {
     @Test("A completed .dmg records the assessed signature and reads as verified")
     func recordsSignatureForInstallable() async throws {
         let stub = StubSignatureInspector(result: SignatureAssessment(
-            status: .valid, authority: "Developer ID Application: Acme Inc. (AB12CD34EF)", teamIdentifier: "AB12CD34EF"
+            status: .valid, authority: "Developer ID Application: Acme Inc. (AB12CD34EF)"
         ))
         let (manager, url, directory) = try await makeManager(fileName: "App.dmg", inspector: stub)
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -84,7 +84,7 @@ struct SignatureFinalizeTests {
         let added = await manager.add(DownloadRequest(url: url, suggestedFileName: "App.dmg", destinationDirectoryPath: directory.path))
         let done = try await waitForCompletion(manager, id: added.id)
         #expect(done.signature?.status == .valid)
-        #expect(done.signature?.teamIdentifier == "AB12CD34EF")
+        #expect(done.signature?.authority == "Developer ID Application: Acme Inc. (AB12CD34EF)")
         #expect(done.trustLevel == .verified)
     }
 

@@ -116,6 +116,24 @@ struct EngineIntegrationTests {
         #expect(try h.fileData(done) == payload)
     }
 
+    @Test("A non-resumable server that drops mid-stream restarts cleanly (no offset corruption)")
+    func nonResumableDropRestartsCleanly() async throws {
+        // A server with a known size but no Range support replays from byte 0 on every connection.
+        // A mid-stream drop must rewind and overwrite from the start — not write the replayed bytes
+        // at the advanced offset — or the finished file is silently corrupted and over-length.
+        let payload = makePayload(120_000)
+        let h = try await Harness(data: payload, acceptsRanges: false, pendingDrops: 1, dropAfterBytes: 20_000)
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        let done = try await h.waitFor(download.id) { $0.status == .completed }
+
+        #expect(done.supportsResume == false)
+        #expect(done.segments.count == 1)          // the single-stream fallback
+        #expect(h.mock.streamCount >= 2)           // it actually dropped and retried
+        #expect(try h.fileData(done) == payload)   // and the restart produced a byte-perfect file
+    }
+
     @Test("Resumes and completes after injected mid-transfer connection drops")
     func resumesAfterDrops() async throws {
         let payload = makePayload(200_000)

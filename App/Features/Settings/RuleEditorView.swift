@@ -124,7 +124,7 @@ struct RuleEditorView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            SheetHeader(title: existing == nil ? "New Rule" : "Edit Rule", systemImage: "wand.and.stars")
+            SheetHeader(title: existing == nil ? "New Rule" : "Edit Rule", systemImage: "arrow.triangle.branch")
 
             Form {
                 Section("Name") {

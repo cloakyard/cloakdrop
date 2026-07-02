@@ -190,7 +190,14 @@ final class AppModel {
         case .allDownloadsCompleted:
             applyPostCompletionAction()
         }
-        refreshAmbient()
+        // Ambient surfaces (the Dock progress ring/badge) are derived from full O(n) scans of
+        // `downloads`. Status events are infrequent, so refresh right away; the ~10/sec-per-download
+        // progress firehose is coalesced so a large catalog isn't rescanned on every tick.
+        if case .progress = event {
+            refreshAmbientThrottled()
+        } else {
+            refreshAmbient()
+        }
     }
 
     /// The user's "when everything finishes" preference. Sandbox-safe: only a clean quit.
@@ -509,7 +516,19 @@ final class AppModel {
 
     // MARK: Ambient surfaces
 
+    @ObservationIgnored private var lastAmbientRefresh: ContinuousClock.Instant?
+    @ObservationIgnored private let ambientClock = ContinuousClock()
+
+    /// Coalesce progress-driven ambient refreshes to ~3/sec so the Dock update (and the two full
+    /// `downloads` scans behind it) doesn't run on every progress tick of every active download.
+    private func refreshAmbientThrottled() {
+        let now = ambientClock.now
+        if let last = lastAmbientRefresh, last.duration(to: now) < .milliseconds(333) { return }
+        refreshAmbient()
+    }
+
     private func refreshAmbient() {
+        lastAmbientRefresh = ambientClock.now
         dock.update(fraction: aggregateFraction, activeCount: activeCount)
     }
 

@@ -30,8 +30,6 @@ public struct LinkPreview: Sendable, Hashable, Codable {
     /// How many parallel connections the engine would open for this download under the current
     /// settings. `1` for a non-resumable or small resource; more when it can be segmented.
     public var plannedSegmentCount: Int
-    /// The file-type bucket, classified from `suggestedFileName`.
-    public var category: FileCategory
     /// The HTTP status of the probe response (usually 200/206).
     public var statusCode: Int
 
@@ -44,7 +42,6 @@ public struct LinkPreview: Sendable, Hashable, Codable {
         mimeType: String?,
         etag: String?,
         plannedSegmentCount: Int,
-        category: FileCategory,
         statusCode: Int
     ) {
         self.requestedURL = requestedURL
@@ -55,7 +52,6 @@ public struct LinkPreview: Sendable, Hashable, Codable {
         self.mimeType = mimeType
         self.etag = etag
         self.plannedSegmentCount = plannedSegmentCount
-        self.category = category
         self.statusCode = statusCode
     }
 

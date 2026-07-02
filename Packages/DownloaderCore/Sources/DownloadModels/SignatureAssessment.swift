@@ -19,17 +19,11 @@ public struct SignatureAssessment: Sendable, Hashable, Codable {
     /// The signing authority: the leaf certificate's common name, e.g.
     /// "Developer ID Application: Acme Inc. (AB12CD34EF)". `nil` when unsigned or unavailable.
     public var authority: String?
-    /// The Team Identifier embedded in the signature, if any (absent for Apple platform binaries).
-    public var teamIdentifier: String?
 
-    public init(status: Status, authority: String? = nil, teamIdentifier: String? = nil) {
+    public init(status: Status, authority: String? = nil) {
         self.status = status
         self.authority = authority
-        self.teamIdentifier = teamIdentifier
     }
-
-    /// Whether the signature is present and valid — the positive trust signal.
-    public var isTrusted: Bool { status == .valid }
 
     /// The file types whose signature CloakDrop assesses in-process. App bundles and disk images
     /// carry a signature that `SecStaticCode` validates directly. Other installers (notably `.pkg`,

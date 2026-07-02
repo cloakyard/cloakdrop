@@ -41,7 +41,6 @@ public struct LinkInspector: Sendable {
                 acceptsRanges: head.acceptsRanges,
                 settings: settings
             ),
-            category: FileCategory.classify(fileName: fileName),
             statusCode: head.statusCode
         )
     }

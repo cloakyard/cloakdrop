@@ -27,7 +27,7 @@ public struct SecCodeSignatureInspector: CodeSignatureInspecting {
         let validity = SecStaticCodeCheckValidity(staticCode, [], nil)
         if validity == errSecSuccess {
             let identity = Self.signingIdentity(of: staticCode)
-            return SignatureAssessment(status: .valid, authority: identity.authority, teamIdentifier: identity.team)
+            return SignatureAssessment(status: .valid, authority: identity.authority)
         }
         if validity == errSecCSUnsigned {
             return SignatureAssessment(status: .unsigned)
@@ -37,7 +37,7 @@ public struct SecCodeSignatureInspector: CodeSignatureInspecting {
         // can judge, so make no claim (nil) rather than a misleading "invalid".
         let identity = Self.signingIdentity(of: staticCode)
         guard identity.authority != nil || identity.team != nil else { return nil }
-        return SignatureAssessment(status: .invalid, authority: identity.authority, teamIdentifier: identity.team)
+        return SignatureAssessment(status: .invalid, authority: identity.authority)
     }
 
     /// The leaf certificate's common name and the team identifier from the signature, best-effort.

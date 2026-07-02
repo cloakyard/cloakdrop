@@ -30,7 +30,18 @@ func runSegment(
         try Task.checkCancellation()
         if totalKnown && local.isComplete { return }
 
-        let range: ClosedRange<Int64>? = (supportsRanges && totalKnown) ? (local.currentOffset...local.end) : nil
+        let canResume = supportsRanges && totalKnown
+        // A server without range support replays the whole body from byte 0 on every (re)connection,
+        // so any bytes already written for this segment are stale. Rewind to the segment start and
+        // correct the reported total before reopening the handle — otherwise a retry after a drop
+        // (or a resume of a paused non-resumable download) writes byte-0 data at the advanced offset
+        // and silently corrupts the file.
+        if !canResume && local.downloadedBytes > 0 {
+            await onBytes(-Int(local.downloadedBytes))
+            local.downloadedBytes = 0
+        }
+
+        let range: ClosedRange<Int64>? = canResume ? (local.currentOffset...local.end) : nil
         do {
             let request = HTTPDownloadRequest(url: url, headers: headers, byteRange: range, username: username, password: password)
             let (_, stream) = try await httpClient.stream(request)
