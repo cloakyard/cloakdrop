@@ -631,7 +631,8 @@ final class AppModel {
     static func normalizedURL(_ raw: String) -> URL? {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
-        if let url = URL(string: trimmed), let scheme = url.scheme, scheme == "http" || scheme == "https" {
+        if let url = URL(string: trimmed), let scheme = url.scheme?.lowercased(),
+           ["http", "https", "ftp", "ftps"].contains(scheme) {
             return url
         }
         if let url = URL(string: "https://\(trimmed)"), url.host() != nil {

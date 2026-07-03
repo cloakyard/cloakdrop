@@ -76,7 +76,7 @@ struct URLBatchTests {
         #expect(strings.contains("https://e.com/a.zip"))
         #expect(strings.contains("https://e.com/b.zip"))
         #expect(strings.filter { $0 == "https://e.com/a.zip" }.count == 1)   // deduped
-        #expect(!strings.contains { $0.hasPrefix("ftp://") })                 // non-http dropped
+        #expect(strings.contains("ftp://e.com/c.zip"))                        // FTP is now supported
         #expect(!strings.contains { $0.contains("not_a_url_but_no_dot") })    // junk dropped
     }
 

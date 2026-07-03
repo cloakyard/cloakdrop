@@ -54,7 +54,7 @@ public actor DownloadManager {
 
     public init(
         store: any DownloadStore,
-        httpClient: any HTTPClient = URLSessionHTTPClient(),
+        httpClient: any HTTPClient = SchemeRoutingHTTPClient(),
         networkMonitor: any NetworkPathMonitoring = NetworkMonitor(),
         remuxer: any Remuxer = AVFoundationRemuxer(),
         signatureInspector: any CodeSignatureInspecting = SecCodeSignatureInspector()
