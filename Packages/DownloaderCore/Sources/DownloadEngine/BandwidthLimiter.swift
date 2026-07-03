@@ -1,93 +1,80 @@
 import Foundation
 
-/// Pure token-bucket arithmetic, separated from time and concurrency so it can be tested
-/// deterministically.
-enum TokenBucketMath {
-    /// Plan a consumption of `requested` tokens.
+/// Pure rate-scheduling arithmetic, separated from time and concurrency so it can be tested
+/// deterministically. Models a token bucket as a **virtual clock** (a "theoretical arrival time",
+/// TAT): each request reserves `cost = bytes / rate` seconds of emission time by advancing the TAT,
+/// and may run up to `burst` seconds ahead of it. Expressing the schedule as *absolute* wake instants
+/// — rather than a per-call `now + wait` sleep — is what makes it correct under concurrency: many
+/// callers advancing the same TAT get strictly increasing deadlines spaced by their cost, so they
+/// serialize even though their sleeps overlap.
+enum RateSchedule {
+    /// Reserve one request against the bucket.
     ///
-    /// - Returns: `wait` — seconds to sleep before the request is satisfiable — and
-    ///   `tokensAfter` — the bucket balance once the request has been granted.
-    static func plan(
-        tokens: Double,
-        ratePerSecond: Double,
-        requested: Double
-    ) -> (wait: Double, tokensAfter: Double) {
-        guard ratePerSecond > 0 else { return (0, tokens) }
-        if tokens >= requested {
-            return (0, tokens - requested)
-        }
-        let deficit = requested - tokens
-        let wait = deficit / ratePerSecond
-        // After waiting, exactly `deficit` tokens refill and are immediately consumed.
-        return (wait, 0)
-    }
-
-    /// Refill the bucket for `elapsed` seconds, capped at `capacity`.
-    static func refill(tokens: Double, ratePerSecond: Double, elapsed: Double, capacity: Double) -> Double {
-        min(capacity, tokens + max(0, elapsed) * ratePerSecond)
+    /// - Parameters:
+    ///   - tat: the current theoretical arrival time (seconds, same basis as `now`).
+    ///   - now: the current real time (seconds).
+    ///   - cost: this request's emission time, `bytes / ratePerSecond` (seconds).
+    ///   - burst: how far ahead of the virtual clock a request may run (seconds).
+    /// - Returns: `tat` — the advanced virtual clock the next request reserves against — and
+    ///   `wakeAt` — the absolute instant this request may complete (≤ `now` means "no wait").
+    static func reserve(tat: Double, now: Double, cost: Double, burst: Double) -> (tat: Double, wakeAt: Double) {
+        // If the bucket went idle (TAT fell behind real time) it has fully refilled: restart from now.
+        let base = max(tat, now)
+        let newTAT = base + cost
+        // Wait until this request's emission finishes, minus the burst it's allowed to run ahead.
+        return (newTAT, newTAT - burst)
     }
 }
 
-/// A shared, actor-isolated token-bucket rate limiter.
+/// A shared, actor-isolated rate limiter.
 ///
-/// Segment readers call `awaitAllowance(byteCount:)` before writing each chunk; when a
-/// global or per-download speed limit is set, the call suspends just long enough to keep
-/// the aggregate throughput at or below the limit. With no limit it is a cheap no-op.
+/// Segment readers call `awaitAllowance(byteCount:)` before writing each chunk; when a global or
+/// per-download speed limit is set, the call suspends just long enough to keep the aggregate
+/// throughput at or below the limit. With no limit it is a cheap no-op.
+///
+/// **Correct under concurrency.** One limiter instance is deliberately shared by many workers — the
+/// engine gives every segment of a download the *same* per-download limiter and every download the
+/// *same* global limiter, so a limit caps the shared aggregate rather than each worker independently.
+/// The reservation (advancing `tat`) happens in the actor's synchronous section before any `await`,
+/// so reentrancy during the sleep cannot let concurrent callers double-spend the same time window.
 public actor BandwidthLimiter {
     private var ratePerSecond: Double?
-    private var tokens: Double = 0
-    private var lastRefill: ContinuousClock.Instant
+    /// The theoretical arrival time — the virtual instant the bucket is "filled up to". Requests
+    /// reserve emission time by advancing it; `nil` until the first reservation (or after a rate change).
+    private var tat: ContinuousClock.Instant?
     private let clock = ContinuousClock()
-    /// Seconds of burst the bucket may accumulate, smoothing bursty readers.
+    /// Seconds of burst a request may run ahead of the virtual clock, smoothing bursty readers.
     private static let burstSeconds: Double = 0.5
 
     public init(bytesPerSecond: Int64?) {
-        let rate = bytesPerSecond.flatMap { $0 > 0 ? Double($0) : nil }
-        self.ratePerSecond = rate
-        self.lastRefill = clock.now
-        self.tokens = rate.map { $0 * Self.burstSeconds } ?? 0
+        self.ratePerSecond = bytesPerSecond.flatMap { $0 > 0 ? Double($0) : nil }
     }
 
-    /// Update the limit at runtime. `nil` or `<= 0` means unlimited.
+    /// Update the limit at runtime. `nil` or `<= 0` means unlimited. Resets the virtual clock so the
+    /// new rate takes effect immediately without inheriting a stale backlog.
     public func setRate(bytesPerSecond: Int64?) {
         ratePerSecond = bytesPerSecond.flatMap { $0 > 0 ? Double($0) : nil }
-        if let rate = ratePerSecond {
-            tokens = min(tokens, rate * Self.burstSeconds)
-        }
-        // Reset the refill clock so a long unlimited (or idle) stretch can't be read as a
-        // huge `elapsed` and inject a spurious burst the moment a limit is applied.
-        lastRefill = clock.now
+        tat = nil
     }
 
     /// Suspend until `byteCount` bytes are permitted under the current rate.
     public func awaitAllowance(byteCount: Int) async {
-        guard let rate = ratePerSecond, rate > 0 else { return }
-        let capacity = rate * Self.burstSeconds
+        guard let rate = ratePerSecond, rate > 0, byteCount > 0 else { return }
 
         let now = clock.now
-        let elapsed = Self.seconds(from: lastRefill, to: now, clock: clock)
-        lastRefill = now
-        tokens = TokenBucketMath.refill(tokens: tokens, ratePerSecond: rate, elapsed: elapsed, capacity: capacity)
+        // Advance the shared virtual clock and compute this request's absolute wake instant. This
+        // whole block is synchronous (no `await`), so it is atomic against other callers on the actor.
+        let base = { () -> ContinuousClock.Instant in
+            guard let tat, tat > now else { return now }   // fresh / idle bucket → start from now
+            return tat
+        }()
+        let cost = Duration.seconds(Double(byteCount) / rate)
+        let newTAT = base.advanced(by: cost)
+        tat = newTAT
+        let wakeAt = newTAT.advanced(by: .seconds(-Self.burstSeconds))
 
-        let (wait, tokensAfter) = TokenBucketMath.plan(
-            tokens: tokens,
-            ratePerSecond: rate,
-            requested: Double(byteCount)
-        )
-        tokens = tokensAfter
-        if wait > 0 {
-            // The `deficit` tokens this request consumes accrue *during* the sleep. Advance the
-            // refill clock past the sleep so the next call doesn't re-credit that same window —
-            // double-counting it is what let throughput overshoot the limit (up to ~2×) for
-            // chunks comparable to the burst capacity.
-            lastRefill = now.advanced(by: .seconds(wait))
-            try? await clock.sleep(for: .seconds(wait))
+        if wakeAt > now {
+            try? await clock.sleep(until: wakeAt, tolerance: nil)
         }
-    }
-
-    private static func seconds(from start: ContinuousClock.Instant, to end: ContinuousClock.Instant, clock: ContinuousClock) -> Double {
-        let d = start.duration(to: end)
-        let (secs, attos) = d.components
-        return Double(secs) + Double(attos) / 1e18
     }
 }
