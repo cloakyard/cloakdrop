@@ -79,7 +79,7 @@ enum ZipArchive {
             let localHeaderOffset = Int(readU32(data, offset + 42))
             let nameStart = offset + 46
             guard nameStart + nameLength <= data.count else { throw ExtractionError.corrupt("entry name") }
-            let name = String(decoding: data[nameStart..<nameStart + nameLength], as: UTF8.self)
+            let name = String(bytes: data[nameStart..<nameStart + nameLength], encoding: .utf8) ?? ""
             entries.append(Entry(name: name, method: method,
                                  compressedSize: compressedSize, uncompressedSize: uncompressedSize,
                                  localHeaderOffset: localHeaderOffset))

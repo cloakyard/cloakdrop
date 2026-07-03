@@ -121,7 +121,10 @@ struct SettingsView: View {
             } header: {
                 Text("Bandwidth Schedule")
             } footer: {
-                Text("Overrides the speed limit above during this window — throttle during work hours, or go unlimited overnight. A window whose end is before its start wraps past midnight.")
+                Text("""
+                Overrides the speed limit above during this window — throttle during work hours, \
+                or go unlimited overnight. A window whose end is before its start wraps past midnight.
+                """)
             }
 
             Section {
@@ -172,7 +175,10 @@ struct SettingsView: View {
                 Text("When Finished")
             } footer: {
                 if model.settings.resolvedPostAction == .runShortcut {
-                    Text("Runs a Shortcut of this name from your Shortcuts library — use it to sleep the Mac, tidy a folder, or anything else.")
+                    Text("""
+                    Runs a Shortcut of this name from your Shortcuts library — use it to sleep the \
+                    Mac, tidy a folder, or anything else.
+                    """)
                 }
             }
         }

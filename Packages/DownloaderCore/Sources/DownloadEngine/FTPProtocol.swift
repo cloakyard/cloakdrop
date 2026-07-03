@@ -37,12 +37,10 @@ enum FTPProtocol {
 
         // Multi-line: scan for the terminating "NNN " line.
         let terminator = codeString + " "
-        for index in 1..<lines.count {
-            if lines[index].hasPrefix(terminator) {
-                let block = lines[0...index].joined(separator: "\r\n")
-                let remainder = lines[(index + 1)...].joined(separator: "\r\n")
-                return (Reply(code: code, text: block), remainder)
-            }
+        for index in 1..<lines.count where lines[index].hasPrefix(terminator) {
+            let block = lines[0...index].joined(separator: "\r\n")
+            let remainder = lines[(index + 1)...].joined(separator: "\r\n")
+            return (Reply(code: code, text: block), remainder)
         }
         return nil   // terminator not yet received
     }
