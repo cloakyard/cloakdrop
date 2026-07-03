@@ -37,6 +37,9 @@ public struct EngineSettings: Sendable, Hashable, Codable {
     /// When true, completed files are stamped with the `com.apple.quarantine` flag (like a browser
     /// download) so Gatekeeper vets them on first open. On by default; fully local.
     public var applyQuarantine: Bool
+    /// When true, a completed `.zip` is automatically extracted into a sibling folder (native
+    /// extraction — no external tool). Off by default.
+    public var autoExtractArchives: Bool
     /// On launch, whether downloads that were mid-transfer when the app last quit resume
     /// automatically. When false they come back paused, so the user starts them when they choose.
     public var resumeDownloadsOnLaunch: Bool
@@ -63,6 +66,7 @@ public struct EngineSettings: Sendable, Hashable, Codable {
         assessSignatures: Bool = true,
         autoCategorize: Bool = false,
         applyQuarantine: Bool = true,
+        autoExtractArchives: Bool = false,
         resumeDownloadsOnLaunch: Bool = true,
         proxy: ProxyConfiguration? = nil,
         postCompletionAction: SchedulerPostAction? = nil,
@@ -81,6 +85,7 @@ public struct EngineSettings: Sendable, Hashable, Codable {
         self.assessSignatures = assessSignatures
         self.autoCategorize = autoCategorize
         self.applyQuarantine = applyQuarantine
+        self.autoExtractArchives = autoExtractArchives
         self.resumeDownloadsOnLaunch = resumeDownloadsOnLaunch
         self.proxy = proxy
         self.postCompletionAction = postCompletionAction
@@ -100,7 +105,7 @@ public struct EngineSettings: Sendable, Hashable, Codable {
         case defaultSegmentCount, maxSegmentCount, globalSpeedLimitBytesPerSecond, bandwidthSchedule
         case maxRetryAttempts, retryBaseDelaySeconds, retryMaxDelaySeconds
         case minimumSegmentSizeBytes, verifyChecksumsAutomatically, autoDiscoverChecksums, autoCategorize
-        case applyQuarantine
+        case applyQuarantine, autoExtractArchives
         case assessSignatures
         case resumeDownloadsOnLaunch
         case proxy, postCompletionAction, postCompletionShortcutName
@@ -134,6 +139,7 @@ public struct EngineSettings: Sendable, Hashable, Codable {
             assessSignatures: try value(.assessSignatures, fallback.assessSignatures),
             autoCategorize: try value(.autoCategorize, fallback.autoCategorize),
             applyQuarantine: try value(.applyQuarantine, fallback.applyQuarantine),
+            autoExtractArchives: try value(.autoExtractArchives, fallback.autoExtractArchives),
             resumeDownloadsOnLaunch: try value(.resumeDownloadsOnLaunch, fallback.resumeDownloadsOnLaunch),
             proxy: try container.decodeIfPresent(ProxyConfiguration.self, forKey: .proxy),
             postCompletionAction: try container.decodeIfPresent(SchedulerPostAction.self, forKey: .postCompletionAction),

@@ -738,6 +738,8 @@ actor DownloadTask {
                              originURL: download.requestHeaders["Referer"].flatMap(URL.init(string:)))
         }
 
+        await autoExtractIfArchive()
+
         // Verify against a supplied checksum, or one auto-discovered next to the download.
         let checksum = try await DownloadChecksum.resolveAndVerify(
             for: download, settings: settings, httpClient: httpClient
@@ -755,6 +757,17 @@ actor DownloadTask {
             let fileURL = URL(fileURLWithPath: download.destinationFilePath)
             download.signature = await Task.detached { inspector.assess(fileURL: fileURL) }.value
         }
+    }
+
+    /// If enabled and the finished file is a `.zip`, extract it natively into a sibling folder named
+    /// after the archive. Best-effort and off-actor (extraction is CPU/IO-bound, and a corrupt archive
+    /// must never fail an otherwise-complete download).
+    private func autoExtractIfArchive() async {
+        guard settings.autoExtractArchives, ZipArchive.isZip(fileName: download.fileName) else { return }
+        let zipPath = download.destinationFilePath
+        let folderName = (download.fileName as NSString).deletingPathExtension
+        let destination = (download.destinationDirectoryPath as NSString).appendingPathComponent(folderName)
+        _ = await Task.detached { try? ZipArchive.extract(zipPath: zipPath, to: destination) }.value
     }
 
     // MARK: Stop / persistence helpers
