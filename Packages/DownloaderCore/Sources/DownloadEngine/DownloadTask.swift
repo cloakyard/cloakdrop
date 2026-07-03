@@ -619,6 +619,12 @@ actor DownloadTask {
         try SegmentedFileWriter.finalize(partPath: sourcePath, destinationPath: download.destinationFilePath)
         try? FileManager.default.removeItem(atPath: partDir)
 
+        if settings.applyQuarantine {
+            Quarantine.apply(toPath: download.destinationFilePath,
+                             sourceURL: download.url,
+                             originURL: download.requestHeaders["Referer"].flatMap(URL.init(string:)))
+        }
+
         download.totalBytes = fileSize(download.destinationFilePath)
         download.mediaDownloadedBytes = download.totalBytes ?? download.mediaDownloadedBytes
     }
@@ -724,6 +730,13 @@ actor DownloadTask {
         }
 
         try SegmentedFileWriter.finalize(partPath: partPath, destinationPath: download.destinationFilePath)
+
+        // Stamp it like a browser download so Gatekeeper vets it on first open.
+        if settings.applyQuarantine {
+            Quarantine.apply(toPath: download.destinationFilePath,
+                             sourceURL: download.url,
+                             originURL: download.requestHeaders["Referer"].flatMap(URL.init(string:)))
+        }
 
         // Verify against a supplied checksum, or one auto-discovered next to the download.
         let checksum = try await DownloadChecksum.resolveAndVerify(

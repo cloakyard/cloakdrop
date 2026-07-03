@@ -48,7 +48,9 @@ extension SchedulerPostAction {
     var localizedLabel: String {
         switch self {
         case .none: return String(localized: "Do nothing")
+        case .notify: return String(localized: "Show a notification")
         case .quit: return String(localized: "Quit CloakDrop")
+        case .runShortcut: return String(localized: "Run a Shortcut")
         }
     }
 }

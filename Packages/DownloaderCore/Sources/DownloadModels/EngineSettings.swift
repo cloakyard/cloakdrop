@@ -10,6 +10,9 @@ public struct EngineSettings: Sendable, Hashable, Codable {
     public var maxSegmentCount: Int
     /// Global download speed limit in bytes/sec across all downloads. `nil` means unlimited.
     public var globalSpeedLimitBytesPerSecond: Int64?
+    /// Optional time-of-day override for the global limit (e.g. throttle during work hours, unlimited
+    /// overnight). `nil`/disabled means the global limit above applies around the clock.
+    public var bandwidthSchedule: BandwidthSchedule?
     /// Maximum automatic retry attempts for a transient failure before giving up.
     public var maxRetryAttempts: Int
     /// Base delay (seconds) for exponential backoff between retries.
@@ -31,6 +34,9 @@ public struct EngineSettings: Sendable, Hashable, Codable {
     /// When true, completed files are filed into a per-type subfolder (Video, Documents, …)
     /// of their destination directory.
     public var autoCategorize: Bool
+    /// When true, completed files are stamped with the `com.apple.quarantine` flag (like a browser
+    /// download) so Gatekeeper vets them on first open. On by default; fully local.
+    public var applyQuarantine: Bool
     /// On launch, whether downloads that were mid-transfer when the app last quit resume
     /// automatically. When false they come back paused, so the user starts them when they choose.
     public var resumeDownloadsOnLaunch: Bool
@@ -39,11 +45,15 @@ public struct EngineSettings: Sendable, Hashable, Codable {
     public var proxy: ProxyConfiguration?
     /// What to do once every download finishes. `nil` is treated as `.none`.
     public var postCompletionAction: SchedulerPostAction?
+    /// The Shortcut to run when `postCompletionAction == .runShortcut`. Matched by name against the
+    /// user's Shortcuts library via the `shortcuts://run-shortcut` URL scheme.
+    public var postCompletionShortcutName: String?
 
     public init(
         defaultSegmentCount: Int = 8,
         maxSegmentCount: Int = 16,
         globalSpeedLimitBytesPerSecond: Int64? = nil,
+        bandwidthSchedule: BandwidthSchedule? = nil,
         maxRetryAttempts: Int = 5,
         retryBaseDelaySeconds: Double = 1.0,
         retryMaxDelaySeconds: Double = 30.0,
@@ -52,13 +62,16 @@ public struct EngineSettings: Sendable, Hashable, Codable {
         autoDiscoverChecksums: Bool = true,
         assessSignatures: Bool = true,
         autoCategorize: Bool = false,
+        applyQuarantine: Bool = true,
         resumeDownloadsOnLaunch: Bool = true,
         proxy: ProxyConfiguration? = nil,
-        postCompletionAction: SchedulerPostAction? = nil
+        postCompletionAction: SchedulerPostAction? = nil,
+        postCompletionShortcutName: String? = nil
     ) {
         self.defaultSegmentCount = max(1, defaultSegmentCount)
         self.maxSegmentCount = max(1, maxSegmentCount)
         self.globalSpeedLimitBytesPerSecond = globalSpeedLimitBytesPerSecond
+        self.bandwidthSchedule = bandwidthSchedule
         self.maxRetryAttempts = max(0, maxRetryAttempts)
         self.retryBaseDelaySeconds = retryBaseDelaySeconds
         self.retryMaxDelaySeconds = retryMaxDelaySeconds
@@ -67,9 +80,11 @@ public struct EngineSettings: Sendable, Hashable, Codable {
         self.autoDiscoverChecksums = autoDiscoverChecksums
         self.assessSignatures = assessSignatures
         self.autoCategorize = autoCategorize
+        self.applyQuarantine = applyQuarantine
         self.resumeDownloadsOnLaunch = resumeDownloadsOnLaunch
         self.proxy = proxy
         self.postCompletionAction = postCompletionAction
+        self.postCompletionShortcutName = postCompletionShortcutName
     }
 
     /// The effective proxy, treating an absent value as "use the system proxy".
@@ -82,12 +97,13 @@ public struct EngineSettings: Sendable, Hashable, Codable {
     // MARK: Codable
 
     private enum CodingKeys: String, CodingKey {
-        case defaultSegmentCount, maxSegmentCount, globalSpeedLimitBytesPerSecond
+        case defaultSegmentCount, maxSegmentCount, globalSpeedLimitBytesPerSecond, bandwidthSchedule
         case maxRetryAttempts, retryBaseDelaySeconds, retryMaxDelaySeconds
         case minimumSegmentSizeBytes, verifyChecksumsAutomatically, autoDiscoverChecksums, autoCategorize
+        case applyQuarantine
         case assessSignatures
         case resumeDownloadsOnLaunch
-        case proxy, postCompletionAction
+        case proxy, postCompletionAction, postCompletionShortcutName
     }
 
     /// Tolerant decoder: any key absent from the stored payload falls back to its default.
@@ -108,6 +124,7 @@ public struct EngineSettings: Sendable, Hashable, Codable {
             defaultSegmentCount: try value(.defaultSegmentCount, fallback.defaultSegmentCount),
             maxSegmentCount: try value(.maxSegmentCount, fallback.maxSegmentCount),
             globalSpeedLimitBytesPerSecond: try container.decodeIfPresent(Int64.self, forKey: .globalSpeedLimitBytesPerSecond),
+            bandwidthSchedule: try container.decodeIfPresent(BandwidthSchedule.self, forKey: .bandwidthSchedule),
             maxRetryAttempts: try value(.maxRetryAttempts, fallback.maxRetryAttempts),
             retryBaseDelaySeconds: try value(.retryBaseDelaySeconds, fallback.retryBaseDelaySeconds),
             retryMaxDelaySeconds: try value(.retryMaxDelaySeconds, fallback.retryMaxDelaySeconds),
@@ -116,9 +133,11 @@ public struct EngineSettings: Sendable, Hashable, Codable {
             autoDiscoverChecksums: try value(.autoDiscoverChecksums, fallback.autoDiscoverChecksums),
             assessSignatures: try value(.assessSignatures, fallback.assessSignatures),
             autoCategorize: try value(.autoCategorize, fallback.autoCategorize),
+            applyQuarantine: try value(.applyQuarantine, fallback.applyQuarantine),
             resumeDownloadsOnLaunch: try value(.resumeDownloadsOnLaunch, fallback.resumeDownloadsOnLaunch),
             proxy: try container.decodeIfPresent(ProxyConfiguration.self, forKey: .proxy),
-            postCompletionAction: try container.decodeIfPresent(SchedulerPostAction.self, forKey: .postCompletionAction)
+            postCompletionAction: try container.decodeIfPresent(SchedulerPostAction.self, forKey: .postCompletionAction),
+            postCompletionShortcutName: try container.decodeIfPresent(String.self, forKey: .postCompletionShortcutName)
         )
     }
 }

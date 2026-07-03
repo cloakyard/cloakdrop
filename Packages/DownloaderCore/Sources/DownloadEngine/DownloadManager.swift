@@ -50,6 +50,7 @@ public actor DownloadManager {
 
     private var monitorTask: Task<Void, Never>?
     private var schedulerTask: Task<Void, Never>?
+    private var bandwidthTask: Task<Void, Never>?
 
     public init(
         store: any DownloadStore,
@@ -80,7 +81,7 @@ public actor DownloadManager {
     public func start() async throws {
         try await store.bootstrap()
         settings = try await store.loadSettings()
-        await globalLimiter.setRate(bytesPerSecond: settings.globalSpeedLimitBytesPerSecond)
+        await globalLimiter.setRate(bytesPerSecond: effectiveGlobalLimit())
         await httpClient.configure(proxy: settings.resolvedProxy)
 
         for queue in try await store.allQueues() { queues[queue.id] = queue }
@@ -105,6 +106,7 @@ public actor DownloadManager {
 
         startNetworkMonitoring()
         startScheduler()
+        startBandwidthScheduler()
         promoteScheduled(asOf: Date())
         scheduleAllQueues()
     }
@@ -351,7 +353,7 @@ public actor DownloadManager {
 
     public func updateSettings(_ newSettings: EngineSettings) async {
         settings = newSettings
-        await globalLimiter.setRate(bytesPerSecond: newSettings.globalSpeedLimitBytesPerSecond)
+        await globalLimiter.setRate(bytesPerSecond: effectiveGlobalLimit())
         await httpClient.configure(proxy: newSettings.resolvedProxy)
         try? await store.save(settings: newSettings)
         eventContinuation.yield(.settingsChanged(newSettings))
@@ -530,6 +532,38 @@ public actor DownloadManager {
                 await self?.promoteScheduled(asOf: Date())
             }
         }
+    }
+
+    /// Re-apply the (possibly time-of-day-dependent) global limit once a minute, so a bandwidth
+    /// schedule's window boundaries take effect without the user touching anything. Cheap: it just
+    /// recomputes an `Int64?` and pokes the shared limiter's rate.
+    private func startBandwidthScheduler() {
+        bandwidthTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(60))
+                await self?.applyEffectiveGlobalLimit()
+            }
+        }
+    }
+
+    private func applyEffectiveGlobalLimit() async {
+        await globalLimiter.setRate(bytesPerSecond: effectiveGlobalLimit())
+    }
+
+    /// The global limit in force right now: the bandwidth schedule's window limit when inside it,
+    /// otherwise the always-on global limit.
+    private func effectiveGlobalLimit(now: Date = Date()) -> Int64? {
+        let minute = Self.minuteOfDay(now)
+        return BandwidthSchedule.effectiveLimit(
+            schedule: settings.bandwidthSchedule,
+            baseLimit: settings.globalSpeedLimitBytesPerSecond,
+            minuteOfDay: minute
+        )
+    }
+
+    private static func minuteOfDay(_ date: Date) -> Int {
+        let c = Calendar.current.dateComponents([.hour, .minute], from: date)
+        return (c.hour ?? 0) * 60 + (c.minute ?? 0)
     }
 
     /// Move any `.scheduled` download whose start time is at or before `date` into the queue.

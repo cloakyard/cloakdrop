@@ -65,6 +65,7 @@ struct SettingsView: View {
                 Toggle("Look for checksum files on the server", isOn: binding(\.autoDiscoverChecksums))
                     .disabled(!model.settings.verifyChecksumsAutomatically)
                 Toggle("Check app signatures", isOn: binding(\.assessSignatures))
+                Toggle("Flag files as downloaded (Gatekeeper check)", isOn: binding(\.applyQuarantine))
                 Toggle("Sort completed files into type folders", isOn: binding(\.autoCategorize))
             } header: {
                 Text("On Completion")
@@ -93,6 +94,32 @@ struct SettingsView: View {
                 Text("Speed")
             } footer: {
                 Text("Applies across all active downloads combined.")
+            }
+
+            Section {
+                Toggle("Throttle on a schedule", isOn: scheduleEnabledBinding)
+                if model.settings.bandwidthSchedule?.isEnabled == true {
+                    DatePicker("From", selection: scheduleStartBinding, displayedComponents: .hourAndMinute)
+                    DatePicker("To", selection: scheduleEndBinding, displayedComponents: .hourAndMinute)
+                    Toggle("Unlimited during this window", isOn: scheduleUnlimitedBinding)
+                    if model.settings.bandwidthSchedule?.limitBytesPerSecond != nil {
+                        HStack {
+                            Text("Limit")
+                            Spacer()
+                            TextField("1", value: scheduleLimitMBs, format: .number)
+                                .labelsHidden()
+                                .frame(width: 70)
+                                .textFieldStyle(.roundedBorder)
+                                .multilineTextAlignment(.trailing)
+                                .accessibilityLabel("Scheduled limit")
+                            Text("MB/s").foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            } header: {
+                Text("Bandwidth Schedule")
+            } footer: {
+                Text("Overrides the speed limit above during this window — throttle during work hours, or go unlimited overnight. A window whose end is before its start wraps past midnight.")
             }
 
             Section {
@@ -131,9 +158,19 @@ struct SettingsView: View {
                 Text("Open CloakDrop automatically when you log in.")
             }
 
-            Section("When Finished") {
+            Section {
                 Picker("After all downloads finish", selection: postActionBinding) {
                     ForEach(SchedulerPostAction.allCases) { Text($0.localizedLabel).tag($0) }
+                }
+                if model.settings.resolvedPostAction.needsShortcutName {
+                    TextField("Shortcut name", text: shortcutNameBinding, prompt: Text("Exact name in Shortcuts"))
+                        .textFieldStyle(.roundedBorder)
+                }
+            } header: {
+                Text("When Finished")
+            } footer: {
+                if model.settings.resolvedPostAction == .runShortcut {
+                    Text("Runs a Shortcut of this name from your Shortcuts library — use it to sleep the Mac, tidy a folder, or anything else.")
                 }
             }
         }
@@ -314,6 +351,18 @@ struct SettingsView: View {
         )
     }
 
+    private var shortcutNameBinding: Binding<String> {
+        Binding(
+            get: { model.settings.postCompletionShortcutName ?? "" },
+            set: { newValue in
+                var settings = model.settings
+                let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                settings.postCompletionShortcutName = trimmed.isEmpty ? nil : newValue
+                model.updateSettings(settings)
+            }
+        )
+    }
+
     private func proxyBinding<Value>(_ keyPath: WritableKeyPath<ProxyConfiguration, Value>) -> Binding<Value> {
         Binding(
             get: { model.settings.resolvedProxy[keyPath: keyPath] },
@@ -346,6 +395,57 @@ struct SettingsView: View {
                 settings.globalSpeedLimitBytesPerSecond = Int64(max(0.1, mb) * 1_000_000)
                 model.updateSettings(settings)
             }
+        )
+    }
+
+    // MARK: Bandwidth schedule bindings
+
+    /// Mutate the schedule, materializing a sensible default the first time it's enabled.
+    private func updateSchedule(_ transform: (inout BandwidthSchedule) -> Void) {
+        var settings = model.settings
+        var schedule = settings.bandwidthSchedule ?? BandwidthSchedule(isEnabled: true)
+        transform(&schedule)
+        settings.bandwidthSchedule = schedule
+        model.updateSettings(settings)
+    }
+
+    private var scheduleEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { model.settings.bandwidthSchedule?.isEnabled ?? false },
+            set: { on in updateSchedule { $0.isEnabled = on } }
+        )
+    }
+
+    /// A start/end minute-of-day rendered as a `Date` today, for the hour-and-minute `DatePicker`.
+    private func minuteBinding(_ keyPath: WritableKeyPath<BandwidthSchedule, Int>) -> Binding<Date> {
+        Binding(
+            get: {
+                let minute = model.settings.bandwidthSchedule?[keyPath: keyPath] ?? 0
+                return Calendar.current.startOfDay(for: Date())
+                    .addingTimeInterval(TimeInterval(minute * 60))
+            },
+            set: { date in
+                let c = Calendar.current.dateComponents([.hour, .minute], from: date)
+                let minute = (c.hour ?? 0) * 60 + (c.minute ?? 0)
+                updateSchedule { $0[keyPath: keyPath] = minute }
+            }
+        )
+    }
+
+    private var scheduleStartBinding: Binding<Date> { minuteBinding(\.startMinute) }
+    private var scheduleEndBinding: Binding<Date> { minuteBinding(\.endMinute) }
+
+    private var scheduleUnlimitedBinding: Binding<Bool> {
+        Binding(
+            get: { model.settings.bandwidthSchedule?.limitBytesPerSecond == nil },
+            set: { unlimited in updateSchedule { $0.limitBytesPerSecond = unlimited ? nil : 1_000_000 } }
+        )
+    }
+
+    private var scheduleLimitMBs: Binding<Double> {
+        Binding(
+            get: { Double(model.settings.bandwidthSchedule?.limitBytesPerSecond ?? 0) / 1_000_000 },
+            set: { mb in updateSchedule { $0.limitBytesPerSecond = Int64(max(0.1, mb) * 1_000_000) } }
         )
     }
 }

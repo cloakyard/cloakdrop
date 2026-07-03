@@ -232,10 +232,32 @@ final class AppModel {
         }
     }
 
-    /// The user's "when everything finishes" preference. Sandbox-safe: only a clean quit.
+    /// The user's "when everything finishes" preference. Every branch is sandbox-safe — the most
+    /// powerful, `runShortcut`, delegates to the user's own Shortcut via a URL open, so CloakDrop
+    /// itself never needs a sleep/shutdown/Apple-Events entitlement.
     private func applyPostCompletionAction() {
-        guard settings.resolvedPostAction == .quit else { return }
-        NSApplication.shared.terminate(nil)
+        switch settings.resolvedPostAction {
+        case .none:
+            break
+        case .notify:
+            notifications.notifyAllCompleted()
+        case .quit:
+            NSApplication.shared.terminate(nil)
+        case .runShortcut:
+            runPostCompletionShortcut()
+        }
+    }
+
+    /// Launch the user's chosen Shortcut via `shortcuts://run-shortcut?name=…`. Opening a URL is
+    /// fully sandbox-legal, and Shortcuts is where the user composes whatever they actually want to
+    /// happen (sleep the Mac, empty a folder, ping a webhook) — so this one hook covers them all.
+    private func runPostCompletionShortcut() {
+        guard let name = settings.postCompletionShortcutName?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !name.isEmpty,
+              var components = URLComponents(string: "shortcuts://run-shortcut") else { return }
+        components.queryItems = [URLQueryItem(name: "name", value: name)]
+        guard let url = components.url else { return }
+        NSWorkspace.shared.open(url)
     }
 
     private func upsert(_ download: Download) {
