@@ -98,28 +98,27 @@ Each item follows the architecture rule: model in `DownloadModels` → logic in 
 - [x] **FTP / FTPS** — native client over Network.framework (EPSV/PASV, `REST` resume, `SIZE`,
   implicit TLS for `ftps`). No bundled library. Verified with a loopback FTP server.
 
-### Phase 2 — Convenience parity
+### Phase 2 — Convenience parity ✅ shipped
 - [x] **Archive auto-extraction** — native ZIP (`Compression.framework`, STORE + DEFLATE,
   memory-mapped, Zip-Slip guarded). RAR/7z intentionally deferred (no bundled tool).
-- [~] **Keychain credential store** — the store (protocol + Security impl + in-memory fake) is
-  **done and tested**; wiring it into the proxy + site-auth UI (replacing plaintext) is the
-  remaining step.
+- [x] **Keychain credential store** — the manual-proxy password now lives in the Keychain (blanked
+  on disk, rehydrated in memory); the add sheet remembers/auto-fills per-site HTTP/FTP credentials.
 
-### Phase 3 — Intake power (not yet started)
-- [ ] **Link-grabber panel** — paste a wall of mixed links → dedupe / analyze / select → enqueue.
-  Builds on the existing `URLBatch` parse/pattern-expansion + batch sheet.
-- [ ] **Bounded page "grab all"** — extend the extension's page-media sniffing to "download
-  everything on this page matching a filter." Single user-opened page only — no crawler.
+### Phase 3 — Intake power ✅ shipped
+- [x] **Link-grabber panel** — paste/import a wall of mixed links → dedupe / pattern-expand → a
+  reviewable, filterable, individually-selectable list → enqueue only what's checked.
+- [x] **Bounded page "grab all"** — `PageLinkExtractor` fetches one user-entered page and extracts
+  its href/src links (resolved, deduped, filterable), feeding the grabber. Single page only —
+  never follows links off it (no crawler).
 
 ### In place of Phase 4 — the unique differentiator (no bundled tools) ✅ shipped
 - [x] **Provenance Receipt** — per-download verified record (source + mirrors, transport, SHA-256,
   checksum & signature verdicts, one trust verdict), shown in the inspector and exportable. Built
   from existing signals; zero bundled tools. See below.
 
-### Cross-cutting — remaining
-- [ ] **Localization** — ~26 new UI strings across the shipped features need the String Catalog
-  ×10-locale pass (`validate_localizations.py`). Best done once after Phase 3 to avoid two passes;
-  until then those strings render in English in non-English locales.
+### Cross-cutting ✅ shipped
+- [x] **Localization** — all 37 new UI strings translated into the 10 supported locales
+  (`validate_localizations.py`: 339 strings × 10 languages, placeholders consistent).
 
 ---
 

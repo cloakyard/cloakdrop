@@ -468,7 +468,7 @@ final class AppModel {
         request.setValue("text/html,application/xhtml+xml", forHTTPHeaderField: "Accept")
         guard let (data, _) = try? await URLSession.shared.data(for: request) else { return [] }
         let capped = data.prefix(10 * 1024 * 1024)
-        let html = String(decoding: capped, as: UTF8.self)
+        let html = String(bytes: capped, encoding: .utf8) ?? String(bytes: capped, encoding: .isoLatin1) ?? ""
         return PageLinkExtractor.extract(html: html, baseURL: pageURL, extensions: extensions)
     }
 
