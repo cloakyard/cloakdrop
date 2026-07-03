@@ -152,7 +152,7 @@ struct DownloadListView: View {
         ToolbarItem(placement: .primaryAction) {
             Menu {
                 Button("Add Download…") { model.isAddSheetPresented = true }
-                Button("Add Batch…") { model.isBatchSheetPresented = true }
+                Button("Grab Links…") { model.isBatchSheetPresented = true }
             } label: {
                 Label("Add Download", systemImage: "plus")
             } primaryAction: {

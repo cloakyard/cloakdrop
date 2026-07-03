@@ -455,10 +455,15 @@ final class AppModel {
         bookmark: Data? = nil
     ) -> Int {
         let urls = URLBatch.parse(text)
+        addURLs(urls, into: directory, bookmark: bookmark)
+        return urls.count
+    }
+
+    /// Enqueue a specific set of already-parsed URLs (the link-grabber's selected rows).
+    func addURLs(_ urls: [URL], into directory: URL = AppEnvironment.defaultDownloadsDirectory(), bookmark: Data? = nil) {
         for url in urls {
             add(DownloadRequest(url: url, destinationDirectoryPath: directory.path, destinationBookmark: bookmark))
         }
-        return urls.count
     }
 
     /// Accept dropped web URLs or text links onto the window.
