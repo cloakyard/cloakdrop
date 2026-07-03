@@ -107,6 +107,8 @@ final class AppModel {
     let manager: DownloadManager
     private let dock = DockProgressController()
     private let notifications = NotificationManager()
+    /// Keychain-backed store for per-site HTTP/FTP credentials the user asks CloakDrop to remember.
+    private let siteCredentialStore: any CredentialStoring = KeychainCredentialStore()
     private let clipboard = ClipboardMonitor()
     private let loginItem = LoginItemService()
     private let sleepPreventer = SleepPreventer()
@@ -624,6 +626,21 @@ final class AppModel {
         case .reveal: revealInFinder(download)
         case .retry: resume(download.id)
         }
+    }
+
+    /// Store a site's HTTP/FTP credentials in the Keychain so the user needn't retype them next time.
+    func rememberSiteCredentials(host: String, username: String, password: String) {
+        guard !host.isEmpty, !(username.isEmpty && password.isEmpty) else { return }
+        siteCredentialStore.setCredential(StoredCredential(username: username, password: password),
+                                          forKey: KeychainCredentialStore.siteKey(host: host))
+    }
+
+    /// Recall a site's saved credentials, if any (for the add sheet's auto-fill).
+    func siteCredentials(forHost host: String) -> (username: String, password: String)? {
+        guard !host.isEmpty,
+              let credential = siteCredentialStore.credential(forKey: KeychainCredentialStore.siteKey(host: host))
+        else { return nil }
+        return (credential.username, credential.password)
     }
 
     /// Write a download's provenance receipt to a user-chosen file (Save panel). The receipt is a

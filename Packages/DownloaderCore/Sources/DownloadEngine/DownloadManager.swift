@@ -24,6 +24,9 @@ public actor DownloadManager {
     private let globalLimiter: BandwidthLimiter
     private let remuxer: any Remuxer
     private let signatureInspector: any CodeSignatureInspecting
+    /// Where the manual-proxy password lives — the Keychain in production — so it never touches the
+    /// settings JSON on disk.
+    private let credentialStore: any CredentialStoring
 
     private var settings: EngineSettings = .default
     private var downloads: [UUID: Download] = [:]
@@ -57,13 +60,15 @@ public actor DownloadManager {
         httpClient: any HTTPClient = SchemeRoutingHTTPClient(),
         networkMonitor: any NetworkPathMonitoring = NetworkMonitor(),
         remuxer: any Remuxer = AVFoundationRemuxer(),
-        signatureInspector: any CodeSignatureInspecting = SecCodeSignatureInspector()
+        signatureInspector: any CodeSignatureInspecting = SecCodeSignatureInspector(),
+        credentialStore: any CredentialStoring = KeychainCredentialStore()
     ) {
         self.store = store
         self.httpClient = httpClient
         self.networkMonitor = networkMonitor
         self.remuxer = remuxer
         self.signatureInspector = signatureInspector
+        self.credentialStore = credentialStore
         self.globalLimiter = BandwidthLimiter(bytesPerSecond: nil)
         // Status events must not be dropped (a lost `.downloadAdded` strands a row in limbo), so
         // they get an unbounded stream. Progress events are lossy-tolerant and ride a separate
@@ -81,6 +86,9 @@ public actor DownloadManager {
     public func start() async throws {
         try await store.bootstrap()
         settings = try await store.loadSettings()
+        // The persisted proxy password is always blank (it lives in the Keychain); restore it into the
+        // in-memory settings so the connection can authenticate and the UI can show it this session.
+        hydrateProxyPassword()
         await globalLimiter.setRate(bytesPerSecond: effectiveGlobalLimit())
         await httpClient.configure(proxy: settings.resolvedProxy)
 
@@ -352,11 +360,47 @@ public actor DownloadManager {
     // MARK: - Settings & queues
 
     public func updateSettings(_ newSettings: EngineSettings) async {
+        // Keep the real proxy password in memory (to authenticate and to show in the UI this session),
+        // but move it to the Keychain and persist a blanked copy so plaintext never reaches the DB.
+        persistProxyPassword(from: newSettings)
         settings = newSettings
         await globalLimiter.setRate(bytesPerSecond: effectiveGlobalLimit())
         await httpClient.configure(proxy: newSettings.resolvedProxy)
-        try? await store.save(settings: newSettings)
+        try? await store.save(settings: settingsForPersistence(newSettings))
         eventContinuation.yield(.settingsChanged(newSettings))
+    }
+
+    // MARK: Proxy credential ↔ Keychain
+
+    /// Fill `settings.proxy.password` from the Keychain when the persisted copy is blank (the normal
+    /// case) so the in-memory proxy can authenticate.
+    private func hydrateProxyPassword() {
+        guard var proxy = settings.proxy, proxy.mode == .manual, proxy.password.isEmpty else { return }
+        let key = KeychainCredentialStore.proxyKey(host: proxy.host, port: proxy.port)
+        guard let credential = credentialStore.credential(forKey: key) else { return }
+        proxy.password = credential.password
+        settings.proxy = proxy
+    }
+
+    /// Store the manual-proxy password in the Keychain (or remove it when cleared).
+    private func persistProxyPassword(from newSettings: EngineSettings) {
+        guard let proxy = newSettings.proxy, proxy.mode == .manual else { return }
+        let key = KeychainCredentialStore.proxyKey(host: proxy.host, port: proxy.port)
+        if proxy.password.isEmpty {
+            credentialStore.setCredential(nil, forKey: key)
+        } else {
+            credentialStore.setCredential(StoredCredential(username: proxy.username, password: proxy.password), forKey: key)
+        }
+    }
+
+    /// A copy of the settings safe to write to disk: the proxy password is blanked (it's in the Keychain).
+    private func settingsForPersistence(_ source: EngineSettings) -> EngineSettings {
+        var copy = source
+        if var proxy = copy.proxy, proxy.mode == .manual {
+            proxy.password = ""
+            copy.proxy = proxy
+        }
+        return copy
     }
 
     public func setGlobalSpeedLimit(bytesPerSecond: Int64?) async {

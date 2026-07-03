@@ -26,6 +26,7 @@ struct AddDownloadSheet: View {
     @State private var recurrence: ScheduleRecurrence = .none
     @State private var username = ""
     @State private var password = ""
+    @State private var rememberCredentials = false
     @State private var referrer = ""
     @State private var cookies = ""
 
@@ -103,6 +104,7 @@ struct AddDownloadSheet: View {
                             .textFieldStyle(.roundedBorder)
                         SecureField("Password", text: $password, prompt: Text("HTTP Basic/Digest"))
                             .textFieldStyle(.roundedBorder)
+                        Toggle("Remember for this site", isOn: $rememberCredentials)
                     }
                     DisclosureGroup("Referrer & cookies") {
                         TextField("Referrer", text: $referrer, prompt: Text("https://example.com"))
@@ -212,6 +214,7 @@ struct AddDownloadSheet: View {
             return
         }
         guard url != lastInspectedURL else { return }   // already have (or attempted) this exact URL
+        autofillSavedCredentials(for: url)
         inspectionTask = Task {
             try? await Task.sleep(for: .milliseconds(500))   // debounce keystrokes
             guard !Task.isCancelled else { return }
@@ -245,6 +248,16 @@ struct AddDownloadSheet: View {
     private func trimmedOrNil(_ value: String) -> String? {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? nil : trimmed
+    }
+
+    /// Pre-fill saved credentials for this URL's host when the fields are still empty, so a returning
+    /// user doesn't retype them. Flips the "remember" toggle on to reflect that they're stored.
+    private func autofillSavedCredentials(for url: URL) {
+        guard username.isEmpty, password.isEmpty, let host = url.host,
+              let saved = model.siteCredentials(forHost: host) else { return }
+        username = saved.username
+        password = saved.password
+        rememberCredentials = true
     }
 
     // MARK: Actions
@@ -314,6 +327,9 @@ struct AddDownloadSheet: View {
         // Only hand the pre-flight to duplicate detection if it's for the URL we're actually adding
         // (the user may have edited the URL after the last probe resolved).
         let effectivePreview = preview?.requestedURL == url ? preview : nil
+        if rememberCredentials, let host = url.host {
+            model.rememberSiteCredentials(host: host, username: username, password: password)
+        }
         model.grab(request, preview: effectivePreview)
         dismiss()
     }
