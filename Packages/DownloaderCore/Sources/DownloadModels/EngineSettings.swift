@@ -40,6 +40,9 @@ public struct EngineSettings: Sendable, Hashable, Codable {
     /// When true, a completed `.zip` is automatically extracted into a sibling folder (native
     /// extraction — no external tool). Off by default.
     public var autoExtractArchives: Bool
+    /// When true, a verified-download provenance receipt (source, mirrors, SHA-256, checksum &
+    /// signature verdicts, one trust verdict) is assembled on completion. On by default; fully local.
+    public var generateProvenanceReceipts: Bool
     /// On launch, whether downloads that were mid-transfer when the app last quit resume
     /// automatically. When false they come back paused, so the user starts them when they choose.
     public var resumeDownloadsOnLaunch: Bool
@@ -67,6 +70,7 @@ public struct EngineSettings: Sendable, Hashable, Codable {
         autoCategorize: Bool = false,
         applyQuarantine: Bool = true,
         autoExtractArchives: Bool = false,
+        generateProvenanceReceipts: Bool = true,
         resumeDownloadsOnLaunch: Bool = true,
         proxy: ProxyConfiguration? = nil,
         postCompletionAction: SchedulerPostAction? = nil,
@@ -86,6 +90,7 @@ public struct EngineSettings: Sendable, Hashable, Codable {
         self.autoCategorize = autoCategorize
         self.applyQuarantine = applyQuarantine
         self.autoExtractArchives = autoExtractArchives
+        self.generateProvenanceReceipts = generateProvenanceReceipts
         self.resumeDownloadsOnLaunch = resumeDownloadsOnLaunch
         self.proxy = proxy
         self.postCompletionAction = postCompletionAction
@@ -105,7 +110,7 @@ public struct EngineSettings: Sendable, Hashable, Codable {
         case defaultSegmentCount, maxSegmentCount, globalSpeedLimitBytesPerSecond, bandwidthSchedule
         case maxRetryAttempts, retryBaseDelaySeconds, retryMaxDelaySeconds
         case minimumSegmentSizeBytes, verifyChecksumsAutomatically, autoDiscoverChecksums, autoCategorize
-        case applyQuarantine, autoExtractArchives
+        case applyQuarantine, autoExtractArchives, generateProvenanceReceipts
         case assessSignatures
         case resumeDownloadsOnLaunch
         case proxy, postCompletionAction, postCompletionShortcutName
@@ -140,6 +145,7 @@ public struct EngineSettings: Sendable, Hashable, Codable {
             autoCategorize: try value(.autoCategorize, fallback.autoCategorize),
             applyQuarantine: try value(.applyQuarantine, fallback.applyQuarantine),
             autoExtractArchives: try value(.autoExtractArchives, fallback.autoExtractArchives),
+            generateProvenanceReceipts: try value(.generateProvenanceReceipts, fallback.generateProvenanceReceipts),
             resumeDownloadsOnLaunch: try value(.resumeDownloadsOnLaunch, fallback.resumeDownloadsOnLaunch),
             proxy: try container.decodeIfPresent(ProxyConfiguration.self, forKey: .proxy),
             postCompletionAction: try container.decodeIfPresent(SchedulerPostAction.self, forKey: .postCompletionAction),

@@ -66,6 +66,7 @@ struct SettingsView: View {
                     .disabled(!model.settings.verifyChecksumsAutomatically)
                 Toggle("Check app signatures", isOn: binding(\.assessSignatures))
                 Toggle("Flag files as downloaded (Gatekeeper check)", isOn: binding(\.applyQuarantine))
+                Toggle("Create a provenance receipt", isOn: binding(\.generateProvenanceReceipts))
                 Toggle("Extract .zip archives automatically", isOn: binding(\.autoExtractArchives))
                 Toggle("Sort completed files into type folders", isOn: binding(\.autoCategorize))
             } header: {

@@ -1,5 +1,6 @@
 import SwiftUI
 import Observation
+import UniformTypeIdentifiers
 import DownloadModels
 import DownloadEngine
 
@@ -623,6 +624,17 @@ final class AppModel {
         case .reveal: revealInFinder(download)
         case .retry: resume(download.id)
         }
+    }
+
+    /// Write a download's provenance receipt to a user-chosen file (Save panel). The receipt is a
+    /// plain-text record; nothing leaves the Mac unless the user picks a destination here.
+    func saveProvenanceReceipt(_ receipt: ProvenanceReceipt) {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = "\(receipt.fileName) — receipt.txt"
+        panel.allowedContentTypes = [.plainText]
+        panel.message = String(localized: "Save the verified-download receipt.")
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        try? receipt.exportText().data(using: .utf8)?.write(to: url)
     }
 
     // MARK: Helpers

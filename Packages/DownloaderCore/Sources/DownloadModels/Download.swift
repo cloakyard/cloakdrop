@@ -58,6 +58,9 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     /// The code-signature assessment of the finished file, for installable types (`.app`/`.dmg`).
     /// `nil` when not assessed (unsupported type, disabled, or not yet complete).
     public var signature: SignatureAssessment?
+    /// The verified-download provenance record, assembled on completion. `nil` until the download
+    /// finishes.
+    public var provenance: ProvenanceReceipt?
 
     /// When the user added this download.
     public var createdAt: Date
@@ -105,6 +108,7 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
         checksum: ChecksumExpectation? = nil,
         checksumVerified: Bool? = nil,
         signature: SignatureAssessment? = nil,
+        provenance: ProvenanceReceipt? = nil,
         createdAt: Date = Date(),
         startedAt: Date? = nil,
         completedAt: Date? = nil,
@@ -137,6 +141,7 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
         self.checksum = checksum
         self.checksumVerified = checksumVerified
         self.signature = signature
+        self.provenance = provenance
         self.createdAt = createdAt
         self.startedAt = startedAt
         self.completedAt = completedAt

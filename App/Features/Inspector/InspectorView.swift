@@ -18,6 +18,9 @@ struct InspectorView: View {
                             segments(download)
                         }
                         details(download)
+                        if let provenance = download.provenance {
+                            provenanceSection(provenance)
+                        }
                     }
                     .padding(20)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -174,6 +177,52 @@ struct InspectorView: View {
             if let completed = download.completedAt {
                 detailRow("Completed", value: completed.formatted(date: .abbreviated, time: .shortened))
             }
+        }
+    }
+
+    /// The verified-download provenance record — CloakDrop's signature feature. Shows the one trust
+    /// verdict, the SHA-256, and a button to save the full receipt.
+    private func provenanceSection(_ provenance: ProvenanceReceipt) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Divider()
+            HStack(spacing: 6) {
+                Image(systemName: trustSymbol(provenance.trustLevel))
+                    .foregroundStyle(trustColor(provenance.trustLevel))
+                    .symbolRenderingMode(.hierarchical)
+                Text("Provenance").font(.headline)
+                Spacer()
+                Button {
+                    model.saveProvenanceReceipt(provenance)
+                } label: {
+                    Label("Save Receipt…", systemImage: "square.and.arrow.down")
+                }
+                .buttonStyle(.borderless)
+                .controlSize(.small)
+            }
+            detailRow("Transport", value: provenance.transportSecure
+                      ? String(localized: "Encrypted (TLS)") : String(localized: "Cleartext"))
+            if !provenance.mirrors.isEmpty {
+                detailRow("Mirrors", value: String(provenance.mirrors.count))
+            }
+            if let sha256 = provenance.sha256 {
+                detailRow("SHA-256", value: sha256, mono: true)
+            }
+        }
+    }
+
+    private func trustSymbol(_ level: TrustLevel) -> String {
+        switch level {
+        case .verified: return "checkmark.seal.fill"
+        case .warning: return "exclamationmark.triangle.fill"
+        case .unknown: return "questionmark.circle"
+        }
+    }
+
+    private func trustColor(_ level: TrustLevel) -> Color {
+        switch level {
+        case .verified: return .green
+        case .warning: return .red
+        case .unknown: return .secondary
         }
     }
 

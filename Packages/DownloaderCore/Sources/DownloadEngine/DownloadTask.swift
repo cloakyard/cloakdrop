@@ -757,6 +757,33 @@ actor DownloadTask {
             let fileURL = URL(fileURLWithPath: download.destinationFilePath)
             download.signature = await Task.detached { inspector.assess(fileURL: fileURL) }.value
         }
+
+        if settings.generateProvenanceReceipts {
+            download.provenance = await buildProvenanceReceipt()
+        }
+    }
+
+    /// Assemble the verified-download provenance record from the signals gathered during finalize.
+    /// The SHA-256 is computed off-actor (it streams the whole file), best-effort — a receipt without
+    /// a hash is still useful, and a read failure must not fail a completed download.
+    private func buildProvenanceReceipt() async -> ProvenanceReceipt {
+        let fileURL = URL(fileURLWithPath: download.destinationFilePath)
+        let sha256 = await Task.detached { try? ChecksumVerifier.hash(fileURL: fileURL, algorithm: .sha256) }.value
+        let secure = ["https", "ftps"].contains(download.url.scheme?.lowercased() ?? "")
+        return ProvenanceReceipt(
+            fileName: download.fileName,
+            fileSizeBytes: download.totalBytes,
+            sourceURL: download.url,
+            finalURL: nil,
+            mirrors: download.mirrors ?? [],
+            transportSecure: secure,
+            sha256: sha256,
+            expectedChecksum: download.checksum,
+            checksumVerified: download.checksumVerified,
+            signature: download.signature,
+            trustLevel: download.trustLevel,
+            generatedAt: Date()
+        )
     }
 
     /// If enabled and the finished file is a `.zip`, extract it natively into a sibling folder named
