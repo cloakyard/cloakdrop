@@ -85,33 +85,41 @@ Each item follows the architecture rule: model in `DownloadModels` → logic in 
 
 ### Foundation
 - [x] **Bandwidth limiter correctness** — global + per-download caps now hold under concurrency
-  (GCRA virtual-clock; aggregate-throughput test).
+  (GCRA virtual-clock; aggregate-throughput test). *Fixed a real bug: N connections each ran at
+  ~full rate, so a 1 MB/s cap behaved like N MB/s.*
 
-### Phase 1 — Quick, high-value polish
-- [ ] **Post-download actions** — when a queue finishes: sleep display / quit app / play sound /
-  post notification / run a Shortcut. (Full system shutdown is sandbox-blocked; the rest are clean.)
-- [ ] **Gatekeeper quarantine flag** — apply `com.apple.quarantine` to completed files so Gatekeeper
-  vets them on first open. Pairs with the existing trust assessment. *Highest security ROI.*
-- [ ] **Time-of-day bandwidth profiles** — throttle to X between set hours, unlimited otherwise.
-  Composes the existing scheduler + limiter.
-- [ ] **FTP / FTPS** — native client over Network.framework (passive mode, `REST` resume, `SIZE`,
-  TLS via `NWProtocolTLS`). No bundled library — extends the `HTTPClient`/transfer seam.
+### Phase 1 — Quick, high-value polish ✅ shipped
+- [x] **Post-download actions** — notify / quit / run a Shortcut (the Shortcut hook covers
+  sleep/shutdown/anything, sandbox-clean, via `shortcuts://`).
+- [x] **Gatekeeper quarantine flag** — `com.apple.quarantine` (setxattr, not user-approved) on
+  completed files so Gatekeeper vets them on first open.
+- [x] **Time-of-day bandwidth profiles** — `BandwidthSchedule` resolves the effective limit by clock;
+  the manager re-applies it once a minute. Wraps past midnight.
+- [x] **FTP / FTPS** — native client over Network.framework (EPSV/PASV, `REST` resume, `SIZE`,
+  implicit TLS for `ftps`). No bundled library. Verified with a loopback FTP server.
 
 ### Phase 2 — Convenience parity
-- [ ] **Archive auto-extraction** — auto-unpack on completion (ZIP native via `libarchive`/system;
-  RAR/7z evaluated separately to honor the no-bundled-tools preference).
-- [ ] **Keychain credential store** — host→credentials vault for site auth + proxy, replacing the
-  current plaintext storage (already flagged in `ProxyConfiguration`).
+- [x] **Archive auto-extraction** — native ZIP (`Compression.framework`, STORE + DEFLATE,
+  memory-mapped, Zip-Slip guarded). RAR/7z intentionally deferred (no bundled tool).
+- [~] **Keychain credential store** — the store (protocol + Security impl + in-memory fake) is
+  **done and tested**; wiring it into the proxy + site-auth UI (replacing plaintext) is the
+  remaining step.
 
-### Phase 3 — Intake power
+### Phase 3 — Intake power (not yet started)
 - [ ] **Link-grabber panel** — paste a wall of mixed links → dedupe / analyze / select → enqueue.
-  Builds on batch + pattern expansion. (No container files / hoster baggage — see out-of-scope.)
-- [ ] **Bounded page "grab all"** — the browser extension already sniffs page media; extend to
-  "download everything on this page matching a filter (all images / PDFs / regex)." Single
-  user-opened page only — no open-ended crawler, keeping it privacy-safe.
+  Builds on the existing `URLBatch` parse/pattern-expansion + batch sheet.
+- [ ] **Bounded page "grab all"** — extend the extension's page-media sniffing to "download
+  everything on this page matching a filter." Single user-opened page only — no crawler.
 
-### In place of Phase 4 — a truly unique differentiator (no bundled tools)
-- [ ] **Provenance Receipt** — see below. Recommended pick.
+### In place of Phase 4 — the unique differentiator (no bundled tools) ✅ shipped
+- [x] **Provenance Receipt** — per-download verified record (source + mirrors, transport, SHA-256,
+  checksum & signature verdicts, one trust verdict), shown in the inspector and exportable. Built
+  from existing signals; zero bundled tools. See below.
+
+### Cross-cutting — remaining
+- [ ] **Localization** — ~26 new UI strings across the shipped features need the String Catalog
+  ×10-locale pass (`validate_localizations.py`). Best done once after Phase 3 to avoid two passes;
+  until then those strings render in English in non-English locales.
 
 ---
 
