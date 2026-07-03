@@ -459,6 +459,19 @@ final class AppModel {
         return urls.count
     }
 
+    /// Fetch a single user-entered page and extract its downloadable links (the "grab everything on
+    /// this page" flow). One user-initiated request to the page the user typed — never a crawler; it
+    /// does not follow the links it finds. The body is size-capped so a pathological page can't blow up.
+    func extractPageLinks(from pageURL: URL, extensions: Set<String> = []) async -> [URL] {
+        var request = URLRequest(url: pageURL)
+        request.timeoutInterval = 20
+        request.setValue("text/html,application/xhtml+xml", forHTTPHeaderField: "Accept")
+        guard let (data, _) = try? await URLSession.shared.data(for: request) else { return [] }
+        let capped = data.prefix(10 * 1024 * 1024)
+        let html = String(decoding: capped, as: UTF8.self)
+        return PageLinkExtractor.extract(html: html, baseURL: pageURL, extensions: extensions)
+    }
+
     /// Enqueue a specific set of already-parsed URLs (the link-grabber's selected rows).
     func addURLs(_ urls: [URL], into directory: URL = AppEnvironment.defaultDownloadsDirectory(), bookmark: Data? = nil) {
         for url in urls {

@@ -20,6 +20,8 @@ struct BatchAddSheet: View {
     @State private var text = ""
     @State private var links: [GrabbedLink] = []
     @State private var filter = ""
+    @State private var pageURLString = ""
+    @State private var isFetchingPage = false
     @State private var destinationURL = AppEnvironment.defaultDownloadsDirectory()
     @State private var destinationBookmark: Data?
 
@@ -37,6 +39,22 @@ struct BatchAddSheet: View {
                 Text("Paste links — one per line. Patterns like `file[01-50].zip` expand automatically.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
+
+                HStack(spacing: 8) {
+                    TextField("Page URL", text: $pageURLString, prompt: Text("Grab all links from a page…"))
+                        .textFieldStyle(.roundedBorder)
+                        .onSubmit { fetchFromPage() }
+                    Button {
+                        fetchFromPage()
+                    } label: {
+                        if isFetchingPage {
+                            ProgressView().controlSize(.small)
+                        } else {
+                            Label("Fetch Links", systemImage: "arrow.down.doc")
+                        }
+                    }
+                    .disabled(isFetchingPage || AppModel.normalizedURL(pageURLString) == nil)
+                }
 
                 TextEditor(text: $text)
                     .font(.callout.monospaced())
@@ -134,6 +152,20 @@ struct BatchAddSheet: View {
     private func reparse(_ newValue: String) {
         let previouslyDeselected = Set(links.filter { !$0.selected }.map(\.url))
         links = URLBatch.parse(newValue).map { GrabbedLink(url: $0, selected: !previouslyDeselected.contains($0)) }
+    }
+
+    /// Fetch the entered page and append its downloadable links to the editor, where the normal
+    /// parse/select flow takes over.
+    private func fetchFromPage() {
+        guard !isFetchingPage, let url = AppModel.normalizedURL(pageURLString) else { return }
+        isFetchingPage = true
+        Task {
+            let found = await model.extractPageLinks(from: url)
+            let appended = found.map(\.absoluteString).joined(separator: "\n")
+            text = text.isEmpty ? appended : text + "\n" + appended
+            pageURLString = ""
+            isFetchingPage = false
+        }
     }
 
     private func importTextFile() {
