@@ -74,5 +74,8 @@ download URLs (and, later, the user's configured proxy). When in doubt, ask firs
 
 ## Dependencies
 
-Ask before introducing any third-party dependency beyond the persistence layer (GRDB) and
-(optionally, later) ffmpeg. Prefer system frameworks (e.g. CryptoKit over swift-crypto).
+Ask before introducing any third-party Swift dependency beyond the persistence layer (GRDB).
+Two native command-line tools — **ffmpeg** (muxing) and **yt-dlp** (page extraction) — are bundled
+as code-signed, sandboxed helper binaries via opt-in build scripts (`scripts/fetch-ffmpeg.sh`,
+`scripts/fetch-ytdlp.sh`); both only *read* or *transform* and must add no network egress of their
+own. Prefer system frameworks (e.g. CryptoKit over swift-crypto).

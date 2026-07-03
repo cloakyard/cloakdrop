@@ -46,8 +46,12 @@ CloakDrop is a native, sandboxed macOS app designed to minimize attack surface:
 
 ### Risk areas
 
-- **Third-party dependencies.** CloakDrop's only third-party dependency is GRDB (SQLite).
-  Dependencies are kept minimal and reviewed before being added.
+- **Third-party dependencies.** CloakDrop's only third-party Swift dependency is GRDB (SQLite).
+  Two native command-line tools are also bundled as code-signed, sandboxed helper binaries:
+  **ffmpeg** (stream-copy muxing) and **yt-dlp** (a read-only page→formats resolver). Both run
+  in-sandbox as `inherit`-entitled children, only ever *read* or *transform* local data, and add
+  no network egress of their own — the app's engine performs every download. Dependencies are kept
+  minimal and reviewed before being added.
 - **Downloaded content.** CloakDrop transfers files but does not execute them. Always verify
   what you download; use the built-in checksum verification when an expected hash is available.
 - **macOS / system vulnerabilities** should be reported to Apple.

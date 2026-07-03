@@ -28,6 +28,9 @@ Serious multi-segment download power with the look and feel of a first-party app
 | 📋 **Effortless capture** | Clipboard watching, drag & drop, batch/bulk add with pattern expansion (`file[01-50].zip`), scheduler, HTTP auth, cookies/referrer, and system/direct/manual proxy. |
 | 🌐 **Browser & system capture** | A bundled Safari Web Extension, a Chrome/Edge/Brave/Firefox extension over a native-messaging host, plus a Share Extension and a "Send to CloakDrop" Services item — all funnelling through one privacy-preserving on-device inbox. |
 | 🎬 **Media grabbing** | Detects HLS (`.m3u8`) and DASH (`.mpd`) streams, lists qualities, downloads the segments over the same engine, decrypts AES-128, and always pairs a video rendition with its separate audio track so a grab is never silent — muxing and remuxing into a clean, playable file (AVFoundation passthrough → `.mp4`/`.m4a`; a bundled ffmpeg stream-copies VP9/AV1/Opus → `.mkv`; no re-encode either way). |
+| 🎥 **Site & video extraction** | Paste a YouTube page — or any of the **~1800 sites** yt-dlp knows — and CloakDrop resolves the real video/audio formats, lists the qualities, and grabs them with **its own** segmented engine. yt-dlp only *reads and deciphers* (it never downloads a byte), so pause/resume, persistence, the sandbox, and no-re-encode muxing all stay CloakDrop's. |
+| 🪞 **Multi-source mirrors** | Open a Metalink (`.metalink` / `.meta4`) and CloakDrop spreads segments across its mirrors for parallel throughput, fails over to a live mirror the moment one dies, throttles, or serves corrupt bytes, and verifies the finished file against the Metalink's whole-file checksum. |
+| 🏅 **Download stats** | Local, private lifetime totals — today / this month / all-time — with a playful monthly tier badge that resets each month (Warming Up → ISP's Worst Nightmare). Just counters on your Mac; nothing leaves the device. |
 | 🌍 **Fully localized** | Every UI string translated into 11 languages (English, Spanish, French, German, Simplified Chinese, Japanese, Korean, Brazilian Portuguese, Russian, Arabic, Hindi). |
 | 🪟 **Native to the bone** | SwiftUI + Liquid Glass, full light/dark, VoiceOver + full-keyboard access, a live menu-bar extra, and a Dock icon that shows overall progress at a glance. |
 
@@ -46,14 +49,19 @@ CloakDrop makes **no** network requests except to the URLs you choose to downloa
 | Language | Swift 6 with **strict concurrency** (`complete`) |
 | UI | SwiftUI (macOS Tahoe 26, Liquid Glass), dropping to AppKit only for the Dock tile & notifications |
 | Engine | Actor-based — a `DownloadManager` actor driving one `DownloadTask` actor per transfer |
-| Networking | `URLSession` with HTTP Range for segmentation & resume |
+| Networking | `URLSession` with HTTP Range for segmentation, resume & multi-source (Metalink mirror) spread + failover |
 | Persistence | GRDB (SQLite) |
 | Integrity | CryptoKit |
 | Media | AVFoundation for passthrough remux/mux (HLS/DASH → clean `.mp4`/`.m4a`) with a bundled ffmpeg fallback for VP9/AV1/Opus (→ `.mkv`), plus poster-frame thumbnails |
+| Extraction | A bundled, code-signed **yt-dlp** as a read-only page→formats resolver (YouTube + ~1800 sites); it deciphers URLs while CloakDrop's own engine downloads every byte |
 | Capture | Safari/WebExtension + native-messaging host + Share/Services, bridged through a shared App Group inbox |
 | Build | XcodeGen (`project.yml` → `.xcodeproj`), SwiftLint |
 
-No third-party dependencies beyond GRDB.
+No third-party Swift dependencies beyond GRDB. Two native command-line tools — **ffmpeg** (muxing) and **yt-dlp** (page extraction) — are bundled as code-signed, sandboxed helper binaries via opt-in build scripts (`scripts/fetch-ffmpeg.sh`, `scripts/fetch-ytdlp.sh`); both only ever *read* or *transform* and add no network egress of their own.
+
+## 📊 Status
+
+**Active development.** The headless engine is feature-complete and fully tested (**277 tests across 46 suites**), and the app is functional end-to-end — multi-segment transfers, resume across relaunch, media/site grabbing, multi-source mirrors, browser capture, and full localization all work today. It targets **macOS Tahoe 26** and builds from source; there is no packaged/notarized release yet. Expect rough edges and API churn while it firms up toward a first release.
 
 ## 🚀 Getting started
 
@@ -82,7 +90,7 @@ cd Packages/DownloaderCore
 swift test
 ```
 
-**143 tests across 26 suites.** Coverage spans segmentation/reassembly correctness, **resume across a simulated relaunch** (for both plain and media grabs), single-stream fallback, retry-after-drop, checksum pass/fail and sibling auto-discovery, pause/resume, scheduling, HLS/DASH manifest parsing, AES-128 segment decryption, AVFoundation remux, and an end-to-end download over a real loopback HTTP server.
+**277 tests across 46 suites.** Coverage spans segmentation/reassembly correctness, **resume across a simulated relaunch** (for both plain and media grabs), single-stream fallback, retry-after-drop, dynamic segment re-splitting (work-stealing), multi-source Metalink spread + mirror failover on dead/corrupt sources, checksum pass/fail and sibling auto-discovery, pause/resume, scheduling, HLS/DASH manifest parsing, AES-128 segment decryption, AVFoundation remux, yt-dlp JSON parsing/format mapping, per-day stat byte-buckets, and an end-to-end download over a real loopback HTTP server.
 
 ## 🏗️ Project layout
 
@@ -97,11 +105,12 @@ cloakdrop/
 ├── BrowserExtension/       # MV3 extension for Chrome · Edge · Brave · Firefox
 ├── NativeMessagingHost/    # stdio host bridging those browsers to the app
 ├── ShareExtension/         # macOS share-sheet capture
+├── scripts/                # Opt-in build helpers: fetch-ffmpeg.sh · fetch-ytdlp.sh (bundle & sign the native tools)
 └── Packages/
     └── DownloaderCore/     # Headless, UI-agnostic, fully unit-tested core
-        ├── DownloadModels/       # Sendable value types + HLS/DASH parsers
+        ├── DownloadModels/       # Sendable value types + HLS/DASH & Metalink parsers + stats model
         ├── DownloadPersistence/  # GRDB store behind a protocol
-        └── DownloadEngine/       # Actors, segmentation, networking, checksums, media
+        └── DownloadEngine/       # Actors, segmentation, multi-source networking, checksums, media, yt-dlp resolver
 ```
 
 The brand (`CloakDrop`) lives only at the repo root and the app target; the reusable core is named for the **downloader** domain. See [ARCHITECTURE.md](ARCHITECTURE.md) for the full design.
