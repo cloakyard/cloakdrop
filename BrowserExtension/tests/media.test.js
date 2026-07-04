@@ -160,6 +160,35 @@ test("keeps two unrelated streams in non-nested folders", () => {
   assert.equal(items.length, 2);
 });
 
+test("collapses same-folder variant playlists to their master (Unified Streaming .ism)", () => {
+  const b = "https://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel.ism";
+  const items = M.dedupeAndRank([
+    M.makeItem(`${b}/.m3u8`, "stream"),                                          // master, empty stem
+    M.makeItem(`${b}/tears-of-steel-audio_eng=64008-video_eng=401000.m3u8`, "stream"),
+    M.makeItem(`${b}/tears-of-steel-audio_eng=128002-video_eng=1501000.m3u8`, "stream"),
+    M.makeItem(`${b}/tears-of-steel-audio_eng=128002-video_eng=1001000.m3u8`, "stream")
+  ]);
+  assert.equal(items.length, 1);
+  assert.ok(items[0].url.endsWith("/.m3u8"));
+});
+
+test("collapses master + same-folder alt-audio rendition playlist to the master", () => {
+  const items = M.dedupeAndRank([
+    M.makeItem("https://cdn.example.com/d/master.m3u8", "stream"),
+    M.makeItem("https://cdn.example.com/d/audio_eng.m3u8", "stream")
+  ]);
+  assert.equal(items.length, 1);
+  assert.ok(items[0].url.endsWith("/master.m3u8"));
+});
+
+test("does NOT collapse two master-named streams in the same folder (two videos)", () => {
+  const items = M.dedupeAndRank([
+    M.makeItem("https://cdn.example.com/d/movie1.m3u8", "stream"),
+    M.makeItem("https://cdn.example.com/d/movie2.m3u8", "stream")
+  ]);
+  assert.equal(items.length, 2);
+});
+
 test("filters CMAF chunk extensions as segments", () => {
   assert.equal(M.classifyByURL("https://cdn.example.com/s/seg_5.cmfv"), null);
   assert.equal(M.classifyByURL("https://cdn.example.com/s/seg_5.cmfa"), null);

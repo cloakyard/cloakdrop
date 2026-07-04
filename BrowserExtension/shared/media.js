@@ -192,18 +192,36 @@
     return hostOf(url) + "/" + segs.join("/");
   }
 
-  // Keep only the *master* playlist of each stream: drop any `stream` whose folder is a strict
-  // descendant of another (shallower) stream's folder — that's a per-quality variant sitting under
-  // its master. Two unrelated streams live in non-nested folders, so both survive.
+  // Filename stems that mark a *master* multivariant playlist rather than a per-quality variant —
+  // includes the empty stem (Unified Streaming serves the master as `<asset>.ism/.m3u8`).
+  const MASTER_STEM = new Set(["", "master", "index", "main", "manifest", "playlist", "all", "stream", "video"]);
+  function stemOf(url) { return fileNameFromURL(url).replace(/\.[^.]+$/, "").toLowerCase(); }
+
+  // Keep only the *master* playlist of each stream. A stream is a per-quality variant (drop it) when
+  // either (1) its folder is a strict descendant of another stream's folder (Apple/Mux/Bitmovin put
+  // variants in sub-folders), or (2) it sits in the SAME folder as a master-named playlist (Unified
+  // Streaming lists `.m3u8` + `<asset>-audio=…-video=….m3u8` siblings). Two unrelated masters — in
+  // non-nested folders, or same-folder but neither master-named — both survive.
   function collapseStreamPlaylists(items) {
     const streams = items.filter((i) => i.type === "stream");
     if (streams.length < 2) return items;
-    const meta = streams.map((s) => ({ s, dir: dirKey(s.url), depth: pathSegments(s.url).length }));
+    const meta = streams.map((s) => ({ s, dir: dirKey(s.url), depth: pathSegments(s.url).length, stem: stemOf(s.url) }));
     const keep = new Set(streams);
+    // (1) descendant folders → variants of the shallower master.
     for (const a of meta) {
       for (const b of meta) {
         if (a.s === b.s) continue;
         if (b.depth < a.depth && a.dir.startsWith(b.dir + "/")) { keep.delete(a.s); break; }
+      }
+    }
+    // (2) same folder + a master-named sibling → the non-master-named ones are its variants.
+    const byDir = new Map();
+    for (const m of meta) if (keep.has(m.s)) { (byDir.get(m.dir) || byDir.set(m.dir, []).get(m.dir)).push(m); }
+    for (const group of byDir.values()) {
+      if (group.length < 2) continue;
+      const masters = group.filter((m) => MASTER_STEM.has(m.stem));
+      if (masters.length > 0 && masters.length < group.length) {
+        for (const m of group) if (!MASTER_STEM.has(m.stem)) keep.delete(m.s);
       }
     }
     return items.filter((i) => i.type !== "stream" || keep.has(i));
