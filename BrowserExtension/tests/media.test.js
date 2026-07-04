@@ -105,6 +105,66 @@ test("never merges distinct files that merely share a directory", () => {
   assert.equal(items.length, 4, "no rendition markers → nothing collapses");
 });
 
+test("collapses HLS master + sibling-folder variant playlists to the master", () => {
+  const base = "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts";
+  const items = M.dedupeAndRank([
+    M.makeItem(`${base}/master.m3u8`, "stream"),
+    M.makeItem(`${base}/v4/prog_index.m3u8`, "stream"),
+    M.makeItem(`${base}/v9/prog_index.m3u8`, "stream"),
+    M.makeItem(`${base}/a1/prog_index.m3u8`, "stream"),
+    M.makeItem(`${base}/s1/en/prog_index.m3u8`, "stream")
+  ]);
+  assert.equal(items.length, 1);
+  assert.ok(items[0].url.endsWith("/master.m3u8"));
+});
+
+test("drops DASH media segments (numbered .m4v/.m4a) when a manifest is present", () => {
+  const b = "https://dash.akamaized.net/akamai/bbb_30fps";
+  const items = M.dedupeAndRank([
+    M.makeItem(`${b}/bbb_30fps.mpd`, "stream"),
+    M.makeItem(`${b}/bbb_30fps_480x270_600k/bbb_30fps_480x270_600k_0.m4v`, "video"),
+    M.makeItem(`${b}/bbb_30fps_480x270_600k/bbb_30fps_480x270_600k_1.m4v`, "video"),
+    M.makeItem(`${b}/bbb_a64k/bbb_a64k_9.m4a`, "audio"),
+    M.makeItem(`${b}/bbb_a64k/bbb_a64k_10.m4a`, "audio")
+  ]);
+  assert.deepEqual(items.map((i) => i.type), ["stream"]);
+  assert.ok(items[0].url.endsWith(".mpd"));
+});
+
+test("drops HLS .aac audio segments (fileSequenceN) alongside the master", () => {
+  const b = "https://cdn.example.com/media/img_example";
+  const items = M.dedupeAndRank([
+    M.makeItem(`${b}/master.m3u8`, "stream"),
+    M.makeItem(`${b}/a1/fileSequence0.aac`, "audio"),
+    M.makeItem(`${b}/a1/fileSequence1.aac`, "audio"),
+    M.makeItem(`${b}/a1/fileSequence2.aac`, "audio")
+  ]);
+  assert.equal(items.length, 1);
+  assert.equal(items[0].type, "stream");
+});
+
+test("keeps numbered media when NO manifest is present (podcast ep1/ep2/ep3, not segments)", () => {
+  const items = M.dedupeAndRank([
+    M.makeItem("https://cdn.example.com/pod/ep1.mp3", "audio"),
+    M.makeItem("https://cdn.example.com/pod/ep2.mp3", "audio"),
+    M.makeItem("https://cdn.example.com/pod/ep3.mp3", "audio")
+  ]);
+  assert.equal(items.length, 3, "no stream manifest → numbered files are content, not chunks");
+});
+
+test("keeps two unrelated streams in non-nested folders", () => {
+  const items = M.dedupeAndRank([
+    M.makeItem("https://cdn.example.com/videoA/master.m3u8", "stream"),
+    M.makeItem("https://cdn.example.com/videoB/master.m3u8", "stream")
+  ]);
+  assert.equal(items.length, 2);
+});
+
+test("filters CMAF chunk extensions as segments", () => {
+  assert.equal(M.classifyByURL("https://cdn.example.com/s/seg_5.cmfv"), null);
+  assert.equal(M.classifyByURL("https://cdn.example.com/s/seg_5.cmfa"), null);
+});
+
 test("videoKey is null for URLs without rendition structure", () => {
   assert.equal(M.videoKey("https://cdn.example.com/movie.mp4"), null);
   assert.equal(M.videoKey("https://cdn.example.com/a/b/song.mp3"), null);

@@ -19,7 +19,7 @@
   ];
   const FILE_EXT = ["zip", "rar", "7z", "tar", "gz", "tgz", "bz2", "xz", "dmg", "pkg", "iso",
     "exe", "msi", "apk", "deb", "rpm", "pdf", "epub"];
-  const SEGMENT_EXT = ["ts", "m4s"];
+  const SEGMENT_EXT = ["ts", "m4s", "cmfv", "cmfa", "cmft", "cmfm"];
   const AUDIO_EXT = ["mp3", "m4a", "aac", "flac", "wav", "ogg", "oga", "opus", "weba"];
 
   // List ordering: streams (the prize on video sites) first, then video, audio, files.
@@ -179,8 +179,56 @@
     return out.map((slot) => (Array.isArray(slot) ? pickRepresentative(slot) : slot));
   }
 
-  // Drop duplicate URLs, collapse rendition variants, then order streams → video → audio → file
-  // (stable within a rank).
+  // ── Stream playlist + segment collapsing ────────────────────────────────────────────────────
+  // A single adaptive video also shows up as (a) several sub-playlists — one HLS variant `.m3u8`
+  // per quality, plus audio/subtitle renditions — that live in sibling sub-folders of the master,
+  // and (b) hundreds of media *segments* (`.m4v`/`.m4a`/`.aac`/… numbered chunks) that carry a
+  // normal media extension but are useless individually. Neither is caught by resolution/codec
+  // rendition-keying, so they need their own passes.
+
+  function dirKey(url) {
+    const segs = pathSegments(url);
+    segs.pop();                                   // drop filename
+    return hostOf(url) + "/" + segs.join("/");
+  }
+
+  // Keep only the *master* playlist of each stream: drop any `stream` whose folder is a strict
+  // descendant of another (shallower) stream's folder — that's a per-quality variant sitting under
+  // its master. Two unrelated streams live in non-nested folders, so both survive.
+  function collapseStreamPlaylists(items) {
+    const streams = items.filter((i) => i.type === "stream");
+    if (streams.length < 2) return items;
+    const meta = streams.map((s) => ({ s, dir: dirKey(s.url), depth: pathSegments(s.url).length }));
+    const keep = new Set(streams);
+    for (const a of meta) {
+      for (const b of meta) {
+        if (a.s === b.s) continue;
+        if (b.depth < a.depth && a.dir.startsWith(b.dir + "/")) { keep.delete(a.s); break; }
+      }
+    }
+    return items.filter((i) => i.type !== "stream" || keep.has(i));
+  }
+
+  // A media file whose name stem ends in an index number — `..._0`, `fileSequence12`, `chunk-5`,
+  // `seg9`. The digits may be glued straight to letters (HLS `fileSequenceN`) so we match any
+  // trailing digit; this only fires when a stream manifest is present (see `dropStreamSegments`).
+  const SEGMENT_INDEX = /\d$/;
+
+  // When the page also served a stream manifest, bare media files that look like numbered chunks are
+  // that stream's segments (DASH `.m4v`/`.m4a`, HLS `.aac`/`.mp4` pieces) — never a standalone grab.
+  // Gated on a manifest being present so numbered *content* (podcast ep3.mp3, trailer2.mp4) on a
+  // manifest-free page is left alone.
+  function dropStreamSegments(items) {
+    if (!items.some((i) => i.type === "stream")) return items;
+    return items.filter((i) => {
+      if (i.type !== "video" && i.type !== "audio") return true;
+      const stem = fileNameFromURL(i.url).replace(/\.[^.]+$/, "");
+      return !SEGMENT_INDEX.test(stem);
+    });
+  }
+
+  // Drop duplicate URLs, collapse rendition variants → variant playlists → stream segments, then
+  // order streams → video → audio → file (stable within a rank).
   function dedupeAndRank(items) {
     const seen = new Set();
     const unique = [];
@@ -189,7 +237,9 @@
       seen.add(item.url);
       unique.push(item);
     }
-    const out = collapseRenditions(unique);
+    let out = collapseRenditions(unique);
+    out = collapseStreamPlaylists(out);
+    out = dropStreamSegments(out);
     out.sort((a, b) => (TYPE_RANK[a.type] ?? 9) - (TYPE_RANK[b.type] ?? 9));
     return out;
   }
@@ -198,7 +248,7 @@
     STREAM_EXT, MEDIA_EXT, FILE_EXT, SEGMENT_EXT, AUDIO_EXT, TYPE_RANK, TYPE_LABEL,
     hostOf, extensionOf, audioExt, fileNameFromURL,
     isNoise, makeItem, classifyByURL, classifyByContentType,
-    videoKey, collapseRenditions, dedupeAndRank
+    videoKey, collapseRenditions, collapseStreamPlaylists, dropStreamSegments, dedupeAndRank
   };
 
   if (typeof module !== "undefined" && module.exports) module.exports = API;
