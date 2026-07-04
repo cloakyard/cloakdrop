@@ -55,6 +55,15 @@ public actor DownloadManager {
     private var schedulerTask: Task<Void, Never>?
     private var bandwidthTask: Task<Void, Never>?
 
+    deinit {
+        // These timers loop for the manager's lifetime; nothing else cancels them, so without this a
+        // discarded manager (notably every test's) leaks three tasks that keep firing for the process's
+        // life. `[weak self]` lets the manager deallocate, but the loops never stop on their own.
+        monitorTask?.cancel()
+        schedulerTask?.cancel()
+        bandwidthTask?.cancel()
+    }
+
     public init(
         store: any DownloadStore,
         httpClient: any HTTPClient = SchemeRoutingHTTPClient(),

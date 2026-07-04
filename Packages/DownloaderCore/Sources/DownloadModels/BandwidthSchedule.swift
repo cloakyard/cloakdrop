@@ -32,14 +32,21 @@ public struct BandwidthSchedule: Sendable, Hashable, Codable {
     private static func clampMinute(_ m: Int) -> Int { min(1439, max(0, m)) }
 
     /// Whether `minuteOfDay` falls inside the (enabled) window, handling windows that wrap past
-    /// midnight.
+    /// midnight. All three minute values are normalized to `[0, 1440)` here, so a persisted or
+    /// externally-mutated out-of-range bound (which bypasses `clampMinute`) can't silently break the
+    /// window.
     public func contains(minuteOfDay: Int) -> Bool {
-        guard isEnabled, startMinute != endMinute else { return false }
-        let m = ((minuteOfDay % 1440) + 1440) % 1440
-        return startMinute < endMinute
-            ? (m >= startMinute && m < endMinute)       // same-day window
-            : (m >= startMinute || m < endMinute)        // wraps midnight
+        guard isEnabled else { return false }
+        let start = Self.normalizeMinute(startMinute)
+        let end = Self.normalizeMinute(endMinute)
+        guard start != end else { return false }
+        let m = Self.normalizeMinute(minuteOfDay)
+        return start < end
+            ? (m >= start && m < end)       // same-day window
+            : (m >= start || m < end)        // wraps midnight
     }
+
+    private static func normalizeMinute(_ m: Int) -> Int { ((m % 1440) + 1440) % 1440 }
 
     /// Resolve the effective global limit at `minuteOfDay`: the window's limit when inside it,
     /// otherwise the always-on `baseLimit`. Static so it's trivially unit-tested without a clock.

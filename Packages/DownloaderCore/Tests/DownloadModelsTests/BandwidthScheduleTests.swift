@@ -27,6 +27,18 @@ struct BandwidthScheduleTests {
         #expect(s.contains(minuteOfDay: 12 * 60) == false)  // midday is outside
     }
 
+    @Test("Out-of-range bounds (bypassing clampMinute) are normalized at query time")
+    func normalizesOutOfRangeBounds() {
+        // Directly mutate the public vars past [0,1440) — the synthesized Codable / direct mutation
+        // bypass the clamping init. contains() must still behave as the wrapped-hour window it denotes.
+        var s = BandwidthSchedule(isEnabled: true)
+        s.startMinute = 22 * 60 + 1440   // == 22:00 after normalization
+        s.endMinute = 6 * 60 - 1440      // == 06:00 after normalization (negative → wraps)
+        #expect(s.contains(minuteOfDay: 23 * 60))   // inside the 22:00→06:00 window
+        #expect(s.contains(minuteOfDay: 2 * 60))
+        #expect(s.contains(minuteOfDay: 12 * 60) == false)
+    }
+
     @Test("effectiveLimit uses the window limit inside, the base outside")
     func effectiveLimitResolves() {
         // Throttle to 1 MB/s 09:00–17:00; unlimited (base nil) otherwise.

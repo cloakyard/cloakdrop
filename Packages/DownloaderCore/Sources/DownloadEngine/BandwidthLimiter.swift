@@ -52,8 +52,14 @@ public actor BandwidthLimiter {
 
     /// Update the limit at runtime. `nil` or `<= 0` means unlimited. Resets the virtual clock so the
     /// new rate takes effect immediately without inheriting a stale backlog.
+    ///
+    /// A no-op when the rate is unchanged: the bandwidth ticker re-applies the effective limit every
+    /// minute, and resetting `tat` each time would discard the reservation backlog and hand out a fresh
+    /// burst — letting sustained throughput drift above the cap. Only a genuine change resets the clock.
     public func setRate(bytesPerSecond: Int64?) {
-        ratePerSecond = bytesPerSecond.flatMap { $0 > 0 ? Double($0) : nil }
+        let newRate = bytesPerSecond.flatMap { $0 > 0 ? Double($0) : nil }
+        guard newRate != ratePerSecond else { return }
+        ratePerSecond = newRate
         tat = nil
     }
 
