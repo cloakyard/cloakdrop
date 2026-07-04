@@ -36,17 +36,31 @@ public actor FTPClient: HTTPClient {
 
     public func stream(_ request: HTTPDownloadRequest) async throws -> (HTTPResponseHead, AsyncThrowingStream<Data, Error>) {
         let control = try await openControlConnection(for: request)
-        let path = FTPProtocol.path(for: request.url)
-        let size = try? await control.size(path: path)
+        let data: FTPDataConnection
+        let size: Int64?
+        do {
+            let path = FTPProtocol.path(for: request.url)
+            size = try? await control.size(path: path)
+            let offset = request.byteRange?.lowerBound ?? 0
+            // Open the passive data connection, then issue RETR (optionally after REST for resume).
+            data = try await control.openPassiveData(tls: request.url.scheme?.lowercased() == "ftps")
+            do {
+                if offset > 0 { try await control.restart(at: offset) }
+                try await control.retrieve(path: path)
+            } catch {
+                data.cancel()   // RETR/REST failed after the data channel opened — don't leak it.
+                throw error
+            }
+        } catch {
+            control.cancel()    // any failure before the stream is wired must release the control link.
+            throw error
+        }
 
-        let offset = request.byteRange?.lowerBound ?? 0
-        // Open the passive data connection, then issue RETR (optionally after REST for resume).
-        let data = try await control.openPassiveData(tls: request.url.scheme?.lowercased() == "ftps")
-        if offset > 0 { try await control.restart(at: offset) }
-        try await control.retrieve(path: path)
-
+        // A ranged request answered over FTP is the equivalent of HTTP's 206 (we honored REST): the
+        // engine's segment guard rejects a non-206 answer to an offset request, so this must be 206
+        // for multi-segment transfers and mid-file resume to work.
         let head = HTTPResponseHead(
-            statusCode: 200,
+            statusCode: request.byteRange != nil ? 206 : 200,
             totalBytes: size,
             acceptsRanges: true,
             suggestedFilename: request.url.lastPathComponent.isEmpty ? nil : request.url.lastPathComponent,
@@ -75,11 +89,16 @@ public actor FTPClient: HTTPClient {
         guard let host = request.url.host else { throw DownloadError.underlying(reason: "FTP URL has no host.") }
 
         let control = FTPControlConnection(host: host, port: port, secure: secure, queue: queue)
-        try await control.connect()
-        try await control.login(user: request.username ?? "anonymous",
-                                password: request.password ?? "anonymous@cloakdrop")
-        try await control.binaryMode()
-        if secure { try await control.protectDataChannel() }
-        return control
+        do {
+            try await control.connect()
+            try await control.login(user: request.username ?? "anonymous",
+                                    password: request.password ?? "anonymous@cloakdrop")
+            try await control.binaryMode()
+            if secure { try await control.protectDataChannel() }
+            return control
+        } catch {
+            control.cancel()   // release the socket if login/negotiation failed part-way.
+            throw error
+        }
     }
 }

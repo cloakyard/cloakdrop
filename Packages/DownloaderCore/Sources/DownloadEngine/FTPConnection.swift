@@ -14,12 +14,17 @@ actor FTPControlConnection {
     private let host: String
     private let queue: DispatchQueue
     private let secure: Bool
+    private let opTimeout: Duration
     private var buffer = Data()
+    /// A well-behaved server frames a reply in far less than this; a larger unframed buffer means a
+    /// hostile/broken peer, so we bail rather than grow memory unbounded.
+    private static let maxReplyBytes = 64 * 1024
 
-    init(host: String, port: UInt16, secure: Bool, queue: DispatchQueue) {
+    init(host: String, port: UInt16, secure: Bool, queue: DispatchQueue, timeout: Duration = .seconds(30)) {
         self.host = host
         self.queue = queue
         self.secure = secure
+        self.opTimeout = timeout
         let params: NWParameters = secure ? .tls : .tcp
         self.connection = NWConnection(host: NWEndpoint.Host(host),
                                        port: NWEndpoint.Port(rawValue: port) ?? (secure ? 990 : 21),
@@ -112,11 +117,32 @@ actor FTPControlConnection {
                 if reply.isNegative { throw FTPError.unexpected(reply) }
                 return reply
             }
+            // A peer that never frames a valid reply must not grow the buffer forever.
+            guard buffer.count < Self.maxReplyBytes else { throw FTPError.protocolError }
             buffer.append(try await receive())
         }
     }
 
     // MARK: NWConnection bridging
+
+    /// Run `body` with an idle timeout and cooperative cancellation: if it doesn't finish within
+    /// `opTimeout`, or the surrounding `Task` is cancelled (pause/cancel), the connection is torn down —
+    /// which resumes any pending `NWConnection` callback via its error/`.cancelled` path. Without this,
+    /// a `.waiting` (unreachable/refused) connection or a stalled read would hang forever.
+    private func withTimeout<T>(_ body: () async throws -> T) async throws -> T {
+        let connection = self.connection
+        let timeoutTask = Task { [connection, opTimeout] in
+            try? await Task.sleep(for: opTimeout)
+            guard !Task.isCancelled else { return }   // completed in time — don't tear down the socket.
+            connection.cancel()
+        }
+        defer { timeoutTask.cancel() }
+        return try await withTaskCancellationHandler {
+            try await body()
+        } onCancel: {
+            connection.cancel()
+        }
+    }
 
     private func waitUntilReady() async throws {
         let box = ContinuationBox()
@@ -125,11 +151,13 @@ actor FTPControlConnection {
             case .ready: box.resume(.success(()))
             case .failed(let error): box.resume(.failure(error))
             case .cancelled: box.resume(.failure(FTPError.connectionClosed))
+            // `.waiting` (host unreachable / connection refused) is left to the timeout to tear down,
+            // so a transient wait can still recover to `.ready` while a persistent one can't hang.
             default: break
             }
         }
         connection.start(queue: queue)
-        try await box.value()
+        try await withTimeout { try await box.value() }
         connection.stateUpdateHandler = nil
     }
 
@@ -138,16 +166,18 @@ actor FTPControlConnection {
         connection.send(content: data, completion: .contentProcessed { error in
             if let error { box.resume(.failure(error)) } else { box.resume(.success(())) }
         })
-        try await box.value()
+        try await withTimeout { try await box.value() }
     }
 
     private func receive() async throws -> Data {
-        try await withCheckedThrowingContinuation { continuation in
-            connection.receive(minimumIncompleteLength: 1, maximumLength: 64 * 1024) { data, _, isComplete, error in
-                if let error { continuation.resume(throwing: error); return }
-                if let data, !data.isEmpty { continuation.resume(returning: data); return }
-                if isComplete { continuation.resume(throwing: FTPError.connectionClosed); return }
-                continuation.resume(returning: Data())
+        try await withTimeout {
+            try await withCheckedThrowingContinuation { continuation in
+                connection.receive(minimumIncompleteLength: 1, maximumLength: 64 * 1024) { data, _, isComplete, error in
+                    if let error { continuation.resume(throwing: error); return }
+                    if let data, !data.isEmpty { continuation.resume(returning: data); return }
+                    if isComplete { continuation.resume(throwing: FTPError.connectionClosed); return }
+                    continuation.resume(returning: Data())
+                }
             }
         }
     }
@@ -158,21 +188,31 @@ actor FTPControlConnection {
 actor FTPDataConnection {
     private let connection: NWConnection
     private let queue: DispatchQueue
+    private let opTimeout: Duration
 
-    private init(connection: NWConnection, queue: DispatchQueue) {
+    private init(connection: NWConnection, queue: DispatchQueue, timeout: Duration) {
         self.connection = connection
         self.queue = queue
+        self.opTimeout = timeout
     }
 
-    static func open(host: String, port: UInt16, tls: Bool, queue: DispatchQueue) async throws -> FTPDataConnection {
+    static func open(host: String, port: UInt16, tls: Bool, queue: DispatchQueue,
+                     timeout: Duration = .seconds(30)) async throws -> FTPDataConnection {
         let params: NWParameters = tls ? .tls : .tcp
         let connection = NWConnection(host: NWEndpoint.Host(host),
                                       port: NWEndpoint.Port(rawValue: port) ?? .any,
                                       using: params)
-        let data = FTPDataConnection(connection: connection, queue: queue)
-        try await data.waitUntilReady()
+        let data = FTPDataConnection(connection: connection, queue: queue, timeout: timeout)
+        do {
+            try await data.waitUntilReady()
+        } catch {
+            connection.cancel()   // a passive data channel that never came up must not leak.
+            throw error
+        }
         return data
     }
+
+    nonisolated func cancel() { connection.cancel() }
 
     private func waitUntilReady() async throws {
         let box = ContinuationBox()
@@ -181,11 +221,22 @@ actor FTPDataConnection {
             case .ready: box.resume(.success(()))
             case .failed(let error): box.resume(.failure(error))
             case .cancelled: box.resume(.failure(FTPError.connectionClosed))
-            default: break
+            default: break   // `.waiting` is torn down by the timeout below.
             }
         }
         connection.start(queue: queue)
-        try await box.value()
+        let connection = self.connection
+        let timeoutTask = Task { [connection, opTimeout] in
+            try? await Task.sleep(for: opTimeout)
+            guard !Task.isCancelled else { return }
+            connection.cancel()
+        }
+        defer { timeoutTask.cancel() }
+        try await withTaskCancellationHandler {
+            try await box.value()
+        } onCancel: {
+            connection.cancel()
+        }
         connection.stateUpdateHandler = nil
     }
 
@@ -212,6 +263,7 @@ actor FTPDataConnection {
             }
             continuation.onTermination = { _ in
                 connection.cancel()
+                pump.body = nil   // break the self-referential closure so pump/continuation/connection deallocate.
                 onFinish()
             }
             // The connection was already started (and awaited ready) in `open` — just begin reading.
@@ -232,6 +284,8 @@ enum FTPError: Error {
     case unexpected(FTPProtocol.Reply)
     case auth(FTPProtocol.Reply)
     case connectionClosed
+    /// The peer sent data that never framed into a valid reply within the buffer bound.
+    case protocolError
 }
 
 /// A one-shot continuation wrapper for bridging `NWConnection`'s callback API, guarding against a
