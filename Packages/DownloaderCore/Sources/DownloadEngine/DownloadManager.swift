@@ -393,12 +393,13 @@ public actor DownloadManager {
         }
     }
 
-    /// A copy of the settings safe to write to disk: the proxy password is blanked (it's in the Keychain).
+    /// A copy of the settings safe to write to disk: the proxy password is blanked (it's in the
+    /// Keychain). Blanked **unconditionally** — a stale plaintext password can linger in the field after
+    /// the user switches the proxy mode away from `.manual`, and it must never reach the settings JSON.
     private func settingsForPersistence(_ source: EngineSettings) -> EngineSettings {
         var copy = source
-        if var proxy = copy.proxy, proxy.mode == .manual {
-            proxy.password = ""
-            copy.proxy = proxy
+        if copy.proxy != nil {
+            copy.proxy?.password = ""
         }
         return copy
     }

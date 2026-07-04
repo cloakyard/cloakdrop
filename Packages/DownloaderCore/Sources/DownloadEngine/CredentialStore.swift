@@ -24,9 +24,13 @@ public protocol CredentialStoring: Sendable {
     func credential(forKey key: String) -> StoredCredential?
 }
 
-/// The production store: one `kSecClassGenericPassword` item per key. The username rides in
-/// `kSecAttrAccount` and the password is the secret payload, so nothing sensitive is ever written to
-/// the settings/download JSON on disk.
+/// The production store: one `kSecClassGenericPassword` item per key.
+///
+/// The **opaque key** is the `kSecAttrAccount` — that (with `kSecAttrService`) is the item's real
+/// primary key, so two logical credentials never collide. The username and password both live in the
+/// encrypted data payload (an earlier design put the username in `kSecAttrAccount`, which made a proxy
+/// and a site that shared a username — e.g. both empty — map to the same item and silently clobber each
+/// other). `…ThisDeviceOnly` keeps these secrets off any iCloud Keychain sync.
 public struct KeychainCredentialStore: CredentialStoring {
     private let service: String
 
@@ -34,38 +38,38 @@ public struct KeychainCredentialStore: CredentialStoring {
         self.service = service
     }
 
-    private func baseQuery(forKey key: String) -> [String: Any] {
+    private struct Payload: Codable { let username: String; let password: String }
+
+    private func query(forKey key: String) -> [String: Any] {
         [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrGeneric as String: Data(key.utf8)   // our key, kept out of account (which holds the username)
+            kSecAttrAccount as String: key
         ]
     }
 
     public func setCredential(_ credential: StoredCredential?, forKey key: String) {
-        // Replace semantics: delete any existing item for this key first.
-        SecItemDelete(baseQuery(forKey: key) as CFDictionary)
-        guard let credential else { return }
-        var add = baseQuery(forKey: key)
-        add[kSecAttrAccount as String] = credential.username
-        add[kSecValueData as String] = Data(credential.password.utf8)
-        add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+        // Replace semantics: delete any existing item for this exact key first.
+        SecItemDelete(query(forKey: key) as CFDictionary)
+        guard let credential,
+              let data = try? JSONEncoder().encode(Payload(username: credential.username, password: credential.password))
+        else { return }
+        var add = query(forKey: key)
+        add[kSecValueData as String] = data
+        add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
         SecItemAdd(add as CFDictionary, nil)
     }
 
     public func credential(forKey key: String) -> StoredCredential? {
-        var query = baseQuery(forKey: key)
-        query[kSecReturnAttributes as String] = true
+        var query = query(forKey: key)
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
 
         var item: CFTypeRef?
         guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
-              let dict = item as? [String: Any],
-              let data = dict[kSecValueData as String] as? Data,
-              let password = String(data: data, encoding: .utf8) else { return nil }
-        let username = dict[kSecAttrAccount as String] as? String ?? ""
-        return StoredCredential(username: username, password: password)
+              let data = item as? Data,
+              let payload = try? JSONDecoder().decode(Payload.self, from: data) else { return nil }
+        return StoredCredential(username: payload.username, password: payload.password)
     }
 }
 

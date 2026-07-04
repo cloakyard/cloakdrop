@@ -34,4 +34,24 @@ struct ProxyCredentialTests {
         let hydrated = await manager2.currentSettings()
         #expect(hydrated.proxy?.password == "s3cret")
     }
+
+    @Test("Switching proxy mode away from manual never leaves the plaintext password on disk")
+    func modeSwitchDoesNotLeak() async throws {
+        let store = try GRDBDownloadStore.inMemory()
+        let creds = InMemoryCredentialStore()
+        let manager = DownloadManager(store: store, httpClient: MockHTTPClient(),
+                                      networkMonitor: AlwaysReachableMonitor(), credentialStore: creds)
+        try await manager.start()
+
+        // Save a manual proxy with a password, then switch to system WITHOUT clearing the field (the
+        // SecureField retains the old plaintext) — the regression scenario.
+        var settings = await manager.currentSettings()
+        settings.proxy = ProxyConfiguration(mode: .manual, host: "p.example.com", port: 3128, password: "leaky")
+        await manager.updateSettings(settings)
+        settings.proxy?.mode = .system   // password field still holds "leaky"
+        await manager.updateSettings(settings)
+
+        let persisted = try await store.loadSettings()
+        #expect(persisted.proxy?.password == "")   // must be blanked regardless of mode
+    }
 }
