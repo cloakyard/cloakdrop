@@ -214,39 +214,83 @@
         if (b.depth < a.depth && a.dir.startsWith(b.dir + "/")) { keep.delete(a.s); break; }
       }
     }
-    // (2) same folder + a master-named sibling → the non-master-named ones are its variants.
+    // (2) same folder → identify the master and drop its variants.
     const byDir = new Map();
     for (const m of meta) if (keep.has(m.s)) { (byDir.get(m.dir) || byDir.set(m.dir, []).get(m.dir)).push(m); }
     for (const group of byDir.values()) {
       if (group.length < 2) continue;
       const masters = group.filter((m) => MASTER_STEM.has(m.stem));
       if (masters.length > 0 && masters.length < group.length) {
+        // A master-named sibling is present → the others are its variants.
         for (const m of group) if (!MASTER_STEM.has(m.stem)) keep.delete(m.s);
+        continue;
+      }
+      if (masters.length === 0) {
+        // No master name: a uniquely, markedly shorter stem is the un-decorated master beside its
+        // quality-encoding variants (Shaka `hls.m3u8` next to `playlist_v-0360p-…m3u8`). Require a
+        // big margin so two similarly-named videos ("movie1"/"movie2") are never collapsed.
+        const lens = group.map((m) => m.stem.length).sort((a, b) => a - b);
+        const min = lens[0], second = lens[1] ?? Infinity;
+        const shortest = group.filter((m) => m.stem.length === min);
+        if (shortest.length === 1 && (min * 3 <= second || second - min >= 10)) {
+          for (const m of group) if (m.stem.length !== min) keep.delete(m.s);
+        }
       }
     }
     return items.filter((i) => i.type !== "stream" || keep.has(i));
   }
 
-  // A media file whose name stem ends in an index number — `..._0`, `fileSequence12`, `chunk-5`,
-  // `seg9`. The digits may be glued straight to letters (HLS `fileSequenceN`) so we match any
-  // trailing digit; this only fires when a stream manifest is present (see `dropStreamSegments`).
-  const SEGMENT_INDEX = /\d$/;
+  // Does a media filename look like a stream part (segment / per-track init / rendition) rather than
+  // a standalone file? Matches a segment index, init/seg/frag/chunk markers, a resolution/bitrate or
+  // codec tag, or a track-role prefix (Shaka `audio_en…`, `text_el`, `v-0360p`, `a-eng`, `s-en`).
+  function looksLikeStreamPart(url) {
+    const stem = fileNameFromURL(url).replace(/\.[^.]+$/, "").toLowerCase();
+    return /\d$/.test(stem)
+      || /(^|[_\-.])(init|seg|segment|frag|fragment|chunk)([_\-.]|\d|$)/.test(stem)
+      || /\d+x\d+|\b\d{3,4}p\b|\b\d{2,5}k\b/.test(stem)
+      || /(avc1?|hevc|hvc1|h26[45]|vp0?9|av01|opus|mp4a)/.test(stem)
+      || /^(audio|video|text|subtitle|sub|cc)[_\-]/.test(stem)
+      || /(^|[_\-])[avs]-[a-z0-9]/.test(stem);
+  }
 
-  // When the page also served a stream manifest, bare media files that look like numbered chunks are
-  // that stream's segments (DASH `.m4v`/`.m4a`, HLS `.aac`/`.mp4` pieces) — never a standalone grab.
-  // Gated on a manifest being present so numbered *content* (podcast ep3.mp3, trailer2.mp4) on a
-  // manifest-free page is left alone.
-  function dropStreamSegments(items) {
-    if (!items.some((i) => i.type === "stream")) return items;
+  // When the page served a stream manifest, its bare media files (segments, per-track init/media,
+  // subtitle tracks) are never a standalone grab — the manifest is. Drop a video/audio item that is
+  // (a) in a strict SUB-folder of a manifest (segments live under the master), or (b) in the SAME
+  // folder as a manifest *and* looks like a stream part (so a plain sibling download is spared). All
+  // gated on a manifest being present, so ordinary numbered content (podcast ep3.mp3) is kept.
+  function dropStreamMedia(items) {
+    const manifestDirs = items.filter((i) => i.type === "stream").map((i) => dirKey(i.url));
+    if (manifestDirs.length === 0) return items;
+    const inSubfolder = (url) => { const d = dirKey(url); return manifestDirs.some((md) => d.startsWith(md + "/")); };
     return items.filter((i) => {
       if (i.type !== "video" && i.type !== "audio") return true;
-      const stem = fileNameFromURL(i.url).replace(/\.[^.]+$/, "");
-      return !SEGMENT_INDEX.test(stem);
+      if (inSubfolder(i.url)) return false;
+      return !looksLikeStreamPart(i.url);
     });
   }
 
-  // Drop duplicate URLs, collapse rendition variants → variant playlists → stream segments, then
-  // order streams → video → audio → file (stable within a rank).
+  // Generic filenames that don't uniquely identify a file — never dedupe across hosts on these.
+  const GENERIC_NAME = new Set(["video", "media", "index", "stream", "movie", "clip", "file",
+    "output", "playlist", "master", "main", "default", "sample", "content", "player", "source"]);
+
+  // Collapse the same progressive file served from more than one host — a 302 to a CDN node, or an
+  // origin/mirror pair (archive.org `/serve/…` → `dnNNN.us.archive.org/…`). Keyed on an identical,
+  // *distinctive* basename (long and non-generic) so two unrelated `video.mp4` embeds are never merged.
+  function dedupeSameFile(items) {
+    const seen = new Set();
+    return items.filter((i) => {
+      if (i.type !== "video" && i.type !== "audio") return true;
+      const name = fileNameFromURL(i.url).toLowerCase();
+      const stem = name.replace(/\.[^.]+$/, "");
+      if (stem.length < 12 || GENERIC_NAME.has(stem)) return true;   // not distinctive → keep
+      if (seen.has(name)) return false;
+      seen.add(name);
+      return true;
+    });
+  }
+
+  // Drop duplicate URLs, collapse rendition variants → variant playlists → stream media → same-file
+  // mirrors, then order streams → video → audio → file (stable within a rank).
   function dedupeAndRank(items) {
     const seen = new Set();
     const unique = [];
@@ -257,7 +301,8 @@
     }
     let out = collapseRenditions(unique);
     out = collapseStreamPlaylists(out);
-    out = dropStreamSegments(out);
+    out = dropStreamMedia(out);
+    out = dedupeSameFile(out);
     out.sort((a, b) => (TYPE_RANK[a.type] ?? 9) - (TYPE_RANK[b.type] ?? 9));
     return out;
   }
@@ -266,7 +311,7 @@
     STREAM_EXT, MEDIA_EXT, FILE_EXT, SEGMENT_EXT, AUDIO_EXT, TYPE_RANK, TYPE_LABEL,
     hostOf, extensionOf, audioExt, fileNameFromURL,
     isNoise, makeItem, classifyByURL, classifyByContentType,
-    videoKey, collapseRenditions, collapseStreamPlaylists, dropStreamSegments, dedupeAndRank
+    videoKey, collapseRenditions, collapseStreamPlaylists, dropStreamMedia, dedupeAndRank
   };
 
   if (typeof module !== "undefined" && module.exports) module.exports = API;

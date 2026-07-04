@@ -189,6 +189,66 @@ test("does NOT collapse two master-named streams in the same folder (two videos)
   assert.equal(items.length, 2);
 });
 
+test("collapses same-folder variants to a markedly-shorter master name (Shaka hls.m3u8)", () => {
+  const b = "https://storage.googleapis.com/shaka-demo-assets/angel-one-hls";
+  const items = M.dedupeAndRank([
+    M.makeItem(`${b}/hls.m3u8`, "stream"),                                  // master, short stem
+    M.makeItem(`${b}/playlist_v-0360p-0750k-libx264.mp4.m3u8`, "stream"),
+    M.makeItem(`${b}/playlist_a-eng-0128k-aac-2c.mp4.m3u8`, "stream"),
+    M.makeItem(`${b}/playlist_s-en.webvtt.m3u8`, "stream"),
+    M.makeItem(`${b}/v-0360p-0750k-libx264-init.mp4`, "video"),            // init segments
+    M.makeItem(`${b}/a-eng-0128k-aac-2c-init.mp4`, "video")
+  ]);
+  assert.equal(items.length, 1);
+  assert.ok(items[0].url.endsWith("/hls.m3u8"));
+});
+
+test("drops unnumbered DASH track files under a manifest folder (audio/subtitle)", () => {
+  const b = "https://storage.googleapis.com/shaka-demo-assets/angel-one";
+  const items = M.dedupeAndRank([
+    M.makeItem(`${b}/dash.mpd`, "stream"),
+    M.makeItem(`${b}/audio_en_2c_64k_opus.webm`, "audio"),
+    M.makeItem(`${b}/text_el.mp4`, "video")
+  ]);
+  assert.deepEqual(items.map((i) => i.type), ["stream"]);
+});
+
+test("drops init.mp4 segments in numbered subfolders under a manifest", () => {
+  const b = "https://media.axprod.net/TestVectors/v7-Clear";
+  const items = M.dedupeAndRank([
+    M.makeItem(`${b}/Manifest_1080p.mpd`, "stream"),
+    M.makeItem(`${b}/2/init.mp4`, "video"),
+    M.makeItem(`${b}/15/init.mp4`, "video"),
+    M.makeItem(`${b}/1/init.mp4`, "audio")
+  ]);
+  assert.equal(items.length, 1);
+  assert.ok(items[0].url.endsWith(".mpd"));
+});
+
+test("keeps two distinct videos on one page (multi-video, no collapse)", () => {
+  const items = M.dedupeAndRank([
+    M.makeItem("https://a-cdn.example.com/showA/master.m3u8", "stream"),
+    M.makeItem("https://b-cdn.example.com/showB/master.m3u8", "stream")
+  ]);
+  assert.equal(items.length, 2);
+});
+
+test("dedupes the same distinctive file mirrored across hosts (origin 302 → CDN node)", () => {
+  const items = M.dedupeAndRank([
+    M.makeItem("https://archive.org/serve/BBB/big_buck_bunny_720p_surround.mp4", "video"),
+    M.makeItem("https://dn80.us.archive.org/0/items/BBB/big_buck_bunny_720p_surround.mp4?cnt=0", "video")
+  ]);
+  assert.equal(items.length, 1);
+});
+
+test("does NOT dedupe generic same-named files across hosts (two unrelated video.mp4)", () => {
+  const items = M.dedupeAndRank([
+    M.makeItem("https://a.example.com/video.mp4", "video"),
+    M.makeItem("https://b.example.com/video.mp4", "video")
+  ]);
+  assert.equal(items.length, 2);
+});
+
 test("filters CMAF chunk extensions as segments", () => {
   assert.equal(M.classifyByURL("https://cdn.example.com/s/seg_5.cmfv"), null);
   assert.equal(M.classifyByURL("https://cdn.example.com/s/seg_5.cmfa"), null);
