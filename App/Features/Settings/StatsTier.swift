@@ -19,23 +19,24 @@ enum DownloadTier {
     private static let gb: Int64 = 1_000_000_000
     private static let tb: Int64 = 1_000_000_000_000
 
-    /// Monthly tiers, ascending — five rungs before the 3 TB+ badge of honour at the top.
+    /// Monthly tiers, ascending — from a gentle 10 GB opener up to the 3 TB+ badge of honour, so the
+    /// first rung is reachable for a casual month while the summit stays genuinely special.
     static let ladder: [StatsBadge] = [
         StatsBadge(title: "Warming Up",
                    blurb: "The month is young. So are your downloads.",
                    symbol: "tortoise.fill", threshold: 0),
         StatsBadge(title: "Byte Nibbler",
-                   blurb: "A hundred gigs this month. Peckish.",
-                   symbol: "ant.fill", threshold: 100 * gb),
+                   blurb: "Ten gigs this month. Peckish.",
+                   symbol: "ant.fill", threshold: 10 * gb),
         StatsBadge(title: "Bandwidth Bandit",
-                   blurb: "The router is starting to sweat.",
-                   symbol: "theatermasks.fill", threshold: 500 * gb),
+                   blurb: "A hundred gigs in. The router is starting to sweat.",
+                   symbol: "theatermasks.fill", threshold: 100 * gb),
         StatsBadge(title: "Data Hoarder",
-                   blurb: "A terabyte this month. Marie Kondo is concerned.",
-                   symbol: "archivebox.fill", threshold: tb),
+                   blurb: "Half a terabyte. Marie Kondo is concerned.",
+                   symbol: "archivebox.fill", threshold: 500 * gb),
         StatsBadge(title: "Warlord of the Wires",
-                   blurb: "Two terabytes. ISPs whisper your name.",
-                   symbol: "crown.fill", threshold: 2 * tb),
+                   blurb: "A terabyte this month. ISPs whisper your name.",
+                   symbol: "crown.fill", threshold: tb),
         StatsBadge(title: "ISP’s Worst Nightmare",
                    blurb: "3 TB in one month. Somewhere, a fair-use policy weeps.",
                    symbol: "flame.fill", threshold: 3 * tb)

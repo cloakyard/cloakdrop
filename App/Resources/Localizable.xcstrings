@@ -846,132 +846,132 @@
         }
       }
     },
-    "A hundred gigs this month. Peckish.": {
+    "A hundred gigs in. The router is starting to sweat.": {
       "extractionState": "manual",
       "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "مئة غيغابايت هذا الشهر. شهيتك مفتوحة."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hundert Gigabyte diesen Monat. Kleiner Hunger."
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cien gigas este mes. Con hambrecilla."
+            "value": "Cien gigas ya. El router empieza a sudar."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cent gigas ce mois-ci. Un petit creux."
+            "value": "Cent gigas au compteur. Le routeur commence à transpirer."
           }
         },
-        "hi": {
+        "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "इस महीने सौ गीगा। थोड़ी भूख लगी है।"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "今月100ギガ。ちょっと小腹が空いた。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이번 달 100기가. 살짝 출출하네요."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cem gigas este mês. Bateu uma fominha."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Сто гигабайт за месяц. Аппетит разыгрался."
+            "value": "Hundert Gigabyte drin. Der Router kommt ins Schwitzen."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本月一百 GB，有点小饿。"
+            "value": "已达一百 GB。路由器开始冒汗了。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "100 ギガ突破。ルーターが汗をかき始めた。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "100기가 돌파. 공유기가 땀을 흘리기 시작합니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cem gigas já. O roteador começa a suar."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сто гигов позади. Роутер начинает потеть."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مئة غيغابايت. بدأ الراوتر يتعرّق."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सौ गिग्स हो गए। राउटर पसीना बहाने लगा है।"
           }
         }
       }
     },
-    "A terabyte this month. Marie Kondo is concerned.": {
+    "A terabyte this month. ISPs whisper your name.": {
       "extractionState": "manual",
       "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تيرابايت هذا الشهر. ماري كوندو قلقة."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ein Terabyte diesen Monat. Marie Kondo macht sich Sorgen."
-          }
-        },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Un terabyte este mes. Marie Kondo está preocupada."
+            "value": "Un terabyte este mes. Los proveedores susurran tu nombre."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Un téraoctet ce mois-ci. Marie Kondo s’inquiète."
+            "value": "Un téraoctet ce mois-ci. Les FAI murmurent votre nom."
           }
         },
-        "hi": {
+        "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "इस महीने एक टेराबाइट। Marie Kondo चिंतित है।"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "今月1テラバイト。Marie Kondo が心配しています。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이번 달 1테라바이트. Marie Kondo가 걱정합니다."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Um terabyte este mês. Marie Kondo está preocupada."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Терабайт за месяц. Мари Кондо обеспокоена."
+            "value": "Ein Terabyte diesen Monat. Provider flüstern deinen Namen."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本月一 TB。Marie Kondo 表示担忧。"
+            "value": "本月一 TB。运营商悄悄念着你的名字。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今月 1 テラバイト。プロバイダがあなたの名をささやく。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이번 달 1테라바이트. 인터넷 사업자들이 당신의 이름을 속삭입니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um terabyte este mês. As operadoras sussurram seu nome."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Терабайт за месяц. Провайдеры шепчут ваше имя."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تيرابايت واحد هذا الشهر. يهمس مزوّدو الخدمة باسمك."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस महीने एक टेराबाइट। ISP आपका नाम फुसफुसाते हैं।"
           }
         }
       }
@@ -8512,6 +8512,71 @@
           "stringUnit": {
             "state": "translated",
             "value": "किसी पेज से सभी लिंक प्राप्त करें…"
+          }
+        }
+      }
+    },
+    "Half a terabyte. Marie Kondo is concerned.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medio terabyte. Marie Kondo está preocupada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un demi-téraoctet. Marie Kondo s’inquiète."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein halbes Terabyte. Marie Kondo macht sich Sorgen."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "半个 TB。近藤麻理惠开始担心了。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "半テラバイト。近藤麻理恵が心配しています。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0.5테라바이트. 곤도 마리에가 걱정합니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meio terabyte. Marie Kondo está preocupada."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Полтерабайта. Мари Кондо забеспокоилась."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نصف تيرابايت. ماري كوندو قلقة."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आधा टेराबाइट। मैरी कोंडो चिंतित हैं।"
           }
         }
       }
@@ -18721,6 +18786,71 @@
         }
       }
     },
+    "Ten gigs this month. Peckish.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diez gigas este mes. Con hambrita."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dix gigas ce mois-ci. Un petit creux."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zehn Gigabyte diesen Monat. Leicht hungrig."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本月十 GB。有点饿了。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今月 10 ギガ。小腹がすいた。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이번 달 10기가. 살짝 출출하네요."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dez gigas este mês. Beliscando."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Десять гигов за месяц. Аппетит разыгрался."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عشرة غيغابايت هذا الشهر. جائع قليلًا."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस महीने दस गिग्स। थोड़ी भूख लगी है।"
+          }
+        }
+      }
+    },
     "That doesn’t look like a valid Metalink file.": {
       "extractionState": "manual",
       "localizations": {
@@ -18912,71 +19042,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "月份还早，你的下载也才刚开始。"
-          }
-        }
-      }
-    },
-    "The router is starting to sweat.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "بدأ جهاز التوجيه يتصبب عرقًا."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Der Router kommt langsam ins Schwitzen."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El router empieza a sudar."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Le routeur commence à transpirer."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "राउटर पसीने-पसीने होने लगा है।"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ルーターが汗をかき始めた。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "공유기가 땀을 흘리기 시작했어요."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O roteador está começando a suar."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Роутер начинает потеть."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "路由器开始冒汗了。"
           }
         }
       }
@@ -19822,71 +19887,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "ट्रांसपोर्ट"
-          }
-        }
-      }
-    },
-    "Two terabytes. ISPs whisper your name.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تيرابايتان. مزوّدو الإنترنت يهمسون باسمك."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zwei Terabyte. Provider raunen deinen Namen."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dos terabytes. Los ISP susurran tu nombre."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deux téraoctets. Les FAI murmurent votre nom."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "दो टेराबाइट। ISP आपका नाम फुसफुसाते हैं।"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "2テラバイト。ISPがあなたの名を囁く。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "2테라바이트. ISP들이 당신의 이름을 속삭입니다."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dois terabytes. Os provedores sussurram seu nome."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Два терабайта. Провайдеры шепчут ваше имя."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "两 TB。运营商开始窃窃私语你的名字。"
           }
         }
       }
