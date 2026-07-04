@@ -14,7 +14,15 @@ enum ZipArchive {
         case unsupportedMethod(UInt16)
         case corrupt(String)
         case pathEscape(String)
+        /// An entry declared an implausible uncompressed size / compression ratio — a likely zip bomb.
+        case suspiciousEntry(String)
     }
+
+    /// DEFLATE's theoretical best is ~1032:1; anything far past that is a decompression bomb, not data.
+    private static let maxCompressionRatio = 1100.0
+    /// Hard ceiling on a single entry's in-memory decode buffer, so a bogus size can't demand a giant
+    /// allocation even at a plausible ratio.
+    private static let maxEntryBytes = 2 * 1024 * 1024 * 1024   // 2 GB
 
     private struct Entry {
         let name: String
@@ -36,6 +44,10 @@ enum ZipArchive {
 
         var written: [String] = []
         for entry in entries {
+            // Skip nameless entries (e.g. an undecodable CP437 name): resolving one yields `destRoot`
+            // itself, which would try to write a file over the destination directory and abort the whole
+            // extraction. One bad entry must not sink the rest of the archive.
+            guard !entry.name.isEmpty else { continue }
             let target = destRoot.appendingPathComponent(entry.name).standardizedFileURL
             // Zip Slip guard: the resolved path must stay inside the destination root.
             guard target.path == destRoot.path || target.path.hasPrefix(destRoot.path + "/") else {
@@ -122,6 +134,14 @@ enum ZipArchive {
         case 0:   // STORE
             return compressed
         case 8:   // DEFLATE
+            // Decompression-bomb guard: reject an absurd ratio (tiny input claiming a huge output) or an
+            // entry whose decode buffer would exceed the hard ceiling, before allocating anything.
+            let ratio = entry.compressedSize > 0
+                ? Double(entry.uncompressedSize) / Double(entry.compressedSize)
+                : Double(entry.uncompressedSize)
+            guard ratio <= Self.maxCompressionRatio, entry.uncompressedSize <= Self.maxEntryBytes else {
+                throw ExtractionError.suspiciousEntry(entry.name)
+            }
             return try rawInflate(compressed, expectedSize: entry.uncompressedSize, name: entry.name)
         default:
             throw ExtractionError.unsupportedMethod(entry.method)

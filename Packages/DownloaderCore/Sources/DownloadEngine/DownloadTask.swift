@@ -738,14 +738,16 @@ actor DownloadTask {
                              originURL: download.requestHeaders["Referer"].flatMap(URL.init(string:)))
         }
 
-        await autoExtractIfArchive()
-
         // Verify against a supplied checksum, or one auto-discovered next to the download.
         let checksum = try await DownloadChecksum.resolveAndVerify(
             for: download, settings: settings, httpClient: httpClient
         )
         download.checksum = checksum.expectation
         download.checksumVerified = checksum.verified
+
+        // Extract only AFTER integrity is established: never unpack (and never quarantine-stamp) the
+        // contents of an archive whose checksum failed. `nil` (no checksum to check) still extracts.
+        await autoExtractIfArchive()
 
         // Assess the code signature of installable downloads (.app/.dmg) on-device — reads the
         // signature already in the file; no network, no Gatekeeper round-trip. Best-effort: an

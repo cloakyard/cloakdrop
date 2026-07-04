@@ -8,10 +8,10 @@ struct ZipArchiveTests {
     // MARK: In-memory ZIP builder (test fixture)
 
     private struct ZipBuilder {
-        struct Item { let name: String; let data: Data; let deflate: Bool }
+        struct Item { let name: String; let data: Data; let deflate: Bool; var forgedUncompressed: UInt32? = nil }
         private var items: [Item] = []
-        mutating func add(_ name: String, _ content: Data, deflate: Bool) {
-            items.append(Item(name: name, data: content, deflate: deflate))
+        mutating func add(_ name: String, _ content: Data, deflate: Bool, forgedUncompressed: UInt32? = nil) {
+            items.append(Item(name: name, data: content, deflate: deflate, forgedUncompressed: forgedUncompressed))
         }
 
         func build() -> Data {
@@ -45,7 +45,8 @@ struct ZipArchiveTests {
                 central.appendLE(UInt16(0)); central.appendLE(method)
                 central.appendLE(UInt16(0)); central.appendLE(UInt16(0))
                 central.appendLE(UInt32(0))
-                central.appendLE(UInt32(stored.count)); central.appendLE(UInt32(item.data.count))
+                central.appendLE(UInt32(stored.count))
+                central.appendLE(item.forgedUncompressed ?? UInt32(item.data.count))   // central-dir uncompressed size
                 central.appendLE(UInt16(name.count))
                 central.appendLE(UInt16(0)); central.appendLE(UInt16(0))   // extra, comment
                 central.appendLE(UInt16(0)); central.appendLE(UInt16(0))   // disk, internal attrs
@@ -106,6 +107,39 @@ struct ZipArchiveTests {
         #expect(String(decoding: hello, as: UTF8.self) == "Hello, World!")
         let nested = try Data(contentsOf: out.appendingPathComponent("sub/data.txt"))
         #expect(nested == bigText)
+    }
+
+    @Test("Rejects a decompression bomb (tiny input claiming a huge uncompressed size)")
+    func rejectsBomb() throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        var builder = ZipBuilder()
+        // A few compressible bytes, but the central directory claims ~3 GB uncompressed → absurd ratio.
+        builder.add("bomb.bin", Data(repeating: 0, count: 1000), deflate: true, forgedUncompressed: 3_000_000_000)
+        let zipURL = dir.appendingPathComponent("bomb.zip")
+        try builder.build().write(to: zipURL)
+
+        #expect(throws: ZipArchive.ExtractionError.self) {
+            try ZipArchive.extract(zipPath: zipURL.path, to: dir.appendingPathComponent("out").path)
+        }
+    }
+
+    @Test("Skips a nameless entry instead of aborting the whole archive")
+    func skipsEmptyNameEntry() throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        var builder = ZipBuilder()
+        builder.add("", Data("orphan".utf8), deflate: false)          // undecodable-name stand-in
+        builder.add("good.txt", Data("kept".utf8), deflate: false)
+        let zipURL = dir.appendingPathComponent("mixed.zip")
+        try builder.build().write(to: zipURL)
+
+        let out = dir.appendingPathComponent("out")
+        let written = try ZipArchive.extract(zipPath: zipURL.path, to: out.path)
+        #expect(written.count == 1)   // the good entry survives; the nameless one is skipped
+        #expect(String(decoding: try Data(contentsOf: out.appendingPathComponent("good.txt")), as: UTF8.self) == "kept")
     }
 
     @Test("Rejects a Zip Slip entry that escapes the destination")
