@@ -61,15 +61,22 @@ public struct ProvenanceReceipt: Sendable, Hashable, Codable {
     /// A plain-text receipt suitable for saving next to the download or pasting into an email. Kept
     /// deterministic (no locale-dependent formatting beyond the timestamp) so two receipts for the
     /// same download are byte-identical.
+    /// Strip control characters (notably CR/LF) from a field so an attacker-influenced value — a
+    /// server-suggested filename may legally contain newlines — can't inject forged lines like
+    /// "Trust: verified" into a record whose whole point is to be a trustworthy attestation.
+    private func sanitize(_ value: String) -> String {
+        String(value.unicodeScalars.map { CharacterSet.controlCharacters.contains($0) ? " " : Character($0) })
+    }
+
     public func exportText(dateStyle: ISO8601DateFormatter = ISO8601DateFormatter()) -> String {
         var lines: [String] = []
         lines.append("CloakDrop — Download Provenance Receipt")
         lines.append(String(repeating: "=", count: 40))
-        lines.append("File:        \(fileName)")
+        lines.append("File:        \(sanitize(fileName))")
         if let fileSizeBytes { lines.append("Size:        \(fileSizeBytes) bytes") }
-        lines.append("Source:      \(sourceURL.absoluteString)")
-        if let finalURL, finalURL != sourceURL { lines.append("Resolved to: \(finalURL.absoluteString)") }
-        if !mirrors.isEmpty { lines.append("Mirrors:     \(mirrors.map(\.absoluteString).joined(separator: ", "))") }
+        lines.append("Source:      \(sanitize(sourceURL.absoluteString))")
+        if let finalURL, finalURL != sourceURL { lines.append("Resolved to: \(sanitize(finalURL.absoluteString))") }
+        if !mirrors.isEmpty { lines.append("Mirrors:     \(sanitize(mirrors.map(\.absoluteString).joined(separator: ", ")))") }
         lines.append("Transport:   \(transportSecure ? "encrypted (TLS)" : "cleartext")")
         if let sha256 { lines.append("SHA-256:     \(sha256)") }
         if let expectedChecksum {

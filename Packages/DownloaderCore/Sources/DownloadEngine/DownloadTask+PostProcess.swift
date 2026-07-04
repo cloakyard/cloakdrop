@@ -26,11 +26,17 @@ extension DownloadTask {
     }
 
     /// Assemble the verified-download provenance record from the signals gathered during finalize.
-    /// The SHA-256 is computed off-actor (it streams the whole file), best-effort — a receipt without
-    /// a hash is still useful, and a read failure must not fail a completed download.
-    func buildProvenanceReceipt() async -> ProvenanceReceipt {
+    /// Reuses the SHA-256 from the checksum verify when it computed one; otherwise streams the file once
+    /// off-actor (best-effort — a receipt without a hash is still useful, and a read failure must not
+    /// fail a completed download). Avoids hashing a multi-GB file twice at completion.
+    func buildProvenanceReceipt(precomputedSHA256: String? = nil) async -> ProvenanceReceipt {
         let fileURL = URL(fileURLWithPath: download.destinationFilePath)
-        let sha256 = await Task.detached { try? ChecksumVerifier.hash(fileURL: fileURL, algorithm: .sha256) }.value
+        let sha256: String?
+        if let precomputedSHA256 {
+            sha256 = precomputedSHA256
+        } else {
+            sha256 = await Task.detached { try? ChecksumVerifier.hash(fileURL: fileURL, algorithm: .sha256) }.value
+        }
         let secure = ["https", "ftps"].contains(download.url.scheme?.lowercased() ?? "")
         return ProvenanceReceipt(
             fileName: download.fileName,

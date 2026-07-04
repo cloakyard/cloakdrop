@@ -761,7 +761,7 @@ actor DownloadTask {
         }
 
         if settings.generateProvenanceReceipts {
-            download.provenance = await buildProvenanceReceipt()
+            download.provenance = await buildProvenanceReceipt(precomputedSHA256: checksum.sha256)
         }
     }
 

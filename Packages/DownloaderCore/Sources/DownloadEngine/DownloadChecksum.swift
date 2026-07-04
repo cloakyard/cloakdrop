@@ -8,6 +8,9 @@ enum DownloadChecksum {
     struct Outcome {
         var expectation: ChecksumExpectation?
         var verified: Bool?
+        /// The file's SHA-256, when this verify pass happened to compute it (i.e. the checksum was
+        /// SHA-256) — so the provenance receipt can reuse it instead of hashing the whole file again.
+        var sha256: String?
     }
 
     /// Resolve (auto-discovering a sibling when the user supplied none) and verify `download`'s
@@ -54,6 +57,7 @@ enum DownloadChecksum {
                 actual: actual
             )
         }
-        return Outcome(expectation: expectation, verified: matches)
+        return Outcome(expectation: expectation, verified: matches,
+                       sha256: expectation.algorithm == .sha256 ? actual : nil)
     }
 }

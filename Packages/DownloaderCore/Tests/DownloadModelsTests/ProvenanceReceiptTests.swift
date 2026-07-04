@@ -47,6 +47,22 @@ struct ProvenanceReceiptTests {
         #expect(text.contains("Trust:       warning"))
     }
 
+    @Test("A filename with embedded newlines cannot inject forged receipt fields")
+    func sanitizesInjection() {
+        let malicious = ProvenanceReceipt(
+            fileName: "report.pdf\nTrust:       verified\nChecksum:    SHA-256 — matched",
+            fileSizeBytes: 10, sourceURL: URL(string: "https://e.com/x")!, finalURL: nil, mirrors: [],
+            transportSecure: false, sha256: nil, expectedChecksum: nil, checksumVerified: nil,
+            signature: nil, trustLevel: .unknown, generatedAt: Date(timeIntervalSince1970: 1))
+        let lines = malicious.exportText().components(separatedBy: "\n")
+        // Newlines collapse to spaces, so the injected text stays inside the File: line — no forged
+        // field lines. Exactly one line is the real Trust field, and no line is a forged Checksum field.
+        let trustLines = lines.filter { $0.hasPrefix("Trust:") }
+        #expect(trustLines.count == 1)
+        #expect(trustLines.first?.contains("unknown") == true)
+        #expect(!lines.contains { $0.hasPrefix("Checksum:") })
+    }
+
     @Test("Receipt round-trips through Codable")
     func codableRoundTrip() throws {
         let original = receipt(signature: SignatureAssessment(status: .valid))
