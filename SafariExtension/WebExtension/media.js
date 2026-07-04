@@ -112,15 +112,84 @@
     return null;
   }
 
-  // Drop duplicate URLs and order streams → video → audio → file (stable within a rank).
+  // ── Rendition collapsing ────────────────────────────────────────────────────────────────────
+  // A single video is served as many URLs: a master playlist, one variant playlist per quality,
+  // and several progressive files (per resolution/codec). Surfacing them all is the "wall of
+  // streams" bug. We collapse every rendition of ONE video to a single representative by keying on
+  // the video's directory with the *rendition* path segments (container role / codec / resolution)
+  // stripped out — so all qualities of a video share a key, while genuinely different files never
+  // merge (a URL with no rendition markers keys as null and passes through untouched).
+  //
+  // Path segments that denote a rendition's role, not the video's identity.
+  const RENDITION_SEG = new Set([
+    "pl", "vid", "hls", "dash", "manifest", "playlist", "chunklist",   // container / playlist role
+    "avc1", "avc", "h264", "h265", "hevc", "hvc1", "av01", "vp9", "vp09", "mp4a", "aac", "opus", // codec
+    "sd", "hd", "fhd", "uhd", "hi", "mid", "low", "hq", "lq"           // named qualities
+  ]);
+  const RES_SEG = /^\d{2,5}x\d{2,5}$/;   // 720x1280
+  const HEIGHT_SEG = /^\d{3,4}p$/;        // 720p
+  function isRenditionSeg(s) { return RENDITION_SEG.has(s) || RES_SEG.test(s) || HEIGHT_SEG.test(s); }
+
+  function pathSegments(url) {
+    try { return new URL(url).pathname.toLowerCase().split("/").filter(Boolean); }
+    catch (_) { return []; }
+  }
+
+  // A grouping key that unites all rendition variants of one video, or `null` when the URL carries
+  // no rendition structure (so distinct files/standalone media are never collapsed together).
+  function videoKey(url) {
+    const segs = pathSegments(url);
+    if (segs.length === 0) return null;
+    const dirs = segs.slice(0, -1);                       // drop the (per-rendition) filename
+    if (!dirs.some(isRenditionSeg)) return null;          // no variant structure → keep as its own item
+    const stable = dirs.filter((s) => !isRenditionSeg(s));
+    return hostOf(url) + "/" + stable.join("/");
+  }
+
+  function resolutionArea(url) {
+    const m = String(url).match(/(\d{2,5})x(\d{2,5})/);
+    return m ? Number(m[1]) * Number(m[2]) : 0;
+  }
+
+  // Pick the one item to show for a group of renditions: prefer a stream (the app expands it into a
+  // quality picker, covering every rendition at once); among streams prefer the master (shallowest
+  // path — a master playlist sits above its per-quality variants). With no stream, prefer the
+  // highest-resolution progressive file.
+  function pickRepresentative(group) {
+    const streams = group.filter((i) => i.type === "stream");
+    const pool = streams.length ? streams : group;
+    return pool.slice().sort((a, b) =>
+      pathSegments(a.url).length - pathSegments(b.url).length ||
+      resolutionArea(b.url) - resolutionArea(a.url)
+    )[0];
+  }
+
+  // Collapse rendition variants to one representative per video; pass non-rendition items through.
+  function collapseRenditions(items) {
+    const groups = new Map();
+    const out = [];
+    for (const item of items) {
+      const key = item && item.url ? videoKey(item.url) : null;
+      if (key == null) { if (item) out.push(item); continue; }
+      const existing = groups.get(key);
+      if (existing) { existing.push(item); }
+      else { const g = [item]; groups.set(key, g); out.push(g); }   // reserve position at first sight
+    }
+    // Replace each reserved group slot with its chosen representative.
+    return out.map((slot) => (Array.isArray(slot) ? pickRepresentative(slot) : slot));
+  }
+
+  // Drop duplicate URLs, collapse rendition variants, then order streams → video → audio → file
+  // (stable within a rank).
   function dedupeAndRank(items) {
     const seen = new Set();
-    const out = [];
+    const unique = [];
     for (const item of items) {
       if (!item || !item.url || seen.has(item.url)) continue;
       seen.add(item.url);
-      out.push(item);
+      unique.push(item);
     }
+    const out = collapseRenditions(unique);
     out.sort((a, b) => (TYPE_RANK[a.type] ?? 9) - (TYPE_RANK[b.type] ?? 9));
     return out;
   }
@@ -128,7 +197,8 @@
   const API = {
     STREAM_EXT, MEDIA_EXT, FILE_EXT, SEGMENT_EXT, AUDIO_EXT, TYPE_RANK, TYPE_LABEL,
     hostOf, extensionOf, audioExt, fileNameFromURL,
-    isNoise, makeItem, classifyByURL, classifyByContentType, dedupeAndRank
+    isNoise, makeItem, classifyByURL, classifyByContentType,
+    videoKey, collapseRenditions, dedupeAndRank
   };
 
   if (typeof module !== "undefined" && module.exports) module.exports = API;

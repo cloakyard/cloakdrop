@@ -61,6 +61,56 @@ test("dedupeAndRank removes duplicate URLs and orders streams->video->audio->fil
   assert.deepEqual(items.map((i) => i.type), ["stream", "video", "audio", "file"]);
 });
 
+test("collapses X-style rendition variants of one video to a single master stream", () => {
+  const id = "1900000000000000000";
+  const base = `https://video.twimg.com/ext_tw_video/${id}/pu`;
+  const items = M.dedupeAndRank([
+    M.makeItem(`${base}/pl/master.m3u8`, "stream"),                 // master playlist
+    M.makeItem(`${base}/vid/avc1/480x270/a.m3u8`, "stream"),        // variant playlists
+    M.makeItem(`${base}/vid/avc1/720x1280/b.m3u8`, "stream"),
+    M.makeItem(`${base}/vid/avc1/1280x720/c.m3u8`, "stream"),
+    M.makeItem(`${base}/vid/avc1/480x270/a.mp4`, "video"),          // progressive renditions
+    M.makeItem(`${base}/vid/avc1/720x1280/b.mp4`, "video"),
+    M.makeItem(`${base}/vid/avc1/1280x720/c.mp4`, "video")
+  ]);
+  assert.equal(items.length, 1, "one video → one entry");
+  assert.equal(items[0].type, "stream");
+  assert.ok(items[0].url.endsWith("/pl/master.m3u8"), "the master playlist is the representative");
+});
+
+test("keeps genuinely different videos as separate entries", () => {
+  const mk = (id) => `https://video.twimg.com/ext_tw_video/${id}/pu/vid/avc1/720x1280/x.mp4`;
+  const items = M.dedupeAndRank([M.makeItem(mk("111"), "video"), M.makeItem(mk("222"), "video")]);
+  assert.equal(items.length, 2);
+});
+
+test("collapses progressive-only variants to the highest resolution", () => {
+  const base = "https://cdn.example.com/media/clip42/vid";
+  const items = M.dedupeAndRank([
+    M.makeItem(`${base}/640x360/f.mp4`, "video"),
+    M.makeItem(`${base}/1920x1080/f.mp4`, "video"),
+    M.makeItem(`${base}/1280x720/f.mp4`, "video")
+  ]);
+  assert.equal(items.length, 1);
+  assert.ok(items[0].url.includes("1920x1080"), "the largest rendition wins");
+});
+
+test("never merges distinct files that merely share a directory", () => {
+  const items = M.dedupeAndRank([
+    M.makeItem("https://cdn.example.com/downloads/a.zip", "file"),
+    M.makeItem("https://cdn.example.com/downloads/b.zip", "file"),
+    M.makeItem("https://cdn.example.com/pod/ep1.mp3", "audio"),
+    M.makeItem("https://cdn.example.com/pod/ep2.mp3", "audio")
+  ]);
+  assert.equal(items.length, 4, "no rendition markers → nothing collapses");
+});
+
+test("videoKey is null for URLs without rendition structure", () => {
+  assert.equal(M.videoKey("https://cdn.example.com/movie.mp4"), null);
+  assert.equal(M.videoKey("https://cdn.example.com/a/b/song.mp3"), null);
+  assert.ok(M.videoKey("https://cdn.example.com/v/vid/720x1280/x.mp4"));
+});
+
 test("helpers: hostOf / extensionOf / fileNameFromURL / audioExt", () => {
   assert.equal(M.hostOf("https://a.b.com/x/y.mp4?q=1"), "a.b.com");
   assert.equal(M.extensionOf("https://a.com/x/y.MP4"), "mp4");

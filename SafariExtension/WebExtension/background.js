@@ -131,7 +131,9 @@ function notifyTab(tabId) {
 }
 
 function updateBadge(tabId) {
-  const count = mediaByTab.get(tabId)?.size ?? 0;
+  // Count what the user actually sees — the deduped, rendition-collapsed list — not every raw wire
+  // hit (a single video spawns many variant/segment URLs).
+  const count = mediaList(tabId).length;
   try {
     api.action.setBadgeText({ tabId, text: count ? String(count) : "" });
     api.action.setBadgeBackgroundColor({ tabId, color: "#5B4CE0" });
