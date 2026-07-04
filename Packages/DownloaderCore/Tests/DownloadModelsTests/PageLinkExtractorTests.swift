@@ -41,6 +41,18 @@ struct PageLinkExtractorTests {
         #expect(zips.count == 2)   // file1.zip + file3.zip
     }
 
+    @Test("Decodes &amp; entities and keeps links whose paths contain spaces")
+    func entitiesAndSpaces() {
+        let html = """
+        <a href="dl.php?a=1&amp;b=2">entity</a>
+        <a href="My Big File.zip">space</a>
+        """
+        let urls = PageLinkExtractor.extract(html: html, baseURL: base).map(\.absoluteString)
+        #expect(urls.contains { $0.contains("a=1&b=2") })          // &amp; decoded, not &amp;b
+        #expect(!urls.contains { $0.contains("amp;") })
+        #expect(urls.contains { $0.contains("My%20Big%20File.zip") }) // space link kept (percent-encoded)
+    }
+
     @Test("Reports the distinct extensions present")
     func availableExtensions() {
         let exts = PageLinkExtractor.availableExtensions(html: html, baseURL: base)

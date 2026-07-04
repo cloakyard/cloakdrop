@@ -11441,6 +11441,71 @@
         }
       }
     },
+    "No downloadable links found on that page.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se encontraron enlaces descargables en esa página."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun lien téléchargeable trouvé sur cette page."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf dieser Seite wurden keine ladbaren Links gefunden."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在该页面上未找到可下载的链接。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "そのページにダウンロード可能なリンクが見つかりませんでした。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "해당 페이지에서 다운로드 가능한 링크를 찾지 못했습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhum link para download encontrado nessa página."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "На этой странице не найдено ссылок для загрузки."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لم يتم العثور على روابط قابلة للتنزيل في تلك الصفحة."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "उस पेज पर कोई डाउनलोड-योग्य लिंक नहीं मिला।"
+          }
+        }
+      }
+    },
     "No downloads in “%@”.": {
       "extractionState": "manual",
       "localizations": {

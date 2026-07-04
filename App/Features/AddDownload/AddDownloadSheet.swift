@@ -27,6 +27,9 @@ struct AddDownloadSheet: View {
     @State private var username = ""
     @State private var password = ""
     @State private var rememberCredentials = false
+    /// The host the currently-shown credentials were auto-filled for, so they can be cleared if the
+    /// user then edits the URL to a different host (never send one host's saved password to another).
+    @State private var autofilledHost: String?
     @State private var referrer = ""
     @State private var cookies = ""
 
@@ -253,11 +256,20 @@ struct AddDownloadSheet: View {
     /// Pre-fill saved credentials for this URL's host when the fields are still empty, so a returning
     /// user doesn't retype them. Flips the "remember" toggle on to reflect that they're stored.
     private func autofillSavedCredentials(for url: URL) {
-        guard username.isEmpty, password.isEmpty, let host = url.host,
+        let host = url.host
+        // If we auto-filled for a previous host and the user hasn't touched the fields, clear them
+        // before the host changes — otherwise host A's password would ride along to host B (and get
+        // re-stored under B's key on Add).
+        if let prev = autofilledHost, prev != host, let saved = model.siteCredentials(forHost: prev),
+           username == saved.username, password == saved.password {
+            username = ""; password = ""; rememberCredentials = false; autofilledHost = nil
+        }
+        guard username.isEmpty, password.isEmpty, let host,
               let saved = model.siteCredentials(forHost: host) else { return }
         username = saved.username
         password = saved.password
         rememberCredentials = true
+        autofilledHost = host
     }
 
     // MARK: Actions

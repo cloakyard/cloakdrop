@@ -22,6 +22,7 @@ struct BatchAddSheet: View {
     @State private var filter = ""
     @State private var pageURLString = ""
     @State private var isFetchingPage = false
+    @State private var pageFetchNote: String?
     @State private var destinationURL = AppEnvironment.defaultDownloadsDirectory()
     @State private var destinationBookmark: Data?
 
@@ -54,6 +55,9 @@ struct BatchAddSheet: View {
                         }
                     }
                     .disabled(isFetchingPage || AppModel.normalizedURL(pageURLString) == nil)
+                }
+                if let pageFetchNote {
+                    Text(pageFetchNote).font(.caption).foregroundStyle(.secondary)
                 }
 
                 TextEditor(text: $text)
@@ -159,12 +163,18 @@ struct BatchAddSheet: View {
     private func fetchFromPage() {
         guard !isFetchingPage, let url = AppModel.normalizedURL(pageURLString) else { return }
         isFetchingPage = true
+        pageFetchNote = nil
         Task {
             let found = await model.extractPageLinks(from: url)
+            isFetchingPage = false
+            guard !found.isEmpty else {
+                // Tell the user rather than silently clearing the field with nothing added.
+                pageFetchNote = String(localized: "No downloadable links found on that page.")
+                return
+            }
             let appended = found.map(\.absoluteString).joined(separator: "\n")
             text = text.isEmpty ? appended : text + "\n" + appended
             pageURLString = ""
-            isFetchingPage = false
         }
     }
 

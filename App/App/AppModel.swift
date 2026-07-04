@@ -109,6 +109,8 @@ final class AppModel {
     private let notifications = NotificationManager()
     /// Keychain-backed store for per-site HTTP/FTP credentials the user asks CloakDrop to remember.
     private let siteCredentialStore: any CredentialStoring = KeychainCredentialStore()
+    /// Latch so the post-completion action fires once per "work → drained" cycle, not on every drain.
+    private var postCompletionArmed = false
     private let clipboard = ClipboardMonitor()
     private let loginItem = LoginItemService()
     private let sleepPreventer = SleepPreventer()
@@ -202,10 +204,12 @@ final class AppModel {
         switch event {
         case .downloadAdded(let download):
             upsert(download)
+            postCompletionArmed = true   // new work means the next drain should fire the action again
         case .downloadUpdated(let download):
             let previous = downloads.first { $0.id == download.id }?.status
             upsert(download)
             if download.status != previous { announce(transition: download, from: previous) }
+            if download.status == .downloading { postCompletionArmed = true }
             if download.status.isTerminal || download.status == .completed { progress[download.id] = nil }
             if download.status == .completed, download.isMedia { ensureThumbnail(for: download) }
         case .downloadRemoved(let id):
@@ -223,7 +227,13 @@ final class AppModel {
         case .statsChanged(let s):
             stats = s
         case .allDownloadsCompleted:
-            applyPostCompletionAction()
+            // Fire once per drain: the engine signals this on every completion that leaves the queue
+            // empty, so without a latch, finishing a later one-off download would re-run the user's
+            // Shortcut / re-notify. Re-armed when new/active work appears (above).
+            if postCompletionArmed {
+                postCompletionArmed = false
+                applyPostCompletionAction()
+            }
         }
         // Ambient surfaces (the Dock progress ring/badge) are derived from full O(n) scans of
         // `downloads`. Status events are infrequent, so refresh right away; the ~10/sec-per-download
@@ -256,10 +266,12 @@ final class AppModel {
     /// happen (sleep the Mac, empty a folder, ping a webhook) — so this one hook covers them all.
     private func runPostCompletionShortcut() {
         guard let name = settings.postCompletionShortcutName?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !name.isEmpty,
-              var components = URLComponents(string: "shortcuts://run-shortcut") else { return }
-        components.queryItems = [URLQueryItem(name: "name", value: name)]
-        guard let url = components.url else { return }
+              !name.isEmpty else { return }
+        // `URLQueryItem`/`urlQueryAllowed` does NOT escape `&`, `=`, or `+`, so a Shortcut named
+        // "Backup & Sync" would parse as name="Backup " plus a junk param and run the wrong (or no)
+        // shortcut. Percent-encode against alphanumerics so every reserved character is escaped.
+        guard let encoded = name.addingPercentEncoding(withAllowedCharacters: .alphanumerics),
+              let url = URL(string: "shortcuts://run-shortcut?name=\(encoded)") else { return }
         NSWorkspace.shared.open(url)
     }
 
@@ -682,7 +694,11 @@ final class AppModel {
            ["http", "https", "ftp", "ftps"].contains(scheme) {
             return url
         }
-        if let url = URL(string: "https://\(trimmed)"), url.host() != nil {
+        // Accept a bare host only if it actually looks like one (a dotted name/IP or localhost) — the
+        // same guard URLBatch.normalized applies — so a stray word like "notes" doesn't become a
+        // guaranteed-to-fail https://notes download.
+        if let url = URL(string: "https://\(trimmed)"), let host = url.host(),
+           host == "localhost" || host.contains(".") {
             return url
         }
         return nil

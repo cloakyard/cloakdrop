@@ -745,8 +745,7 @@ actor DownloadTask {
         download.checksum = checksum.expectation
         download.checksumVerified = checksum.verified
 
-        // Extract only AFTER integrity is established: never unpack (and never quarantine-stamp) the
-        // contents of an archive whose checksum failed. `nil` (no checksum to check) still extracts.
+        // Extract only AFTER integrity is established — never unpack an archive whose checksum failed.
         await autoExtractIfArchive()
 
         // Assess the code signature of installable downloads (.app/.dmg) on-device — reads the

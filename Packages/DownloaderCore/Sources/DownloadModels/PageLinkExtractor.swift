@@ -69,6 +69,22 @@ public enum PageLinkExtractor {
         let lowered = raw.lowercased()
         if raw.hasPrefix("#") || lowered.hasPrefix("javascript:") || lowered.hasPrefix("mailto:")
             || lowered.hasPrefix("data:") || lowered.hasPrefix("tel:") { return nil }
-        return URL(string: raw, relativeTo: baseURL)?.absoluteURL
+        // HTML attribute values carry entity-encoded ampersands (`a=1&amp;b=2`); decode the common ones
+        // so the query survives, then percent-encode anything URL(string:) would otherwise reject (a
+        // space in a filename would make it return nil and the link would silently vanish). The allowed
+        // set keeps reserved URL characters — including `%`, so existing escapes aren't double-encoded.
+        let decoded = decodeEntities(raw)
+        let allowed = CharacterSet(charactersIn: "!#$&'()*+,-./:;=?@_~%[]").union(.alphanumerics)
+        let encoded = decoded.addingPercentEncoding(withAllowedCharacters: allowed) ?? decoded
+        return URL(string: encoded, relativeTo: baseURL)?.absoluteURL
+    }
+
+    /// Decode the handful of HTML entities that actually appear inside URLs.
+    private static func decodeEntities(_ value: String) -> String {
+        guard value.contains("&") else { return value }
+        return value
+            .replacingOccurrences(of: "&amp;", with: "&")
+            .replacingOccurrences(of: "&#38;", with: "&")
+            .replacingOccurrences(of: "&#x26;", with: "&")
     }
 }
