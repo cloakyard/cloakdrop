@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 /// Pure rate-scheduling arithmetic, separated from time and concurrency so it can be tested
 /// deterministically. Models a token bucket as a **virtual clock** (a "theoretical arrival time",
@@ -45,10 +46,21 @@ public actor BandwidthLimiter {
     private let clock = ContinuousClock()
     /// Seconds of burst a request may run ahead of the virtual clock, smoothing bursty readers.
     private static let burstSeconds: Double = 0.5
+    /// A lock-free mirror of "is a limit currently set", readable **without** hopping onto the actor.
+    /// The per-chunk hot path checks this first so an unlimited limiter (the default) costs nothing —
+    /// no suspension, no actor hop. A stale read is harmless: at worst one chunk takes the slow path
+    /// right as a limit toggles.
+    private let limited = Atomic<Bool>(false)
 
     public init(bytesPerSecond: Int64?) {
-        self.ratePerSecond = bytesPerSecond.flatMap { $0 > 0 ? Double($0) : nil }
+        let rate = bytesPerSecond.flatMap { $0 > 0 ? Double($0) : nil }
+        self.ratePerSecond = rate
+        self.limited.store(rate != nil, ordering: .relaxed)
     }
+
+    /// Whether a rate limit is in effect, cheap to read from any isolation. Callers on the hot path
+    /// skip `awaitAllowance` entirely when this is `false`.
+    public nonisolated var isLimited: Bool { limited.load(ordering: .relaxed) }
 
     /// Update the limit at runtime. `nil` or `<= 0` means unlimited. Resets the virtual clock so the
     /// new rate takes effect immediately without inheriting a stale backlog.
@@ -61,6 +73,7 @@ public actor BandwidthLimiter {
         guard newRate != ratePerSecond else { return }
         ratePerSecond = newRate
         tat = nil
+        limited.store(newRate != nil, ordering: .relaxed)
     }
 
     /// Suspend until `byteCount` bytes are permitted under the current rate.

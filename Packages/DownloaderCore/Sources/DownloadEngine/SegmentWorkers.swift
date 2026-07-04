@@ -74,7 +74,7 @@ func runSegment(
                 // Trim to what this segment still needs; nil means its tail was stolen — stop writing.
                 guard let data = capToSegment(chunk, totalKnown: totalKnown, supportsRanges: supportsRanges,
                                               offset: local.currentOffset, end: currentEnd) else { break }
-                for limiter in limiters {
+                for limiter in limiters where limiter.isLimited {
                     await limiter.awaitAllowance(byteCount: data.count)
                 }
                 try handle.write(data)
@@ -277,7 +277,7 @@ private func streamMediaSegmentToDisk(
         for try await chunk in stream {
             try Task.checkCancellation()
             if chunk.isEmpty { continue }
-            for limiter in limiters { await limiter.awaitAllowance(byteCount: chunk.count) }
+            for limiter in limiters where limiter.isLimited { await limiter.awaitAllowance(byteCount: chunk.count) }
             try handle.write(contentsOf: chunk)
             written += Int64(chunk.count)
             await onBytes(chunk.count)
