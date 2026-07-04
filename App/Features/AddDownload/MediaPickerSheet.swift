@@ -9,15 +9,36 @@ struct MediaPickerSheet: View {
     @Environment(AppModel.self) private var model
     let selection: MediaSelection
     @State private var chosenVariantID: String = ""
+    @State private var selectedSubtitleIDs: Set<String> = []
+    @State private var selectedAudioTrackID: String = ""
+    @State private var audioOnly = false
 
     private var variants: [MediaVariant] {
         selection.stream.variants.sorted { $0.bandwidth > $1.bandwidth }
     }
 
+    private var subtitleTracks: [MediaTrack] {
+        selection.stream.subtitleTracks
+    }
+
+    private var audioTracks: [MediaTrack] {
+        selection.stream.audioTracks
+    }
+
+    /// Whether an "audio only" grab is offered (the stream has a separate audio track to extract).
+    private var canGrabAudioOnly: Bool { selection.stream.hasGrabbableAudio }
+
+    /// Whether to offer an audio-language choice (the stream carries more than one audio track).
+    private var canChooseAudio: Bool { audioTracks.count >= 2 }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
             Divider()
+
+            if canGrabAudioOnly {
+                modePicker
+            }
 
             List(selection: $chosenVariantID) {
                 ForEach(variants) { variant in
@@ -26,6 +47,17 @@ struct MediaPickerSheet: View {
             }
             .listStyle(.inset)
             .frame(minHeight: 200)
+            .disabled(audioOnly)
+            .opacity(audioOnly ? 0.35 : 1)
+            .overlay(alignment: .center) {
+                if audioOnly {
+                    Label("Downloads the sound only, saved as an audio file.", systemImage: "music.note")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 24)
+                        .multilineTextAlignment(.center)
+                }
+            }
 
             Divider()
             footer
@@ -33,6 +65,11 @@ struct MediaPickerSheet: View {
         .frame(width: 440, height: 460)
         .onAppear {
             chosenVariantID = selection.stream.bestVariant?.id ?? variants.first?.id ?? ""
+            selectedAudioTrackID = selection.stream.defaultAudioTrack?.id ?? ""
+            // Default the subtitle selection to the user's "Download subtitles" preference.
+            if model.grabSubtitlesEnabled, let track = subtitleTracks.first(where: \.isDefault) ?? subtitleTracks.first {
+                selectedSubtitleIDs = [track.id]
+            }
         }
     }
 
@@ -61,6 +98,18 @@ struct MediaPickerSheet: View {
         .padding(16)
     }
 
+    /// Video vs. audio-only. Only shown when the stream exposes a separate audio track to extract.
+    private var modePicker: some View {
+        Picker("", selection: $audioOnly) {
+            Text("Video").tag(false)
+            Text("Audio only").tag(true)
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+    }
+
     private func variantRow(_ variant: MediaVariant) -> some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
@@ -82,8 +131,13 @@ struct MediaPickerSheet: View {
     }
 
     private var footer: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if trackNote != nil {
+        VStack(alignment: .leading, spacing: 8) {
+            if canChooseAudio {
+                audioPicker
+            }
+            if !subtitleTracks.isEmpty {
+                subtitlePicker
+            } else if !canChooseAudio, trackNote != nil {
                 Label(trackNote!, systemImage: "waveform")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -92,13 +146,120 @@ struct MediaPickerSheet: View {
                 Spacer()
                 Button("Cancel", role: .cancel) { model.cancelMediaSelection() }
                     .keyboardShortcut(.cancelAction)
-                Button("Download") { model.confirmMediaSelection(variantID: chosenVariantID) }
+                Button("Download") { confirm() }
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
-                    .disabled(chosenVariantID.isEmpty)
+                    .disabled(!audioOnly && chosenVariantID.isEmpty)
             }
+            .padding(.top, 2)
         }
         .padding(16)
+    }
+
+    private func confirm() {
+        // In audio-only mode the primary id names the audio track to grab (fall back to the default);
+        // in video mode it names the chosen resolution, with the audio choice passed alongside.
+        let audioTrackID = selectedAudioTrackID.isEmpty ? (selection.stream.defaultAudioTrack?.id ?? "") : selectedAudioTrackID
+        model.confirmMediaSelection(
+            variantID: audioOnly ? audioTrackID : chosenVariantID,
+            subtitleTrackIDs: Array(selectedSubtitleIDs),
+            audioOnly: audioOnly,
+            audioTrackID: canChooseAudio ? audioTrackID : nil
+        )
+    }
+
+    /// A single-select menu of audio languages, shown when the stream carries more than one audio
+    /// track. In video mode it picks which audio to mux in; in audio-only mode, which one to extract.
+    private var audioPicker: some View {
+        HStack(spacing: 8) {
+            Label("Audio", systemImage: "waveform")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Menu {
+                ForEach(audioTracks) { track in
+                    subtitleMenuItem(title: audioLabel(track), isOn: selectedAudioTrackID == track.id) {
+                        selectedAudioTrackID = track.id
+                    }
+                }
+            } label: {
+                Text(audioTracks.first { $0.id == selectedAudioTrackID }.map(audioLabel) ?? String(localized: "Default"))
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+        }
+    }
+
+    /// A human label for an audio track: a localized language name ("en" → "English"), else the
+    /// manifest's own name (or container, for a page grab), else a generic "Audio".
+    private func audioLabel(_ track: MediaTrack) -> String {
+        if let code = track.language, let localized = Locale.current.localizedString(forLanguageCode: code) {
+            return localized
+        }
+        if let name = track.name, !name.isEmpty { return name }
+        return String(localized: "Audio")
+    }
+
+    /// A compact multi-select menu of the available subtitle languages, saved as `.srt` sidecars.
+    private var subtitlePicker: some View {
+        HStack(spacing: 8) {
+            Label("Subtitles", systemImage: "captions.bubble")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Menu {
+                subtitleMenuItem(title: String(localized: "None"), isOn: selectedSubtitleIDs.isEmpty) {
+                    selectedSubtitleIDs.removeAll()
+                }
+                Divider()
+                ForEach(subtitleTracks) { track in
+                    subtitleMenuItem(title: subtitleLabel(track), isOn: selectedSubtitleIDs.contains(track.id)) {
+                        toggleSubtitle(track.id)
+                    }
+                }
+                if subtitleTracks.count > 1 {
+                    Divider()
+                    Button("Select All") { selectedSubtitleIDs = Set(subtitleTracks.map(\.id)) }
+                }
+            } label: {
+                Text(subtitleSummary)
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+        }
+    }
+
+    /// A menu row that shows a leading checkmark only when selected (an empty SF Symbol renders as a
+    /// blank gap, so the mark is conditional rather than always-present).
+    @ViewBuilder
+    private func subtitleMenuItem(title: String, isOn: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            if isOn { Label(title, systemImage: "checkmark") } else { Text(title) }
+        }
+    }
+
+    private func toggleSubtitle(_ id: String) {
+        if selectedSubtitleIDs.contains(id) { selectedSubtitleIDs.remove(id) } else { selectedSubtitleIDs.insert(id) }
+    }
+
+    /// The menu's current-selection label: "None", the one language, or "N selected".
+    private var subtitleSummary: String {
+        if selectedSubtitleIDs.isEmpty { return String(localized: "None") }
+        if selectedSubtitleIDs.count == 1,
+           let track = subtitleTracks.first(where: { $0.id == selectedSubtitleIDs.first }) {
+            return subtitleLabel(track)
+        }
+        return String(localized: "\(selectedSubtitleIDs.count) selected")
+    }
+
+    /// A human label for a subtitle track: the manifest's own name, else the language code turned into
+    /// a localized language name ("en" → "English"), else the raw id.
+    private func subtitleLabel(_ track: MediaTrack) -> String {
+        if let name = track.name, !name.isEmpty { return name }
+        if let code = track.language, let localized = Locale.current.localizedString(forLanguageCode: code) {
+            return localized
+        }
+        return track.language ?? track.id
     }
 
     /// A concise quality label — "1080p", "2160p", … by the streaming convention (so portrait/Shorts

@@ -434,6 +434,184 @@ struct MediaTransferTests {
 
         #expect(!FileManager.default.fileExists(atPath: download.mediaPartDirectoryPath))
     }
+
+    // MARK: Subtitles
+
+    @Test("A grab with a subtitle writes a converted .srt sidecar next to the finished video")
+    func grabWritesSubtitleSidecar() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let segURL = URL(string: "https://cdn/x/seg0.ts")!
+        let subURL = URL(string: "https://cdn/x/subs/en.vtt")!
+        let vtt = "WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nHello subtitle"
+
+        let mock = MockHTTPClient()
+        mock.setResource(.init(data: payload(0)), for: segURL)
+        mock.setResource(.init(data: Data(vtt.utf8)), for: subURL)
+
+        let plan = MediaPlan(
+            format: .hls,
+            segments: [MediaSegment(id: 0, url: segURL, duration: 6)],
+            subtitles: [MediaSubtitle(language: "en", name: "English",
+                                      segments: [MediaSegment(id: 0, url: subURL, duration: 0)])]
+        )
+
+        let store = try GRDBDownloadStore.inMemory()
+        let manager = try await makeManager(store: store, mock: mock)
+        let request = DownloadRequest(url: URL(string: "https://cdn/x/master.m3u8")!, suggestedFileName: "clip.ts", destinationDirectoryPath: dir.path)
+        let download = await manager.addMedia(request, plan: plan)
+        let done = try await waitFor(manager, download.id) { $0.status == .completed }
+
+        let base = (done.destinationFilePath as NSString).deletingPathExtension
+        let sidecar = "\(base).en.srt"
+        #expect(FileManager.default.fileExists(atPath: sidecar))
+        let srt = try String(contentsOf: URL(fileURLWithPath: sidecar), encoding: .utf8)
+        #expect(srt == "1\n00:00:01,000 --> 00:00:02,000\nHello subtitle\n\n")
+        // The video itself still lands intact.
+        #expect(FileManager.default.fileExists(atPath: done.destinationFilePath))
+    }
+
+    @Test("A subtitle that fails to fetch never fails the video grab (best-effort sidecar)")
+    func failedSubtitleDoesNotFailGrab() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let segURL = URL(string: "https://cdn/x/seg0.ts")!
+        let subURL = URL(string: "https://cdn/x/subs/missing.vtt")!   // never registered → fetch fails
+
+        let mock = MockHTTPClient()
+        mock.setResource(.init(data: payload(0)), for: segURL)
+
+        let plan = MediaPlan(
+            format: .hls,
+            segments: [MediaSegment(id: 0, url: segURL, duration: 6)],
+            subtitles: [MediaSubtitle(language: "en", name: "English",
+                                      segments: [MediaSegment(id: 0, url: subURL, duration: 0)])]
+        )
+
+        let store = try GRDBDownloadStore.inMemory()
+        let manager = try await makeManager(store: store, mock: mock)
+        let request = DownloadRequest(url: URL(string: "https://cdn/x/master.m3u8")!, suggestedFileName: "clip.ts", destinationDirectoryPath: dir.path)
+        let download = await manager.addMedia(request, plan: plan)
+        let done = try await waitFor(manager, download.id) { $0.status == .completed }
+
+        #expect(FileManager.default.fileExists(atPath: done.destinationFilePath))   // video still delivered
+        let base = (done.destinationFilePath as NSString).deletingPathExtension
+        #expect(!FileManager.default.fileExists(atPath: "\(base).en.srt"))          // no empty sidecar
+    }
+
+    // MARK: Audio-only
+
+    @Test("An audio-only grab downloads just the audio track's segments, no video")
+    func audioOnlyGrabDownloadsAudioSegments() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        // A DASH-style stream with a resolved audio track (segments already known).
+        let audioSegs = (0..<3).map { payload($0) }
+        let audioURLs = (0..<3).map { URL(string: "https://cdn/a/aud\($0).m4s")! }
+        let mock = MockHTTPClient()
+        for (index, url) in audioURLs.enumerated() { mock.setResource(.init(data: audioSegs[index]), for: url) }
+
+        let audioTrack = MediaTrack(
+            id: "audio-en", kind: .audio, language: "en", isDefault: true,
+            segments: audioURLs.enumerated().map { MediaSegment(id: $0.offset, url: $0.element, duration: 6) }
+        )
+        let stream = MediaStream(sourceURL: URL(string: "https://cdn/a/manifest.mpd")!, format: .dash,
+                                 variants: [], audioTracks: [audioTrack])
+        let plan = stream.audioOnlyPlan(for: audioTrack)
+        #expect(plan.segments.count == 3)
+        #expect(!plan.hasSeparateAudio)          // audio is the main stream, not a paired extra
+
+        let store = try GRDBDownloadStore.inMemory()
+        let manager = try await makeManager(store: store, mock: mock)
+        let request = DownloadRequest(url: URL(string: "https://cdn/a/manifest.mpd")!, suggestedFileName: "song.m4a", destinationDirectoryPath: dir.path)
+        let download = await manager.addMedia(request, plan: plan)
+        let done = try await waitFor(manager, download.id) { $0.status == .completed }
+
+        let expected = audioSegs.reduce(Data(), +)
+        #expect(try Data(contentsOf: URL(fileURLWithPath: done.destinationFilePath)) == expected)
+        #expect(done.mediaCompletedSegments == 3)
+    }
+
+    @Test("resolveAudioOnlyPlan resolves the default audio track from a manifest")
+    func resolveAudioOnlyPlanResolvesTrack() async throws {
+        // HLS master with an audio rendition whose media playlist lists the audio segments.
+        let master = """
+        #EXTM3U
+        #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aud",NAME="English",LANGUAGE="en",DEFAULT=YES,URI="audio/en.m3u8"
+        #EXT-X-STREAM-INF:BANDWIDTH=1400000,RESOLUTION=1280x720,AUDIO="aud"
+        720p.m3u8
+        """
+        let audioMedia = "#EXTM3U\n#EXTINF:6,\naud0.aac\n#EXTINF:6,\naud1.aac\n#EXT-X-ENDLIST"
+        let masterURL = "https://cdn/x/master.m3u8"
+        let mock = MockHTTPClient()
+        mock.setResource(.init(data: Data(master.utf8)), for: URL(string: masterURL)!)
+        mock.setResource(.init(data: Data(audioMedia.utf8)), for: URL(string: "https://cdn/x/audio/en.m3u8")!)
+
+        let store = try GRDBDownloadStore.inMemory()
+        let manager = try await makeManager(store: store, mock: mock)
+        let stream = try await manager.resolveMediaStream(url: URL(string: masterURL)!)
+        let plan = try await manager.resolveAudioOnlyPlan(from: stream, trackID: nil)
+
+        #expect(plan.segments.count == 2)
+        #expect(plan.segments.first?.url.absoluteString == "https://cdn/x/audio/aud0.aac")
+        #expect(!plan.hasSeparateAudio)
+    }
+
+    @Test("resolveMediaPlan pairs the chosen audio language, not just the default")
+    func resolveMediaPlanHonorsAudioTrackChoice() async throws {
+        // HLS master with two audio renditions (English default, Spanish); the grab must pair Spanish.
+        let master = """
+        #EXTM3U
+        #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aud",NAME="English",LANGUAGE="en",DEFAULT=YES,URI="audio/en.m3u8"
+        #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aud",NAME="Spanish",LANGUAGE="es",URI="audio/es.m3u8"
+        #EXT-X-STREAM-INF:BANDWIDTH=1400000,RESOLUTION=1280x720,AUDIO="aud"
+        720p.m3u8
+        """
+        let video = "#EXTM3U\n#EXTINF:6,\nv0.ts\n#EXT-X-ENDLIST"
+        let esAudio = "#EXTM3U\n#EXTINF:6,\nes0.aac\n#EXT-X-ENDLIST"
+        let masterURL = "https://cdn/x/master.m3u8"
+        let mock = MockHTTPClient()
+        mock.setResource(.init(data: Data(master.utf8)), for: URL(string: masterURL)!)
+        mock.setResource(.init(data: Data(video.utf8)), for: URL(string: "https://cdn/x/720p.m3u8")!)
+        mock.setResource(.init(data: Data(esAudio.utf8)), for: URL(string: "https://cdn/x/audio/es.m3u8")!)
+
+        let store = try GRDBDownloadStore.inMemory()
+        let manager = try await makeManager(store: store, mock: mock)
+        let stream = try await manager.resolveMediaStream(url: URL(string: masterURL)!)
+        let spanish = try #require(stream.audioTracks.first { $0.language == "es" })
+        let plan = try await manager.resolveMediaPlan(from: stream, variantID: "0", audioTrackID: spanish.id)
+
+        #expect(plan.hasSeparateAudio)
+        #expect(plan.audioSegments?.first?.url.absoluteString == "https://cdn/x/audio/es0.aac")
+    }
+
+    @Test("resolveMediaPlan attaches the chosen subtitle track to the plan")
+    func resolveMediaPlanAttachesSubtitle() async throws {
+        let master = """
+        #EXTM3U
+        #EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subs",NAME="English",LANGUAGE="en",DEFAULT=YES,URI="subs/en.vtt"
+        #EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=640x360,SUBTITLES="subs"
+        360p.m3u8
+        """
+        let media = "#EXTM3U\n#EXTINF:6,\nseg0.ts\n#EXT-X-ENDLIST"
+        let masterURL = "https://cdn/x/master.m3u8"
+        let mock = MockHTTPClient()
+        mock.setResource(.init(data: Data(master.utf8)), for: URL(string: masterURL)!)
+        mock.setResource(.init(data: Data(media.utf8)), for: URL(string: "https://cdn/x/360p.m3u8")!)
+
+        let store = try GRDBDownloadStore.inMemory()
+        let manager = try await makeManager(store: store, mock: mock)
+        let stream = try await manager.resolveMediaStream(url: URL(string: masterURL)!)
+        let subtitleID = try #require(stream.subtitleTracks.first).id
+        let plan = try await manager.resolveMediaPlan(from: stream, variantID: "0", subtitleTrackIDs: [subtitleID])
+
+        #expect(plan.subtitles?.count == 1)
+        #expect(plan.subtitles?.first?.language == "en")
+        #expect(plan.subtitles?.first?.segments.first?.url.absoluteString == "https://cdn/x/subs/en.vtt")
+    }
 }
 
 private struct MediaTimeout: Error {}

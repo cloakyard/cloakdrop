@@ -222,6 +222,54 @@ public struct MediaTrack: Sendable, Hashable, Codable, Identifiable {
     }
 }
 
+/// A subtitle chosen for download: the text segments to fetch (usually a single WebVTT file; HLS can
+/// deliver many) plus the language/label for its sidecar filename. Built from a resolved subtitle
+/// `MediaTrack` (or a yt-dlp caption URL) and carried on the `MediaPlan`, so the engine fetches the
+/// text at finalize and writes a `.srt` next to the video (see `SubtitleConverter`).
+public struct MediaSubtitle: Sendable, Hashable, Codable, Identifiable {
+    public var id: String { language ?? name ?? (segments.first?.url.absoluteString ?? "subtitle") }
+    /// BCP-47 language tag (`"en"`, `"es"`), used for the sidecar suffix and de-duplication.
+    public let language: String?
+    /// Human label from the manifest (`"English"`, `"Commentary"`), for the picker.
+    public let name: String?
+    /// The subtitle text resources to fetch and concatenate, in order.
+    public var segments: [MediaSegment]
+
+    public init(language: String?, name: String?, segments: [MediaSegment]) {
+        self.language = language
+        self.name = name
+        self.segments = segments
+    }
+
+    /// A filesystem-safe language/label token for the sidecar name (`video.en.srt`), or `nil` when the
+    /// track is unlabelled (the caller then uses a bare `.srt`).
+    public var fileNameToken: String? {
+        let raw = language ?? name
+        guard let raw, !raw.isEmpty else { return nil }
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_"))
+        let token = raw.unicodeScalars.map { allowed.contains($0) ? Character($0) : "-" }
+        return String(token).trimmingCharacters(in: CharacterSet(charactersIn: "-")).lowercased()
+    }
+}
+
+public extension MediaTrack {
+    /// A downloadable `MediaSubtitle` from this (resolved) subtitle track, or `nil` when it carries no
+    /// segments to fetch. Only meaningful for `kind == .subtitle`.
+    var asSubtitle: MediaSubtitle? {
+        guard kind == .subtitle, !segments.isEmpty else { return nil }
+        return MediaSubtitle(language: language, name: name, segments: segments)
+    }
+
+    /// A copy carrying resolved `segments` (and any `initSegment`), preserving every other field —
+    /// how the resolver turns a track's playlist reference into fetchable segments.
+    func withSegments(_ segments: [MediaSegment], initSegment: MediaInitSegment?) -> MediaTrack {
+        MediaTrack(
+            id: id, kind: kind, groupID: groupID, name: name, language: language,
+            isDefault: isDefault, playlistURL: playlistURL, initSegment: initSegment, segments: segments
+        )
+    }
+}
+
 /// A fully parsed adaptive-streaming manifest: the source, its format, the quality variants, and any
 /// independent audio/subtitle tracks. The single value every media capture funnels through — the
 /// parsers (`HLSParser`, `DASHParser`) produce it; the engine (Phase 4b) turns a chosen variant's
@@ -256,6 +304,19 @@ public struct MediaStream: Sendable, Hashable, Codable {
     /// The highest-bandwidth variant — a sensible default selection.
     public var bestVariant: MediaVariant? {
         variants.max { $0.bandwidth < $1.bandwidth }
+    }
+
+    /// Whether the stream exposes a separate audio track to grab on its own (the "audio only" verb).
+    /// True when there's a standalone audio track (HLS AUDIO group / DASH audio set / yt-dlp audio
+    /// format), or a variant that is itself audio-only.
+    public var hasGrabbableAudio: Bool {
+        !audioTracks.isEmpty || variants.contains(where: \.isAudioOnly)
+    }
+
+    /// The default (else first) standalone audio track — the one an "audio only" grab defaults to when
+    /// the user doesn't pick a language. `nil` when the stream has no separate audio track.
+    public var defaultAudioTrack: MediaTrack? {
+        audioTracks.first(where: \.isDefault) ?? audioTracks.first
     }
 
     /// Every distinct encryption method used across the resolved variants — lets the UI flag a

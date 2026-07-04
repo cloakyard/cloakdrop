@@ -55,10 +55,54 @@ public extension ExtractedMedia {
         if rawFormats.isEmpty, jsonString(root["url"]) != nil { rawFormats = [root] }
 
         let formats = rawFormats.compactMap(parseFormat)
+        let subtitles = parseSubtitles(manual: root["subtitles"], automatic: root["automatic_captions"])
         return ExtractedMedia(
             title: sanitizeTitle(title), webpageURL: webpage,
-            extractor: extractor, isLive: isLive, formats: formats
+            extractor: extractor, isLive: isLive, formats: formats, subtitles: subtitles
         )
+    }
+
+    /// Caption formats we can convert to a `.srt` sidecar (`SubtitleConverter`), best-first. JSON /
+    /// `srv*` variants yt-dlp also lists aren't convertible, so a language offering only those is skipped.
+    private static let convertibleSubtitleExts = ["vtt", "webvtt", "srt", "ttml", "dfxp"]
+
+    /// Base languages we keep from `automatic_captions` — machine captions span ~190 languages, so we
+    /// bound the picker to the common ones (manual/authored subtitles are always kept, never capped).
+    private static let commonAutoLanguages: Set<String> = [
+        "en", "es", "fr", "de", "pt", "it", "nl", "ru", "pl", "tr",
+        "ja", "ko", "zh", "hi", "ar", "id", "vi", "th", "uk", "sv"
+    ]
+
+    /// Build subtitle tracks from yt-dlp's `subtitles` (authored) and `automatic_captions` maps: one
+    /// entry per language, preferring a convertible format, authored over automatic, and bounding the
+    /// automatic set to common languages so a 190-language caption list can't swamp the picker.
+    private static func parseSubtitles(manual: Any?, automatic: Any?) -> [ExtractedSubtitle] {
+        func pick(_ value: Any?, isAutomatic: Bool) -> [ExtractedSubtitle] {
+            guard let dict = value as? [String: Any] else { return [] }
+            var out: [ExtractedSubtitle] = []
+            for (language, entries) in dict {
+                guard let list = entries as? [[String: Any]] else { continue }
+                let convertible = list.filter { convertibleSubtitleExts.contains((jsonString($0["ext"]) ?? "").lowercased()) }
+                let ranked = convertible.sorted {
+                    (convertibleSubtitleExts.firstIndex(of: (jsonString($0["ext"]) ?? "").lowercased()) ?? 99)
+                        < (convertibleSubtitleExts.firstIndex(of: (jsonString($1["ext"]) ?? "").lowercased()) ?? 99)
+                }
+                guard let best = ranked.first, let url = jsonString(best["url"]).flatMap({ URL(string: $0) }) else { continue }
+                out.append(ExtractedSubtitle(
+                    language: language, name: jsonString(best["name"]),
+                    url: url, ext: (jsonString(best["ext"]) ?? "vtt").lowercased(), isAutomatic: isAutomatic
+                ))
+            }
+            return out
+        }
+        let authored = pick(manual, isAutomatic: false)
+        let authoredLanguages = Set(authored.map(\.language))
+        let auto = pick(automatic, isAutomatic: true).filter {
+            !authoredLanguages.contains($0.language)
+                && commonAutoLanguages.contains(String($0.language.prefix(while: { $0 != "-" })).lowercased())
+        }
+        // Authored first, then automatic — both alphabetized within, for a stable picker order.
+        return authored.sorted { $0.language < $1.language } + auto.sorted { $0.language < $1.language }
     }
 
     private static func parseFormat(_ raw: [String: Any]) -> ExtractedFormat? {
@@ -71,6 +115,7 @@ public extension ExtractedMedia {
             width: jsonInt(raw["width"]), height: jsonInt(raw["height"]), fps: jsonDouble(raw["fps"]),
             tbr: jsonDouble(raw["tbr"]), abr: jsonDouble(raw["abr"]),
             filesize: jsonInt64(raw["filesize"]) ?? jsonInt64(raw["filesize_approx"]),
+            language: jsonString(raw["language"]),
             proto: jsonString(raw["protocol"]), httpHeaders: jsonHeaders(raw["http_headers"])
         )
     }
@@ -112,18 +157,65 @@ public extension ExtractedMedia {
 
         let ordered = tiers.values.sorted { $0.height > $1.height }
         let variants = ordered.map(makeVariant)
-        // The distinct audio tracks the variants reference (deduped by format id).
-        var audioTracks: [MediaTrack] = []
-        var seenAudio = Set<String>()
-        for tier in ordered {
-            guard let audio = tier.audio, seenAudio.insert(audio.formatID).inserted else { continue }
-            audioTracks.append(MediaTrack(
-                id: audio.formatID, kind: .audio, groupID: audio.formatID,
-                name: audio.ext.uppercased(), isDefault: audioTracks.isEmpty,
-                segments: [MediaSegment(id: 0, url: audio.url, duration: 0)]
-            ))
+        let audioTracks = audioTrackList(ordered: ordered, audioOnly: audioOnly)
+        return MediaStream(
+            sourceURL: pageURL, format: .dash, variants: variants,
+            audioTracks: audioTracks, subtitleTracks: subtitleTrackList
+        )
+    }
+
+    /// The audio tracks to offer. When any audio format is language-tagged (a dubbed/multi-audio
+    /// video), expose **one track per language** — the best bitrate of each — so an audio-language
+    /// picker can choose among them. Otherwise (ordinary single-language content) expose just the
+    /// audio each video tier pairs with, deduped by format id, so the picker isn't cluttered with
+    /// container variants (m4a vs. webm) that aren't real language choices.
+    private func audioTrackList(ordered: [Tier], audioOnly: [ExtractedFormat]) -> [MediaTrack] {
+        func track(_ format: ExtractedFormat, isDefault: Bool) -> MediaTrack {
+            MediaTrack(
+                id: format.formatID, kind: .audio, groupID: format.formatID,
+                name: format.ext.uppercased(), language: format.language, isDefault: isDefault,
+                segments: [MediaSegment(id: 0, url: format.url, duration: 0)]
+            )
         }
-        return MediaStream(sourceURL: pageURL, format: .dash, variants: variants, audioTracks: audioTracks)
+
+        if audioOnly.contains(where: { $0.language != nil }) {
+            // Dubbed: best bitrate per language. The video's paired audio (the top tier's) is default.
+            var byLanguage: [String: ExtractedFormat] = [:]
+            for format in audioOnly {
+                let key = format.language ?? "und"
+                if let existing = byLanguage[key], (existing.abr ?? existing.tbr ?? 0) >= (format.abr ?? format.tbr ?? 0) { continue }
+                byLanguage[key] = format
+            }
+            let defaultID = ordered.first?.audio?.formatID
+            return byLanguage.values
+                .sorted { ($0.language ?? "") < ($1.language ?? "") }
+                .map { track($0, isDefault: $0.formatID == defaultID) }
+        }
+
+        // Single-language: the distinct audio each tier references (deduped by format id).
+        var tracks: [MediaTrack] = []
+        var seen = Set<String>()
+        for tier in ordered {
+            guard let audio = tier.audio, seen.insert(audio.formatID).inserted else { continue }
+            tracks.append(track(audio, isDefault: tracks.isEmpty))
+        }
+        return tracks
+    }
+
+    /// The extraction's subtitles as resolved `MediaTrack`s (each a single direct caption URL, so no
+    /// further fetch is needed to plan). Automatic captions are tagged `(auto)` in their label.
+    private var subtitleTrackList: [MediaTrack] {
+        subtitles.map { subtitle in
+            let label = subtitle.name ?? subtitle.language
+            return MediaTrack(
+                id: subtitle.language,
+                kind: .subtitle,
+                name: subtitle.isAutomatic ? "\(label) (auto)" : label,
+                language: subtitle.language,
+                playlistURL: subtitle.url,
+                segments: [MediaSegment(id: 0, url: subtitle.url, duration: 0)]
+            )
+        }
     }
 
     /// A download filename for the tier whose video format id is `id`: the (already-sanitized) title

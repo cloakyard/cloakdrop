@@ -204,3 +204,99 @@ struct YtDlpExtractorTests {
         #expect(runner.lastArguments == ["--version"])
     }
 }
+
+// yt-dlp `-J` output with authored subtitles (en, es), plus automatic captions (en which is redundant,
+// fr which is common, and "zzz" which isn't a common language). "en" also offers a json3 variant we
+// can't convert, so the vtt must win.
+private let subtitleJSON = #"""
+{
+  "title": "Subtitled Clip",
+  "id": "sub1",
+  "formats": [
+    { "format_id": "18", "url": "https://v/18", "ext": "mp4", "vcodec": "avc1", "acodec": "mp4a", "width": 640, "height": 360, "tbr": 700 }
+  ],
+  "subtitles": {
+    "en": [ { "ext": "json3", "url": "https://s/en.json3" }, { "ext": "vtt", "url": "https://s/en.vtt", "name": "English" } ],
+    "es": [ { "ext": "vtt", "url": "https://s/es.vtt", "name": "Spanish" } ]
+  },
+  "automatic_captions": {
+    "en": [ { "ext": "vtt", "url": "https://s/en.auto.vtt" } ],
+    "fr": [ { "ext": "vtt", "url": "https://s/fr.auto.vtt" } ],
+    "zzz": [ { "ext": "vtt", "url": "https://s/zzz.auto.vtt" } ]
+  }
+}
+"""#
+
+@Suite("Media extraction — subtitles")
+struct MediaExtractionSubtitleTests {
+    @Test("Authored subtitles are parsed, preferring a convertible format over json3")
+    func parsesAuthoredSubtitles() throws {
+        let media = try ExtractedMedia.parse(json: Data(subtitleJSON.utf8))
+        let en = try #require(media.subtitles.first { $0.language == "en" })
+        #expect(en.isAutomatic == false)
+        #expect(en.ext == "vtt")                                   // json3 rejected in favour of vtt
+        #expect(en.url.absoluteString == "https://s/en.vtt")
+        #expect(en.name == "English")
+    }
+
+    @Test("Automatic captions fill only common languages not already authored")
+    func boundsAutomaticCaptions() throws {
+        let media = try ExtractedMedia.parse(json: Data(subtitleJSON.utf8))
+        let languages = media.subtitles.map(\.language)
+        #expect(languages.contains("en"))                          // authored
+        #expect(languages.contains("es"))                          // authored
+        #expect(languages.contains("fr"))                          // automatic, common → kept
+        #expect(!languages.contains("zzz"))                        // automatic, uncommon → dropped
+        // The "en" automatic caption must not duplicate the authored one.
+        #expect(media.subtitles.filter { $0.language == "en" }.count == 1)
+        #expect(try #require(media.subtitles.first { $0.language == "en" }).isAutomatic == false)
+    }
+
+    @Test("Automatic captions are tagged (auto) in the mapped subtitle track label")
+    func mapsSubtitlesIntoStreamTracks() throws {
+        let media = try ExtractedMedia.parse(json: Data(subtitleJSON.utf8))
+        let stream = try #require(media.toMediaStream(pageURL: URL(string: "https://x/watch")!))
+        #expect(stream.subtitleTracks.count == 3)                  // en, es, fr
+        let fr = try #require(stream.subtitleTracks.first { $0.language == "fr" })
+        #expect(fr.name?.contains("(auto)") == true)
+        // Each maps to a resolved single-segment track, ready to plan without a further fetch.
+        #expect(fr.asSubtitle?.segments.count == 1)
+        let en = try #require(stream.subtitleTracks.first { $0.language == "en" })
+        #expect(en.name == "English")                              // authored → no (auto) tag
+    }
+
+    @Test("A page with no subtitle maps to a stream with none")
+    func noSubtitlesIsEmpty() throws {
+        let media = try ExtractedMedia.parse(json: Data(sampleJSON.utf8))
+        #expect(media.subtitles.isEmpty)
+        let stream = try #require(media.toMediaStream(pageURL: URL(string: "https://x/watch")!))
+        #expect(stream.subtitleTracks.isEmpty)
+    }
+}
+
+// A dubbed page: one video tier plus two audio-only formats tagged with different languages.
+private let dubbedJSON = #"""
+{
+  "title": "Dubbed Clip",
+  "id": "dub1",
+  "formats": [
+    { "format_id": "137", "url": "https://v/137", "ext": "mp4", "vcodec": "avc1.640028", "acodec": "none", "width": 1920, "height": 1080, "tbr": 4000 },
+    { "format_id": "en",  "url": "https://a/en",  "ext": "m4a", "vcodec": "none", "acodec": "mp4a.40.2", "abr": 128, "language": "en" },
+    { "format_id": "es",  "url": "https://a/es",  "ext": "m4a", "vcodec": "none", "acodec": "mp4a.40.2", "abr": 128, "language": "es" }
+  ]
+}
+"""#
+
+@Suite("Media extraction — multi-audio")
+struct MediaExtractionAudioLanguageTests {
+    @Test("Audio-format languages are captured and surfaced as labelled audio tracks")
+    func capturesAudioLanguages() throws {
+        let media = try ExtractedMedia.parse(json: Data(dubbedJSON.utf8))
+        #expect(media.formats.first { $0.formatID == "es" }?.language == "es")
+        let stream = try #require(media.toMediaStream(pageURL: URL(string: "https://x/watch")!))
+        let languages = Set(stream.audioTracks.compactMap(\.language))
+        #expect(languages.contains("en"))
+        #expect(languages.contains("es"))
+        #expect(stream.hasGrabbableAudio)
+    }
+}

@@ -28,19 +28,24 @@ public struct ExtractedMedia: Sendable, Hashable {
     public let extractor: String?
     public let isLive: Bool
     public let formats: [ExtractedFormat]
+    /// Subtitle tracks yt-dlp reported for the page (manual `subtitles`, else `automatic_captions`),
+    /// one per language — downloadable as `.srt` sidecars alongside the chosen video.
+    public let subtitles: [ExtractedSubtitle]
 
     public init(
         title: String,
         webpageURL: URL? = nil,
         extractor: String? = nil,
         isLive: Bool = false,
-        formats: [ExtractedFormat]
+        formats: [ExtractedFormat],
+        subtitles: [ExtractedSubtitle] = []
     ) {
         self.title = title
         self.webpageURL = webpageURL
         self.extractor = extractor
         self.isLive = isLive
         self.formats = formats
+        self.subtitles = subtitles
     }
 
     /// The direct-file formats our engine can actually grab (a single ranged HTTP(S) resource, not a
@@ -75,6 +80,9 @@ public struct ExtractedFormat: Sendable, Hashable, Identifiable {
     public let tbr: Double?
     public let abr: Double?
     public let filesize: Int64?
+    /// BCP-47 language of this format's audio, when yt-dlp tags it — set on dubbed/multi-audio videos,
+    /// so an audio-language picker can label the alternatives. `nil` for single-language content.
+    public let language: String?
     /// yt-dlp transfer protocol: `https`/`http` (a direct file), or `m3u8_native`/`http_dash_segments`
     /// (a manifest/segmented stream we don't take off this path).
     public let proto: String?
@@ -85,12 +93,14 @@ public struct ExtractedFormat: Sendable, Hashable, Identifiable {
         vcodec: String? = nil, acodec: String? = nil,
         width: Int? = nil, height: Int? = nil, fps: Double? = nil,
         tbr: Double? = nil, abr: Double? = nil, filesize: Int64? = nil,
+        language: String? = nil,
         proto: String? = nil, httpHeaders: [String: String] = [:]
     ) {
         self.formatID = formatID; self.url = url; self.ext = ext
         self.vcodec = vcodec; self.acodec = acodec
         self.width = width; self.height = height; self.fps = fps
         self.tbr = tbr; self.abr = abr; self.filesize = filesize
+        self.language = language
         self.proto = proto; self.httpHeaders = httpHeaders
     }
 
@@ -111,6 +121,29 @@ public struct ExtractedFormat: Sendable, Hashable, Identifiable {
         case "https", "http", "": return true
         default: return false
         }
+    }
+}
+
+/// One subtitle track from a page extraction: a direct caption-file URL plus its language, mapped
+/// into a `MediaStream` subtitle track so the picker can offer it and the engine can write a sidecar.
+public struct ExtractedSubtitle: Sendable, Hashable, Identifiable {
+    public var id: String { language }
+    /// BCP-47 language tag (`"en"`, `"es"`, `"en-US"`).
+    public let language: String
+    /// A human label when yt-dlp supplies one (`name`), else `nil` (the UI falls back to the code).
+    public let name: String?
+    public let url: URL
+    /// Caption container: `vtt`/`srt`/`ttml`/`srv3`… — we request and prefer WebVTT.
+    public let ext: String
+    /// Machine-generated captions (yt-dlp `automatic_captions`) rather than an authored track.
+    public let isAutomatic: Bool
+
+    public init(language: String, name: String? = nil, url: URL, ext: String, isAutomatic: Bool = false) {
+        self.language = language
+        self.name = name
+        self.url = url
+        self.ext = ext
+        self.isAutomatic = isAutomatic
     }
 }
 

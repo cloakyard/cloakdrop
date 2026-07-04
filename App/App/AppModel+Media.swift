@@ -76,15 +76,17 @@ extension AppModel {
     }
 
     /// Auto-download the best tier, or open the picker when "Ask me quality" is on and there's a real
-    /// choice to make.
+    /// choice to make (multiple qualities, or subtitles to pick).
     private func routeStream(_ stream: MediaStream, request: DownloadRequest, extracted: ExtractedMedia?) {
-        if askQualityEnabled, stream.variants.count > 1 {
+        if askQualityEnabled, stream.variants.count > 1 || !stream.subtitleTracks.isEmpty {
             pendingMediaSelection = MediaSelection(stream: stream, request: request, extracted: extracted)
             return
         }
         guard let best = stream.bestVariant else { add(request); return }
         Task {
-            guard let plan = await buildPlan(from: stream, variantID: best.id, request: request) else {
+            let subtitleIDs = defaultSubtitleTrackIDs(for: stream)
+            guard let plan = await buildPlan(from: stream, variantID: best.id, subtitleTrackIDs: subtitleIDs,
+                                             audioOnly: false, audioTrackID: nil, request: request) else {
                 // A manifest can still fall back to a plain download; a page URL cannot (it's HTML).
                 if extracted == nil { add(request) } else {
                     presentMediaError(String(localized: "Couldn’t prepare this download."))
@@ -95,6 +97,14 @@ extension AppModel {
         }
     }
 
+    /// The subtitle track(s) to fetch on the one-click path: the default (else first) track when
+    /// "Download subtitles" is on, or none. The picker overrides this per-grab.
+    private func defaultSubtitleTrackIDs(for stream: MediaStream) -> [String] {
+        guard grabSubtitlesEnabled, !stream.subtitleTracks.isEmpty else { return [] }
+        let track = stream.subtitleTracks.first(where: \.isDefault) ?? stream.subtitleTracks.first
+        return track.map { [$0.id] } ?? []
+    }
+
     /// Grab an adaptive source that exposes video and audio as *separate direct URLs* with no manifest:
     /// build a paired plan and enqueue it, downloading both and muxing so the file has sound.
     func grabPairedMedia(_ request: DownloadRequest, audioURL: URL) {
@@ -102,12 +112,18 @@ extension AppModel {
         Task { await manager.addMedia(request, plan: plan) }
     }
 
-    /// The user picked a variant in the picker: build its plan and enqueue the grab.
-    func confirmMediaSelection(variantID: String) {
+    /// The user confirmed the picker: build the plan for the chosen video quality (or audio-only track)
+    /// plus any subtitles, and enqueue the grab. In audio-only mode `variantID` names the audio track.
+    func confirmMediaSelection(
+        variantID: String, subtitleTrackIDs: [String] = [],
+        audioOnly: Bool = false, audioTrackID: String? = nil
+    ) {
         guard let selection = pendingMediaSelection else { return }
         pendingMediaSelection = nil
         Task {
-            guard let plan = await buildPlan(from: selection.stream, variantID: variantID, request: selection.request) else { return }
+            guard let plan = await buildPlan(from: selection.stream, variantID: variantID,
+                                             subtitleTrackIDs: subtitleTrackIDs, audioOnly: audioOnly,
+                                             audioTrackID: audioTrackID, request: selection.request) else { return }
             var request = selection.request
             // For a manifest, drop the `.m3u8`/`.mpd` "Save As" name so the engine derives a proper one.
             if selection.extracted == nil, let name = request.suggestedFileName,
@@ -124,15 +140,55 @@ extension AppModel {
 
     /// Build a plan for a chosen variant: pre-resolved extractor streams (their segment is a direct
     /// URL) build locally with no network; an HLS/DASH master variant resolves its media playlist.
-    private func buildPlan(from stream: MediaStream, variantID: String, request: DownloadRequest) async -> MediaPlan? {
+    /// `subtitleTrackIDs` names the subtitle tracks to fetch as `.srt` sidecars. When `audioOnly`,
+    /// `variantID` instead names the audio track to grab on its own (empty = default track).
+    private func buildPlan(
+        from stream: MediaStream, variantID: String,
+        subtitleTrackIDs: [String], audioOnly: Bool, audioTrackID: String?, request: DownloadRequest
+    ) async -> MediaPlan? {
+        if audioOnly {
+            return await buildAudioOnlyPlan(from: stream, trackID: variantID,
+                                            subtitleTrackIDs: subtitleTrackIDs, request: request)
+        }
         guard let variant = stream.variants.first(where: { $0.id == variantID }) else { return nil }
         if variant.segments.isEmpty {
+            // Manifest master variant — resolve the variant, chosen audio, and subtitles over the network.
             let headers = Self.mediaHeaders(for: request)
-            return try? await manager.resolveMediaPlan(from: stream, variantID: variantID, headers: headers)
+            return try? await manager.resolveMediaPlan(
+                from: stream, variantID: variantID, audioTrackID: audioTrackID,
+                subtitleTrackIDs: subtitleTrackIDs, headers: headers
+            )
         }
-        // Pair audio by the group id the mapping set (container-matched), then build locally.
-        let audio = stream.audioTracks.first { $0.groupID == variant.audioGroupID } ?? stream.audioTrack(for: variant)
-        return stream.plan(for: variant, audio: audio)
+        // Pre-resolved (extractor / DASH / inline playlist): pair the chosen (else container-matched)
+        // audio and subtitles and build locally.
+        let audio = audioTrackID.flatMap { id in stream.audioTracks.first { $0.id == id } }
+            ?? stream.audioTracks.first { $0.groupID == variant.audioGroupID }
+            ?? stream.audioTrack(for: variant)
+        let subtitles = subtitleTrackIDs.compactMap { id in
+            stream.subtitleTracks.first { $0.id == id }?.asSubtitle
+        }
+        return stream.plan(for: variant, audio: audio, subtitles: subtitles)
+    }
+
+    /// Build an audio-only plan (the "audio only" verb): grab just the chosen (else default) audio
+    /// track, delivered as a clean `.m4a`/native audio file. Pre-resolved tracks build locally; a
+    /// manifest audio track resolves its playlist first.
+    private func buildAudioOnlyPlan(
+        from stream: MediaStream, trackID: String,
+        subtitleTrackIDs: [String], request: DownloadRequest
+    ) async -> MediaPlan? {
+        let track = stream.audioTracks.first { $0.id == trackID } ?? stream.defaultAudioTrack
+        guard let track else { return nil }
+        if track.segments.isEmpty {
+            let headers = Self.mediaHeaders(for: request)
+            return try? await manager.resolveAudioOnlyPlan(
+                from: stream, trackID: track.id, subtitleTrackIDs: subtitleTrackIDs, headers: headers
+            )
+        }
+        let subtitles = subtitleTrackIDs.compactMap { id in
+            stream.subtitleTracks.first { $0.id == id }?.asSubtitle
+        }
+        return stream.audioOnlyPlan(for: track, subtitles: subtitles)
     }
 
     /// Name a page grab from the video title + the chosen format's container; leaves a manifest/plain

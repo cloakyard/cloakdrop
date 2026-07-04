@@ -13,19 +13,57 @@ public extension DownloadManager {
     }
 
     /// Resolve the chosen variant of an already-fetched stream into a plan — a second fetch for the
-    /// HLS media playlist, or a no-op for DASH / a lone media playlist.
-    func resolveMediaPlan(from stream: MediaStream, variantID: String, headers: [String: String] = [:]) async throws -> MediaPlan {
+    /// HLS media playlist, or a no-op for DASH / a lone media playlist. `audioTrackID` overrides which
+    /// audio (language) to pair (else the variant's default); `subtitleTrackIDs` names the subtitle
+    /// tracks to fetch as sidecars (empty = none).
+    func resolveMediaPlan(
+        from stream: MediaStream, variantID: String, audioTrackID: String? = nil,
+        subtitleTrackIDs: [String] = [], headers: [String: String] = [:]
+    ) async throws -> MediaPlan {
         guard let variant = stream.variants.first(where: { $0.id == variantID }) else {
             throw MediaParseError.noContent
         }
         let resolver = MediaResolver(httpClient: httpClient)
         let resolved = try await resolver.resolveVariant(variant, headers: headers)
-        // Pair the variant with its separate audio track (HLS AUDIO group / DASH audio set) and
-        // resolve its playlist too, so a chosen video quality always downloads with sound. A failed
-        // audio resolution degrades to a video-only grab rather than failing the whole download.
-        var audio = stream.audioTrack(for: resolved)
+        // Pair the variant with the chosen (else default) separate audio track and resolve its playlist
+        // too, so a chosen video quality always downloads with sound. A failed audio resolution degrades
+        // to a video-only grab rather than failing the whole download.
+        var audio = audioTrackID.flatMap { id in stream.audioTracks.first { $0.id == id } }
+            ?? stream.audioTrack(for: resolved)
         if let track = audio { audio = try? await resolver.resolveAudioTrack(track, headers: headers) }
-        return stream.plan(for: resolved, audio: audio)
+        let subtitles = await resolvedSubtitles(stream, ids: subtitleTrackIDs, headers: headers)
+        return stream.plan(for: resolved, audio: audio, subtitles: subtitles)
+    }
+
+    /// Resolve an **audio-only** grab (the "audio only" verb): fetch the chosen (else default) audio
+    /// track's segments and return a plan whose sole stream is that audio — finalize repackages it into
+    /// a clean `.m4a` (AAC) or native audio container, losslessly. `subtitleTrackIDs` still apply.
+    func resolveAudioOnlyPlan(
+        from stream: MediaStream, trackID: String?,
+        subtitleTrackIDs: [String] = [], headers: [String: String] = [:]
+    ) async throws -> MediaPlan {
+        let resolver = MediaResolver(httpClient: httpClient)
+        let chosen = trackID.flatMap { id in stream.audioTracks.first { $0.id == id } } ?? stream.defaultAudioTrack
+        guard let track = chosen else { throw MediaParseError.noContent }
+        let resolved = try await resolver.resolveAudioTrack(track, headers: headers)
+        guard !resolved.segments.isEmpty else { throw MediaParseError.noContent }
+        let subtitles = await resolvedSubtitles(stream, ids: subtitleTrackIDs, headers: headers)
+        return stream.audioOnlyPlan(for: resolved, subtitles: subtitles)
+    }
+
+    /// Resolve each requested subtitle track into a fetchable `MediaSubtitle` (best-effort — a track
+    /// that fails to resolve is dropped, never failing the grab). Creates its own `MediaResolver` so it
+    /// composes into any plan builder without threading one across the actor boundary.
+    private func resolvedSubtitles(_ stream: MediaStream, ids: [String], headers: [String: String]) async -> [MediaSubtitle] {
+        guard !ids.isEmpty else { return [] }
+        let resolver = MediaResolver(httpClient: httpClient)
+        var subtitles: [MediaSubtitle] = []
+        for id in ids {
+            guard let track = stream.subtitleTracks.first(where: { $0.id == id }) else { continue }
+            let resolvedTrack = (try? await resolver.resolveSubtitleTrack(track, headers: headers)) ?? track
+            if let subtitle = resolvedTrack.asSubtitle { subtitles.append(subtitle) }
+        }
+        return subtitles
     }
 
     /// A sensible output name for a media grab, whose URL is a playlist (`master.m3u8`, `manifest.mpd`)

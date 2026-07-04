@@ -23,6 +23,10 @@ public struct MediaPlan: Sendable, Hashable, Codable {
     /// this existed still decode.
     public var audioInitSegment: MediaInitSegment?
     public var audioSegments: [MediaSegment]?
+    /// Subtitle tracks to fetch and write as `.srt` sidecars next to the finished file. Optional so
+    /// plans persisted before subtitles existed still decode; empty/absent means none were requested.
+    /// Fetched best-effort at finalize — they never gate or fail the video grab.
+    public var subtitles: [MediaSubtitle]?
 
     public init(
         format: MediaFormat,
@@ -31,7 +35,8 @@ public struct MediaPlan: Sendable, Hashable, Codable {
         resolution: MediaResolution? = nil,
         bandwidth: Int = 0,
         audioInitSegment: MediaInitSegment? = nil,
-        audioSegments: [MediaSegment]? = nil
+        audioSegments: [MediaSegment]? = nil,
+        subtitles: [MediaSubtitle]? = nil
     ) {
         self.format = format
         self.initSegment = initSegment
@@ -40,6 +45,7 @@ public struct MediaPlan: Sendable, Hashable, Codable {
         self.bandwidth = bandwidth
         self.audioInitSegment = audioInitSegment
         self.audioSegments = audioSegments
+        self.subtitles = subtitles
     }
 
     /// Whether this plan carries a separate audio stream to download and mux into the video.
@@ -79,8 +85,8 @@ public struct MediaPlan: Sendable, Hashable, Codable {
 
 public extension MediaStream {
     /// A transfer plan for `variant`, which must already be resolved (its `segments` populated),
-    /// optionally muxing in a separate `audio` track (also resolved).
-    func plan(for variant: MediaVariant, audio: MediaTrack? = nil) -> MediaPlan {
+    /// optionally muxing in a separate `audio` track (also resolved) and writing `subtitles` sidecars.
+    func plan(for variant: MediaVariant, audio: MediaTrack? = nil, subtitles: [MediaSubtitle] = []) -> MediaPlan {
         MediaPlan(
             format: format,
             initSegment: variant.initSegment,
@@ -88,7 +94,20 @@ public extension MediaStream {
             resolution: variant.resolution,
             bandwidth: variant.bandwidth,
             audioInitSegment: audio?.initSegment,
-            audioSegments: (audio?.segments).flatMap { $0.isEmpty ? nil : $0 }
+            audioSegments: (audio?.segments).flatMap { $0.isEmpty ? nil : $0 },
+            subtitles: subtitles.isEmpty ? nil : subtitles
+        )
+    }
+
+    /// A plan that grabs a resolved audio `track` **on its own** (the "audio only" verb): its segments
+    /// become the sole stream, so finalize's single-stream remux repackages it into a clean `.m4a`
+    /// (AAC) or native audio container — losslessly, no re-encode. Optionally writes `subtitles`.
+    func audioOnlyPlan(for track: MediaTrack, subtitles: [MediaSubtitle] = []) -> MediaPlan {
+        MediaPlan(
+            format: format,
+            initSegment: track.initSegment,
+            segments: track.segments,
+            subtitles: subtitles.isEmpty ? nil : subtitles
         )
     }
 

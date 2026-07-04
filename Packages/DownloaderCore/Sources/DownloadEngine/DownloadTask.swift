@@ -624,7 +624,7 @@ actor DownloadTask {
                              sourceURL: download.url,
                              originURL: download.requestHeaders["Referer"].flatMap(URL.init(string:)))
         }
-
+        await writeSubtitleSidecars(plan.subtitles ?? [], headers: download.requestHeaders)
         download.totalBytes = fileSize(download.destinationFilePath)
         download.mediaDownloadedBytes = download.totalBytes ?? download.mediaDownloadedBytes
     }
@@ -685,7 +685,7 @@ actor DownloadTask {
         (try? FileManager.default.attributesOfItem(atPath: path)[.size] as? NSNumber)?.int64Value
     }
 
-    private func fetchResource(url: URL, byteRange: ClosedRange<Int64>?, headers: [String: String]) async throws -> Data {
+    func fetchResource(url: URL, byteRange: ClosedRange<Int64>?, headers: [String: String]) async throws -> Data {
         let (_, stream) = try await httpClient.stream(HTTPDownloadRequest(url: url, headers: headers, byteRange: byteRange))
         var data = Data()
         for try await chunk in stream { data.append(chunk) }

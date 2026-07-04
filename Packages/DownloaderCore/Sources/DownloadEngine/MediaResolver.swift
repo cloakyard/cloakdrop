@@ -64,6 +64,24 @@ public struct MediaResolver {
         )
     }
 
+    /// Subtitle URIs a subtitle track's `URI` may point at directly (a whole caption file), rather than
+    /// at a media playlist listing WebVTT segments.
+    private static let directSubtitleExtensions: Set<String> = ["vtt", "webvtt", "srt", "ttml", "xml", "dfxp"]
+
+    /// Populate a subtitle track's segments so the engine can fetch its text. HLS points the `URI`
+    /// either at a single caption file (`.vtt`/`.srt`, the common case) — which is its own lone
+    /// "segment" — or at a media playlist listing WebVTT segments; DASH text sets arrive already
+    /// segmented. Returns the track unchanged when there's nothing to resolve.
+    public func resolveSubtitleTrack(_ track: MediaTrack, headers: [String: String] = [:]) async throws -> MediaTrack {
+        guard track.segments.isEmpty, let url = track.playlistURL else { return track }
+        if Self.directSubtitleExtensions.contains(url.pathExtension.lowercased()) {
+            return track.withSegments([MediaSegment(id: 0, url: url, duration: 0)], initSegment: nil)
+        }
+        let media = try Self.parse(try await fetch(url: url, headers: headers), url: url)
+        guard let resolved = media.variants.first else { throw MediaParseError.noContent }
+        return track.withSegments(resolved.segments, initSegment: resolved.initSegment)
+    }
+
     /// Populate a variant's segments by fetching its media playlist (HLS multivariant case). Returns
     /// the variant unchanged when it's already resolved (DASH, or a lone media playlist).
     public func resolveVariant(_ variant: MediaVariant, headers: [String: String] = [:]) async throws -> MediaVariant {

@@ -74,6 +74,14 @@ final class AppModel {
     }
     private static let askQualityKey = "askQualityEnabled"
 
+    /// Whether to fetch a subtitle sidecar (`.srt`) when a grabbed video offers one. Off (default)
+    /// grabs no subtitles on the one-click path; the quality picker always offers per-language choice
+    /// regardless. Persisted in UserDefaults.
+    var grabSubtitlesEnabled: Bool {
+        didSet { UserDefaults.standard.set(grabSubtitlesEnabled, forKey: Self.grabSubtitlesKey) }
+    }
+    private static let grabSubtitlesKey = "grabSubtitlesEnabled"
+
     /// The bundled page extractor (yt-dlp), if present — resolves page URLs (YouTube & 1800+ sites)
     /// into real format tiers. `nil` in a checkout/build without the vendored binary.
     private(set) var mediaExtractor: (any MediaExtractor)?
@@ -122,6 +130,7 @@ final class AppModel {
         self.manager = manager
         self.clipboardMonitoringEnabled = UserDefaults.standard.bool(forKey: Self.clipboardKey)
         self.askQualityEnabled = UserDefaults.standard.bool(forKey: Self.askQualityKey)
+        self.grabSubtitlesEnabled = UserDefaults.standard.bool(forKey: Self.grabSubtitlesKey)
         self.launchAtLoginEnabled = loginItem.isEnabled
     }
 

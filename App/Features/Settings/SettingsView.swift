@@ -136,10 +136,20 @@ struct SettingsView: View {
                     get: { model.askQualityEnabled },
                     set: { model.askQualityEnabled = $0 }
                 ))
+                Toggle("Download subtitles when available", isOn: Binding(
+                    get: { model.grabSubtitlesEnabled },
+                    set: { model.grabSubtitlesEnabled = $0 }
+                ))
             } header: {
                 Text("Capture")
             } footer: {
-                Text("Off grabs the best quality automatically — one click. On shows a picker for videos that offer several resolutions.")
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("""
+                    Off grabs the best quality automatically — one click. On shows a picker for videos \
+                    that offer several resolutions.
+                    """)
+                    Text("Subtitles are saved as a matching “.srt” file next to the video.")
+                }
             }
 
             Section("Reliability") {

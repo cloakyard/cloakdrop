@@ -4,6 +4,38 @@ import DownloadModels
 /// Post-completion processing that runs at the tail of `finalize`: native archive extraction and the
 /// provenance receipt. Split out of `DownloadTask` to keep that file focused on the transfer itself.
 extension DownloadTask {
+    /// Fetch each requested subtitle, convert it to SubRip, and write a `.srt` sidecar next to the
+    /// finished file (`video.en.srt`). Best-effort and never fatal: subtitles are a small text
+    /// adornment, so a failed fetch/convert simply writes no file rather than failing a complete video
+    /// grab. Fetched here at finalize (not as resumable segments) because they're tiny and the final
+    /// destination name — which the sidecar mirrors — isn't known until now.
+    func writeSubtitleSidecars(_ subtitles: [MediaSubtitle], headers: [String: String]) async {
+        guard !subtitles.isEmpty else { return }
+        let base = (download.destinationFilePath as NSString).deletingPathExtension
+        var usedPaths = Set<String>()
+        for (index, subtitle) in subtitles.enumerated() {
+            var texts: [String] = []
+            for segment in subtitle.segments {
+                let range = segment.byteRange.map { $0.offset...$0.end }
+                guard let data = try? await fetchResource(url: segment.url, byteRange: range, headers: headers),
+                      let text = String(data: data, encoding: .utf8) else { continue }
+                texts.append(text)
+            }
+            guard !texts.isEmpty else { continue }
+            let srt = texts.count > 1 ? SubtitleConverter.segmentsToSRT(texts) : SubtitleConverter.toSRT(texts[0])
+            guard let srt, !srt.isEmpty else { continue }
+
+            // `video.en.srt`; fall back to an index when a track has no language/label or would collide.
+            let token = subtitle.fileNameToken ?? "\(index + 1)"
+            var path = "\(base).\(token).srt"
+            if usedPaths.contains(path) { path = "\(base).\(token)-\(index + 1).srt" }
+            usedPaths.insert(path)
+
+            guard (try? srt.data(using: .utf8)?.write(to: URL(fileURLWithPath: path), options: .atomic)) != nil else { continue }
+            if settings.applyQuarantine { Quarantine.apply(toPath: path, sourceURL: subtitle.segments.first?.url ?? download.url) }
+        }
+    }
+
     /// If enabled and the finished file is a `.zip`, extract it natively into a sibling folder named
     /// after the archive. Best-effort and off-actor (extraction is CPU/IO-bound, and a corrupt archive
     /// must never fail an otherwise-complete download). Skipped when checksum verification *failed*, so
