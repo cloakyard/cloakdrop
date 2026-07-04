@@ -413,11 +413,6 @@ public actor DownloadManager {
         return copy
     }
 
-    public func setGlobalSpeedLimit(bytesPerSecond: Int64?) async {
-        settings.globalSpeedLimitBytesPerSecond = bytesPerSecond
-        await updateSettings(settings)
-    }
-
     public func createQueue(_ queue: DownloadQueue) async {
         queues[queue.id] = queue
         try? await store.save(queue)

@@ -457,20 +457,6 @@ final class AppModel {
         return true
     }
 
-    /// Add every URL parsed (and pattern-expanded) from free-form text. Returns the count added.
-    /// `bookmark` is the destination's security-scoped bookmark so batch downloads to a
-    /// user-chosen folder keep working across relaunches under the sandbox.
-    @discardableResult
-    func batchAdd(
-        text: String,
-        into directory: URL = AppEnvironment.defaultDownloadsDirectory(),
-        bookmark: Data? = nil
-    ) -> Int {
-        let urls = URLBatch.parse(text)
-        addURLs(urls, into: directory, bookmark: bookmark)
-        return urls.count
-    }
-
     /// Fetch a single user-entered page and extract its downloadable links (the "grab everything on
     /// this page" flow). One user-initiated request to the page the user typed — never a crawler; it
     /// does not follow the links it finds. The body is size-capped so a pathological page can't blow up.
@@ -571,8 +557,6 @@ final class AppModel {
     func cancel(_ id: UUID) { Task { await manager.cancel(id: id) } }
     func remove(_ id: UUID, deleteFile: Bool) { Task { await manager.remove(id: id, deleteFile: deleteFile) } }
 
-    func pauseSelected() { selectedDownloadIDs.forEach(pause) }
-    func resumeSelected() { selectedDownloadIDs.forEach(resume) }
     func removeSelected(deleteFile: Bool) { selectedDownloadIDs.forEach { remove($0, deleteFile: deleteFile) } }
 
     func pauseAll() { Task { await manager.pauseAll() } }
