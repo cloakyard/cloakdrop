@@ -243,14 +243,28 @@
   // Does a media filename look like a stream part (segment / per-track init / rendition) rather than
   // a standalone file? Matches a segment index, init/seg/frag/chunk markers, a resolution/bitrate or
   // codec tag, or a track-role prefix (Shaka `audio_en…`, `text_el`, `v-0360p`, `a-eng`, `s-en`).
-  function looksLikeStreamPart(url) {
-    const stem = fileNameFromURL(url).replace(/\.[^.]+$/, "").toLowerCase();
-    return /\d$/.test(stem)
-      || /(^|[_\-.])(init|seg|segment|frag|fragment|chunk)([_\-.]|\d|$)/.test(stem)
+  // STRONG signals that a media URL is an adaptive-stream part rather than a standalone download: an
+  // explicit segment/init/chunk word, a resolution/bitrate/codec tag, or a track-role prefix. These
+  // are specific enough to trust ANYWHERE on the page (a stream's media often lives on a different
+  // CDN host/path than its manifest — e.g. DASH-IF's segments on dash.edgesuite.net).
+  function looksLikeStreamSegment(url) {
+    const name = fileNameFromURL(url).toLowerCase();
+    const stem = name.replace(/\.[^.]+$/, "");
+    // A double media extension (foo.mp4.dash, seg.264.dash, x.ts.enc): the inner extension means the
+    // "file" is a wrapped stream segment, never a standalone download.
+    if (/\.(mp4|m4v|m4a|m4s|ts|264|265|h264|h265|aac|webm|ismv|isma|dash|mpd|m3u8)\.[a-z0-9]{1,6}$/.test(name)) return true;
+    return /(^|[_\-.])(init|seg|segment|frag|fragment|chunk)([_\-.]|\d|$)/.test(stem)
       || /\d+x\d+|\b\d{3,4}p\b|\b\d{2,5}k\b/.test(stem)
       || /(avc1?|hevc|hvc1|h26[45]|vp0?9|av01|opus|mp4a)/.test(stem)
       || /^(audio|video|text|subtitle|sub|cc)[_\-]/.test(stem)
       || /(^|[_\-])[avs]-[a-z0-9]/.test(stem);
+  }
+  // The strong signals PLUS the WEAK "name just ends in a digit" heuristic. On its own the weak part
+  // can't tell a segment (fileSequence7) from a real download (movie-2024), so callers apply it only
+  // to files sitting in a manifest's own folder — never to spare an unrelated digit-ending download.
+  function looksLikeStreamPart(url) {
+    const stem = fileNameFromURL(url).replace(/\.[^.]+$/, "").toLowerCase();
+    return /\d$/.test(stem) || looksLikeStreamSegment(url);
   }
 
   // When the page served a stream manifest, its bare media files (segments, per-track init/media,
@@ -262,10 +276,14 @@
     const manifestDirs = items.filter((i) => i.type === "stream").map((i) => dirKey(i.url));
     if (manifestDirs.length === 0) return items;
     const inSubfolder = (url) => { const d = dirKey(url); return manifestDirs.some((md) => d.startsWith(md + "/")); };
+    const inManifestFolder = (url) => manifestDirs.includes(dirKey(url));
     return items.filter((i) => {
       if (i.type !== "video" && i.type !== "audio") return true;
-      if (inSubfolder(i.url)) return false;
-      return !looksLikeStreamPart(i.url);
+      if (inSubfolder(i.url)) return false;                             // (a) a chunk under the master's tree
+      if (looksLikeStreamSegment(i.url)) return false;                  // (b) a codec/bitrate/seg-named part, any host/folder
+      return !(inManifestFolder(i.url) && looksLikeStreamPart(i.url));  // (c) a bare digit-suffix part BESIDE the master
+      // A digit-ending file in an UNRELATED folder with no strong stream marker (movie-2024.mp4 next
+      // to some other page's stream) is a real download and is spared — that's the same-folder gate.
     });
   }
 
@@ -307,11 +325,30 @@
     return out;
   }
 
+  // Pick the "primary" media player from per-element descriptors `{ video: bool, area: number }`:
+  // the largest visible `<video>`, or — only when the page has none — the largest `<audio>`. The
+  // page-global affordances (sniffed streams and the yt-dlp page-extraction fallback) attach to just
+  // this one player, so an adaptive site like YouTube — whose watch page carries several `<video>`
+  // elements (main player, hover-preview thumbnails, the miniplayer), each a blob/MediaSource that
+  // resolves to the very same page URL — shows ONE download pill instead of a duplicate on each.
+  // Returns -1 for an empty list. Pure and DOM-free so it's unit-tested directly.
+  function primaryPlayerIndex(players) {
+    let best = -1;
+    let bestScore = -1;
+    for (let i = 0; i < players.length; i++) {
+      const p = players[i] || {};
+      const score = (p.video ? 1e12 : 0) + (p.area > 0 ? p.area : 0);   // video always outranks audio
+      if (score > bestScore) { bestScore = score; best = i; }
+    }
+    return best;
+  }
+
   const API = {
     STREAM_EXT, MEDIA_EXT, FILE_EXT, SEGMENT_EXT, AUDIO_EXT, TYPE_RANK, TYPE_LABEL,
     hostOf, extensionOf, audioExt, fileNameFromURL,
     isNoise, makeItem, classifyByURL, classifyByContentType,
-    videoKey, collapseRenditions, collapseStreamPlaylists, dropStreamMedia, dedupeAndRank
+    videoKey, collapseRenditions, collapseStreamPlaylists, dropStreamMedia, dedupeAndRank,
+    primaryPlayerIndex
   };
 
   if (typeof module !== "undefined" && module.exports) module.exports = API;

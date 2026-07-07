@@ -7,6 +7,10 @@
 // leaves the browser when you click it.
 
 const api = globalThis.browser ?? globalThis.chrome;
+// The shared media core (loaded by popup.html before this file) — same collapse/dedupe the in-page
+// pill and the service worker use, so the popup can't show rendition variants or origin/mirror
+// duplicates the other two surfaces already fold away.
+const M = globalThis.CloakDropMedia;
 
 // List ordering: a page-extraction item first, then streams, plain media, files.
 const TYPE_RANK = { page: 0, stream: 1, video: 2, audio: 3, file: 4 };
@@ -22,9 +26,12 @@ async function init() {
     sniffedMedia(tab.id),
     scanPageDOM(tab.id)
   ]);
-  // The DOM scan may prepend a "page" item (an adaptive <video> the app resolves via yt-dlp); order
-  // everything page → stream → video → audio → file.
-  const items = dedupe([...dom, ...sniffed]).sort((a, b) => (TYPE_RANK[a.type] ?? 9) - (TYPE_RANK[b.type] ?? 9));
+  // Collapse rendition variants, variant→master playlists, stream segments, and origin/mirror pairs
+  // across the MERGED set (the sniffed half is pre-collapsed by the worker; the DOM half is raw), then
+  // order everything page → stream → video → audio → file. Falls back to plain URL-dedupe if the
+  // shared core somehow didn't load, so the popup still works.
+  const merged = M ? M.dedupeAndRank([...dom, ...sniffed]) : dedupe([...dom, ...sniffed]);
+  const items = merged.sort((a, b) => (TYPE_RANK[a.type] ?? 9) - (TYPE_RANK[b.type] ?? 9));
 
   if (!items.length) { showEmpty(); return; }
   render(items, tab.url || "");

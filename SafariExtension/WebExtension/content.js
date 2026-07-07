@@ -52,6 +52,7 @@
   let dismissed = false;                               // one-time hide for this view (not persisted)
   const videoWidgets = new Map();                      // HTMLMediaElement -> record
   let pageWidget = null;                               // fallback pill when no <video> anchors media
+  let primaryPlayer = null;                            // the one player that carries page-global media
   let openMenu = null;                                 // the currently-open menu record
 
   // MARK: - Init
@@ -75,7 +76,14 @@
     // SPA navigations (YouTube etc.) don't reload — re-scan and re-pull the SW list.
     window.addEventListener("yt-navigate-finish", () => { dismissed = false; closeMenu(); refreshFromBackground(); });
     window.addEventListener("popstate", () => { dismissed = false; closeMenu(); refreshFromBackground(); });
-    document.addEventListener("click", (e) => { if (openMenu && !e.composedPath().includes(openMenu.menu)) closeMenu(); }, true);
+    // Close the menu on any click outside it — but NOT on its own pill: this runs in the capture
+    // phase (before the pill's bubble handler), so closing here on a pill click would let the pill
+    // reopen it, making the toggle-to-close never work. Excluding the pill lets it toggle cleanly.
+    document.addEventListener("click", (e) => {
+      if (!openMenu) return;
+      const path = e.composedPath();
+      if (!path.includes(openMenu.menu) && !path.includes(openMenu.pill)) closeMenu();
+    }, true);
     scheduleUpdate();
   })();
 
@@ -95,6 +103,10 @@
   function update() {
     if (disabled || dismissed) return;
     const videos = [...document.querySelectorAll("video, audio")].filter(isRealPlayer);
+    // The single primary player anchors the page-global media (sniffed streams + the yt-dlp page
+    // fallback), so an adaptive site like YouTube shows one pill, not a duplicate on every stray
+    // <video>. Recomputed here each pass so it tracks resizes and SPA navigations.
+    primaryPlayer = choosePrimary(videos);
 
     // Attach/refresh a pill on each real player that has something grabbable.
     const live = new Set();
@@ -127,17 +139,31 @@
     return r.width >= MIN_W && r.height >= MIN_H && el.offsetParent !== null;
   }
   function directSrc(el) { const s = el.currentSrc || el.src || ""; return /^https?:/i.test(s) ? s : ""; }
-  // A player's grab list: its own direct file (if any) plus every stream/media the SW sniffed. On
-  // adaptive sites the <video> src is a blob: (MediaSource) so the sniffed manifest is the real prize.
+  // A player's grab list. Its own direct file (if any) is always shown. The page-GLOBAL media — the
+  // streams the SW sniffed and the yt-dlp page fallback — belongs only to the primary player, so a
+  // site with several <video>s (YouTube's main player + hover-preview thumbnails + miniplayer, all
+  // blob/MediaSource and all resolving to the same page URL) never stacks an identical pill on each.
   function itemsFor(el) {
-    const items = [];
     const src = directSrc(el);
-    if (src) items.push(M.makeItem(src, el.tagName.toLowerCase() === "audio" ? "audio" : "video", { source: "dom" }));
-    const list = M.dedupeAndRank(items.concat(tabMedia));
+    const isVideo = el.tagName.toLowerCase() === "video";
+    const own = src ? [M.makeItem(src, isVideo ? "video" : "audio", { source: "dom" })] : [];
+    const list = M.dedupeAndRank(own.concat(el === primaryPlayer ? tabMedia : []));
     // An adaptive player (blob:/MediaSource, no direct file) can't be grabbed by URL — offer page
-    // extraction (the app's bundled yt-dlp), the universal path that handles YouTube and the rest.
-    if (!src && el.tagName.toLowerCase() === "video") list.push(pageItem());
+    // extraction (the app's bundled yt-dlp), but only on the primary so it appears exactly once.
+    if (el === primaryPlayer && !src && isVideo) list.push(pageItem());
     return list;
+  }
+
+  // The primary player: the largest visible <video>, or the largest <audio> when the page has no
+  // video. Uses the shared, unit-tested ranking rule so the "one pill per page" behaviour is testable
+  // outside the browser. Null when there are no players.
+  function choosePrimary(players) {
+    const descriptors = players.map((el) => {
+      const r = el.getBoundingClientRect();
+      return { video: el.tagName.toLowerCase() === "video", area: r.width * r.height };
+    });
+    const idx = M.primaryPlayerIndex(descriptors);
+    return idx >= 0 ? players[idx] : null;
   }
 
   // A "grab this whole page's video via the app" item — the app resolves it with yt-dlp into real

@@ -152,6 +152,37 @@ test("keeps numbered media when NO manifest is present (podcast ep1/ep2/ep3, not
   assert.equal(items.length, 3, "no stream manifest → numbered files are content, not chunks");
 });
 
+test("keeps a plain digit-ending download in an UNRELATED folder even when a stream is present", () => {
+  // A movie site: an HLS trailer stream under /feature/, plus a real, separately downloadable file
+  // under /promos/ whose name merely ends in a digit (no codec/bitrate/resolution marker). It must be
+  // spared — the weak digit-suffix heuristic only applies beside a manifest, not page-wide.
+  const items = M.dedupeAndRank([
+    M.makeItem("https://cdn.example.com/feature/master.m3u8", "stream"),
+    M.makeItem("https://cdn.example.com/promos/big-buck-bunny-2024.mp4", "video")
+  ]);
+  assert.equal(items.length, 2, "the unrelated .mp4 must survive");
+  assert.ok(items.some((i) => i.url.endsWith("big-buck-bunny-2024.mp4")));
+});
+
+test("drops adaptive segments even on a DIFFERENT host/folder than the manifest (DASH-IF case)", () => {
+  // A manifest on one CDN with its media segments on another (dash.akamaized vs dash.edgesuite). The
+  // segments carry strong markers (codec h264, bitrate) so they're dropped regardless of folder.
+  const items = M.dedupeAndRank([
+    M.makeItem("https://dash.akamaized.net/dash264/TestCases/1a/netflix/exMPD_BIP_TC1.mpd", "stream"),
+    M.makeItem("http://dash.edgesuite.net/dash264/TestCases/1a/netflix/ElephantsDream_H264BPL30_0100.264.dash", "video"),
+    M.makeItem("http://dash.edgesuite.net/dash264/TestCases/1a/netflix/ElephantsDream_AAC48K_064.mp4.dash", "audio")
+  ]);
+  assert.deepEqual(items.map((i) => i.type), ["stream"], "strong-signal segments must be dropped anywhere");
+});
+
+test("drops a bare digit-suffix media file sitting in the manifest's OWN folder", () => {
+  const items = M.dedupeAndRank([
+    M.makeItem("https://cdn.example.com/d/master.m3u8", "stream"),
+    M.makeItem("https://cdn.example.com/d/clip_7.mp4", "video")   // same folder + bare digit suffix
+  ]);
+  assert.deepEqual(items.map((i) => i.type), ["stream"]);
+});
+
 test("keeps two unrelated streams in non-nested folders", () => {
   const items = M.dedupeAndRank([
     M.makeItem("https://cdn.example.com/videoA/master.m3u8", "stream"),
@@ -266,4 +297,44 @@ test("helpers: hostOf / extensionOf / fileNameFromURL / audioExt", () => {
   assert.equal(M.fileNameFromURL("https://a.com/x/My%20Clip.mp4"), "My Clip.mp4");
   assert.ok(M.audioExt("opus"));
   assert.ok(!M.audioExt("mp4"));
+});
+
+test("primaryPlayerIndex picks the largest video", () => {
+  assert.equal(M.primaryPlayerIndex([
+    { video: true, area: 200 * 120 },
+    { video: true, area: 1280 * 720 },
+    { video: true, area: 300 * 200 }
+  ]), 1);
+});
+
+test("primaryPlayerIndex: a video always outranks a larger audio", () => {
+  assert.equal(M.primaryPlayerIndex([
+    { video: false, area: 5000 * 5000 },   // huge audio element
+    { video: true, area: 180 * 120 }       // small video still wins
+  ]), 1);
+});
+
+test("primaryPlayerIndex falls back to the largest audio when there is no video", () => {
+  assert.equal(M.primaryPlayerIndex([
+    { video: false, area: 100 },
+    { video: false, area: 900 },
+    { video: false, area: 400 }
+  ]), 1);
+});
+
+test("primaryPlayerIndex returns -1 for an empty list and 0 for ties", () => {
+  assert.equal(M.primaryPlayerIndex([]), -1);
+  assert.equal(M.primaryPlayerIndex([{ video: true, area: 100 }, { video: true, area: 100 }]), 0);
+});
+
+// The reported bug: a YouTube watch page carries the main player plus smaller hover-preview and
+// miniplayer <video>s. Only the main (largest) player should anchor the page-extraction pill.
+test("primaryPlayerIndex: YouTube main player wins over preview/miniplayer videos", () => {
+  const players = [
+    { video: true, area: 854 * 480 },   // main player
+    { video: true, area: 168 * 94 },    // sidebar hover preview
+    { video: true, area: 168 * 94 },    // another preview
+    { video: true, area: 400 * 225 }    // miniplayer
+  ];
+  assert.equal(M.primaryPlayerIndex(players), 0);
 });
