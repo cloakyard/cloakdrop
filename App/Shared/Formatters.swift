@@ -32,4 +32,12 @@ enum Format {
         guard let fraction else { return "—" }
         return fraction.formatted(.percent.precision(.fractionLength(0)))
     }
+
+    /// Localized relative phrasing for a deadline — "in 2 hours", "3 days ago" — via the system
+    /// relative formatter, so the "in"/"ago" wording is translated for free.
+    static func relativeDeadline(_ date: Date, asOf now: Date = Date()) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter.localizedString(for: date, relativeTo: now)
+    }
 }

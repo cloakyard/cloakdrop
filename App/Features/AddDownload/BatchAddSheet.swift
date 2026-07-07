@@ -12,9 +12,12 @@ struct BatchAddSheet: View {
 
     private struct GrabbedLink: Identifiable, Hashable {
         let url: URL
+        /// A deadline baked into a pre-signed / tokened URL, if any (detected without a network call).
+        let expiry: LinkExpiry?
         var selected: Bool = true
         var id: URL { url }
         var fileName: String { url.lastPathComponent.isEmpty ? url.host ?? url.absoluteString : url.lastPathComponent }
+        func isExpired(asOf now: Date) -> Bool { expiry?.isExpired(asOf: now) ?? false }
     }
 
     @State private var text = ""
@@ -31,6 +34,7 @@ struct BatchAddSheet: View {
         return links.indices.filter { needle.isEmpty || links[$0].url.absoluteString.lowercased().contains(needle) }
     }
     private var selectedCount: Int { links.filter(\.selected).count }
+    private var expiredCount: Int { links.filter { $0.isExpired(asOf: Date()) }.count }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -77,7 +81,14 @@ struct BatchAddSheet: View {
                         Label("Import .txt…", systemImage: "doc.badge.plus")
                     }
                     Spacer()
-                    Text(selectedCount == 1 ? "\(selectedCount) selected" : "\(selectedCount) selected")
+                    if expiredCount > 0 {
+                        Label("\(expiredCount) expired", systemImage: "exclamationmark.triangle.fill")
+                            .font(.callout)
+                            .foregroundStyle(.red)
+                            .contentTransition(.numericText())
+                        Text(verbatim: "·").foregroundStyle(.secondary)
+                    }
+                    Text("\(selectedCount) selected")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .contentTransition(.numericText())
@@ -135,12 +146,42 @@ struct BatchAddSheet: View {
                                 Text(links[index].url.host ?? links[index].url.absoluteString)
                                     .font(.caption).foregroundStyle(.secondary).lineLimit(1)
                             }
+                            Spacer(minLength: 6)
+                            expiryBadge(for: links[index])
                         }
                     }
                     .toggleStyle(.checkbox)
                 }
             }
             .frame(minHeight: 200)
+        }
+    }
+
+    /// Trailing per-row deadline flag: a red warning capsule for dead links, an amber "in 2 hours"
+    /// countdown when it expires within a day, or a muted clock for links with plenty of time.
+    /// Nothing for links with no deadline.
+    @ViewBuilder
+    private func expiryBadge(for link: GrabbedLink) -> some View {
+        if let expiry = link.expiry {
+            let now = Date()
+            if expiry.isExpired(asOf: now) {
+                Label("Expired", systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.red)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(.red.opacity(0.12), in: Capsule())
+            } else {
+                let soon = expiry.timeRemaining(asOf: now) < 86_400
+                Label {
+                    Text(Format.relativeDeadline(expiry.expiresAt, asOf: now))
+                } icon: {
+                    Image(systemName: soon ? "exclamationmark.triangle.fill" : "clock")
+                }
+                .font(.caption2)
+                .foregroundStyle(soon ? .orange : .secondary)
+                .lineLimit(1)
+            }
         }
     }
 
@@ -152,10 +193,36 @@ struct BatchAddSheet: View {
     }
 
     /// Re-parse the pasted text into a deduped, pattern-expanded list, preserving prior selection for
-    /// links that are still present.
+    /// links that are still present. Each link is inspected for an embedded expiry (pre-signed URLs):
+    /// already-dead links are deselected so they don't waste a slot, and the list is ordered
+    /// soonest-to-expire first so the most time-critical downloads lead.
     private func reparse(_ newValue: String) {
         let previouslyDeselected = Set(links.filter { !$0.selected }.map(\.url))
-        links = URLBatch.parse(newValue).map { GrabbedLink(url: $0, selected: !previouslyDeselected.contains($0)) }
+        let now = Date()
+        let parsed = URLBatch.parse(newValue).map { url -> GrabbedLink in
+            let expiry = LinkExpiryDetector.detect(in: url)
+            let dead = expiry?.isExpired(asOf: now) ?? false
+            return GrabbedLink(url: url, expiry: expiry, selected: !dead && !previouslyDeselected.contains(url))
+        }
+        links = sortedByDeadline(parsed, asOf: now)
+    }
+
+    /// Live links with a deadline first (soonest expiry leading), then links with no deadline in their
+    /// original order, then already-expired links last. Ties keep input order for stability.
+    private func sortedByDeadline(_ items: [GrabbedLink], asOf now: Date) -> [GrabbedLink] {
+        // Bucket: 0 = live with a deadline, 1 = no deadline, 2 = already expired.
+        func bucket(_ link: GrabbedLink) -> Int {
+            guard let expiry = link.expiry else { return 1 }
+            return expiry.isExpired(asOf: now) ? 2 : 0
+        }
+        return items.enumerated().sorted { lhs, rhs in
+            let (leftBucket, rightBucket) = (bucket(lhs.element), bucket(rhs.element))
+            if leftBucket != rightBucket { return leftBucket < rightBucket }
+            let left = lhs.element.expiry?.expiresAt.timeIntervalSince1970 ?? 0
+            let right = rhs.element.expiry?.expiresAt.timeIntervalSince1970 ?? 0
+            if left != right { return left < right }
+            return lhs.offset < rhs.offset   // stable tie-break on original order
+        }.map(\.element)
     }
 
     /// Fetch the entered page and append its downloadable links to the editor, where the normal

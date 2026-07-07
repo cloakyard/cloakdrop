@@ -45,6 +45,11 @@ struct AddDownloadSheet: View {
     private var resolvedURL: URL? { AppModel.normalizedURL(urlString) }
     private var canAdd: Bool { resolvedURL != nil }
 
+    /// Any expiry deadline baked into a pre-signed / tokened URL, read purely from the query string
+    /// (no network), so an already-dead link is flagged the instant it's entered — before the user
+    /// waits on a download that can only fail.
+    private var linkExpiry: LinkExpiry? { resolvedURL.flatMap(LinkExpiryDetector.detect(in:)) }
+
     /// True when the user typed something in the checksum field that isn't a valid digest, so
     /// we can warn that it won't be used rather than silently dropping it.
     private var checksumIsMalformed: Bool {
@@ -67,6 +72,9 @@ struct AddDownloadSheet: View {
                         }
                     if isInspecting || preview != nil || previewFailed {
                         linkPreviewRow
+                    }
+                    if linkExpiry != nil {
+                        expiryRow
                     }
                     TextField("Save As", text: $fileName, prompt: Text("File name"))
                         .textFieldStyle(.roundedBorder)
@@ -97,6 +105,12 @@ struct AddDownloadSheet: View {
                             .datePickerStyle(.compact)
                         Picker("Repeat", selection: $recurrence) {
                             ForEach(ScheduleRecurrence.allCases) { Text($0.localizedLabel).tag($0) }
+                        }
+                        if let expiry = linkExpiry, scheduledDate >= expiry.expiresAt {
+                            Label("This link expires before the scheduled start time.",
+                                  systemImage: "exclamationmark.triangle.fill")
+                                .font(.caption)
+                                .foregroundStyle(.orange)
                         }
                     }
                 }
@@ -196,6 +210,51 @@ struct AddDownloadSheet: View {
                 .foregroundStyle(.secondary)
                 .transition(.opacity)
         }
+    }
+
+    /// Deadline warning for a pre-signed / tokened link, escalating with urgency: a red alert callout
+    /// once expired (so the user never waits on a dead link), an amber callout when it expires within a
+    /// day, and a quiet grey line when there's plenty of time left.
+    @ViewBuilder
+    private var expiryRow: some View {
+        if let expiry = linkExpiry {
+            let now = Date()
+            let remaining = expiry.timeRemaining(asOf: now)
+            if expiry.isExpired(asOf: now) {
+                expiryCallout(tint: .red,
+                              title: Text("This link has already expired"),
+                              detail: Text(Format.relativeDeadline(expiry.expiresAt, asOf: now)))
+            } else if remaining < 86_400 {
+                expiryCallout(tint: .orange,
+                              title: Text("Link expires \(Format.relativeDeadline(expiry.expiresAt, asOf: now))"),
+                              detail: nil)
+            } else {
+                Label("Link expires \(Format.relativeDeadline(expiry.expiresAt, asOf: now))", systemImage: "clock")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    /// A tinted alert banner fronted by a warning triangle — red for an expired link, amber for one
+    /// about to expire. Solid colour tint (not glass) so it reads as danger and respects the
+    /// no-material-on-scrolling-content rule.
+    private func expiryCallout(tint: Color, title: Text, detail: Text?) -> some View {
+        HStack(alignment: .center, spacing: 10) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.title3)
+                .foregroundStyle(tint)
+                .symbolRenderingMode(.hierarchical)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 1) {
+                title.font(.callout.weight(.semibold)).foregroundStyle(tint)
+                if let detail { detail.font(.caption).foregroundStyle(.secondary) }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(10)
+        .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(tint.opacity(0.28)))
     }
 
     /// "1.4 GB · Resumable · 8 connections" — only the parts we actually know, joined by dots.
