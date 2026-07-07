@@ -28,12 +28,12 @@ set -euo pipefail
 # --- Pinned source -----------------------------------------------------------------------------
 # Pin a specific release so the build is reproducible. Verify the checksum against the value
 # published at https://ffmpeg.org/download.html (and ideally the GPG signature) before trusting it.
-FFMPEG_VERSION="7.1"
+FFMPEG_VERSION="8.1.2"
 FFMPEG_URL="https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.xz"
-# Pinned SHA-256 of ffmpeg-7.1.tar.xz, cross-checked against the identical value Debian and
-# OpenEmbedded/Yocto pin for the same tarball. Override per-run with the FFMPEG_SHA256 env var; set
-# it to "" to have the script print the downloaded hash and stop (how a new version gets verified).
-FFMPEG_SHA256="${FFMPEG_SHA256:-40973d44970dbc83ef302b0609f2e74982be2d85916dd2ee7472d30678a7abe6}"
+# Pinned SHA-256 of ffmpeg-8.1.2.tar.xz, cross-checked against the identical value Homebrew pins for
+# the same ffmpeg.org tarball. Override per-run with the FFMPEG_SHA256 env var; set it to "" to have
+# the script print the downloaded hash and stop (how a new version gets verified).
+FFMPEG_SHA256="${FFMPEG_SHA256:-464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c}"
 
 # --- Paths -------------------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
