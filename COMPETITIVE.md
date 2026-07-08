@@ -42,6 +42,7 @@ Legend: ✅ full · ⚠️ partial/limited · ❌ none · 🚫 deliberately out 
 | **C2PA / Content Credentials verify on ingest** | ❌ *(white space)* | ❌ | ❌ | ❌ |
 | **Intake** |
 | Browser extensions | ✅ (Safari + Chromium + Firefox) | ✅ | ✅ | ✅ |
+| Browser-download interception (takeover) | ✅ (fail-safe: falls back to the browser) | ✅ | ✅ | ⚠️ |
 | Clipboard monitor / drag-drop | ✅ | ✅ | ✅ | ✅ |
 | Batch / pattern add | ✅ | ✅ | ⚠️ | ✅ |
 | Link-grabber (paste wall → analyze → pick) | ✅ | ⚠️ | ⚠️ | ✅ (best) |

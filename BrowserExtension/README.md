@@ -1,13 +1,21 @@
 # CloakDrop browser extension (Chrome · Edge · Firefox)
 
-The cross-browser sibling of the bundled Safari extension. Two ways to send a download to CloakDrop:
+The cross-browser sibling of the bundled Safari extension. Three ways a download reaches CloakDrop:
 
 - **Context menu** — right-click any link, video, audio, or image → **Download with CloakDrop**.
 - **Toolbar popup** — lists the downloadable media detected on the current tab and sends any of it
   with one click. Detection merges two sources: media already in the page's DOM (`<video>`/`<audio>`/
   `<source>` and direct media/file links, scanned on demand only when you open the popup) and the
-  streaming manifests (HLS `.m3u8` / DASH `.mpd`) or media responses the background script sees go
-  past on the network — which the DOM never exposes. A badge shows how many were found.
+  streaming manifests (HLS `.m3u8` / DASH `.mpd`), media responses, or `Content-Disposition:
+  attachment` downloads the background script sees go past on the network — which the DOM never
+  exposes. A badge shows how many were found. Detection survives MV3 service-worker eviction
+  (mirrored into `storage.session` — memory-backed, never on disk) and clears on real *and* SPA
+  navigations, so yesterday's video never haunts today's list.
+- **Download takeover (IDM-style)** — a browser download of a type the app handles (archives,
+  installers, media, PDFs) is cancelled and handed to the app, which downloads it multi-segment
+  with resume. Feature-detected (Safari has no `downloads` API), toggleable from the popup, and
+  fail-safe: if the app isn't reachable the download is re-issued to the browser untouched — a
+  file is never lost to a broken hand-off.
 
 Either way, the capture carries the page's referrer, user-agent, and the cookies scoped to that
 download — so gated files download correctly — and a streaming manifest is resolved by the app into
@@ -27,11 +35,22 @@ package.sh              Stitches shared/ + a manifest into dist/chrome and dist/
 ```
 
 Detection needs `webRequest` (observe stream/media responses), `scripting` (inject the on-demand DOM
-scan), and `tabs` (identify the active tab) on top of the original `contextMenus`/`cookies`/
-`activeTab`/`nativeMessaging`. `webRequest` is observational only (no blocking), so it stays MV3-clean.
+scan), `tabs` (identify the active tab), and `downloads` (the takeover) on top of the original
+`contextMenus`/`cookies`/`activeTab`/`nativeMessaging`. `webRequest` is observational only (no
+blocking), so it stays MV3-clean.
 
 Run `./package.sh` (add `--zip` for distributable archives) to produce the loadable folders under
 `dist/`.
+
+## Testing
+
+- `./test.sh` — unit tests for the shared classifier (`shared/media.js`) under Node's built-in
+  runner: classification, noise filtering, rendition/playlist/segment collapsing, HLS+DASH twin
+  folding, record-key canonicalisation, interception rules.
+- `./e2e.sh` — loads `dist/chrome` into a cached **Chrome for Testing** (set `CHROME_BIN` to
+  override discovery) against a local crafted page, and asserts the deduped popup list, the single
+  in-page pill, and the interception → bypass re-download safety net, over raw CDP with zero npm
+  dependencies.
 
 ## How the hand-off works
 

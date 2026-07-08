@@ -3,8 +3,12 @@
 // popup. It only appears when grabbable media is detected, and clicking a row hands the URL to the
 // app's confirm banner — nothing is ever downloaded automatically.
 //
-// Runs in the content-script isolated world (top frame only). `media.js` loads before this file, so
-// the shared classifier is on the global as `CloakDropMedia`.
+// Runs in the content-script isolated world in EVERY frame (`all_frames`), because embedded players
+// — a Vimeo/JW/Brightcove iframe on a news site — are where much of the web's video actually lives;
+// each frame pins pills to its own players in its own coordinate space. Page-GLOBAL things (the
+// sniffed stream list, the yt-dlp page hand-off, the page-level fallback pill) belong to the top
+// frame alone, so an embed never duplicates what the top page already offers. `media.js` loads
+// before this file, so the shared classifier is on the global as `CloakDropMedia`.
 
 (function () {
   "use strict";
@@ -14,6 +18,10 @@
   const api = globalThis.browser ?? globalThis.chrome;
   const M = globalThis.CloakDropMedia;
   if (!api || !M) return;
+
+  // Safe in cross-origin frames: comparing window identities never throws (reading top's
+  // properties would).
+  const IS_TOP = window.self === window.top;
 
   const MIN_W = 180, MIN_H = 120;                      // ignore thumbnails / tiny inline players
   const ACCENT = "#5B4CE0";
@@ -62,12 +70,34 @@
       const hidden = Array.isArray(prefs.disabledHosts) && prefs.disabledHosts.includes(location.host);
       disabled = prefs.widgetEnabled === false || hidden;
     } catch (_) { /* storage unavailable — default on */ }
-    if (disabled) return;
 
-    api.runtime.onMessage.addListener((msg) => {
-      if (msg && msg.type === "cloakdrop:media") { tabMedia = msg.items || []; scheduleUpdate(); }
-    });
-    refreshFromBackground();
+    // The popup's "Show the Save button on videos" toggle applies live — including re-enabling on a
+    // page whose init bailed out while the pref was off.
+    try {
+      api.storage.onChanged.addListener((changes, area) => {
+        if (area !== "local" || !changes.widgetEnabled) return;
+        if (changes.widgetEnabled.newValue === false) { disabled = true; teardownAll(); }
+        else { disabled = false; ensureSetup(); scheduleUpdate(); }
+      });
+    } catch (_) { /* storage events unavailable */ }
+
+    if (!disabled) ensureSetup();
+  })();
+
+  // One-time listener/observer wiring, deferred until the widget is actually enabled.
+  let setupDone = false;
+  function ensureSetup() {
+    if (setupDone) return;
+    setupDone = true;
+
+    // The sniffed tab-wide media list is a top-frame concern: only the top frame subscribes, so an
+    // iframe's pill offers just its own player's file and never mirrors the page-global list.
+    if (IS_TOP) {
+      api.runtime.onMessage.addListener((msg) => {
+        if (msg && msg.type === "cloakdrop:media") { tabMedia = msg.items || []; scheduleUpdate(); }
+      });
+      refreshFromBackground();
+    }
 
     const mo = new MutationObserver(scheduleUpdate);
     mo.observe(document.documentElement, { childList: true, subtree: true });
@@ -85,7 +115,7 @@
       if (!path.includes(openMenu.menu) && !path.includes(openMenu.pill)) closeMenu();
     }, true);
     scheduleUpdate();
-  })();
+  }
 
   async function refreshFromBackground() {
     try {
@@ -118,8 +148,9 @@
     // Tear down widgets whose player vanished or lost its media.
     for (const [v, rec] of videoWidgets) { if (!live.has(v)) { destroy(rec); videoWidgets.delete(v); } }
 
-    // Page-level fallback: streams/audio with no visible <video> to anchor to.
-    const wantPage = !videos.length && tabMedia.length > 0;
+    // Page-level fallback: streams/audio with no visible <video> to anchor to (top frame only —
+    // `tabMedia` is always empty in iframes).
+    const wantPage = IS_TOP && !videos.length && tabMedia.length > 0;
     if (wantPage && !pageWidget) pageWidget = mountPageWidget();
     else if (!wantPage && pageWidget) { destroy(pageWidget); pageWidget = null; }
     if (pageWidget) pageWidget.render(tabMedia);
@@ -140,18 +171,21 @@
   }
   function directSrc(el) { const s = el.currentSrc || el.src || ""; return /^https?:/i.test(s) ? s : ""; }
   // A player's grab list. Its own direct file (if any) is always shown. The page-GLOBAL media — the
-  // streams the SW sniffed and the yt-dlp page fallback — belongs only to the primary player, so a
-  // site with several <video>s (YouTube's main player + hover-preview thumbnails + miniplayer, all
-  // blob/MediaSource and all resolving to the same page URL) never stacks an identical pill on each.
+  // streams the SW sniffed and the yt-dlp page fallback — belongs only to the top frame's primary
+  // player, so a site with several <video>s (YouTube's main player + hover-preview thumbnails +
+  // miniplayer, all blob/MediaSource and all resolving to the same page URL) never stacks an
+  // identical pill on each. The page hand-off rides through dedupeAndRank, which drops it whenever
+  // a sniffed stream already covers this page's video — one video, one row.
   function itemsFor(el) {
     const src = directSrc(el);
     const isVideo = el.tagName.toLowerCase() === "video";
+    const isPagePrimary = IS_TOP && el === primaryPlayer;
     const own = src ? [M.makeItem(src, isVideo ? "video" : "audio", { source: "dom" })] : [];
-    const list = M.dedupeAndRank(own.concat(el === primaryPlayer ? tabMedia : []));
+    const extras = [];
     // An adaptive player (blob:/MediaSource, no direct file) can't be grabbed by URL — offer page
-    // extraction (the app's bundled yt-dlp), but only on the primary so it appears exactly once.
-    if (el === primaryPlayer && !src && isVideo) list.push(pageItem());
-    return list;
+    // extraction (the app's bundled yt-dlp), only on the primary so it appears exactly once.
+    if (isPagePrimary && !src && isVideo) extras.push(pageItem());
+    return M.dedupeAndRank(own.concat(isPagePrimary ? tabMedia : [], extras));
   }
 
   // The primary player: the largest visible <video>, or the largest <audio> when the page has no

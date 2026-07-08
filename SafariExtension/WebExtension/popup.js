@@ -12,11 +12,13 @@ const api = globalThis.browser ?? globalThis.chrome;
 // duplicates the other two surfaces already fold away.
 const M = globalThis.CloakDropMedia;
 
-// List ordering: a page-extraction item first, then streams, plain media, files.
-const TYPE_RANK = { page: 0, stream: 1, video: 2, audio: 3, file: 4 };
-const TYPE_LABEL = { page: "VIDEO", stream: "STREAM", video: "VIDEO", audio: "AUDIO", file: "FILE" };
+// List ordering / chip labels come from the shared core so all three surfaces agree; the local
+// copies are only the fallback for the (never-expected) case media.js failed to load.
+const TYPE_RANK = (M && M.TYPE_RANK) || { page: 0, stream: 1, video: 2, audio: 3, file: 4 };
+const TYPE_LABEL = (M && M.TYPE_LABEL) || { page: "VIDEO", stream: "STREAM", video: "VIDEO", audio: "AUDIO", file: "FILE" };
 
 init();
+initPrefs();
 
 async function init() {
   const tab = await activeTab();
@@ -180,4 +182,28 @@ function hostOf(url) {
 function showEmpty() {
   document.getElementById("empty").hidden = false;
   document.getElementById("summary").hidden = true;
+}
+
+// MARK: - Preferences (download interception + the in-page Save pill)
+
+async function initPrefs() {
+  const interceptRow = document.getElementById("interceptRow");
+  const intercept = document.getElementById("prefIntercept");
+  const widget = document.getElementById("prefWidget");
+
+  // The interception toggle only makes sense where the downloads API exists (not Safari).
+  const canIntercept = !!(api.downloads && api.downloads.onCreated);
+  interceptRow.hidden = !canIntercept;
+
+  let prefs = {};
+  try { prefs = await api.storage.local.get(["interceptDownloads", "widgetEnabled"]); } catch (_) {}
+  intercept.checked = prefs.interceptDownloads !== false;   // default on
+  widget.checked = prefs.widgetEnabled !== false;           // default on
+
+  intercept.addEventListener("change", () => {
+    try { api.storage.local.set({ interceptDownloads: intercept.checked }); } catch (_) {}
+  });
+  widget.addEventListener("change", () => {
+    try { api.storage.local.set({ widgetEnabled: widget.checked }); } catch (_) {}
+  });
 }

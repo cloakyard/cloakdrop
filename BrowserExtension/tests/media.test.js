@@ -338,3 +338,111 @@ test("primaryPlayerIndex: YouTube main player wins over preview/miniplayer video
   ];
   assert.equal(M.primaryPlayerIndex(players), 0);
 });
+
+// ── New coverage: files, attachments, interception, record keys, HLS+DASH twins ──────────────
+
+test("classifyByURL recognises plain downloadable files", () => {
+  assert.equal(M.classifyByURL("https://example.com/release/tool-1.2.dmg").type, "file");
+  assert.equal(M.classifyByURL("https://example.com/docs/manual.pdf").type, "file");
+  assert.equal(M.classifyByURL("https://example.com/src/archive.tar.gz").type, "file");
+});
+
+test("attachmentFilename: attachment vs inline vs absent, RFC 5987 and quoted forms", () => {
+  assert.equal(M.attachmentFilename('attachment; filename="report final.pdf"'), "report final.pdf");
+  assert.equal(M.attachmentFilename("attachment; filename*=UTF-8''r%C3%A9sum%C3%A9.pdf"), "résumé.pdf");
+  assert.equal(M.attachmentFilename("attachment; filename=plain.zip"), "plain.zip");
+  assert.equal(M.attachmentFilename("attachment"), "");
+  assert.equal(M.attachmentFilename('inline; filename="preview.pdf"'), null);
+  assert.equal(M.attachmentFilename(""), null);
+});
+
+test("classifyByContentType trusts Content-Disposition attachment, filename wins over URL", () => {
+  const item = M.classifyByContentType(
+    "https://api.example.com/export?id=7", "application/octet-stream", 5_000_000,
+    'attachment; filename="dataset-2026.zip"');
+  assert.equal(item.type, "file");
+  assert.equal(item.filename, "dataset-2026.zip");
+  // Attachment with a media filename classifies as that media type.
+  const media = M.classifyByContentType(
+    "https://api.example.com/dl?id=9", "application/octet-stream", 9_000_000,
+    'attachment; filename="clip.mp4"');
+  assert.equal(media.type, "video");
+});
+
+test("classifyByContentType: file MIMEs recognised, bare octet-stream still ignored", () => {
+  assert.equal(M.classifyByContentType("https://x.com/get?id=1", "application/zip", 1_000_000).type, "file");
+  assert.equal(M.classifyByContentType("https://x.com/get?id=2", "application/pdf", 200_000).type, "file");
+  assert.equal(M.classifyByContentType("https://x.com/api/blob", "application/octet-stream", 1_000_000), null);
+});
+
+test("recordKey folds signed-CDN token rotation, keeps query identity for extensionless URLs", () => {
+  const a = M.recordKey("https://cdn.example.com/v/movie.mp4?token=AAA&exp=1");
+  const b = M.recordKey("https://cdn.example.com/v/movie.mp4?token=BBB&exp=2");
+  assert.equal(a, b);
+  const x = M.recordKey("https://host.example.com/videoplayback?id=X");
+  const y = M.recordKey("https://host.example.com/videoplayback?id=Y");
+  assert.notEqual(x, y);
+});
+
+test("collapseStreamPlaylists folds the HLS+DASH twin of one asset (same stem, same folder)", () => {
+  const items = M.dedupeAndRank([
+    M.makeItem("https://cdn.example.com/vod/video.m3u8", "stream"),
+    M.makeItem("https://cdn.example.com/vod/video.mpd", "stream")
+  ]);
+  assert.equal(items.length, 1);
+  assert.ok(items[0].url.endsWith(".m3u8"), "HLS wins the twin");
+});
+
+test("collapseStreamPlaylists folds a master-named HLS+DASH pair (master.m3u8 + manifest.mpd)", () => {
+  const items = M.dedupeAndRank([
+    M.makeItem("https://cdn.example.com/asset42/manifest.mpd", "stream"),
+    M.makeItem("https://cdn.example.com/asset42/master.m3u8", "stream")
+  ]);
+  assert.equal(items.length, 1);
+  assert.ok(items[0].url.endsWith(".m3u8"));
+});
+
+test("Bitmovin-style m3u8s/ + mpds/ sibling folders collapse to one stream", () => {
+  const items = M.dedupeAndRank([
+    M.makeItem("https://cdn.example.com/content/art-of-motion/m3u8s/f08e80da.m3u8", "stream"),
+    M.makeItem("https://cdn.example.com/content/art-of-motion/mpds/f08e80da.mpd", "stream")
+  ]);
+  assert.equal(items.length, 1);
+});
+
+test("two different assets in one folder never collapse (different stems, same container)", () => {
+  const items = M.dedupeAndRank([
+    M.makeItem("https://cdn.example.com/vod/movie-one.m3u8", "stream"),
+    M.makeItem("https://cdn.example.com/vod/movie-two.m3u8", "stream")
+  ]);
+  assert.equal(items.length, 2);
+});
+
+test("a sniffed stream suppresses the page-extraction item (same video twice)", () => {
+  const items = M.dedupeAndRank([
+    { url: "https://site.example.com/watch/42", type: "page", label: "Title", extract: true },
+    M.makeItem("https://cdn.example.com/vod/master.m3u8", "stream")
+  ]);
+  assert.equal(items.length, 1);
+  assert.equal(items[0].type, "stream");
+});
+
+test("the page-extraction item survives (and ranks first) when no stream was sniffed", () => {
+  const items = M.dedupeAndRank([
+    M.makeItem("https://site.example.com/podcast/ep1.mp3", "audio"),
+    { url: "https://site.example.com/watch/42", type: "page", label: "Title", extract: true }
+  ]);
+  assert.equal(items.length, 2);
+  assert.equal(items[0].type, "page");
+});
+
+test("interceptable: known file/media types by URL, filename, or MIME — nothing else", () => {
+  assert.ok(M.interceptable("https://example.com/tool.dmg", "", ""));
+  assert.ok(M.interceptable("https://example.com/get?id=1", "movie.mkv", ""));
+  assert.ok(M.interceptable("https://example.com/get?id=2", "", "application/zip"));
+  assert.ok(M.interceptable("https://example.com/get?id=3", "", "video/mp4"));
+  assert.ok(!M.interceptable("https://example.com/page", "", "text/html"));
+  assert.ok(!M.interceptable("https://example.com/api/blob", "", "application/octet-stream"));
+  assert.ok(!M.interceptable("blob:https://example.com/uuid", "clip.mp4", ""));
+  assert.ok(!M.interceptable("https://example.com/photo", "img.jpeg", "image/jpeg"));
+});

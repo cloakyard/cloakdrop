@@ -22,9 +22,25 @@
   const SEGMENT_EXT = ["ts", "m4s", "cmfv", "cmfa", "cmft", "cmfm"];
   const AUDIO_EXT = ["mp3", "m4a", "aac", "flac", "wav", "ogg", "oga", "opus", "weba"];
 
-  // List ordering: streams (the prize on video sites) first, then video, audio, files.
-  const TYPE_RANK = { stream: 0, video: 1, audio: 2, file: 3 };
-  const TYPE_LABEL = { stream: "STREAM", video: "VIDEO", audio: "AUDIO", file: "FILE" };
+  // List ordering: a whole-page extraction first (it IS the page's video), then streams (the prize
+  // on video sites), then video, audio, files.
+  const TYPE_RANK = { page: 0, stream: 1, video: 2, audio: 3, file: 4 };
+  const TYPE_LABEL = { page: "VIDEO", stream: "STREAM", video: "VIDEO", audio: "AUDIO", file: "FILE" };
+
+  // Response MIME types that mark a plain downloadable file. Deliberately explicit —
+  // `application/octet-stream` alone is NOT here (every API blob would match); an octet-stream
+  // download still gets caught by its URL extension or its `Content-Disposition: attachment`.
+  const FILE_MIME = new Set([
+    "application/zip", "application/x-zip-compressed",
+    "application/x-rar-compressed", "application/vnd.rar", "application/x-7z-compressed",
+    "application/x-tar", "application/gzip", "application/x-gzip", "application/x-xz",
+    "application/x-bzip2",
+    "application/pdf", "application/epub+zip",
+    "application/x-apple-diskimage", "application/x-iso9660-image",
+    "application/vnd.android.package-archive",
+    "application/x-msdownload", "application/x-msdos-program", "application/x-msi",
+    "application/x-debian-package", "application/x-rpm", "application/x-redhat-package-manager"
+  ]);
 
   // URL substrings that mark analytics / telemetry / ad pings — never downloadable media.
   const BEACON_HINTS = [
@@ -61,6 +77,24 @@
     catch (_) { return ""; }
   }
 
+  function extOfName(name) {
+    const dot = String(name || "").lastIndexOf(".");
+    return dot > 0 ? String(name).slice(dot + 1).toLowerCase() : "";
+  }
+
+  // The key a sniffed URL is *recorded* under. Signed CDN URLs rotate their query per request
+  // (`video.mp4?token=A`, then `?token=B`) — recording by full URL shows the same file twice. When
+  // the path itself names a media/file resource, key on host+path so re-tokenized repeats overwrite
+  // (keeping the freshest URL) instead of duplicating. Extensionless endpoints (`/videoplayback?id=X`)
+  // keep the full URL — there the query IS the identity.
+  function recordKey(url) {
+    const ext = extensionOf(url);
+    if (STREAM_EXT.includes(ext) || MEDIA_EXT.includes(ext) || FILE_EXT.includes(ext)) {
+      try { const u = new URL(url); return u.host + u.pathname; } catch (_) { /* fall through */ }
+    }
+    return String(url);
+  }
+
   // True when a URL/response is noise we must never surface as downloadable media. `opts` may carry
   // `contentType` and `contentLength` learned from response headers.
   function isNoise(url, opts) {
@@ -88,28 +122,72 @@
     return Object.assign(item, extra || {});
   }
 
-  // A media item derived from a URL alone, or null if the URL isn't recognisably media.
+  // A media item derived from a URL alone, or null if the URL isn't recognisably media/file.
   function classifyByURL(url) {
     if (isNoise(url, {})) return null;
     const ext = extensionOf(url);
     if (!ext) return null;
     if (STREAM_EXT.includes(ext)) return makeItem(url, "stream");
     if (MEDIA_EXT.includes(ext)) return makeItem(url, audioExt(ext) ? "audio" : "video");
+    if (FILE_EXT.includes(ext)) return makeItem(url, "file");
     return null;
   }
 
-  // A media item derived from a response's content-type, for URLs without a telltale extension.
-  function classifyByContentType(url, contentType, contentLength) {
+  // The filename of an explicit `Content-Disposition: attachment`, or null when the response isn't
+  // an attachment (absent header, or `inline`). An attachment with no usable name returns "".
+  function attachmentFilename(disposition) {
+    const d = String(disposition || "");
+    if (!/^\s*attachment/i.test(d)) return null;
+    // RFC 5987 `filename*=utf-8''…` wins over the plain quoted/bare `filename=`.
+    let m = d.match(/filename\*\s*=\s*(?:utf-8|iso-8859-1)''([^;]+)/i);
+    if (m) { try { return decodeURIComponent(m[1].trim()); } catch (_) { return m[1].trim(); } }
+    m = d.match(/filename\s*=\s*"((?:[^"\\]|\\.)*)"/i) || d.match(/filename\s*=\s*([^;\r\n]+)/i);
+    return m ? m[1].replace(/\\(.)/g, "$1").trim() : "";
+  }
+
+  // A media/file item derived from response headers, for URLs without a telltale extension.
+  // `Content-Disposition: attachment` is the server saying "this is a download" — trusted even when
+  // the content-type is a generic octet-stream, and its filename beats the URL's.
+  function classifyByContentType(url, contentType, contentLength, contentDisposition) {
+    const name = attachmentFilename(contentDisposition);
+    const type = String(contentType || "").split(";")[0].trim().toLowerCase();
+    if (name !== null) {
+      if (isNoise(url, { contentType, contentLength })) return null;
+      const ext = extOfName(name) || extensionOf(url);
+      let kind = "file";
+      if (STREAM_EXT.includes(ext)) kind = "stream";
+      else if (MEDIA_EXT.includes(ext)) kind = audioExt(ext) ? "audio" : "video";
+      else if (type.startsWith("video/")) kind = "video";
+      else if (type.startsWith("audio/")) kind = "audio";
+      const item = makeItem(url, kind);
+      if (name) { item.filename = name; item.label = name; }
+      return item;
+    }
     if (!contentType) return null;
     if (isNoise(url, { contentType, contentLength })) return null;
-    const type = contentType.split(";")[0].trim().toLowerCase();
     if (type === "application/vnd.apple.mpegurl" || type === "application/x-mpegurl" ||
         type === "application/dash+xml") {
       return makeItem(url, "stream");
     }
     if (type.startsWith("video/")) return makeItem(url, "video");
     if (type.startsWith("audio/")) return makeItem(url, "audio");
+    if (FILE_MIME.has(type)) return makeItem(url, "file");
     return null;
+  }
+
+  // Should a browser-initiated download of `url` be taken over by the app? Mirrors IDM's
+  // "intercept by type" list: known file/media extensions (the attachment's filename wins over the
+  // URL) or a recognised file/media MIME. Unknown types stay with the browser — never break a
+  // download we can't positively identify.
+  function interceptable(url, filename, mime) {
+    if (!/^https?:/i.test(String(url))) return false;
+    if (isNoise(url, {})) return false;
+    const ext = extOfName(filename || "") || extensionOf(url);
+    if (FILE_EXT.includes(ext) || MEDIA_EXT.includes(ext)) return true;
+    const type = String(mime || "").split(";")[0].trim().toLowerCase();
+    if (FILE_MIME.has(type)) return true;
+    if (type.startsWith("video/") || type.startsWith("audio/")) return true;
+    return false;
   }
 
   // ── Rendition collapsing ────────────────────────────────────────────────────────────────────
@@ -123,6 +201,7 @@
   // Path segments that denote a rendition's role, not the video's identity.
   const RENDITION_SEG = new Set([
     "pl", "vid", "hls", "dash", "manifest", "playlist", "chunklist",   // container / playlist role
+    "m3u8s", "mpds",                                                   // per-container folders (Bitmovin-style)
     "avc1", "avc", "h264", "h265", "hevc", "hvc1", "av01", "vp9", "vp09", "mp4a", "aac", "opus", // codec
     "sd", "hd", "fhd", "uhd", "hi", "mid", "low", "hq", "lq"           // named qualities
   ]);
@@ -237,6 +316,29 @@
         }
       }
     }
+    // (3) The same asset offered in BOTH containers from one folder — `video.m3u8` + `video.mpd`
+    // (identical stems), or a master-named pair like `master.m3u8` + `manifest.mpd`. One video,
+    // two protocols: keep the HLS one (broadest support in the app's picker), drop the twin.
+    const byDirSurvivors = new Map();
+    for (const m of meta) {
+      if (keep.has(m.s)) { (byDirSurvivors.get(m.dir) || byDirSurvivors.set(m.dir, []).get(m.dir)).push(m); }
+    }
+    const CONTAINER_ORDER = ["m3u8", "m3u", "mpd"];
+    for (const group of byDirSurvivors.values()) {
+      if (group.length < 2) continue;
+      const byIdentity = new Map();
+      for (const m of group) {
+        const identity = MASTER_STEM.has(m.stem) ? " master" : m.stem;
+        (byIdentity.get(identity) || byIdentity.set(identity, []).get(identity)).push(m);
+      }
+      for (const twins of byIdentity.values()) {
+        if (twins.length < 2) continue;
+        if (new Set(twins.map((m) => extensionOf(m.s.url))).size < 2) continue;  // same container → distinct assets
+        twins.sort((a, b) =>
+          CONTAINER_ORDER.indexOf(extensionOf(a.s.url)) - CONTAINER_ORDER.indexOf(extensionOf(b.s.url)));
+        for (let i = 1; i < twins.length; i++) keep.delete(twins[i].s);
+      }
+    }
     return items.filter((i) => i.type !== "stream" || keep.has(i));
   }
 
@@ -308,7 +410,7 @@
   }
 
   // Drop duplicate URLs, collapse rendition variants → variant playlists → stream media → same-file
-  // mirrors, then order streams → video → audio → file (stable within a rank).
+  // mirrors, then order page → streams → video → audio → file (stable within a rank).
   function dedupeAndRank(items) {
     const seen = new Set();
     const unique = [];
@@ -321,6 +423,9 @@
     out = collapseStreamPlaylists(out);
     out = dropStreamMedia(out);
     out = dedupeSameFile(out);
+    // A sniffed stream and the "download this page's video" hand-off are the same video twice —
+    // the direct stream is the better grab (no yt-dlp round-trip), so it wins.
+    if (out.some((i) => i && i.type === "stream")) out = out.filter((i) => i.type !== "page");
     out.sort((a, b) => (TYPE_RANK[a.type] ?? 9) - (TYPE_RANK[b.type] ?? 9));
     return out;
   }
@@ -345,8 +450,8 @@
 
   const API = {
     STREAM_EXT, MEDIA_EXT, FILE_EXT, SEGMENT_EXT, AUDIO_EXT, TYPE_RANK, TYPE_LABEL,
-    hostOf, extensionOf, audioExt, fileNameFromURL,
-    isNoise, makeItem, classifyByURL, classifyByContentType,
+    hostOf, extensionOf, audioExt, fileNameFromURL, extOfName, recordKey,
+    isNoise, makeItem, classifyByURL, classifyByContentType, attachmentFilename, interceptable,
     videoKey, collapseRenditions, collapseStreamPlaylists, dropStreamMedia, dedupeAndRank,
     primaryPlayerIndex
   };

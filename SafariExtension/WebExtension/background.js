@@ -1,11 +1,15 @@
-// CloakDrop — cross-browser (Chrome / Edge / Firefox) background script, MV3.
+// CloakDrop — cross-browser (Chrome / Edge / Firefox / Safari) background script, MV3.
 //
-// Two ways to hand a download to the app:
+// Three ways a download reaches the app:
 //   1. Right-click a link/video/audio/image → "Download with CloakDrop" (context menu).
 //   2. Open the toolbar popup, which lists media detected on the current tab — both the media
-//      already in the page's DOM and any streaming manifests (HLS `.m3u8` / DASH `.mpd`) or media
-//      responses seen going over the wire, which the DOM never exposes. This script is the sniffer
-//      for that second path: it watches the tab's network requests and keeps a per-tab list.
+//      already in the page's DOM and any streaming manifests (HLS `.m3u8` / DASH `.mpd`), media
+//      responses, or attachment downloads seen going over the wire, which the DOM never exposes.
+//      This script is the sniffer for that second path: it watches the tab's network requests and
+//      keeps a per-tab list.
+//   3. IDM-style takeover: a browser download of a type the app handles (archive/installer/media/
+//      PDF) is cancelled and handed to the app instead — see the interception section below.
+//      Feature-detected (Safari has no downloads API) and toggleable from the popup.
 //
 // Either way, choosing a download gathers just enough to reproduce the browser's request for THAT
 // resource — the page URL as referrer, the user-agent, and the cookies scoped to the target — then
@@ -41,11 +45,46 @@ const MENU_LINK = "cloakdrop-link";
 const MENU_MEDIA = "cloakdrop-media";
 const MAX_ITEMS_PER_TAB = 60;
 
-// Detected streaming/media URLs seen on the wire, keyed by tab id, then by URL (dedup). In-memory:
-// under MV3 the service worker can be evicted and this cleared, but ongoing segment traffic keeps it
-// alive across a typical "load page → open popup" flow, and the popup's DOM scan is an independent
-// second source. Cleared per tab on main-frame navigation.
+// Detected streaming/media URLs seen on the wire, keyed by tab id, then by a canonical record key
+// (host+path for extension-carrying media, so a signed CDN URL that rotates its token doesn't show
+// twice — see media.js `recordKey`). Cleared per tab on navigation, including SPA pushState navs.
+//
+// MV3 evicts an idle service worker and would wipe this map — the classic "opened the popup two
+// minutes later and it's empty" failure. Every mutation is mirrored into `storage.session`
+// (memory-backed, cleared when the browser quits, never written to disk — consistent with the
+// privacy posture), and a fresh worker instance restores it lazily before answering queries.
 const mediaByTab = new Map();
+const session = api.storage && api.storage.session;
+
+// Resolves once a freshly-woken worker has merged any state a previous instance persisted.
+const restored = (async () => {
+  if (!session) return;
+  try {
+    const all = await session.get(null);
+    for (const [key, value] of Object.entries(all || {})) {
+      if (!key.startsWith("media:") || !Array.isArray(value)) continue;
+      const tabId = Number(key.slice("media:".length));
+      if (!mediaByTab.has(tabId)) mediaByTab.set(tabId, new Map(value));
+    }
+  } catch (_) { /* storage.session unavailable — in-memory only */ }
+})();
+
+function persistTab(tabId) {
+  if (!session) return;
+  const forTab = mediaByTab.get(tabId);
+  try {
+    const write = forTab && forTab.size
+      ? session.set({ ["media:" + tabId]: Array.from(forTab.entries()) })
+      : session.remove("media:" + tabId);
+    if (write && write.catch) write.catch(() => {});
+  } catch (_) { /* ignore */ }
+}
+
+function clearTab(tabId) {
+  mediaByTab.delete(tabId);
+  persistTab(tabId);
+  updateBadge(tabId);
+}
 
 // MARK: - Context menu (unchanged path)
 
@@ -74,14 +113,18 @@ api.webRequest.onBeforeRequest.addListener(
   { urls: ["<all_urls>"], types: ["media", "xmlhttprequest", "other", "object", "sub_frame"] }
 );
 
-// Record media discovered by response content-type (manifests/streams often have no file extension
-// on the URL — a query-string-only endpoint — but declare their type in the header). Content-Length
-// also lets us drop sub-1 KB "media" (UI sounds / beacons) that slip past the URL filter.
+// Record media discovered by response headers: content-type (manifests/streams often have no file
+// extension on the URL but declare their type), an explicit `Content-Disposition: attachment` (the
+// server saying "this is a download"), and Content-Length to drop sub-1 KB "media" (UI sounds /
+// beacons) that slip past the URL filter. Only successful responses — a 403's error page or an
+// expired-token redirect must not enter the list.
 api.webRequest.onHeadersReceived.addListener(
   (details) => {
+    if (details.statusCode !== 200 && details.statusCode !== 206) return;
     const contentType = headerValue(details.responseHeaders, "content-type");
+    const disposition = headerValue(details.responseHeaders, "content-disposition");
     const contentLength = Number(headerValue(details.responseHeaders, "content-length")) || undefined;
-    const item = M.classifyByContentType(details.url, contentType, contentLength);
+    const item = M.classifyByContentType(details.url, contentType, contentLength, disposition);
     if (item) record(details.tabId, item);
   },
   { urls: ["<all_urls>"], types: ["media", "xmlhttprequest", "other", "object", "sub_frame"] },
@@ -89,22 +132,40 @@ api.webRequest.onHeadersReceived.addListener(
 );
 
 // Drop a tab's list when it navigates to a new page (or is closed) so stale hits don't linger.
+const lastTabURL = new Map();   // tabId → last committed URL sans fragment (SPA-nav detection)
 api.webRequest.onBeforeRequest.addListener(
   (details) => {
-    if (details.type === "main_frame") { mediaByTab.delete(details.tabId); updateBadge(details.tabId); }
+    if (details.type === "main_frame") {
+      lastTabURL.set(details.tabId, String(details.url).split("#")[0]);
+      clearTab(details.tabId);
+    }
   },
   { urls: ["<all_urls>"], types: ["main_frame"] }
 );
-api.tabs.onRemoved.addListener((tabId) => mediaByTab.delete(tabId));
+// SPA navigations (YouTube's next video, TikTok's scroll) never issue a main_frame request — the
+// URL changes via pushState. Without this, the previous video's streams linger in the new page's
+// list. Fragment-only changes (`#t=42`) are not navigations and must NOT clear anything.
+api.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (!changeInfo.url) return;
+  const withoutFragment = changeInfo.url.split("#")[0];
+  const previous = lastTabURL.get(tabId);
+  lastTabURL.set(tabId, withoutFragment);
+  if (previous !== undefined && previous !== withoutFragment) clearTab(tabId);
+});
+api.tabs.onRemoved.addListener((tabId) => { lastTabURL.delete(tabId); clearTab(tabId); });
 
 function record(tabId, item) {
   if (tabId < 0) return;                       // not tied to a tab (e.g. the extension's own fetches)
   let forTab = mediaByTab.get(tabId);
   if (!forTab) { forTab = new Map(); mediaByTab.set(tabId, forTab); }
-  if (forTab.has(item.url) || forTab.size >= MAX_ITEMS_PER_TAB) return;
-  forTab.set(item.url, item);
-  updateBadge(tabId);
-  notifyTab(tabId);
+  const key = M.recordKey(item.url);
+  const isNew = !forTab.has(key);
+  if (isNew && forTab.size >= MAX_ITEMS_PER_TAB) return;
+  // A repeat of the same resource (rotated CDN token) overwrites in place: the freshest URL is the
+  // one most likely to still be valid when the user clicks, and Map keeps the original position.
+  forTab.set(key, item);
+  persistTab(tabId);
+  if (isNew) { updateBadge(tabId); notifyTab(tabId); }
 }
 
 // The tab's detected media as a plain array (deduped/ordered), shared by the popup and content script.
@@ -144,11 +205,13 @@ function updateBadge(tabId) {
 
 api.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // `return true` keeps the response channel open — the one pattern that delivers a reply on both
-  // Chrome (which ignores a returned Promise) and Firefox — even though we answer synchronously here.
+  // Chrome (which ignores a returned Promise) and Firefox.
   if (message?.action === "getMedia") {
     // The popup passes an explicit tabId; the content script omits it and we read its own tab.
+    // Await the session-storage restore first, so a freshly-woken worker doesn't answer "nothing"
+    // from a not-yet-refilled map.
     const tabId = message.tabId ?? sender?.tab?.id;
-    sendResponse({ items: tabId == null ? [] : mediaList(tabId) });
+    restored.then(() => sendResponse({ items: tabId == null ? [] : mediaList(tabId) }));
     return true;
   }
   if (message?.action === "download") {
@@ -158,6 +221,52 @@ api.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   return false;                                // not one of ours
 });
+
+// MARK: - Browser-download interception (IDM-style takeover)
+//
+// When the browser starts a normal download of a type the app handles (archives, installers,
+// media, PDFs — see media.js `interceptable`), cancel it and hand the URL to CloakDrop, which
+// downloads it multi-segment with resume. Guarantees:
+//   • Feature-detected: Safari has no `downloads` API — everything else still works there.
+//   • Off switch: the popup's "Catch browser downloads" toggle (storage.local, default on).
+//   • Never lose a file: the hand-off uses the native host ONLY (no cloakdrop:// fallback — the
+//     scheme can't report failure); if the app isn't reachable, the download is re-issued to the
+//     browser untouched, marked to bypass re-interception.
+//   • Never intercept blind: unknown types, blob:/data: URLs, and other extensions' downloads pass.
+let interceptEnabled = true;
+try {
+  api.storage.local.get("interceptDownloads").then((prefs) => {
+    if (prefs && prefs.interceptDownloads === false) interceptEnabled = false;
+  }).catch(() => {});
+} catch (_) { /* storage unavailable — default on */ }
+api.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.interceptDownloads) {
+    interceptEnabled = changes.interceptDownloads.newValue !== false;
+  }
+});
+
+const bypassOnce = new Set();   // URLs we re-issued ourselves after a failed hand-off
+
+if (api.downloads && api.downloads.onCreated) {
+  api.downloads.onCreated.addListener(async (item) => {
+    if (!interceptEnabled) return;
+    const url = item.finalUrl || item.url || "";
+    if (bypassOnce.delete(url)) return;                     // our own re-issue — let the browser keep it
+    if (item.byExtensionId) return;                         // another extension's download
+    // `filename` is the on-disk path when known; only its basename matters for classification.
+    const basename = item.filename ? String(item.filename).split(/[\\/]/).pop() : "";
+    if (!M.interceptable(url, basename, item.mime)) return;
+    try { await api.downloads.cancel(item.id); } catch (_) { return; }   // already finished — leave it
+    try { await api.downloads.erase({ id: item.id }); } catch (_) { /* history entry stays — harmless */ }
+    const handedOff = await capture(url, item.referrer || "", basename || undefined,
+      undefined, false, { allowSchemeFallback: false });
+    if (!handedOff) {
+      // App unreachable — give the download back to the browser exactly as it was.
+      bypassOnce.add(url);
+      try { await api.downloads.download({ url }); } catch (_) { bypassOnce.delete(url); }
+    }
+  });
+}
 
 // MARK: - Classification
 //
@@ -175,7 +284,10 @@ function headerValue(headers, name) {
 
 // MARK: - Hand-off to the app (shared by both paths)
 
-async function capture(target, referrer, filenameOverride, audioURL, extractFromPage) {
+// Hand a download to the app. Returns true when it was delivered (native host confirmed, or the
+// cloakdrop:// deep link was opened), false only when `allowSchemeFallback` is off and the native
+// host failed — the interception path uses that to give the download back to the browser.
+async function capture(target, referrer, filenameOverride, audioURL, extractFromPage, options) {
   const payload = {
     url: target,
     referrer: referrer,
@@ -197,12 +309,14 @@ async function capture(target, referrer, filenameOverride, audioURL, extractFrom
   // the cloakdrop:// deep link, which needs no shared container.
   try {
     const response = await api.runtime.sendNativeMessage(HOST_NAME, payload);
-    if (response && response.ok) return;
+    if (response && response.ok) return true;
     console.warn("CloakDrop host unavailable, using URL scheme:", response && response.error);
   } catch (error) {
     console.warn("CloakDrop native message failed, using URL scheme:", error);
   }
+  if (options && options.allowSchemeFallback === false) return false;
   openViaURLScheme(payload);
+  return true;
 }
 
 // Fallback hand-off: open `cloakdrop://add?…`. Works without the native host. Cookies ride the query,

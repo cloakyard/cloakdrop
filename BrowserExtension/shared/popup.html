@@ -47,6 +47,11 @@
     .download:disabled { cursor: default; opacity: 0.9; }
     #empty p { margin: 6px 0 0; line-height: 1.45; color: color-mix(in srgb, currentColor 62%, transparent); }
     #empty b { color: inherit; font-weight: 600; }
+    #prefs { margin-top: 12px; padding-top: 10px; border-top: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+             display: flex; flex-direction: column; gap: 6px; }
+    #prefs label { display: flex; align-items: center; gap: 7px; font-size: 12px;
+                   color: color-mix(in srgb, currentColor 75%, transparent); cursor: pointer; }
+    #prefs input { accent-color: var(--accent); margin: 0; }
   </style>
 </head>
 <body>
@@ -62,6 +67,17 @@
     <p>No media detected on this page yet.</p>
     <p>Right-click any link, video, image, or audio and choose <b>Download with CloakDrop</b>, or start playing a video and reopen this popup.</p>
     <p>Everything opens in CloakDrop for you to confirm — nothing leaves your Mac.</p>
+  </div>
+
+  <div id="prefs">
+    <label id="interceptRow" hidden>
+      <input type="checkbox" id="prefIntercept">
+      <span>Catch browser downloads (archives, installers, media)</span>
+    </label>
+    <label>
+      <input type="checkbox" id="prefWidget">
+      <span>Show the Save button on videos</span>
+    </label>
   </div>
 
   <script src="media.js"></script>

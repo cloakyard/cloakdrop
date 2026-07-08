@@ -23,7 +23,8 @@
     {
       "matches": ["*://*/*"],
       "js": ["media.js", "content.js"],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "all_frames": true
     }
   ],
   "permissions": [
@@ -34,7 +35,8 @@
     "scripting",
     "webRequest",
     "nativeMessaging",
-    "storage"
+    "storage",
+    "downloads"
   ],
   "host_permissions": [
     "*://*/*"
