@@ -87,42 +87,53 @@ struct SpeedTestEndpoints: Sendable, Hashable {
         SpeedTestEndpoints(
             serverName: server.displayName,
             latencyURL: server.baseURL.appending(path: "latency.txt"),
-            // The largest of the fixed random payloads Ookla HTTP servers serve (~31 MB).
+            // The largest of the fixed random payloads every Ookla server serves (~31 MB).
             downloadURL: server.baseURL.appending(path: "random4000x4000.jpg"),
             uploadURL: server.uploadURL
         )
     }
 }
 
-/// One entry from Ookla's public HTTP server directory.
+/// One HTTPS-reachable entry from Ookla's public server directory.
 struct OoklaServer: Sendable, Hashable {
-    /// City, e.g. "San Jose, CA".
+    /// City, e.g. "Pune".
     var name: String
     /// Operator, e.g. an ISP or exchange.
     var sponsor: String
-    /// The server's `…/speedtest/upload.php` endpoint, as listed in the directory.
-    var uploadURL: URL
+    /// The server's `…/speedtest` root over HTTPS on its canonical `ooklaserver.net` host.
+    var baseURL: URL
 
-    /// The directory URL minus its last component — the root the fixed test files hang off.
-    var baseURL: URL { uploadURL.deletingLastPathComponent() }
+    var uploadURL: URL { baseURL.appending(path: "upload.php") }
     var displayName: String { sponsor.isEmpty ? name : "\(sponsor) — \(name)" }
 }
 
 enum OoklaServerDirectory {
-    /// Ookla's public nearest-servers listing (the same one its own web client queries).
-    static let listURL = URL(string: "https://www.speedtest.net/api/js/servers?engine=js&https_functional=true&limit=10")!
+    /// Ookla's public nearest-servers listing (the same one its own web client queries). Pull a
+    /// wide list because only the subset with a canonical `ooklaserver.net` host is usable (below).
+    static let listURL = URL(string: "https://www.speedtest.net/api/js/servers?engine=js&https_functional=true&limit=20")!
 
-    /// Decode the directory JSON, dropping entries whose URL doesn't parse.
+    /// Decode the directory, keeping only servers whose canonical `host` is under
+    /// `ooklaserver.net` — the servers that carry Ookla's wildcard TLS cert, so HTTPS validates.
+    ///
+    /// Why not the listed `url`: it is always plain **http** on a vanity hostname. App Transport
+    /// Security blocks cleartext HTTP, and the vanity host (`speedtestX.some-isp.in`) usually has
+    /// no matching cert, so HTTPS to it fails validation too. The directory's `host` field, when
+    /// it ends in `.ooklaserver.net` (~80% of nearby servers do), is the one form that loads over
+    /// valid HTTPS — so we build every test URL from that and skip the rest.
     static func parse(_ data: Data) throws -> [OoklaServer] {
         struct Entry: Decodable {
-            var url: String
+            var host: String?
             var name: String?
             var sponsor: String?
         }
         let entries = try JSONDecoder().decode([Entry].self, from: data)
-        return entries.compactMap { entry in
-            guard let url = URL(string: entry.url), url.host() != nil else { return nil }
-            return OoklaServer(name: entry.name ?? "", sponsor: entry.sponsor ?? "", uploadURL: url)
+        return entries.compactMap { entry -> OoklaServer? in
+            guard let host = entry.host, !host.isEmpty else { return nil }
+            // `host` is "hostname[:port]"; the hostname must be an ooklaserver.net name.
+            let hostname = host.split(separator: ":").first.map(String.init) ?? host
+            guard hostname.hasSuffix(".ooklaserver.net") else { return nil }
+            guard let base = URL(string: "https://\(host)/speedtest") else { return nil }
+            return OoklaServer(name: entry.name ?? "", sponsor: entry.sponsor ?? "", baseURL: base)
         }
     }
 }

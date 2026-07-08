@@ -62,24 +62,36 @@ struct SpeedTestEndpointTests {
         #expect(endpoints.uploadURL.absoluteString == "https://speed.cloudflare.com/__up")
     }
 
-    @Test func ooklaDirectoryParsesAndDerivesURLs() throws {
+    @Test func ooklaDirectoryKeepsOnlyValidCertHostsOverHTTPS() throws {
+        // Ookla lists plain-http vanity `url`s plus a canonical `host`. Only servers whose host is
+        // under ooklaserver.net (valid wildcard cert) are usable; vanity-host servers are dropped.
         let json = Data("""
         [
-          {"url": "http://example-isp.test:8080/speedtest/upload.php",
-           "name": "San Jose, CA", "sponsor": "Example ISP", "host": "example-isp.test:8080"},
-          {"url": "not a url", "name": "Broken", "sponsor": "Broken"},
-          {"url": "https://second.test/speedtest/upload.php", "name": "Oakland, CA", "sponsor": "Second"}
+          {"url": "http://act.example.in:8080/speedtest/upload.php",
+           "host": "act.example.in.prod.hosts.ooklaserver.net:8080",
+           "name": "Pune", "sponsor": "ACT"},
+          {"url": "http://vanity.example.com:8080/speedtest/upload.php",
+           "host": "vanity.example.com:8080", "name": "Nowhere", "sponsor": "Vanity"},
+          {"host": "", "name": "Empty", "sponsor": "Empty"}
         ]
         """.utf8)
         let servers = try OoklaServerDirectory.parse(json)
-        #expect(servers.count == 2)
+        #expect(servers.count == 1)   // only the ooklaserver.net host survives
 
-        let first = try #require(servers.first)
-        #expect(first.displayName == "Example ISP — San Jose, CA")
-        let endpoints = SpeedTestEndpoints.ookla(first)
-        #expect(endpoints.downloadURL.absoluteString == "http://example-isp.test:8080/speedtest/random4000x4000.jpg")
-        #expect(endpoints.latencyURL.absoluteString == "http://example-isp.test:8080/speedtest/latency.txt")
-        #expect(endpoints.uploadURL.absoluteString == "http://example-isp.test:8080/speedtest/upload.php")
+        let server = try #require(servers.first)
+        #expect(server.displayName == "ACT — Pune")
+        let endpoints = SpeedTestEndpoints.ookla(server)
+        #expect(endpoints.latencyURL.absoluteString == "https://act.example.in.prod.hosts.ooklaserver.net:8080/speedtest/latency.txt")
+        #expect(endpoints.downloadURL.absoluteString == "https://act.example.in.prod.hosts.ooklaserver.net:8080/speedtest/random4000x4000.jpg")
+        #expect(endpoints.uploadURL.absoluteString == "https://act.example.in.prod.hosts.ooklaserver.net:8080/speedtest/upload.php")
+    }
+
+    @Test func ooklaDirectoryWithNoValidHostsIsEmpty() throws {
+        // All vanity hosts → nothing usable → resolveEndpoints will surface `noServers`.
+        let json = Data("""
+        [{"url": "http://a.test:8080/speedtest/upload.php", "host": "a.test:8080", "name": "A", "sponsor": "A"}]
+        """.utf8)
+        #expect(try OoklaServerDirectory.parse(json).isEmpty)
     }
 
     @Test func cacheBustingAppendsUniqueQueryItem() {
@@ -204,7 +216,7 @@ struct SpeedTesterTests {
 
     @Test func ooklaRunUsesDirectoryServer() async throws {
         let directory = Data("""
-        [{"url": "http://mock-server.test/speedtest/upload.php", "name": "Testville", "sponsor": "MockNet"}]
+        [{"host": "mock-server.test.prod.hosts.ooklaserver.net:8080", "name": "Testville", "sponsor": "MockNet"}]
         """.utf8)
         let tester = SpeedTester(
             transport: MockSpeedTestTransport(ooklaDirectory: directory),
