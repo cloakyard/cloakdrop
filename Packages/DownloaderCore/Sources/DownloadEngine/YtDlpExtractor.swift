@@ -34,7 +34,7 @@ public struct YtDlpExtractor: MediaExtractor {
         return nil
     }
 
-    public func extract(pageURL: URL, cookies: String?, userAgent: String?) async throws -> ExtractedMedia {
+    public func extract(pageURL: URL, cookies: ExtractionCookies?, userAgent: String?) async throws -> ExtractedMedia {
         var arguments = [
             "-J",                       // dump a single JSON object describing the video + all formats
             "--no-playlist",            // resolve just this video, never a whole playlist/channel
@@ -43,7 +43,16 @@ public struct YtDlpExtractor: MediaExtractor {
             "--socket-timeout", "20"
         ]
         if let userAgent, !userAgent.isEmpty { arguments += ["--user-agent", userAgent] }
-        if let cookies, !cookies.isEmpty { arguments += ["--add-header", "Cookie:\(cookies)"] }
+        switch cookies {
+        case .header(let header) where !header.isEmpty:
+            arguments += ["--add-header", "Cookie:\(header)"]
+        case .file(let url):
+            // A Netscape jar keeps per-domain scoping — required for multi-host logins. The file
+            // may be updated in place by yt-dlp; callers hand over a private temp copy.
+            arguments += ["--cookies", url.path]
+        case .header, .none:
+            break
+        }
         arguments.append(pageURL.absoluteString)
 
         let result: ProcessRunResult

@@ -45,7 +45,10 @@ extension AppModel {
     /// Grab a *page* URL (a YouTube watch page, etc.): run the media extractor, then auto-download the
     /// best tier with audio — or open the picker when "Ask me quality" is on. On failure, surface an
     /// honest, human message (a protected/SABR stream, a sign-in wall, an unavailable video).
-    func grabFromPage(_ capture: CapturedDownload) {
+    ///
+    /// `cookiesFile` (a Netscape jar) wins over the capture's flattened cookie header — the in-app
+    /// browser passes its whole store this way so multi-domain logins survive extraction.
+    func grabFromPage(_ capture: CapturedDownload, cookiesFile: URL? = nil) {
         guard let extractor = mediaExtractor else {
             presentMediaError(String(localized: "Video extraction isn’t available in this build."))
             return
@@ -54,8 +57,9 @@ extension AppModel {
         Task {
             defer { isResolvingMedia = false }
             do {
+                let cookies = cookiesFile.map(ExtractionCookies.file) ?? capture.cookies.map(ExtractionCookies.header)
                 let media = try await extractor.extract(
-                    pageURL: capture.url, cookies: capture.cookies, userAgent: capture.userAgent
+                    pageURL: capture.url, cookies: cookies, userAgent: capture.userAgent
                 )
                 guard let stream = media.toMediaStream(pageURL: capture.url) else {
                     presentMediaError(Self.friendlyExtractionMessage(.noGrabbableFormats))

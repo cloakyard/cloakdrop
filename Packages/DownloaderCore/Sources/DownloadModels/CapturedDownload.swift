@@ -45,6 +45,8 @@ public struct CapturedDownload: Sendable, Hashable, Codable {
         case browserExtension
         case shareExtension
         case services
+        /// The in-app browser (sniffed candidate, page extraction, or download takeover).
+        case builtInBrowser
     }
 
     /// Size ceilings applied by `validated()`. Every field is bounded so a hostile or malformed
