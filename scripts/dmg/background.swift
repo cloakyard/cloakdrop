@@ -12,7 +12,7 @@
 import AppKit
 
 let W: CGFloat = 720
-let H: CGFloat = 560
+let H: CGFloat = 584
 
 let iconPath = CommandLine.arguments[1]   // pre-glassed app icon PNG for the header
 let outPath  = CommandLine.arguments[2]
@@ -63,72 +63,78 @@ func drawCard(_ rect: NSRect) {
     border.stroke()
 }
 
-/// A numbered brand badge (with sheen + soft shadow) followed by instruction text, left-aligned to
-/// the card edge so the layout doesn't read as rigidly centered.
-let stepLeftX: CGFloat = 96
-func drawStep(_ number: String, _ text: String, centerY: CGFloat) {
-    let ctx = NSGraphicsContext.current!
-    let badgeD: CGFloat = 26
-    let gap: CGFloat = 12
-    let font = roundedFont(16, .medium)
-    let textStr = NSAttributedString(string: text, attributes: [.font: font, .foregroundColor: ink])
-    let tsz = textStr.size()
-    let startX = stepLeftX
-    let badge = NSRect(x: startX, y: centerY - badgeD / 2, width: badgeD, height: badgeD)
-    let badgePath = NSBezierPath(ovalIn: badge)
-
-    ctx.saveGraphicsState()
-    let shadow = NSShadow()
-    shadow.shadowColor = brand.withAlphaComponent(0.4)
-    shadow.shadowBlurRadius = 7
-    shadow.shadowOffset = NSSize(width: 0, height: -2)
-    shadow.set()
-    brandDeep.setFill()
-    badgePath.fill()
-    ctx.restoreGraphicsState()
-    ctx.saveGraphicsState()
-    badgePath.addClip()
-    NSGradient(colors: [brand, brandDeep])!.draw(in: badge, angle: -90)
-    ctx.restoreGraphicsState()
-
-    let numStr = NSAttributedString(string: number,
-        attributes: [.font: roundedFont(14.5, .bold), .foregroundColor: NSColor.white])
-    let nsz = numStr.size()
-    numStr.draw(at: NSPoint(x: badge.midX - nsz.width / 2, y: badge.midY - nsz.height / 2))
-    textStr.draw(at: NSPoint(x: startX + badgeD + gap, y: centerY - tsz.height / 2))
+/// A soft-tipped instruction line, centred. No number badge — a single step reads cleaner as a
+/// plain subheading than as a rigid "1.".
+func drawInstruction(_ text: String, centerY: CGFloat) {
+    draw(text, roundedFont(17, .semibold), ink, centerX: W / 2, centerY: centerY)
 }
 
-/// One connected polygon — shaft + head as a single filled path, so there's no seam where they
-/// meet. Points right, from x0 to the tip. Filled with a brand gradient and a soft shadow.
-func drawArrow(x0: CGFloat, tipX: CGFloat, y: CGFloat) {
-    let shaftH: CGFloat = 8
-    let headH: CGFloat = 32
-    let headLen: CGFloat = 27
-    let xh = tipX - headLen
-    let p = NSBezierPath()
-    p.move(to: NSPoint(x: x0, y: y - shaftH / 2))
-    p.line(to: NSPoint(x: xh, y: y - shaftH / 2))
-    p.line(to: NSPoint(x: xh, y: y - headH / 2))
-    p.line(to: NSPoint(x: tipX, y: y))
-    p.line(to: NSPoint(x: xh, y: y + headH / 2))
-    p.line(to: NSPoint(x: xh, y: y + shaftH / 2))
-    p.line(to: NSPoint(x: x0, y: y + shaftH / 2))
-    p.close()
+/// A curved "swoosh" arrow from the app icon to the Applications alias — a gentle downward bow with
+/// a tangent-aligned head, so it feels hand-drawn rather than stamped. Stroke + head are unioned
+/// into one region and filled with the brand gradient (soft shadow underneath), so there's no seam.
+func drawCurvedArrow(x0: CGFloat, tipX: CGFloat, y: CGFloat) {
+    let dip: CGFloat = 15          // how far the middle bows below the icon centre line
+    let lineW: CGFloat = 9
+    let headLen: CGFloat = 30
+    let headH: CGFloat = 33
+    let dx = tipX - x0
+
+    // Cubic bow: dips in the first half, flattens as it approaches the head so the tip barely tilts.
+    // The shaft runs almost all the way to the tip; the head then sits *over* its end (see overlap).
+    let pEnd = CGPoint(x: tipX - 8, y: y + dip * 0.10)
+    let p0 = CGPoint(x: x0, y: y)
+    let p1 = CGPoint(x: x0 + dx * 0.30, y: y + dip)
+    let p2 = CGPoint(x: pEnd.x - dx * 0.12, y: y + dip * 0.42)
+    let shaft = CGMutablePath()
+    shaft.move(to: p0)
+    shaft.addCurve(to: pEnd, control1: p1, control2: p2)
+    let stroked = shaft.copy(strokingWithWidth: lineW, lineCap: .round, lineJoin: .round, miterLimit: 10)
+
+    // Arrowhead oriented along the shaft's end tangent. Its base sits `overlap` px *behind* the shaft
+    // end, so the triangle swallows the shaft's rounded cap — the two fills merge with no seam.
+    let tan = CGVector(dx: pEnd.x - p2.x, dy: pEnd.y - p2.y)
+    let mag = max(hypot(tan.dx, tan.dy), 0.001)
+    let ux = tan.dx / mag, uy = tan.dy / mag           // unit along the arrow
+    let nx = -uy, ny = ux                              // unit normal
+    let overlap: CGFloat = 14
+    let baseC = CGPoint(x: pEnd.x - ux * overlap, y: pEnd.y - uy * overlap)
+    let tip = CGPoint(x: baseC.x + ux * headLen, y: baseC.y + uy * headLen)
+    let baseL = CGPoint(x: baseC.x + nx * headH / 2, y: baseC.y + ny * headH / 2)
+    let baseR = CGPoint(x: baseC.x - nx * headH / 2, y: baseC.y - ny * headH / 2)
+    // Rounded triangle: each corner is a tangent arc, so the tip and wings are soft, not sharp.
+    let corner: CGFloat = 5.5
+    let head = CGMutablePath()
+    head.move(to: CGPoint(x: (baseR.x + tip.x) / 2, y: (baseR.y + tip.y) / 2))   // start mid-edge, off any corner
+    head.addArc(tangent1End: tip, tangent2End: baseL, radius: corner)
+    head.addArc(tangent1End: baseL, tangent2End: baseR, radius: corner)
+    head.addArc(tangent1End: baseR, tangent2End: tip, radius: corner)
+    head.closeSubpath()
+
+    // Fill the shaft and head as two independent, overlapping pieces — NOT one combined path.
+    // (Their stroke outlines wind oppositely, so a single nonzero/even-odd fill would punch a hole
+    // at the overlap.) Overlapping solid fills merge cleanly into one continuous arrow.
+    let shaftPath = NSBezierPath(cgPath: stroked)
+    let headPath = NSBezierPath(cgPath: head)
+    let bounds = stroked.boundingBoxOfPath.union(head.boundingBoxOfPath)
 
     let ctx = NSGraphicsContext.current!
     ctx.saveGraphicsState()
     let shadow = NSShadow()
     shadow.shadowColor = brand.withAlphaComponent(0.3)
-    shadow.shadowBlurRadius = 8
+    shadow.shadowBlurRadius = 9
     shadow.shadowOffset = NSSize(width: 0, height: -2)
     shadow.set()
     brandDeep.setFill()
-    p.fill()
+    shaftPath.fill()
+    headPath.fill()
     ctx.restoreGraphicsState()
-    ctx.saveGraphicsState()
-    p.addClip()
-    NSGradient(colors: [brand, brandDeep])!.draw(in: p.bounds, angle: 0)
-    ctx.restoreGraphicsState()
+    // Brand gradient, clipped to each piece over their shared bounds so it reads as one shape.
+    for piece in [shaftPath, headPath] {
+        ctx.saveGraphicsState()
+        piece.addClip()
+        NSGradient(colors: [brand, brandDeep])!.draw(in: bounds, angle: 0)
+        ctx.restoreGraphicsState()
+    }
 }
 
 let image = NSImage(size: NSSize(width: W, height: H), flipped: true) { _ in
@@ -142,30 +148,30 @@ let image = NSImage(size: NSSize(width: W, height: H), flipped: true) { _ in
     }
 
     // Framed well behind the drag-to-install icon row (Finder overlays the real icons on top).
-    drawCard(NSRect(x: 96, y: 232, width: 528, height: 152))    // install row
+    drawCard(NSRect(x: 84, y: 228, width: 552, height: 168))    // install row
 
     // Header: logo, wordmark, tagline.
     if let logo = NSImage(contentsOfFile: iconPath) {
-        let box = NSRect(x: W / 2 - 31, y: 26, width: 62, height: 62)
+        let box = NSRect(x: W / 2 - 32, y: 30, width: 64, height: 64)
         let shadow = NSShadow()
         shadow.shadowColor = brand.withAlphaComponent(0.38)
-        shadow.shadowBlurRadius = 16
+        shadow.shadowBlurRadius = 17
         shadow.shadowOffset = NSSize(width: 0, height: -6)
         NSGraphicsContext.current?.saveGraphicsState()
         shadow.set()
         logo.draw(in: box)
         NSGraphicsContext.current?.restoreGraphicsState()
     }
-    draw("CloakDrop", roundedFont(32, .bold), ink, centerX: W / 2, centerY: 114)
-    draw("Private download manager for macOS", roundedFont(13.5, .regular), secondary, centerX: W / 2, centerY: 140)
+    draw("CloakDrop", roundedFont(33, .bold), ink, centerX: W / 2, centerY: 120)
+    draw("Private download manager for macOS", roundedFont(13.5, .regular), secondary, centerX: W / 2, centerY: 147)
 
-    // The one step. The arrow bridges the app icon and Applications alias placed by Finder at y=296.
-    drawStep("1", "Drag CloakDrop into your Applications folder", centerY: 196)
-    drawArrow(x0: 287, tipX: 433, y: 296)
+    // One clean instruction, then the curved arrow bridging the app icon and the Applications alias
+    // (Finder places both at y=302 inside the card).
+    drawInstruction("Drag CloakDrop to your Applications folder", centerY: 199)
+    drawCurvedArrow(x0: 292, tipX: 430, y: 302)
 
-    // A quiet caption above the "Read Me.txt" Finder icon (placed at y=470).
-    draw("New here? Open Read Me for a 20-second tour.",
-         roundedFont(12.5, .regular), secondary, centerX: W / 2, centerY: 424)
+    // "Read Me.txt" (placed by Finder at y=486) sits on its own below the card — its label speaks
+    // for itself, so nothing overlaps it.
 
     return true
 }

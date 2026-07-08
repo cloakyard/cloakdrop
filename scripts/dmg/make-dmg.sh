@@ -66,16 +66,16 @@ tell application "Finder"
     set current view of container window to icon view
     set toolbar visible of container window to false
     set statusbar visible of container window to false
-    -- 720x560 content + 28pt title bar
-    set the bounds of container window to {240, 110, 960, 698}
+    -- 720x584 content + 28pt title bar
+    set the bounds of container window to {240, 110, 960, 722}
     set theView to the icon view options of container window
     set arrangement of theView to not arranged
     set icon size of theView to 104
     set text size of theView to 12
     set background picture of theView to file ".background:background.png"
-    set position of item "CloakDrop.app" of container window to {215, 296}
-    set position of item "Applications" of container window to {505, 296}
-    set position of item "Read Me.txt" of container window to {360, 470}
+    set position of item "CloakDrop.app" of container window to {215, 302}
+    set position of item "Applications" of container window to {505, 302}
+    set position of item "Read Me.txt" of container window to {360, 480}
     update without registering applications
     delay 1
     close
