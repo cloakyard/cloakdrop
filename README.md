@@ -24,15 +24,15 @@ Serious multi-segment download power with the look and feel of a first-party app
 | ⏯️ **True pause & resume** | Real byte-range resume that survives app relaunch *and* reboot — it never re-downloads a byte. |
 | 🔁 **Auto-recovery** | Per-segment retry with exponential backoff + jitter; auto-pauses when the network drops and resumes when it returns. |
 | ✅ **Integrity & trust** | MD5 / SHA-1 / SHA-256 verification on completion — from a checksum you supply or auto-discovered from a sibling `.sha256`/`.sha1`/`.md5` — plus a code-signature/notarization trust check on `.app`/`.dmg`/`.pkg`. |
-| 🧾 **Provenance Receipt** | Every completed download gets a local, exportable *verified-download record* — source & mirrors, transport/TLS, whole-file SHA-256, checksum + signature verdicts, rolled into one trust verdict. No other download manager produces one. |
-| 🐢 **Bandwidth control** | Global **and** per-download speed limits via a virtual-clock (GCRA) throttle that holds the aggregate cap honestly under many concurrent connections, plus optional time-of-day speed profiles. |
-| 🗂️ **Queues, categories & rules** | Per-queue concurrency limits, smart filters, a smart-rule routing engine (folder / queue / speed cap / auto-start), duplicate detection, and auto-sorting of finished files into per-type folders. |
+| 🧾 **Provenance Receipt** | Every completed download gets a local, exportable *verified-download record* — sources, TLS, whole-file SHA-256, and checksum + signature verdicts in one trust verdict. No other download manager produces one. |
+| 🐢 **Bandwidth control** | Global **and** per-download speed limits (a GCRA throttle that holds the aggregate cap honestly under many concurrent connections), plus optional time-of-day profiles. |
+| 🗂️ **Queues, categories & rules** | Per-queue concurrency limits, smart filters, a rule-based routing engine (folder / queue / speed cap / auto-start), duplicate detection, and auto-sorting of finished files into per-type folders. |
 | 📦 **Post-processing** | Native ZIP auto-extraction (Zip-Slip + decompression-bomb guarded), a Gatekeeper quarantine flag on saved files, and post-download actions (notify / quit / run a Shortcut). |
-| 📋 **Effortless capture** | Clipboard watching, drag & drop, a link-grabber (paste a wall of mixed links or **grab all** from a page URL → dedupe → pattern-expand `file[01-50].zip` → pick), scheduler, HTTP/FTP auth with a Keychain-backed saved-credential store, cookies/referrer, and system/direct/manual proxy. |
-| 🌐 **Browser & system capture** | A bundled Safari Web Extension, a Chrome/Edge/Brave/Firefox extension over a native-messaging host, plus a Share Extension and a "Send to CloakDrop" Services item — all funnelling through one privacy-preserving on-device inbox. The extensions detect page media (HLS/DASH manifests, direct files, `attachment` responses) with an on-video **Save** pill, and — IDM-style — can **take over browser downloads** of archives/installers/media/PDFs, falling back to the browser untouched if the app isn't reachable so a file is never lost. |
-| 🎬 **Media grabbing** | Detects HLS (`.m3u8`) and DASH (`.mpd`) streams, lists qualities, downloads the segments over the same engine, decrypts AES-128, and always pairs a video rendition with its separate audio track so a grab is never silent — muxing and remuxing into a clean, playable file (AVFoundation passthrough → `.mp4`/`.m4a`; a bundled ffmpeg stream-copies VP9/AV1/Opus → `.mkv`; no re-encode either way). |
-| 🎥 **Site & video extraction** | Paste a YouTube page — or any of the **~1800 sites** yt-dlp knows — and CloakDrop resolves the real video/audio formats, lists the qualities, and grabs them with **its own** segmented engine. yt-dlp only *reads and deciphers* (it never downloads a byte), so pause/resume, persistence, the sandbox, and no-re-encode muxing all stay CloakDrop's. |
-| 🪞 **Multi-source mirrors** | Open a Metalink (`.metalink` / `.meta4`) and CloakDrop spreads segments across its mirrors for parallel throughput, fails over to a live mirror the moment one dies, throttles, or serves corrupt bytes, and verifies the finished file against the Metalink's whole-file checksum. |
+| 📋 **Effortless capture** | Clipboard watching, drag & drop, a link-grabber (paste mixed links or **grab all** from a page → dedupe → pattern-expand `file[01-50].zip` → pick), scheduler, Keychain-backed HTTP/FTP auth, cookies/referrer, and system/manual proxy. |
+| 🌐 **Browser & system capture** | Safari, Chrome/Edge/Brave, and Firefox extensions — plus a Share Extension and a "Send to CloakDrop" Services item — funnel through one on-device inbox. They detect page media (HLS/DASH manifests, direct files, `attachment` responses) with an on-video **Save** pill and, IDM-style, can **take over browser downloads**, falling back to the browser untouched if the app isn't reachable so a file is never lost. |
+| 🎬 **Media grabbing** | Detects HLS (`.m3u8`) and DASH (`.mpd`) streams, lists qualities, decrypts AES-128, and pairs each video rendition with its audio track — muxed into a clean, playable file with no re-encode (AVFoundation → `.mp4`/`.m4a`; bundled ffmpeg stream-copies VP9/AV1/Opus → `.mkv`). |
+| 🎥 **Site & video extraction** | Paste a YouTube page — or any of the **~1800 sites** yt-dlp knows — and CloakDrop resolves the formats and grabs them with **its own** segmented engine. yt-dlp only *reads and deciphers*; it never downloads a byte, so pause/resume, persistence, and the sandbox stay CloakDrop's. |
+| 🪞 **Multi-source mirrors** | Open a Metalink (`.metalink` / `.meta4`) and CloakDrop spreads segments across its mirrors, fails over the moment one dies or serves corrupt bytes, and verifies the finished file against the Metalink checksum. |
 | 🏅 **Download stats** | Local, private lifetime totals — today / this month / all-time — with a playful monthly tier badge that resets each month (Warming Up → ISP's Worst Nightmare). Just counters on your Mac; nothing leaves the device. |
 | 🏎️ **Built-in speed test** | Speedometer-style dials measure your connection's real download, upload, idle/loaded latency, and jitter — multi-connection, warm-up-aware, and strictly manual. Cloudflare by default, Ookla optional; reachable from the menu bar. |
 | 🌍 **Fully localized** | Every UI string translated into 11 languages (English, Spanish, French, German, Simplified Chinese, Japanese, Korean, Brazilian Portuguese, Russian, Arabic, Hindi). |
@@ -64,10 +64,6 @@ CloakDrop makes **no** network requests except to the URLs you choose to downloa
 
 No third-party Swift dependencies beyond GRDB. Two native command-line tools — **ffmpeg** (muxing) and **yt-dlp** (page extraction) — are bundled as code-signed, sandboxed helper binaries via opt-in build scripts (`scripts/fetch-ffmpeg.sh`, `scripts/fetch-ytdlp.sh`); both only ever *read* or *transform* and add no network egress of their own.
 
-## 📊 Status
-
-**Active development.** The headless engine is feature-complete and fully tested (**377 tests across 64 suites**), and the app is functional end-to-end — multi-segment HTTP/FTP transfers, resume across relaunch, media/site grabbing, multi-source mirrors, the link-grabber, archive extraction, Provenance Receipts, browser capture, and full localization all work today. It targets **macOS Tahoe 26**; build from source, or package a stylised drag-to-Applications installer DMG with `scripts/dmg/make-dmg.sh` — ad-hoc signed for sharing, with no notarized release yet. Expect rough edges and API churn while it firms up toward a first release.
-
 ## 🚀 Getting started
 
 Requires **macOS Tahoe 26+**, **Xcode 26+**, and [XcodeGen](https://github.com/yonyz/XcodeGen).
@@ -84,7 +80,7 @@ open CloakDrop.xcodeproj                # …or build from the command line:
 xcodebuild -project CloakDrop.xcodeproj -scheme CloakDrop -destination 'platform=macOS' build
 ```
 
-The `.xcodeproj` is generated and git-ignored — regenerate it any time with `xcodegen generate`.
+The `.xcodeproj` is generated and git-ignored — regenerate it any time with `xcodegen generate`. To package a shareable installer DMG (drag-to-Applications, with the browser extension and a guide), run `scripts/dmg/make-dmg.sh <path/to/CloakDrop.app>`.
 
 ## 🧪 Testing
 
@@ -95,7 +91,7 @@ cd Packages/DownloaderCore
 swift test
 ```
 
-**377 tests across 64 suites.** Coverage spans segmentation/reassembly correctness, **resume across a simulated relaunch** (for both plain and media grabs), single-stream fallback, retry-after-drop, dynamic segment re-splitting (work-stealing), multi-source Metalink spread + mirror failover on dead/corrupt sources, checksum pass/fail and sibling auto-discovery, pause/resume, scheduling, HLS/DASH manifest parsing, AES-128 segment decryption, AVFoundation remux, yt-dlp JSON parsing/format mapping, per-day stat byte-buckets, native FTP multi-segment transfer over a loopback FTP server, GCRA bandwidth-cap-under-concurrency, ZIP extraction (Zip-Slip + decompression-bomb rejection), page link extraction, Provenance Receipt generation, and an end-to-end download over a real loopback HTTP server.
+**377 tests across 64 suites**, covering the core end-to-end: segmentation/reassembly, **resume across a simulated relaunch**, single-stream fallback, retry-after-drop, dynamic re-splitting, Metalink spread + mirror failover, checksum verify + sibling discovery, HLS/DASH parsing and AES-128 decryption, native FTP over a loopback server, GCRA bandwidth capping, ZIP extraction (Zip-Slip + bomb rejection), and a real loopback-HTTP download.
 
 ## 🏗️ Project layout
 
