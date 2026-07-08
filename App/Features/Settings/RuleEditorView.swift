@@ -216,7 +216,7 @@ struct RuleEditorView: View {
             }
             .padding()
         }
-        // Sized to sit within the Settings window (480 wide) that hosts this sheet.
+        // Comfortable sheet size for the rule form (the hosting Settings window is wider).
         .frame(width: 480, height: 540)
     }
 

@@ -790,8 +790,7 @@ actor DownloadTask {
     }
 
     private static func seconds(from start: ContinuousClock.Instant, to end: ContinuousClock.Instant) -> Double {
-        let (secs, attos) = start.duration(to: end).components
-        return Double(secs) + Double(attos) / 1e18
+        start.seconds(to: end)
     }
 
     private static func message(for error: any Error) -> String {

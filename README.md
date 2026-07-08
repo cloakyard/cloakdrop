@@ -34,12 +34,13 @@ Serious multi-segment download power with the look and feel of a first-party app
 | 🎥 **Site & video extraction** | Paste a YouTube page — or any of the **~1800 sites** yt-dlp knows — and CloakDrop resolves the real video/audio formats, lists the qualities, and grabs them with **its own** segmented engine. yt-dlp only *reads and deciphers* (it never downloads a byte), so pause/resume, persistence, the sandbox, and no-re-encode muxing all stay CloakDrop's. |
 | 🪞 **Multi-source mirrors** | Open a Metalink (`.metalink` / `.meta4`) and CloakDrop spreads segments across its mirrors for parallel throughput, fails over to a live mirror the moment one dies, throttles, or serves corrupt bytes, and verifies the finished file against the Metalink's whole-file checksum. |
 | 🏅 **Download stats** | Local, private lifetime totals — today / this month / all-time — with a playful monthly tier badge that resets each month (Warming Up → ISP's Worst Nightmare). Just counters on your Mac; nothing leaves the device. |
+| 🏎️ **Built-in speed test** | Speedometer-style dials measure your connection's real download, upload, idle/loaded latency, and jitter — multi-connection, warm-up-aware, and strictly manual. Cloudflare by default, Ookla optional; reachable from the menu bar. |
 | 🌍 **Fully localized** | Every UI string translated into 11 languages (English, Spanish, French, German, Simplified Chinese, Japanese, Korean, Brazilian Portuguese, Russian, Arabic, Hindi). |
 | 🪟 **Native to the bone** | SwiftUI + Liquid Glass, full light/dark, VoiceOver + full-keyboard access, a live menu-bar extra, and a Dock icon that shows overall progress at a glance. |
 
 ## 🛡️ Privacy first
 
-CloakDrop makes **no** network requests except to the URLs you choose to download (and, when you configure one, your proxy).
+CloakDrop makes **no** network requests except to the URLs you choose to download (and, when you configure one, your proxy). The single exception is the built-in **speed test**: it runs only when you press Start, against the provider you pick in Settings ▸ Speed Test (Cloudflare by default, Ookla optional) — never on its own.
 
 - **On-device only** — no accounts, no analytics, no crash reporting, no phone-home.
 - **Your data stays yours** — download history and settings live in a local SQLite database you can export or delete at any time.

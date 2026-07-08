@@ -4,7 +4,7 @@ import DownloadModels
 /// The Settings window's tabs. Held as app state so a menu command (e.g. "About CloakDrop")
 /// can open Settings directly to a specific tab.
 enum SettingsTab: Hashable {
-    case general, rules, network, browsers, privacy, stats, about
+    case general, rules, network, speedTest, browsers, privacy, stats, about
 }
 
 /// Preferences: engine tunables, CloakDrop's privacy posture, and app/author info.
@@ -23,20 +23,25 @@ struct SettingsView: View {
             network
                 .tabItem { Label("Network", systemImage: "point.3.connected.trianglepath.dotted") }
                 .tag(SettingsTab.network)
+            SpeedTestSettingsView()
+                .tabItem { Label("Speed Test", systemImage: "gauge.with.needle") }
+                .tag(SettingsTab.speedTest)
             BrowsersSettingsView()
                 .tabItem { Label("Browsers", systemImage: "globe") }
                 .tag(SettingsTab.browsers)
             StatsSettingsView()
                 .tabItem { Label("Stats", systemImage: "medal.fill") }
                 .tag(SettingsTab.stats)
-            privacy
+            PrivacySettingsView()
                 .tabItem { Label("Privacy", systemImage: "lock.shield") }
                 .tag(SettingsTab.privacy)
             about
                 .tabItem { Label("About", systemImage: "info.circle") }
                 .tag(SettingsTab.about)
         }
-        .frame(width: 480, height: 500)
+        // Wide enough for all eight tab buttons (narrower overflows into a "»" menu) and tall
+        // enough that the Speed Test dials fit without scrolling.
+        .frame(width: 640, height: 600)
         // Settings always reopens on the first page (General); About is reached via its own
         // "About CloakDrop" command, which sets the tab just before opening the window. Reset
         // on close so a later plain ⌘, doesn't reopen on whatever tab was last viewed.
@@ -207,7 +212,10 @@ struct SettingsView: View {
             } header: {
                 Text("Proxy")
             } footer: {
-                Text("A proxy is the only connection CloakDrop makes beyond the URLs you download.")
+                Text("""
+                Beyond the URLs you download, CloakDrop only ever connects to a proxy configured \
+                here — or to the server you pick in Speed Test, when you run one.
+                """)
             }
 
             if model.settings.resolvedProxy.mode == .manual {
@@ -228,53 +236,6 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .scrollBounceBehavior(.basedOnSize)
-    }
-
-    // MARK: Privacy
-
-    private var privacy: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "lock.shield.fill")
-                .font(.system(size: 46))
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(.tint)
-                .padding(.top, 8)
-
-            Text("Private by design")
-                .font(.title2.weight(.semibold))
-
-            Text("CloakDrop is part of the Cloakyard privacy-first suite.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-
-            VStack(alignment: .leading, spacing: 14) {
-                guarantee("Everything runs on-device")
-                guarantee("No accounts, analytics, or telemetry")
-                guarantee("Network access only to the URLs you download")
-            }
-            .padding(18)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 12))
-
-            Text("CloakDrop never phones home. Your download history and settings stay on this Mac, fully under your control.")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-
-            Spacer(minLength: 0)
-        }
-        .padding(24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private func guarantee(_ text: String) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: "checkmark.seal.fill")
-                .foregroundStyle(.green)
-            Text(text)
-            Spacer(minLength: 0)
-        }
     }
 
     // MARK: About

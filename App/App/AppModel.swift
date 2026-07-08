@@ -35,6 +35,9 @@ final class AppModel {
     private(set) var rules: [SmartRule] = []
     /// Lifetime download totals (today / this month / all-time), shown in Settings ▸ Stats.
     private(set) var stats: DownloadStats = .empty
+    /// The single owner of speed-test runs (Settings ▸ Speed Test, menu bar). One runner on
+    /// the app model — not per-view — so concurrent surfaces can't start duelling tests.
+    let speedTest = SpeedTestRunner()
 
     /// Poster-frame thumbnails for completed video grabs, keyed by download id (see
     /// `AppModel+Thumbnails`). Settable within the module so that extension can populate it.

@@ -193,7 +193,8 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
 
     // MARK: Proxy configuration
 
-    private static func applyingProxy(_ proxy: ProxyConfiguration, to base: URLSessionConfiguration) -> URLSessionConfiguration {
+    /// Internal so the speed-test transport applies the same proxy routing as the engine.
+    static func applyingProxy(_ proxy: ProxyConfiguration, to base: URLSessionConfiguration) -> URLSessionConfiguration {
         guard let config = base.copy() as? URLSessionConfiguration else { return base }
         switch proxy.mode {
         case .system:

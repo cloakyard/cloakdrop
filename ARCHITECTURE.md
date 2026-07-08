@@ -92,6 +92,12 @@ The concurrency core. Everything mutable is actor-isolated.
   concurrent segment workers, unlike a naive per-connection token bucket), `BackoffPolicy` (retry
   timing), `ChecksumVerifier` (CryptoKit), `SpeedSampler` (rate estimate). Each is isolated from
   I/O so it is exhaustively unit-tested.
+- **Speed test (`SpeedTester`)** — an actor orchestrating the built-in, strictly user-initiated
+  connection test behind its own transport seam (`SpeedTestTransport` → `URLSessionSpeedTestTransport`
+  in prod, a scripted mock in tests): idle-latency probes, then parallel download/upload workers with
+  warm-up exclusion (`SpeedTestMath`, pure and unit-tested) while sampling loaded latency for a
+  bufferbloat signal. Providers: Cloudflare's speed endpoints (default) or Ookla's public server
+  directory — the one deliberate, disclosed exception to "egress only to your download URLs".
 - **Intake seams** — `LinkInspector` turns one `HTTPClient.probe` into a `LinkPreview` (final URL
   after redirects, size, range-support, MIME, ETag, connection estimate) for the add sheet's live
   pre-flight; `CodeSignatureInspector` (protocol → `SecCodeSignatureInspector`, Security framework,

@@ -1,5 +1,23 @@
 import Foundation
 
+// The one place the engine converts clock types to Double seconds — `SpeedSampler`,
+// `DownloadTask`, and `SpeedTester` all share these instead of keeping private copies,
+// so a precision fix lands everywhere at once.
+
+extension ContinuousClock.Instant {
+    /// Seconds from `self` to `end`, attosecond-precise.
+    func seconds(to end: ContinuousClock.Instant) -> Double {
+        duration(to: end).timeInterval
+    }
+}
+
+extension Duration {
+    /// The duration as fractional seconds. (Named to avoid the `Duration.seconds(_:)` factory.)
+    var timeInterval: Double {
+        Double(components.seconds) + Double(components.attoseconds) / 1e18
+    }
+}
+
 /// A sliding-window transfer-rate estimator.
 ///
 /// Records `(timestamp, byteCount)` samples and reports bytes/sec over a fixed trailing
@@ -25,7 +43,7 @@ struct SpeedSampler {
     mutating func rate(now: ContinuousClock.Instant) -> Double {
         prune(now: now)
         guard let first = samples.first else { return 0 }
-        let elapsed = Self.seconds(from: first.at, to: now)
+        let elapsed = first.at.seconds(to: now)
         guard elapsed > 0.05 else { return 0 }
         return Double(runningSum) / elapsed
     }
@@ -35,15 +53,10 @@ struct SpeedSampler {
         // that prefix in one shot (subtracting from the running sum) instead of scanning/compacting
         // the whole array with `removeAll` on every call.
         var expired = 0
-        while expired < samples.count, Self.seconds(from: samples[expired].at, to: now) > window {
+        while expired < samples.count, samples[expired].at.seconds(to: now) > window {
             runningSum -= samples[expired].bytes
             expired += 1
         }
         if expired > 0 { samples.removeFirst(expired) }
-    }
-
-    private static func seconds(from start: ContinuousClock.Instant, to end: ContinuousClock.Instant) -> Double {
-        let (secs, attos) = start.duration(to: end).components
-        return Double(secs) + Double(attos) / 1e18
     }
 }

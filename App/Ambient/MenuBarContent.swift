@@ -6,6 +6,7 @@ import DownloadModels
 struct MenuBarContent: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
 
     private var active: [Download] {
         model.downloads.filter { $0.status == .downloading || $0.status == .queued }
@@ -32,6 +33,11 @@ struct MenuBarContent: View {
         Button("Resume All") { model.resumeAll() }
         Divider()
         Button("Open CloakDrop") { showMainWindow() }
+        Button("Speed Test…") {
+            NSApp.activate(ignoringOtherApps: true)
+            model.settingsSelection = .speedTest
+            openSettings()
+        }
         Button("Report a Bug…") { NSWorkspace.shared.open(AppLinks.reportBug) }
         Button("Quit CloakDrop") { NSApp.terminate(nil) }
     }

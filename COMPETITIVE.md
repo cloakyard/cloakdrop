@@ -69,6 +69,7 @@ Legend: ✅ full · ⚠️ partial/limited · ❌ none · 🚫 deliberately out 
 | **Intelligence** |
 | On-device AI organize (rename / tag / categorize) | ❌ *(white space)* | ❌ | ❌ | ❌ |
 | Network-condition-aware smart scheduling | ⚠️ (net-drop pause) | ⚠️ | ⚠️ | ❌ |
+| Built-in speed test (down/up/latency/bufferbloat) | ✅ **unique** | ❌ | ❌ | ❌ |
 | Community file-reputation warnings | 🚫 (needs cloud) | ❌ | ✅ | ❌ |
 | **Platform / trust posture** |
 | Sandboxed, truly native | ✅ | ❌ | ⚠️ (Qt) | ❌ (Java) |
@@ -247,6 +248,10 @@ Each item followed the architecture rule: model in `DownloadModels` → logic in
 - [x] **Bounded page "grab all"** — `PageLinkExtractor`, single page only (no crawler).
 - [x] **Provenance Receipt** — per-download verified record, inspector + export.
 - [x] **Localization** — `validate_localizations.py`: 340 strings × 10 languages.
+- [x] **Built-in speed test** — speedometer dials in Settings ▸ Speed Test (+ menu-bar shortcut):
+  multi-connection download/upload with warm-up exclusion, idle + loaded latency (bufferbloat),
+  jitter. Cloudflare default, Ookla optional; strictly user-initiated (privacy docs updated).
+  No competitor has one.
 
 ---
 

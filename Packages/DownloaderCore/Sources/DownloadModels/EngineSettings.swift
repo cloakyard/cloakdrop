@@ -54,6 +54,8 @@ public struct EngineSettings: Sendable, Hashable, Codable {
     /// The Shortcut to run when `postCompletionAction == .runShortcut`. Matched by name against the
     /// user's Shortcuts library via the `shortcuts://run-shortcut` URL scheme.
     public var postCompletionShortcutName: String?
+    /// Which service manual speed tests run against. `nil` is treated as `.cloudflare`.
+    public var speedTestProvider: SpeedTestProvider?
 
     public init(
         defaultSegmentCount: Int = 8,
@@ -74,7 +76,8 @@ public struct EngineSettings: Sendable, Hashable, Codable {
         resumeDownloadsOnLaunch: Bool = true,
         proxy: ProxyConfiguration? = nil,
         postCompletionAction: SchedulerPostAction? = nil,
-        postCompletionShortcutName: String? = nil
+        postCompletionShortcutName: String? = nil,
+        speedTestProvider: SpeedTestProvider? = nil
     ) {
         self.defaultSegmentCount = max(1, defaultSegmentCount)
         self.maxSegmentCount = max(1, maxSegmentCount)
@@ -95,12 +98,15 @@ public struct EngineSettings: Sendable, Hashable, Codable {
         self.proxy = proxy
         self.postCompletionAction = postCompletionAction
         self.postCompletionShortcutName = postCompletionShortcutName
+        self.speedTestProvider = speedTestProvider
     }
 
     /// The effective proxy, treating an absent value as "use the system proxy".
     public var resolvedProxy: ProxyConfiguration { proxy ?? .system }
     /// The effective post-completion action, treating an absent value as "do nothing".
     public var resolvedPostAction: SchedulerPostAction { postCompletionAction ?? .none }
+    /// The effective speed-test provider, treating an absent value as Cloudflare.
+    public var resolvedSpeedTestProvider: SpeedTestProvider { speedTestProvider ?? .cloudflare }
 
     public static let `default` = EngineSettings()
 
@@ -114,6 +120,7 @@ public struct EngineSettings: Sendable, Hashable, Codable {
         case assessSignatures
         case resumeDownloadsOnLaunch
         case proxy, postCompletionAction, postCompletionShortcutName
+        case speedTestProvider
     }
 
     /// Tolerant decoder: any key absent from the stored payload falls back to its default.
@@ -149,7 +156,11 @@ public struct EngineSettings: Sendable, Hashable, Codable {
             resumeDownloadsOnLaunch: try value(.resumeDownloadsOnLaunch, fallback.resumeDownloadsOnLaunch),
             proxy: try container.decodeIfPresent(ProxyConfiguration.self, forKey: .proxy),
             postCompletionAction: try container.decodeIfPresent(SchedulerPostAction.self, forKey: .postCompletionAction),
-            postCompletionShortcutName: try container.decodeIfPresent(String.self, forKey: .postCompletionShortcutName)
+            postCompletionShortcutName: try container.decodeIfPresent(String.self, forKey: .postCompletionShortcutName),
+            // Via the raw string so an unknown value (e.g. a provider added by a newer build)
+            // falls back to nil instead of failing the whole settings blob.
+            speedTestProvider: (try container.decodeIfPresent(String.self, forKey: .speedTestProvider))
+                .flatMap(SpeedTestProvider.init(rawValue:))
         )
     }
 }

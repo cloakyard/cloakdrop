@@ -66,6 +66,10 @@ struct CloakDropCommands: Commands {
                 model.settingsSelection = .stats
                 openSettings()
             }
+            Button("Speed Test…") {
+                model.settingsSelection = .speedTest
+                openSettings()
+            }
         }
         CommandGroup(replacing: .newItem) {
             Button("New Download…") { model.isAddSheetPresented = true }
