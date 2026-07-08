@@ -29,6 +29,12 @@ Lint (config in `.swiftlint.yml`, covers `App/` and `Packages/DownloaderCore/Sou
 swiftlint
 ```
 
+Package a shareable installer DMG (stylised drag-to-Applications, plus the Chrome extension folder and an install guide):
+
+```bash
+scripts/dmg/make-dmg.sh <path/to/CloakDrop.app> [output.dmg]   # artwork source: scripts/dmg/background.swift
+```
+
 **Environment note (Claude Code sandbox):** this harness sets `git safe.bareRepository=explicit`, which breaks SwiftPM's git operations. Prefix any command that resolves packages or touches git — `xcodegen generate`, `swift test`, `xcodebuild` — with `GIT_CONFIG_COUNT=0`. If `xcodebuild` fails on an `IDESimulatorFoundation` plugin, run `xcodebuild -runFirstLaunch` once.
 
 ## Architecture

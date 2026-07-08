@@ -127,8 +127,7 @@ The concurrency core. Everything mutable is actor-isolated.
   multi-MB dump can't deadlock a pipe; a mock in tests), and `ExtractedMedia+Mapping` folds the
   result into the existing `MediaStream`/`MediaPlan` quality picker. `locate(in:)` feature-detects
   a runnable binary at launch so the UI only offers extraction when it can actually work — mirroring
-  `FFmpegMuxer.locate`. See [docs/ytdlp-updater-plan.md](docs/ytdlp-updater-plan.md) for the
-  planned in-place updater (zipapp-first, no re-sign).
+  `FFmpegMuxer.locate`. The bundled yt-dlp is refreshed through normal app updates.
 
 ## Concurrency model
 

@@ -45,6 +45,7 @@ CloakDrop makes **no** network requests except to the URLs you choose to downloa
 - **On-device only** — no accounts, no analytics, no crash reporting, no phone-home.
 - **Your data stays yours** — download history and settings live in a local SQLite database you can export or delete at any time.
 - **Sandboxed** — App Sandbox with security-scoped bookmarks; it only ever touches the folders you point it at.
+- **Transparent** — a full privacy policy ships in-app under Settings ▸ Privacy.
 
 ## 🧰 Tech stack
 
@@ -65,7 +66,7 @@ No third-party Swift dependencies beyond GRDB. Two native command-line tools —
 
 ## 📊 Status
 
-**Active development.** The headless engine is feature-complete and fully tested (**312 tests across 55 suites**), and the app is functional end-to-end — multi-segment HTTP/FTP transfers, resume across relaunch, media/site grabbing, multi-source mirrors, the link-grabber, archive extraction, Provenance Receipts, browser capture, and full localization all work today. It targets **macOS Tahoe 26** and builds from source; there is no packaged/notarized release yet. Expect rough edges and API churn while it firms up toward a first release.
+**Active development.** The headless engine is feature-complete and fully tested (**377 tests across 64 suites**), and the app is functional end-to-end — multi-segment HTTP/FTP transfers, resume across relaunch, media/site grabbing, multi-source mirrors, the link-grabber, archive extraction, Provenance Receipts, browser capture, and full localization all work today. It targets **macOS Tahoe 26**; build from source, or package a stylised drag-to-Applications installer DMG with `scripts/dmg/make-dmg.sh` — ad-hoc signed for sharing, with no notarized release yet. Expect rough edges and API churn while it firms up toward a first release.
 
 ## 🚀 Getting started
 
@@ -94,7 +95,7 @@ cd Packages/DownloaderCore
 swift test
 ```
 
-**312 tests across 55 suites.** Coverage spans segmentation/reassembly correctness, **resume across a simulated relaunch** (for both plain and media grabs), single-stream fallback, retry-after-drop, dynamic segment re-splitting (work-stealing), multi-source Metalink spread + mirror failover on dead/corrupt sources, checksum pass/fail and sibling auto-discovery, pause/resume, scheduling, HLS/DASH manifest parsing, AES-128 segment decryption, AVFoundation remux, yt-dlp JSON parsing/format mapping, per-day stat byte-buckets, native FTP multi-segment transfer over a loopback FTP server, GCRA bandwidth-cap-under-concurrency, ZIP extraction (Zip-Slip + decompression-bomb rejection), page link extraction, Provenance Receipt generation, and an end-to-end download over a real loopback HTTP server.
+**377 tests across 64 suites.** Coverage spans segmentation/reassembly correctness, **resume across a simulated relaunch** (for both plain and media grabs), single-stream fallback, retry-after-drop, dynamic segment re-splitting (work-stealing), multi-source Metalink spread + mirror failover on dead/corrupt sources, checksum pass/fail and sibling auto-discovery, pause/resume, scheduling, HLS/DASH manifest parsing, AES-128 segment decryption, AVFoundation remux, yt-dlp JSON parsing/format mapping, per-day stat byte-buckets, native FTP multi-segment transfer over a loopback FTP server, GCRA bandwidth-cap-under-concurrency, ZIP extraction (Zip-Slip + decompression-bomb rejection), page link extraction, Provenance Receipt generation, and an end-to-end download over a real loopback HTTP server.
 
 ## 🏗️ Project layout
 
@@ -109,7 +110,7 @@ cloakdrop/
 ├── BrowserExtension/       # MV3 extension for Chrome · Edge · Brave · Firefox
 ├── NativeMessagingHost/    # stdio host bridging those browsers to the app
 ├── ShareExtension/         # macOS share-sheet capture
-├── scripts/                # Opt-in build helpers: fetch-ffmpeg.sh · fetch-ytdlp.sh (bundle & sign the native tools)
+├── scripts/                # Opt-in helpers: fetch-ffmpeg.sh · fetch-ytdlp.sh (bundle & sign the native tools) · dmg/ (build the installer DMG)
 └── Packages/
     └── DownloaderCore/     # Headless, UI-agnostic, fully unit-tested core
         ├── DownloadModels/       # Sendable value types + HLS/DASH & Metalink parsers + stats, link-grabber, bandwidth-schedule & provenance models

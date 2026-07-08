@@ -1,4 +1,4 @@
-# CloakDrop browser extension (Chrome · Edge · Firefox)
+# CloakDrop browser extension (Chrome · Edge · Brave · Firefox)
 
 The cross-browser sibling of the bundled Safari extension. Three ways a download reaches CloakDrop:
 
@@ -16,6 +16,10 @@ The cross-browser sibling of the bundled Safari extension. Three ways a download
   with resume. Feature-detected (Safari has no `downloads` API), toggleable from the popup, and
   fail-safe: if the app isn't reachable the download is re-issued to the browser untouched — a
   file is never lost to a broken hand-off.
+
+Detection runs in **every frame**, not just the top document (`all_frames` content script + the
+background's `sub_frame` webRequest view) — so media inside embedded players (Vimeo, JW Player,
+Brightcove iframes), where much of the web's video actually lives, is caught too.
 
 Either way, the capture carries the page's referrer, user-agent, and the cookies scoped to that
 download — so gated files download correctly — and a streaming manifest is resolved by the app into

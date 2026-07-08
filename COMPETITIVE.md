@@ -248,7 +248,7 @@ Each item followed the architecture rule: model in `DownloadModels` → logic in
 - [x] **Link-grabber panel** — paste/import a wall of links → dedupe / pattern-expand → pick.
 - [x] **Bounded page "grab all"** — `PageLinkExtractor`, single page only (no crawler).
 - [x] **Provenance Receipt** — per-download verified record, inspector + export.
-- [x] **Localization** — `validate_localizations.py`: 340 strings × 10 languages.
+- [x] **Localization** — `validate_localizations.py`: 404 strings × 10 languages.
 - [x] **Built-in speed test** — speedometer dials in Settings ▸ Speed Test (+ menu-bar shortcut):
   multi-connection download/upload with warm-up exclusion, idle + loaded latency (bufferbloat),
   jitter. Cloudflare default, Ookla optional; strictly user-initiated (privacy docs updated).
