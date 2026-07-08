@@ -4486,71 +4486,6 @@
         }
       }
     },
-    "CloakDrop is part of the Cloakyard privacy-first suite.": {
-      "extractionState": "manual",
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CloakDrop forma parte del conjunto Cloakyard, centrado en la privacidad."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CloakDrop fait partie de la suite Cloakyard, axée sur la confidentialité."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CloakDrop ist Teil der datenschutzorientierten Cloakyard-Suite."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CloakDrop 是 Cloakyard 隐私优先套件的一部分。"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CloakDrop は、プライバシー第一の Cloakyard スイートの一部です。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CloakDrop은 프라이버시 우선 Cloakyard 제품군의 일부입니다."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O CloakDrop faz parte do conjunto Cloakyard, com foco em privacidade."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CloakDrop — часть ориентированного на конфиденциальность набора Cloakyard."
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CloakDrop جزء من مجموعة Cloakyard التي تركّز على الخصوصية."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CloakDrop गोपनीयता-प्रथम Cloakyard सूट का हिस्सा है।"
-          }
-        }
-      }
-    },
     "Completed": {
       "extractionState": "manual",
       "localizations": {
@@ -24376,71 +24311,6 @@
         }
       }
     },
-    "CloakDrop never phones home. Your download history and settings stay on this Mac, fully under your control. Every connection is one you chose: your downloads, a proxy you configure, or a speed test you start yourself.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "لا يرسل CloakDrop بياناتك إلى أي جهة مطلقًا. يبقى سجل التنزيلات والإعدادات على هذا الـ Mac وتحت سيطرتك الكاملة. كل اتصال هو خيارك أنت: تنزيلاتك، أو وكيل قمت بإعداده، أو اختبار سرعة بدأته بنفسك."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CloakDrop telefoniert nie nach Hause. Dein Download-Verlauf und deine Einstellungen bleiben auf diesem Mac, vollständig unter deiner Kontrolle. Jede Verbindung hast du selbst gewählt: deine Downloads, ein von dir eingerichteter Proxy oder ein Speedtest, den du selbst startest."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CloakDrop nunca envía datos a casa. Tu historial de descargas y tus ajustes permanecen en este Mac, totalmente bajo tu control. Cada conexión es una que tú elegiste: tus descargas, un proxy que configures o un test de velocidad que inicies tú mismo."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CloakDrop ne transmet jamais rien à l’extérieur. Votre historique de téléchargements et vos réglages restent sur ce Mac, entièrement sous votre contrôle. Chaque connexion est un choix de votre part : vos téléchargements, un proxy que vous configurez ou un test de débit que vous lancez vous-même."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CloakDrop कभी भी डेटा बाहर नहीं भेजता। आपका डाउनलोड इतिहास और सेटिंग्ज़ इसी Mac पर रहती हैं, पूरी तरह आपके नियंत्रण में। हर कनेक्शन आपकी अपनी पसंद है: आपके डाउनलोड, आपका कॉन्फ़िगर किया गया प्रॉक्सी, या आपके द्वारा शुरू किया गया स्पीड टेस्ट।"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CloakDrop がデータを外部に送信することは決してありません。ダウンロード履歴と設定はこの Mac 内にとどまり、完全にあなたの管理下にあります。すべての接続はあなたが選んだものです。ダウンロード、設定したプロキシ、そして自分で開始したスピードテストだけです。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CloakDrop은 절대 데이터를 외부로 보내지 않습니다. 다운로드 기록과 설정은 이 Mac에 남아 있으며 완전히 사용자의 통제 아래에 있습니다. 모든 연결은 사용자가 선택한 것뿐입니다: 다운로드, 직접 구성한 프록시, 직접 시작한 속도 테스트."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O CloakDrop nunca envia dados para fora. Seu histórico de downloads e suas configurações ficam neste Mac, totalmente sob seu controle. Cada conexão é uma escolha sua: seus downloads, um proxy que você configura ou um teste de velocidade que você mesmo inicia."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CloakDrop никогда не отправляет данные на сторону. История загрузок и настройки остаются на этом Mac, полностью под вашим контролем. Каждое подключение — ваш выбор: ваши загрузки, настроенный вами прокси или тест скорости, который вы запускаете сами."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CloakDrop 绝不会回传数据。你的下载历史和设置都保存在这台 Mac 上，完全由你掌控。每一个连接都出自你的选择：你的下载、你配置的代理，或你亲自启动的测速。"
-          }
-        }
-      }
-    },
     "Runs only when you start it. A test exchanges data with the provider chosen above — CloakDrop never contacts a test server on its own.": {
       "extractionState": "manual",
       "localizations": {
@@ -24502,6 +24372,1891 @@
           "stringUnit": {
             "state": "translated",
             "value": "仅在你启动时运行。测试会与上方所选服务商交换数据——CloakDrop 绝不会自行连接测速服务器。"
+          }
+        }
+      }
+    },
+    "Privacy Policy": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سياسة الخصوصية"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datenschutzrichtlinie"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Política de privacidad"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Politique de confidentialité"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "गोपनीयता नीति"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライバシーポリシー"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "개인정보 처리방침"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Política de Privacidade"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Политика конфиденциальности"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐私政策"
+          }
+        }
+      }
+    },
+    "CloakDrop is a free, open-source download manager that runs entirely on your Mac. This policy explains what personal data we collect (spoiler: none) and exactly which network connections the app makes.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‏CloakDrop هو مدير تنزيلات مجاني ومفتوح المصدر يعمل بالكامل على جهاز Mac الخاص بك. توضّح هذه السياسة البيانات الشخصية التي نجمعها (باختصار: لا شيء) والاتصالات الشبكية التي يجريها التطبيق بالتحديد."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop ist ein kostenloser, quelloffener Download-Manager, der vollständig auf deinem Mac läuft. Diese Richtlinie erklärt, welche personenbezogenen Daten wir erheben (Spoiler: keine) und welche Netzwerkverbindungen die App genau herstellt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop es un gestor de descargas gratuito y de código abierto que se ejecuta por completo en tu Mac. Esta política explica qué datos personales recopilamos (adelanto: ninguno) y exactamente qué conexiones de red hace la aplicación."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop est un gestionnaire de téléchargement gratuit et open source qui s’exécute entièrement sur votre Mac. Cette politique explique quelles données personnelles nous collectons (en résumé : aucune) et précisément quelles connexions réseau l’application établit."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop एक मुफ़्त, ओपन-सोर्स डाउनलोड मैनेजर है जो पूरी तरह आपके Mac पर चलता है। यह नीति बताती है कि हम कौन-सा व्यक्तिगत डेटा एकत्र करते हैं (संक्षेप में: कुछ भी नहीं) और ऐप वास्तव में कौन-से नेटवर्क कनेक्शन करता है।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop は無料でオープンソースのダウンロードマネージャで、すべての処理があなたの Mac 上で動作します。このポリシーでは、収集する個人データ（結論：ありません）と、アプリが行うネットワーク接続を正確に説明します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop은 무료 오픈소스 다운로드 관리자로, 모든 작업이 사용자의 Mac에서 실행됩니다. 이 방침은 우리가 수집하는 개인 데이터(스포일러: 없음)와 앱이 정확히 어떤 네트워크 연결을 하는지 설명합니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O CloakDrop é um gerenciador de downloads gratuito e de código aberto que roda inteiramente no seu Mac. Esta política explica quais dados pessoais coletamos (spoiler: nenhum) e exatamente quais conexões de rede o aplicativo faz."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop — это бесплатный менеджер загрузок с открытым исходным кодом, работающий полностью на вашем Mac. Эта политика объясняет, какие персональные данные мы собираем (спойлер: никакие) и какие именно сетевые подключения выполняет приложение."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop 是一款免费、开源的下载管理器，完全在你的 Mac 上运行。本政策说明我们收集哪些个人数据（剧透：没有），以及应用究竟会建立哪些网络连接。"
+          }
+        }
+      }
+    },
+    "Your downloads stay on your Mac": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تنزيلاتك تبقى على جهاز Mac الخاص بك"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Downloads bleiben auf deinem Mac"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tus descargas permanecen en tu Mac"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vos téléchargements restent sur votre Mac"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपके डाउनलोड आपके Mac पर ही रहते हैं"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ダウンロードはあなたの Mac にとどまります"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다운로드는 사용자의 Mac에 남습니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seus downloads ficam no seu Mac"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваши загрузки остаются на вашем Mac"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的下载内容留在你的 Mac 上"
+          }
+        }
+      }
+    },
+    "Every part of what CloakDrop does — multi-segment downloading, pause and resume, checksum verification, code-signature checks, archive extraction, and media muxing — runs locally on your Mac. The files you download, your download history, and the addresses you fetch are never sent to us or to anyone else.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "كل ما يقوم به CloakDrop — التنزيل متعدد المقاطع، والإيقاف المؤقت والاستئناف، والتحقق من المجاميع الاختبارية، وفحص توقيع الشيفرة، واستخراج الأرشيفات، ودمج الوسائط — يعمل محليًا على جهاز Mac الخاص بك. الملفات التي تنزّلها وسجل تنزيلاتك والعناوين التي تطلبها لا تُرسل إلينا أو إلى أي جهة أخرى إطلاقًا."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles, was CloakDrop tut – Download in mehreren Segmenten, Pause und Fortsetzen, Prüfsummenprüfung, Codesignatur-Prüfung, Archiventpackung und Medien-Muxing – läuft lokal auf deinem Mac. Die Dateien, die du herunterlädst, dein Download-Verlauf und die abgerufenen Adressen werden niemals an uns oder an jemand anderen gesendet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todo lo que hace CloakDrop —descarga multisegmento, pausa y reanudación, verificación de sumas de comprobación, comprobación de firmas de código, extracción de archivos y muxing de medios— se ejecuta localmente en tu Mac. Los archivos que descargas, tu historial de descargas y las direcciones que solicitas nunca se envían a nosotros ni a nadie más."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout ce que fait CloakDrop — téléchargement multi-segment, pause et reprise, vérification de sommes de contrôle, contrôle des signatures de code, extraction d’archives et muxing multimédia — s’exécute localement sur votre Mac. Les fichiers que vous téléchargez, votre historique de téléchargement et les adresses que vous demandez ne sont jamais envoyés à nous ni à quiconque."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop जो कुछ भी करता है — मल्टी-सेगमेंट डाउनलोडिंग, रोकना और फिर से शुरू करना, चेकसम सत्यापन, कोड-सिग्नेचर जाँच, आर्काइव निष्कर्षण और मीडिया मक्सिंग — वह सब आपके Mac पर स्थानीय रूप से चलता है। आप जो फ़ाइलें डाउनलोड करते हैं, आपका डाउनलोड इतिहास और आपके द्वारा माँगे गए पते कभी भी हमें या किसी और को नहीं भेजे जाते।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop が行うすべて — マルチセグメントのダウンロード、一時停止と再開、チェックサム検証、コード署名チェック、アーカイブ展開、メディアの多重化 — は、あなたの Mac 上でローカルに動作します。ダウンロードしたファイル、ダウンロード履歴、取得したアドレスが、当社や他の誰かに送信されることは決してありません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop이 수행하는 모든 작업 — 다중 세그먼트 다운로드, 일시정지 및 재개, 체크섬 검증, 코드 서명 확인, 압축 해제, 미디어 먹싱 — 은 사용자의 Mac에서 로컬로 실행됩니다. 다운로드한 파일, 다운로드 기록, 요청한 주소는 우리에게도 다른 누구에게도 전송되지 않습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tudo o que o CloakDrop faz — download multissegmento, pausar e retomar, verificação de checksum, verificação de assinatura de código, extração de arquivos e muxing de mídia — roda localmente no seu Mac. Os arquivos que você baixa, seu histórico de downloads e os endereços que você solicita nunca são enviados a nós nem a ninguém."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Всё, что делает CloakDrop, — многосегментная загрузка, пауза и возобновление, проверка контрольных сумм, проверка подписи кода, распаковка архивов и муксинг медиа — выполняется локально на вашем Mac. Файлы, которые вы скачиваете, история загрузок и запрашиваемые адреса никогда не отправляются нам или кому-либо ещё."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop 所做的一切——多段下载、暂停与续传、校验和验证、代码签名检查、归档解压以及媒体封装——都在你的 Mac 上本地运行。你下载的文件、下载历史以及你请求的地址，永远不会发送给我们或任何其他人。"
+          }
+        }
+      }
+    },
+    "The only connections CloakDrop makes": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الاتصالات الوحيدة التي يجريها CloakDrop"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die einzigen Verbindungen, die CloakDrop herstellt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las únicas conexiones que hace CloakDrop"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les seules connexions que CloakDrop établit"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop द्वारा किए जाने वाले एकमात्र कनेक्शन"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop が行う唯一の接続"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop이 하는 유일한 연결"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As únicas conexões que o CloakDrop faz"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Единственные подключения, которые выполняет CloakDrop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop 建立的唯一连接"
+          }
+        }
+      }
+    },
+    "A download manager has to reach the internet, so CloakDrop is precise about when it does. It connects only to:": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا بد لمدير التنزيلات من الاتصال بالإنترنت، لذا يوضّح CloakDrop بدقة متى يفعل ذلك. فهو يتصل فقط بـ:"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Download-Manager muss ins Internet, deshalb ist CloakDrop genau dabei, wann es das tut. Es verbindet sich nur mit:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un gestor de descargas tiene que conectarse a internet, así que CloakDrop es preciso sobre cuándo lo hace. Solo se conecta a:"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un gestionnaire de téléchargement doit accéder à internet ; CloakDrop est donc précis quant au moment où il le fait. Il se connecte uniquement à :"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एक डाउनलोड मैनेजर को इंटरनेट तक पहुँचना ही पड़ता है, इसलिए CloakDrop स्पष्ट रहता है कि वह ऐसा कब करता है। यह केवल इनसे कनेक्ट होता है:"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ダウンロードマネージャはインターネットに接続する必要があるため、CloakDrop はそのタイミングを明確にしています。接続先は次のものだけです："
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다운로드 관리자는 인터넷에 연결해야 하므로, CloakDrop은 언제 연결하는지 명확히 밝힙니다. 오직 다음에만 연결합니다:"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um gerenciador de downloads precisa acessar a internet, então o CloakDrop é preciso sobre quando faz isso. Ele se conecta apenas a:"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Менеджер загрузок должен выходить в интернет, поэтому CloakDrop точно указывает, когда это происходит. Он подключается только к:"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载管理器必须访问互联网，因此 CloakDrop 明确说明它何时这样做。它仅连接到："
+          }
+        }
+      }
+    },
+    "The download links you choose — and any redirects or mirrors they point to.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "روابط التنزيل التي تختارها — وأي عمليات إعادة توجيه أو مرايا تشير إليها."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Download-Links, die du wählst – und alle Weiterleitungen oder Spiegel, auf die sie verweisen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los enlaces de descarga que eliges, y las redirecciones o réplicas a las que apunten."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les liens de téléchargement que vous choisissez — et les redirections ou miroirs vers lesquels ils pointent."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपके चुने हुए डाउनलोड लिंक — और वे जिन रीडायरेक्ट या मिरर की ओर इशारा करते हैं।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなたが選んだダウンロードリンク — およびそのリダイレクト先やミラー。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사용자가 선택한 다운로드 링크 — 그리고 해당 링크가 가리키는 리디렉션이나 미러."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os links de download que você escolhe — e quaisquer redirecionamentos ou espelhos para os quais eles apontem."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ссылки для загрузки, которые вы выбираете, — и любые перенаправления или зеркала, на которые они указывают."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你选择的下载链接，以及它们指向的重定向或镜像。"
+          }
+        }
+      }
+    },
+    "A proxy server, and only if you configure one in Network settings.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "خادم وكيل (بروكسي)، وفقط إذا قمت بإعداد واحد في إعدادات الشبكة."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einen Proxyserver, und nur wenn du in den Netzwerkeinstellungen einen einrichtest."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un servidor proxy, y solo si configuras uno en los ajustes de Red."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un serveur proxy, et uniquement si vous en configurez un dans les réglages Réseau."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एक प्रॉक्सी सर्वर, और केवल तभी जब आप नेटवर्क सेटिंग्ज़ में कोई कॉन्फ़िगर करें।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プロキシサーバ。ただし「ネットワーク」設定で設定した場合のみ。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "프록시 서버 — 네트워크 설정에서 직접 구성한 경우에만."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um servidor proxy, e somente se você configurar um nas configurações de Rede."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Прокси-сервер — и только если вы настроите его в разделе «Сеть»."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "代理服务器，且仅当你在“网络”设置中配置了代理时。"
+          }
+        }
+      }
+    },
+    "A speed-test provider (Cloudflare or Ookla), and only while a test you started is running.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مزوّد اختبار سرعة (Cloudflare أو Ookla)، وفقط أثناء تشغيل اختبار بدأته بنفسك."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einen Geschwindigkeitstest-Anbieter (Cloudflare oder Ookla), und nur während ein von dir gestarteter Test läuft."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un proveedor de prueba de velocidad (Cloudflare u Ookla), y solo mientras se ejecuta una prueba que hayas iniciado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un fournisseur de test de débit (Cloudflare ou Ookla), et uniquement pendant qu’un test que vous avez lancé est en cours."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एक स्पीड-टेस्ट प्रदाता (Cloudflare या Ookla), और केवल तब तक जब आपके द्वारा शुरू किया गया टेस्ट चल रहा हो।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スピードテストのプロバイダ（Cloudflare または Ookla）。ただし、あなたが開始したテストの実行中のみ。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "속도 테스트 제공자(Cloudflare 또는 Ookla) — 사용자가 시작한 테스트가 실행되는 동안에만."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um provedor de teste de velocidade (Cloudflare ou Ookla), e somente enquanto um teste que você iniciou está em execução."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Провайдер теста скорости (Cloudflare или Ookla) — и только пока выполняется запущенный вами тест."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "测速服务商（Cloudflare 或 Ookla），且仅在你启动的测试运行期间。"
+          }
+        }
+      }
+    },
+    "That is the complete list. There are no update pings, no analytics beacons, and no phone-home of any kind.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هذه هي القائمة الكاملة. لا توجد نبضات تحديث، ولا منارات تحليلات، ولا أي إرسال خفي من أي نوع."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das ist die vollständige Liste. Es gibt keine Update-Pings, keine Analyse-Beacons und kein Nachhausetelefonieren jeglicher Art."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esa es la lista completa. No hay pings de actualización, ni balizas de analítica, ni ningún tipo de comunicación con servidores propios."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "C’est la liste complète. Il n’y a aucun ping de mise à jour, aucune balise d’analyse, ni aucune communication cachée d’aucune sorte."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यही पूरी सूची है। कोई अपडेट पिंग नहीं, कोई एनालिटिक्स बीकन नहीं, और किसी भी प्रकार का फ़ोन-होम नहीं।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "これが全リストです。アップデートの ping も、分析用のビーコンも、いかなる形の外部送信もありません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이것이 전체 목록입니다. 업데이트 핑도, 분석용 비콘도, 어떤 형태의 외부 전송도 없습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Essa é a lista completa. Não há pings de atualização, nem beacons de análise, nem qualquer tipo de comunicação oculta."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Это полный список. Никаких пингов обновлений, аналитических маяков и какой-либо отправки данных на сторону."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这就是完整清单。没有更新探测、没有分析信标，也没有任何形式的回传。"
+          }
+        }
+      }
+    },
+    "No personal data collected": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا يتم جمع أي بيانات شخصية"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine personenbezogenen Daten erhoben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se recopilan datos personales"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune donnée personnelle collectée"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कोई व्यक्तिगत डेटा एकत्र नहीं किया जाता"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "個人データを収集しません"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "개인 데이터를 수집하지 않습니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhum dado pessoal coletado"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Персональные данные не собираются"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不收集个人数据"
+          }
+        }
+      }
+    },
+    "CloakDrop does not collect, store, or transmit any personal information, including:": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا يجمع CloakDrop أو يخزّن أو ينقل أي معلومات شخصية، بما في ذلك:"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop erhebt, speichert oder übermittelt keinerlei personenbezogene Daten, darunter:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop no recopila, almacena ni transmite ninguna información personal, incluyendo:"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop ne collecte, ne stocke ni ne transmet aucune information personnelle, notamment :"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop कोई भी व्यक्तिगत जानकारी एकत्र, संग्रहीत या प्रसारित नहीं करता, जिसमें शामिल हैं:"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop は、以下を含むいかなる個人情報も収集・保存・送信しません："
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop은 다음을 포함한 어떠한 개인 정보도 수집·저장·전송하지 않습니다:"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O CloakDrop não coleta, armazena nem transmite nenhuma informação pessoal, incluindo:"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop не собирает, не хранит и не передаёт никакую персональную информацию, в том числе:"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop 不会收集、存储或传输任何个人信息，包括："
+          }
+        }
+      }
+    },
+    "Names, email addresses, or account details — there are no accounts.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الأسماء أو عناوين البريد الإلكتروني أو بيانات الحساب — لا توجد حسابات أصلاً."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Namen, E-Mail-Adressen oder Kontodaten – es gibt keine Konten."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombres, direcciones de correo o datos de cuenta: no hay cuentas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noms, adresses e-mail ou informations de compte — il n’y a pas de comptes."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "नाम, ईमेल पते या खाता विवरण — कोई खाता है ही नहीं।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "氏名、メールアドレス、アカウント情報 — そもそもアカウントがありません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이름, 이메일 주소, 계정 정보 — 애초에 계정이 없습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nomes, endereços de e-mail ou dados de conta — não há contas."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Имена, адреса электронной почты или данные учётной записи — учётных записей нет."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "姓名、电子邮件地址或账户信息——根本没有账户。"
+          }
+        }
+      }
+    },
+    "IP addresses or device identifiers.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عناوين IP أو معرّفات الجهاز."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IP-Adressen oder Gerätekennungen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direcciones IP o identificadores de dispositivo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adresses IP ou identifiants d’appareil."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IP पते या डिवाइस पहचानकर्ता।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IP アドレスやデバイス識別子。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IP 주소나 기기 식별자."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Endereços IP ou identificadores de dispositivo."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IP-адреса или идентификаторы устройства."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IP 地址或设备标识符。"
+          }
+        }
+      }
+    },
+    "Usage analytics or behavioural tracking.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تحليلات الاستخدام أو تتبّع السلوك."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nutzungsanalysen oder Verhaltens-Tracking."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analítica de uso o seguimiento del comportamiento."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyses d’utilisation ou suivi comportemental."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "उपयोग एनालिटिक्स या व्यवहार ट्रैकिंग।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用状況の分析や行動トラッキング。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사용 분석이나 행동 추적."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Análise de uso ou rastreamento de comportamento."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Аналитика использования или отслеживание поведения."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用分析或行为跟踪。"
+          }
+        }
+      }
+    },
+    "Crash reports or diagnostic data.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تقارير الأعطال أو بيانات التشخيص."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Absturzberichte oder Diagnosedaten."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informes de fallos o datos de diagnóstico."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rapports de plantage ou données de diagnostic."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "क्रैश रिपोर्ट या डायग्नोस्टिक डेटा।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クラッシュレポートや診断データ。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "충돌 보고서나 진단 데이터."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Relatórios de falha ou dados de diagnóstico."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отчёты о сбоях или диагностические данные."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "崩溃报告或诊断数据。"
+          }
+        }
+      }
+    },
+    "Where your data lives": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أين تُحفظ بياناتك"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wo deine Daten liegen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dónde residen tus datos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Où résident vos données"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपका डेटा कहाँ रहता है"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "データの保存場所"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "데이터가 저장되는 곳"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Onde seus dados ficam"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Где хранятся ваши данные"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的数据存放在哪里"
+          }
+        }
+      }
+    },
+    "Your download list and preferences are kept in a local database inside the app's sandbox. Passwords for websites, FTP servers, and proxies are stored in the macOS Keychain. CloakDrop runs fully sandboxed — it can reach only your Downloads folder and the destinations you explicitly pick (remembered as security-scoped bookmarks), never the rest of your disk. Everything stays on your Mac and can be deleted at any time; removing the app leaves nothing behind but the files you saved.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تُحفظ قائمة تنزيلاتك وتفضيلاتك في قاعدة بيانات محلية داخل صندوق حماية التطبيق (sandbox). أما كلمات مرور المواقع وخوادم FTP والوكلاء فتُخزَّن في «سلسلة المفاتيح» (Keychain) في macOS. يعمل CloakDrop ضمن صندوق حماية بالكامل — فلا يمكنه الوصول إلا إلى مجلد «التنزيلات» والوجهات التي تختارها صراحةً (تُحفظ كإشارات مرجعية ذات نطاق أمني)، ولا يصل أبدًا إلى بقية القرص. يبقى كل شيء على جهاز Mac ويمكن حذفه في أي وقت؛ وإزالة التطبيق لا تترك شيئًا سوى الملفات التي حفظتها."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Download-Liste und Einstellungen werden in einer lokalen Datenbank innerhalb der Sandbox der App gespeichert. Passwörter für Websites, FTP-Server und Proxys liegen im macOS-Schlüsselbund. CloakDrop läuft vollständig in der Sandbox – es kann nur auf deinen Downloads-Ordner und die von dir ausdrücklich gewählten Ziele zugreifen (als sicherheitsbezogene Lesezeichen gespeichert), niemals auf den Rest deiner Festplatte. Alles bleibt auf deinem Mac und kann jederzeit gelöscht werden; das Entfernen der App hinterlässt nichts außer den von dir gespeicherten Dateien."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu lista de descargas y tus preferencias se guardan en una base de datos local dentro del entorno aislado (sandbox) de la aplicación. Las contraseñas de sitios web, servidores FTP y proxies se almacenan en el Llavero de macOS. CloakDrop se ejecuta completamente aislado: solo puede acceder a tu carpeta de Descargas y a los destinos que elijas explícitamente (recordados como marcadores con ámbito de seguridad), nunca al resto de tu disco. Todo permanece en tu Mac y puede eliminarse en cualquier momento; al quitar la aplicación no queda nada salvo los archivos que guardaste."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre liste de téléchargements et vos préférences sont conservées dans une base de données locale au sein du bac à sable (sandbox) de l’application. Les mots de passe des sites web, serveurs FTP et proxys sont stockés dans le Trousseau de macOS. CloakDrop s’exécute entièrement en bac à sable : il n’accède qu’à votre dossier Téléchargements et aux destinations que vous choisissez explicitement (mémorisées sous forme de signets à portée de sécurité), jamais au reste de votre disque. Tout reste sur votre Mac et peut être supprimé à tout moment ; supprimer l’application ne laisse rien d’autre que les fichiers que vous avez enregistrés."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपकी डाउनलोड सूची और प्राथमिकताएँ ऐप के सैंडबॉक्स के भीतर एक स्थानीय डेटाबेस में रखी जाती हैं। वेबसाइटों, FTP सर्वरों और प्रॉक्सी के पासवर्ड macOS Keychain में संग्रहीत होते हैं। CloakDrop पूरी तरह सैंडबॉक्स में चलता है — यह केवल आपके Downloads फ़ोल्डर और आपके स्पष्ट रूप से चुने गए गंतव्यों (सुरक्षा-दायरे वाले बुकमार्क के रूप में याद रखे गए) तक पहुँच सकता है, आपकी डिस्क के बाकी हिस्से तक कभी नहीं। सब कुछ आपके Mac पर रहता है और किसी भी समय हटाया जा सकता है; ऐप हटाने पर आपके सहेजे गए फ़ाइलों के अलावा कुछ नहीं बचता।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ダウンロード一覧と設定は、アプリのサンドボックス内のローカルデータベースに保存されます。ウェブサイト、FTP サーバ、プロキシのパスワードは macOS の「キーチェーン」に保存されます。CloakDrop は完全にサンドボックス内で動作し、アクセスできるのは「ダウンロード」フォルダと、あなたが明示的に選んだ保存先（セキュリティスコープ付きブックマークとして記憶）だけで、ディスクの他の部分には決してアクセスしません。すべてはあなたの Mac 内にとどまり、いつでも削除できます。アプリを削除しても、保存したファイル以外は何も残りません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다운로드 목록과 환경설정은 앱 샌드박스 내부의 로컬 데이터베이스에 보관됩니다. 웹사이트, FTP 서버, 프록시의 비밀번호는 macOS 키체인에 저장됩니다. CloakDrop은 완전히 샌드박스에서 실행되며, 다운로드 폴더와 사용자가 명시적으로 선택한 대상(보안 범위 북마크로 기억됨)에만 접근할 수 있고 디스크의 나머지 부분에는 결코 접근하지 않습니다. 모든 것은 사용자의 Mac에 남아 있으며 언제든지 삭제할 수 있습니다. 앱을 제거해도 저장한 파일 외에는 아무것도 남지 않습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sua lista de downloads e preferências ficam em um banco de dados local dentro do sandbox do aplicativo. As senhas de sites, servidores FTP e proxies são armazenadas no Keychain do macOS. O CloakDrop roda totalmente em sandbox — ele só pode acessar sua pasta Downloads e os destinos que você escolhe explicitamente (lembrados como marcadores com escopo de segurança), nunca o resto do seu disco. Tudo permanece no seu Mac e pode ser excluído a qualquer momento; remover o aplicativo não deixa nada além dos arquivos que você salvou."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Список загрузок и настройки хранятся в локальной базе данных внутри песочницы приложения. Пароли для сайтов, FTP-серверов и прокси хранятся в связке ключей macOS. CloakDrop работает полностью в песочнице — он имеет доступ только к папке «Загрузки» и к местам, которые вы явно выбрали (запоминаются как закладки с ограниченной областью безопасности), и никогда к остальной части диска. Всё остаётся на вашем Mac и может быть удалено в любой момент; после удаления приложения не остаётся ничего, кроме сохранённых вами файлов."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的下载列表和偏好设置保存在应用沙盒内的本地数据库中。网站、FTP 服务器和代理的密码存储在 macOS 钥匙串中。CloakDrop 完全在沙盒中运行——它只能访问你的“下载”文件夹以及你明确选择的目标位置（以安全范围书签的形式记住），永远不会访问磁盘上的其他内容。所有内容都留在你的 Mac 上，并可随时删除；卸载应用后，除了你保存的文件外不会留下任何东西。"
+          }
+        }
+      }
+    },
+    "Bundled tools": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الأدوات المضمّنة"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitgelieferte Werkzeuge"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herramientas incluidas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outils intégrés"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "साथ में शामिल उपकरण"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同梱ツール"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "포함된 도구"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ferramentas incluídas"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Встроенные инструменты"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内置工具"
+          }
+        }
+      }
+    },
+    "CloakDrop includes two open-source command-line tools: ffmpeg, to combine separate video and audio into one playable file, and yt-dlp, to read the list of formats a video page offers. Both run locally as sandboxed helpers and only read or transform data already on your Mac. CloakDrop's own engine performs every byte of downloading — neither tool opens a network connection of its own.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يتضمّن CloakDrop أداتين مفتوحتي المصدر تعملان بسطر الأوامر: ffmpeg لدمج الفيديو والصوت المنفصلين في ملف واحد قابل للتشغيل، و yt-dlp لقراءة قائمة الصيغ التي تعرضها صفحة الفيديو. تعمل كلتاهما محليًا كمساعدتين ضمن صندوق حماية، ولا تقومان إلا بقراءة أو تحويل بيانات موجودة مسبقًا على جهاز Mac. محرّك CloakDrop نفسه هو من ينفّذ كل بايت من التنزيل؛ ولا تفتح أي من الأداتين اتصالًا شبكيًا خاصًا بها."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop enthält zwei quelloffene Kommandozeilenwerkzeuge: ffmpeg, um getrenntes Video und Audio zu einer abspielbaren Datei zu vereinen, und yt-dlp, um die Liste der von einer Videoseite angebotenen Formate auszulesen. Beide laufen lokal als abgeschottete Helfer und lesen oder transformieren nur Daten, die bereits auf deinem Mac liegen. CloakDrops eigene Engine lädt jedes einzelne Byte selbst herunter; keines der beiden Werkzeuge öffnet eine eigene Netzwerkverbindung."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop incluye dos herramientas de línea de comandos de código abierto: ffmpeg, para combinar vídeo y audio separados en un único archivo reproducible, y yt-dlp, para leer la lista de formatos que ofrece una página de vídeo. Ambas se ejecutan localmente como ayudantes aislados y solo leen o transforman datos que ya están en tu Mac. El propio motor de CloakDrop realiza cada byte de la descarga; ninguna de las dos herramientas abre una conexión de red por su cuenta."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop intègre deux outils en ligne de commande open source : ffmpeg, pour combiner une vidéo et un audio séparés en un seul fichier lisible, et yt-dlp, pour lire la liste des formats proposés par une page vidéo. Les deux s’exécutent localement en tant qu’assistants en bac à sable et se contentent de lire ou transformer des données déjà présentes sur votre Mac. Le moteur de CloakDrop effectue lui-même chaque octet du téléchargement ; aucun de ces outils n’ouvre de connexion réseau de son côté."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop में दो ओपन-सोर्स कमांड-लाइन उपकरण शामिल हैं: ffmpeg, जो अलग-अलग वीडियो और ऑडियो को एक चलाने योग्य फ़ाइल में जोड़ता है, और yt-dlp, जो किसी वीडियो पेज द्वारा प्रस्तुत फ़ॉर्मैट की सूची पढ़ता है। दोनों सैंडबॉक्स्ड सहायक के रूप में स्थानीय रूप से चलते हैं और केवल आपके Mac पर पहले से मौजूद डेटा को पढ़ते या रूपांतरित करते हैं। डाउनलोड का हर बाइट CloakDrop का अपना इंजन करता है; इनमें से कोई भी उपकरण अपना स्वयं का नेटवर्क कनेक्शन नहीं खोलता।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop には 2 つのオープンソースのコマンドラインツールが同梱されています。別々の映像と音声を 1 つの再生可能なファイルにまとめる ffmpeg と、動画ページが提供するフォーマット一覧を読み取る yt-dlp です。どちらもサンドボックス化されたヘルパーとしてローカルで動作し、すでに Mac 上にあるデータを読み取るか変換するだけです。ダウンロードの 1 バイトごとは CloakDrop 自身のエンジンが行い、いずれのツールも独自にネットワーク接続を開くことはありません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop에는 두 개의 오픈소스 명령줄 도구가 포함되어 있습니다: 분리된 영상과 오디오를 하나의 재생 가능한 파일로 합치는 ffmpeg와, 동영상 페이지가 제공하는 형식 목록을 읽는 yt-dlp입니다. 둘 다 샌드박스화된 헬퍼로 로컬에서 실행되며 이미 Mac에 있는 데이터를 읽거나 변환할 뿐입니다. 다운로드의 모든 바이트는 CloakDrop 자체 엔진이 수행하며, 두 도구 모두 자체적으로 네트워크 연결을 열지 않습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O CloakDrop inclui duas ferramentas de linha de comando de código aberto: o ffmpeg, para combinar vídeo e áudio separados em um único arquivo reproduzível, e o yt-dlp, para ler a lista de formatos que uma página de vídeo oferece. Ambas rodam localmente como auxiliares em sandbox e apenas leem ou transformam dados que já estão no seu Mac. O próprio motor do CloakDrop faz cada byte do download; nenhuma das ferramentas abre uma conexão de rede por conta própria."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop включает два инструмента командной строки с открытым исходным кодом: ffmpeg — чтобы объединить отдельные видео и аудио в один воспроизводимый файл, и yt-dlp — чтобы прочитать список форматов, предлагаемых страницей с видео. Оба работают локально как изолированные помощники и лишь читают или преобразуют данные, уже находящиеся на вашем Mac. Каждый байт загрузки выполняет собственный движок CloakDrop; ни один из инструментов не открывает собственных сетевых подключений."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop 内置两款开源命令行工具：ffmpeg，用于将分离的视频和音频合并为一个可播放的文件；yt-dlp，用于读取视频页面提供的格式列表。两者都在本地作为沙盒化的辅助程序运行，只读取或转换已经在你 Mac 上的数据。每一个字节的下载都由 CloakDrop 自己的引擎完成；这两个工具都不会自行建立网络连接。"
+          }
+        }
+      }
+    },
+    "Browser extensions": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إضافات المتصفح"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browsererweiterungen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extensiones de navegador"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extensions de navigateur"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ब्राउज़र एक्सटेंशन"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ブラウザ拡張機能"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "브라우저 확장 프로그램"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extensões de navegador"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Расширения для браузера"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浏览器扩展"
+          }
+        }
+      }
+    },
+    "The optional Safari, Chrome, and Firefox extensions detect downloadable media on the page you are viewing and pass it to CloakDrop. When you pick a download, the extension reads the cookies scoped to that one address — so files behind a login download correctly — and forwards them a single time to the app on your Mac. Those cookies are never stored by the extension and never sent anywhere else.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تكتشف إضافات Safari و Chrome و Firefox الاختيارية الوسائط القابلة للتنزيل في الصفحة التي تتصفّحها وتمرّرها إلى CloakDrop. وعندما تختار تنزيلًا، تقرأ الإضافة ملفات تعريف الارتباط المقتصرة على ذلك العنوان وحده — كي تُنزَّل الملفات التي خلف تسجيل الدخول بشكل صحيح — وتُعيد توجيهها مرة واحدة فقط إلى التطبيق على جهاز Mac. ولا تُخزَّن ملفات تعريف الارتباط هذه في الإضافة أبدًا ولا تُرسَل إلى أي مكان آخر."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die optionalen Erweiterungen für Safari, Chrome und Firefox erkennen herunterladbare Medien auf der Seite, die du gerade ansiehst, und übergeben sie an CloakDrop. Wenn du einen Download auswählst, liest die Erweiterung die auf genau diese Adresse beschränkten Cookies – damit Dateien hinter einer Anmeldung korrekt geladen werden – und leitet sie ein einziges Mal an die App auf deinem Mac weiter. Diese Cookies werden von der Erweiterung nie gespeichert und nie irgendwohin sonst gesendet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las extensiones opcionales de Safari, Chrome y Firefox detectan medios descargables en la página que estás viendo y los pasan a CloakDrop. Cuando eliges una descarga, la extensión lee las cookies limitadas a esa única dirección —para que los archivos tras un inicio de sesión se descarguen correctamente— y las reenvía una sola vez a la aplicación en tu Mac. Esas cookies nunca las almacena la extensión ni se envían a ningún otro sitio."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les extensions optionnelles pour Safari, Chrome et Firefox détectent les médias téléchargeables sur la page que vous consultez et les transmettent à CloakDrop. Lorsque vous choisissez un téléchargement, l’extension lit les cookies limités à cette seule adresse — pour que les fichiers derrière une connexion se téléchargent correctement — et les transmet une seule fois à l’application sur votre Mac. Ces cookies ne sont jamais stockés par l’extension ni envoyés ailleurs."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "वैकल्पिक Safari, Chrome और Firefox एक्सटेंशन उस पेज पर डाउनलोड करने योग्य मीडिया का पता लगाते हैं जिसे आप देख रहे हैं और उसे CloakDrop को सौंप देते हैं। जब आप कोई डाउनलोड चुनते हैं, तो एक्सटेंशन उस एक पते तक सीमित कुकीज़ पढ़ता है — ताकि लॉगिन के पीछे की फ़ाइलें सही ढंग से डाउनलोड हों — और उन्हें एक ही बार आपके Mac पर मौजूद ऐप को भेज देता है। ये कुकीज़ एक्सटेंशन द्वारा कभी संग्रहीत नहीं की जातीं और न ही कहीं और भेजी जाती हैं।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オプションの Safari・Chrome・Firefox 拡張機能は、閲覧中のページ上のダウンロード可能なメディアを検出し、CloakDrop に渡します。ダウンロードを選ぶと、拡張機能はその 1 つのアドレスに限定された Cookie を読み取り（ログインの先にあるファイルを正しくダウンロードするため）、Mac 上のアプリに一度だけ転送します。これらの Cookie が拡張機能に保存されることはなく、他のどこかに送信されることもありません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선택적 Safari, Chrome, Firefox 확장 프로그램은 사용자가 보고 있는 페이지에서 다운로드 가능한 미디어를 감지하여 CloakDrop에 전달합니다. 다운로드를 선택하면, 확장 프로그램은 해당 주소에만 한정된 쿠키를 읽어(로그인 뒤의 파일이 올바르게 다운로드되도록) Mac의 앱으로 단 한 번 전달합니다. 이 쿠키는 확장 프로그램에 저장되지 않으며 다른 어디로도 전송되지 않습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As extensões opcionais para Safari, Chrome e Firefox detectam mídias baixáveis na página que você está vendo e as passam ao CloakDrop. Quando você escolhe um download, a extensão lê os cookies restritos àquele único endereço — para que arquivos atrás de um login sejam baixados corretamente — e os encaminha uma única vez ao aplicativo no seu Mac. Esses cookies nunca são armazenados pela extensão nem enviados a qualquer outro lugar."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дополнительные расширения для Safari, Chrome и Firefox обнаруживают доступные для загрузки медиа на просматриваемой странице и передают их в CloakDrop. Когда вы выбираете загрузку, расширение считывает файлы cookie, ограниченные этим одним адресом (чтобы файлы за авторизацией скачивались корректно), и передаёт их один раз приложению на вашем Mac. Эти файлы cookie никогда не сохраняются расширением и не отправляются куда-либо ещё."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可选的 Safari、Chrome 和 Firefox 扩展会检测你正在浏览的页面上的可下载媒体，并将其传递给 CloakDrop。当你选择下载时，扩展会读取仅限于该地址的 Cookie（以便登录后的文件能正确下载），并将它们一次性转发给你 Mac 上的应用。这些 Cookie 绝不会被扩展存储，也绝不会发送到其他任何地方。"
+          }
+        }
+      }
+    },
+    "Open source and licensing": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المصدر المفتوح والترخيص"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Source und Lizenz"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Código abierto y licencia"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open source et licence"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ओपन सोर्स और लाइसेंस"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オープンソースとライセンス"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오픈소스 및 라이선스"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Código aberto e licenciamento"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открытый исходный код и лицензия"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开源与许可"
+          }
+        }
+      }
+    },
+    "CloakDrop is open source under the MIT License. You can read the entire source code, verify every claim in this policy for yourself, and build your own copy — with no fees and no restrictions.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‏CloakDrop مفتوح المصدر بموجب رخصة MIT. يمكنك قراءة الشيفرة المصدرية كاملةً، والتحقّق بنفسك من كل ادّعاء في هذه السياسة، وبناء نسختك الخاصة — دون رسوم أو قيود."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop ist quelloffen unter der MIT-Lizenz. Du kannst den gesamten Quellcode lesen, jede Aussage dieser Richtlinie selbst überprüfen und eine eigene Kopie erstellen – ohne Gebühren und ohne Einschränkungen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop es de código abierto bajo la licencia MIT. Puedes leer todo el código fuente, verificar por ti mismo cada afirmación de esta política y crear tu propia copia, sin cuotas ni restricciones."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop est open source sous licence MIT. Vous pouvez lire l’intégralité du code source, vérifier vous-même chaque affirmation de cette politique et créer votre propre version — sans frais ni restrictions."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop, MIT लाइसेंस के तहत ओपन सोर्स है। आप पूरा सोर्स कोड पढ़ सकते हैं, इस नीति के हर दावे को स्वयं सत्यापित कर सकते हैं, और अपनी खुद की कॉपी बना सकते हैं — बिना किसी शुल्क या प्रतिबंध के।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop は MIT ライセンスのオープンソースです。ソースコードのすべてを読み、このポリシーのあらゆる主張を自分で検証し、独自のコピーをビルドできます — 料金も制限もありません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop은 MIT 라이선스의 오픈소스입니다. 전체 소스 코드를 읽고, 이 방침의 모든 주장을 직접 확인하고, 자신만의 사본을 빌드할 수 있습니다 — 비용도 제한도 없습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O CloakDrop é de código aberto sob a licença MIT. Você pode ler todo o código-fonte, verificar por conta própria cada afirmação desta política e criar sua própria cópia — sem taxas nem restrições."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop имеет открытый исходный код под лицензией MIT. Вы можете прочитать весь исходный код, самостоятельно проверить каждое утверждение этой политики и собрать собственную копию — без платы и ограничений."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop 采用 MIT 许可证开源。你可以阅读全部源代码，亲自验证本政策中的每一项声明，并构建你自己的副本——没有任何费用或限制。"
+          }
+        }
+      }
+    },
+    "Your rights, and changes to this policy": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حقوقك والتغييرات على هذه السياسة"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Rechte und Änderungen an dieser Richtlinie"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tus derechos y los cambios en esta política"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vos droits et les modifications de cette politique"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपके अधिकार, और इस नीति में परिवर्तन"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなたの権利と、このポリシーの変更"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사용자의 권리 및 본 방침의 변경"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seus direitos e alterações nesta política"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваши права и изменения в этой политике"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的权利，以及本政策的变更"
+          }
+        }
+      }
+    },
+    "Because CloakDrop collects no personal data, there is nothing for us to disclose, correct, or delete on your behalf under GDPR, CCPA, or similar laws. If this policy ever changes, the updated version will appear here with a new date above; given CloakDrop's privacy-by-design nature, significant changes are unlikely.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بما أن CloakDrop لا يجمع أي بيانات شخصية، فلا يوجد ما يمكننا الإفصاح عنه أو تصحيحه أو حذفه نيابةً عنك بموجب اللائحة العامة لحماية البيانات (GDPR) أو قانون خصوصية المستهلك في كاليفورنيا (CCPA) أو قوانين مماثلة. وإذا تغيّرت هذه السياسة يومًا، فستظهر النسخة المحدَّثة هنا مع تاريخ جديد في الأعلى؛ ونظرًا لطبيعة CloakDrop القائمة على الخصوصية بالتصميم، فإن حدوث تغييرات جوهرية أمر غير مرجّح."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Da CloakDrop keine personenbezogenen Daten erhebt, gibt es nichts, was wir in deinem Namen nach DSGVO, CCPA oder ähnlichen Gesetzen offenlegen, korrigieren oder löschen könnten. Sollte sich diese Richtlinie je ändern, erscheint die aktualisierte Fassung hier mit einem neuen Datum oben; angesichts der auf Datenschutz ausgelegten Natur von CloakDrop sind wesentliche Änderungen unwahrscheinlich."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Como CloakDrop no recopila datos personales, no hay nada que podamos revelar, corregir ni eliminar en tu nombre conforme al RGPD, la CCPA o leyes similares. Si esta política llegara a cambiar, la versión actualizada aparecerá aquí con una nueva fecha arriba; dada la naturaleza de privacidad por diseño de CloakDrop, es poco probable que haya cambios significativos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comme CloakDrop ne collecte aucune donnée personnelle, il n’y a rien que nous puissions divulguer, corriger ou supprimer en votre nom au titre du RGPD, du CCPA ou de lois similaires. Si cette politique venait à changer, la version mise à jour apparaîtra ici avec une nouvelle date en haut ; étant donné la nature « confidentialité dès la conception » de CloakDrop, des changements importants sont peu probables."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "चूँकि CloakDrop कोई व्यक्तिगत डेटा एकत्र नहीं करता, इसलिए GDPR, CCPA या इसी तरह के कानूनों के तहत आपकी ओर से प्रकट करने, सुधारने या हटाने के लिए हमारे पास कुछ भी नहीं है। यदि यह नीति कभी बदलती है, तो अद्यतन संस्करण यहाँ शीर्ष पर नई तारीख के साथ दिखाई देगा; CloakDrop की गोपनीयता-केंद्रित डिज़ाइन प्रकृति को देखते हुए, महत्वपूर्ण परिवर्तन की संभावना कम है।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop は個人データを一切収集しないため、GDPR や CCPA、類似の法律に基づいてあなたに代わって開示・訂正・削除するものは何もありません。このポリシーが変更される場合は、更新版が上部に新しい日付とともにここに掲載されます。CloakDrop のプライバシー・バイ・デザインの性質上、重大な変更が生じる可能性は低いです。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop은 개인 데이터를 수집하지 않으므로, GDPR, CCPA 또는 유사한 법률에 따라 사용자를 대신해 공개·정정·삭제할 것이 없습니다. 이 방침이 변경되면 갱신된 버전이 상단에 새로운 날짜와 함께 여기에 게시됩니다. CloakDrop의 프라이버시 중심 설계 특성상 중대한 변경 가능성은 낮습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Como o CloakDrop não coleta dados pessoais, não há nada que possamos divulgar, corrigir ou excluir em seu nome sob a LGPD, o GDPR, a CCPA ou leis semelhantes. Se esta política mudar, a versão atualizada aparecerá aqui com uma nova data no topo; dada a natureza de privacidade desde a concepção do CloakDrop, mudanças significativas são improváveis."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поскольку CloakDrop не собирает персональные данные, нам нечего раскрывать, исправлять или удалять от вашего имени в соответствии с GDPR, CCPA или аналогичными законами. Если эта политика когда-либо изменится, обновлённая версия появится здесь с новой датой вверху; учитывая изначально конфиденциальную природу CloakDrop, существенные изменения маловероятны."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "由于 CloakDrop 不收集任何个人数据，因此根据 GDPR、CCPA 或类似法律，我们没有任何内容可代你披露、更正或删除。如果本政策发生变更，更新后的版本将在此处显示，并在顶部标注新日期；鉴于 CloakDrop 隐私优先的设计本质，重大变更的可能性很小。"
+          }
+        }
+      }
+    },
+    "View the source on GitHub": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عرض الشيفرة المصدرية على GitHub"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quellcode auf GitHub ansehen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver el código fuente en GitHub"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voir le code source sur GitHub"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub पर सोर्स कोड देखें"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub でソースコードを見る"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub에서 소스 코드 보기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver o código-fonte no GitHub"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Посмотреть исходный код на GitHub"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 GitHub 上查看源代码"
+          }
+        }
+      }
+    },
+    "Ask a question or report an issue": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اطرح سؤالًا أو أبلغ عن مشكلة"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frage stellen oder Problem melden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Haz una pregunta o informa de un problema"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poser une question ou signaler un problème"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "प्रश्न पूछें या समस्या की रिपोर्ट करें"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "質問する、または問題を報告する"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "질문하거나 문제 신고하기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fazer uma pergunta ou relatar um problema"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Задать вопрос или сообщить о проблеме"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提问或报告问题"
+          }
+        }
+      }
+    },
+    "Last updated %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آخر تحديث: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zuletzt aktualisiert: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última actualización: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière mise à jour : %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अंतिम अपडेट: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最終更新：%@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "마지막 업데이트: %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última atualização: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последнее обновление: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最后更新：%@"
           }
         }
       }
