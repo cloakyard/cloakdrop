@@ -13,11 +13,6 @@ extension AppModel {
         NSWorkspace.shared.open(URL(fileURLWithPath: download.destinationFilePath))
     }
 
-    func copyURL(_ download: Download) {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(download.url.absoluteString, forType: .string)
-    }
-
     /// Copy one or more source URLs (newline-separated) — used by the selection-aware row menu.
     func copyURLs(_ downloads: [Download]) {
         guard !downloads.isEmpty else { return }

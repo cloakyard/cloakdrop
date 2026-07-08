@@ -10,6 +10,9 @@ public struct EngineSettings: Sendable, Hashable, Codable {
     public var maxSegmentCount: Int
     /// Global download speed limit in bytes/sec across all downloads. `nil` means unlimited.
     public var globalSpeedLimitBytesPerSecond: Int64?
+    /// Optional time-of-day override for the global limit (e.g. throttle during work hours, unlimited
+    /// overnight). `nil`/disabled means the global limit above applies around the clock.
+    public var bandwidthSchedule: BandwidthSchedule?
     /// Maximum automatic retry attempts for a transient failure before giving up.
     public var maxRetryAttempts: Int
     /// Base delay (seconds) for exponential backoff between retries.
@@ -24,9 +27,22 @@ public struct EngineSettings: Sendable, Hashable, Codable {
     /// file next to it on the same server (`file.zip` → `file.zip.sha256`/`.sha1`/`.md5`) and verify
     /// against it. Same-origin only, and additionally gated by `verifyChecksumsAutomatically`.
     public var autoDiscoverChecksums: Bool
+    /// When a download of an installable type (`.app`/`.dmg`) finishes, whether to assess its code
+    /// signature on-device (via the Security framework) and record the result — signed & valid,
+    /// invalid, or unsigned — so the UI can show a trust badge. Fully local; no network egress.
+    public var assessSignatures: Bool
     /// When true, completed files are filed into a per-type subfolder (Video, Documents, …)
     /// of their destination directory.
     public var autoCategorize: Bool
+    /// When true, completed files are stamped with the `com.apple.quarantine` flag (like a browser
+    /// download) so Gatekeeper vets them on first open. On by default; fully local.
+    public var applyQuarantine: Bool
+    /// When true, a completed `.zip` is automatically extracted into a sibling folder (native
+    /// extraction — no external tool). Off by default.
+    public var autoExtractArchives: Bool
+    /// When true, a verified-download provenance receipt (source, mirrors, SHA-256, checksum &
+    /// signature verdicts, one trust verdict) is assembled on completion. On by default; fully local.
+    public var generateProvenanceReceipts: Bool
     /// On launch, whether downloads that were mid-transfer when the app last quit resume
     /// automatically. When false they come back paused, so the user starts them when they choose.
     public var resumeDownloadsOnLaunch: Bool
@@ -35,52 +51,76 @@ public struct EngineSettings: Sendable, Hashable, Codable {
     public var proxy: ProxyConfiguration?
     /// What to do once every download finishes. `nil` is treated as `.none`.
     public var postCompletionAction: SchedulerPostAction?
+    /// The Shortcut to run when `postCompletionAction == .runShortcut`. Matched by name against the
+    /// user's Shortcuts library via the `shortcuts://run-shortcut` URL scheme.
+    public var postCompletionShortcutName: String?
+    /// Which service manual speed tests run against. `nil` is treated as `.cloudflare`.
+    public var speedTestProvider: SpeedTestProvider?
 
     public init(
         defaultSegmentCount: Int = 8,
         maxSegmentCount: Int = 16,
         globalSpeedLimitBytesPerSecond: Int64? = nil,
+        bandwidthSchedule: BandwidthSchedule? = nil,
         maxRetryAttempts: Int = 5,
         retryBaseDelaySeconds: Double = 1.0,
         retryMaxDelaySeconds: Double = 30.0,
         minimumSegmentSizeBytes: Int64 = 1 * 1024 * 1024,
         verifyChecksumsAutomatically: Bool = true,
         autoDiscoverChecksums: Bool = true,
+        assessSignatures: Bool = true,
         autoCategorize: Bool = false,
+        applyQuarantine: Bool = true,
+        autoExtractArchives: Bool = false,
+        generateProvenanceReceipts: Bool = true,
         resumeDownloadsOnLaunch: Bool = true,
         proxy: ProxyConfiguration? = nil,
-        postCompletionAction: SchedulerPostAction? = nil
+        postCompletionAction: SchedulerPostAction? = nil,
+        postCompletionShortcutName: String? = nil,
+        speedTestProvider: SpeedTestProvider? = nil
     ) {
         self.defaultSegmentCount = max(1, defaultSegmentCount)
         self.maxSegmentCount = max(1, maxSegmentCount)
         self.globalSpeedLimitBytesPerSecond = globalSpeedLimitBytesPerSecond
+        self.bandwidthSchedule = bandwidthSchedule
         self.maxRetryAttempts = max(0, maxRetryAttempts)
         self.retryBaseDelaySeconds = retryBaseDelaySeconds
         self.retryMaxDelaySeconds = retryMaxDelaySeconds
         self.minimumSegmentSizeBytes = max(0, minimumSegmentSizeBytes)
         self.verifyChecksumsAutomatically = verifyChecksumsAutomatically
         self.autoDiscoverChecksums = autoDiscoverChecksums
+        self.assessSignatures = assessSignatures
         self.autoCategorize = autoCategorize
+        self.applyQuarantine = applyQuarantine
+        self.autoExtractArchives = autoExtractArchives
+        self.generateProvenanceReceipts = generateProvenanceReceipts
         self.resumeDownloadsOnLaunch = resumeDownloadsOnLaunch
         self.proxy = proxy
         self.postCompletionAction = postCompletionAction
+        self.postCompletionShortcutName = postCompletionShortcutName
+        self.speedTestProvider = speedTestProvider
     }
 
     /// The effective proxy, treating an absent value as "use the system proxy".
     public var resolvedProxy: ProxyConfiguration { proxy ?? .system }
     /// The effective post-completion action, treating an absent value as "do nothing".
     public var resolvedPostAction: SchedulerPostAction { postCompletionAction ?? .none }
+    /// The effective speed-test provider, treating an absent value as Cloudflare.
+    public var resolvedSpeedTestProvider: SpeedTestProvider { speedTestProvider ?? .cloudflare }
 
     public static let `default` = EngineSettings()
 
     // MARK: Codable
 
     private enum CodingKeys: String, CodingKey {
-        case defaultSegmentCount, maxSegmentCount, globalSpeedLimitBytesPerSecond
+        case defaultSegmentCount, maxSegmentCount, globalSpeedLimitBytesPerSecond, bandwidthSchedule
         case maxRetryAttempts, retryBaseDelaySeconds, retryMaxDelaySeconds
         case minimumSegmentSizeBytes, verifyChecksumsAutomatically, autoDiscoverChecksums, autoCategorize
+        case applyQuarantine, autoExtractArchives, generateProvenanceReceipts
+        case assessSignatures
         case resumeDownloadsOnLaunch
-        case proxy, postCompletionAction
+        case proxy, postCompletionAction, postCompletionShortcutName
+        case speedTestProvider
     }
 
     /// Tolerant decoder: any key absent from the stored payload falls back to its default.
@@ -101,16 +141,26 @@ public struct EngineSettings: Sendable, Hashable, Codable {
             defaultSegmentCount: try value(.defaultSegmentCount, fallback.defaultSegmentCount),
             maxSegmentCount: try value(.maxSegmentCount, fallback.maxSegmentCount),
             globalSpeedLimitBytesPerSecond: try container.decodeIfPresent(Int64.self, forKey: .globalSpeedLimitBytesPerSecond),
+            bandwidthSchedule: try container.decodeIfPresent(BandwidthSchedule.self, forKey: .bandwidthSchedule),
             maxRetryAttempts: try value(.maxRetryAttempts, fallback.maxRetryAttempts),
             retryBaseDelaySeconds: try value(.retryBaseDelaySeconds, fallback.retryBaseDelaySeconds),
             retryMaxDelaySeconds: try value(.retryMaxDelaySeconds, fallback.retryMaxDelaySeconds),
             minimumSegmentSizeBytes: try value(.minimumSegmentSizeBytes, fallback.minimumSegmentSizeBytes),
             verifyChecksumsAutomatically: try value(.verifyChecksumsAutomatically, fallback.verifyChecksumsAutomatically),
             autoDiscoverChecksums: try value(.autoDiscoverChecksums, fallback.autoDiscoverChecksums),
+            assessSignatures: try value(.assessSignatures, fallback.assessSignatures),
             autoCategorize: try value(.autoCategorize, fallback.autoCategorize),
+            applyQuarantine: try value(.applyQuarantine, fallback.applyQuarantine),
+            autoExtractArchives: try value(.autoExtractArchives, fallback.autoExtractArchives),
+            generateProvenanceReceipts: try value(.generateProvenanceReceipts, fallback.generateProvenanceReceipts),
             resumeDownloadsOnLaunch: try value(.resumeDownloadsOnLaunch, fallback.resumeDownloadsOnLaunch),
             proxy: try container.decodeIfPresent(ProxyConfiguration.self, forKey: .proxy),
-            postCompletionAction: try container.decodeIfPresent(SchedulerPostAction.self, forKey: .postCompletionAction)
+            postCompletionAction: try container.decodeIfPresent(SchedulerPostAction.self, forKey: .postCompletionAction),
+            postCompletionShortcutName: try container.decodeIfPresent(String.self, forKey: .postCompletionShortcutName),
+            // Via the raw string so an unknown value (e.g. a provider added by a newer build)
+            // falls back to nil instead of failing the whole settings blob.
+            speedTestProvider: (try container.decodeIfPresent(String.self, forKey: .speedTestProvider))
+                .flatMap(SpeedTestProvider.init(rawValue:))
         )
     }
 }

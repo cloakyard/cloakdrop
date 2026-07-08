@@ -9,6 +9,10 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     public let id: UUID
     /// The source URL being downloaded.
     public var url: URL
+    /// Additional mirror URLs for the *same* content (from a Metalink), strongest-first and
+    /// excluding `url`. The segment workers spread across these for parallel throughput and fail
+    /// over between them on a transient error. Optional so older persisted records still decode.
+    public var mirrors: [URL]?
     /// The final file name on disk (including extension).
     public var fileName: String
     /// Absolute path of the destination directory chosen by the user.
@@ -20,6 +24,9 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     public var totalBytes: Int64?
     /// Whether the server advertised `Accept-Ranges: bytes` (required for multi-segment & resume).
     public var supportsResume: Bool
+    /// The resource's `ETag` as reported by the server at probe time, if any. A content-derived
+    /// tag used to recognize a re-added download as a duplicate of one already in the catalog.
+    public var etag: String?
     /// The segments composing this download. A single element means single-stream.
     public var segments: [DownloadSegment]
 
@@ -32,6 +39,13 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     /// Optional per-download speed limit in bytes/sec; `nil` uses the global setting.
     public var speedLimitBytesPerSecond: Int64?
 
+    /// Peak transfer rate observed over the download (bytes/sec), for the per-item stats summary.
+    /// `nil` until bytes have flowed. Optional so older persisted records still decode.
+    public var peakBytesPerSecond: Double?
+    /// Accumulated *active* transfer time in seconds — idle/paused gaps excluded — the denominator
+    /// for the average-speed stat. `nil` until bytes have flowed.
+    public var activeSeconds: Double?
+
     /// HTTP authentication for the source server (Basic/Digest), if required. Persisted with
     /// the rest of the local, user-deletable download state.
     public var username: String?
@@ -41,6 +55,12 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     public var checksum: ChecksumExpectation?
     /// Whether the completed file passed checksum verification (`nil` if not yet verified).
     public var checksumVerified: Bool?
+    /// The code-signature assessment of the finished file, for installable types (`.app`/`.dmg`).
+    /// `nil` when not assessed (unsupported type, disabled, or not yet complete).
+    public var signature: SignatureAssessment?
+    /// The verified-download provenance record, assembled on completion. `nil` until the download
+    /// finishes.
+    public var provenance: ProvenanceReceipt?
 
     /// When the user added this download.
     public var createdAt: Date
@@ -68,21 +88,27 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     public init(
         id: UUID = UUID(),
         url: URL,
+        mirrors: [URL]? = nil,
         fileName: String,
         destinationDirectoryPath: String,
         destinationBookmark: Data? = nil,
         totalBytes: Int64? = nil,
         supportsResume: Bool = false,
+        etag: String? = nil,
         segments: [DownloadSegment] = [],
         status: DownloadStatus = .queued,
         category: FileCategory? = nil,
         queueID: UUID = DownloadQueue.defaultQueueID,
         requestHeaders: [String: String] = [:],
         speedLimitBytesPerSecond: Int64? = nil,
+        peakBytesPerSecond: Double? = nil,
+        activeSeconds: Double? = nil,
         username: String? = nil,
         password: String? = nil,
         checksum: ChecksumExpectation? = nil,
         checksumVerified: Bool? = nil,
+        signature: SignatureAssessment? = nil,
+        provenance: ProvenanceReceipt? = nil,
         createdAt: Date = Date(),
         startedAt: Date? = nil,
         completedAt: Date? = nil,
@@ -95,21 +121,27 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     ) {
         self.id = id
         self.url = url
+        self.mirrors = mirrors
         self.fileName = fileName
         self.destinationDirectoryPath = destinationDirectoryPath
         self.destinationBookmark = destinationBookmark
         self.totalBytes = totalBytes
         self.supportsResume = supportsResume
+        self.etag = etag
         self.segments = segments
         self.status = status
         self.category = category ?? FileCategory.classify(fileName: fileName)
         self.queueID = queueID
         self.requestHeaders = requestHeaders
         self.speedLimitBytesPerSecond = speedLimitBytesPerSecond
+        self.peakBytesPerSecond = peakBytesPerSecond
+        self.activeSeconds = activeSeconds
         self.username = username
         self.password = password
         self.checksum = checksum
         self.checksumVerified = checksumVerified
+        self.signature = signature
+        self.provenance = provenance
         self.createdAt = createdAt
         self.startedAt = startedAt
         self.completedAt = completedAt
@@ -126,21 +158,36 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     /// Whether this is a media (HLS/DASH) grab rather than a normal file download.
     public var isMedia: Bool { mediaPlan != nil }
 
+    /// Every source to pull bytes from, best-first and de-duplicated: the primary `url` followed by
+    /// any Metalink `mirrors`. The segment workers round-robin across this list (each segment starts
+    /// on a different entry for parallel throughput) and advance to the next on a transient failure.
+    public var transferSources: [URL] {
+        var seen = Set<URL>()
+        return ([url] + (mirrors ?? [])).filter { seen.insert($0).inserted }
+    }
+
     /// Absolute destination path of the finished file.
     public var destinationFilePath: String {
         (destinationDirectoryPath as NSString).appendingPathComponent(fileName)
     }
 
     /// Path of the in-progress part file the engine writes into before finalizing (file downloads).
-    public var partFilePath: String { destinationFilePath + ".cloakpart" }
+    public var partFilePath: String { destinationFilePath + ".cdpart" }
 
     /// Directory of the in-progress media segment files (media downloads write one file per segment).
-    public var mediaPartDirectoryPath: String { destinationFilePath + ".cloakparts" }
+    public var mediaPartDirectoryPath: String { destinationFilePath + ".cdparts" }
 
     /// Bytes downloaded so far: the running media byte count for a media grab, else the sum across
     /// byte-range segments.
     public var downloadedBytes: Int64 {
         isMedia ? mediaDownloadedBytes : segments.reduce(0) { $0 + $1.downloadedBytes }
+    }
+
+    /// Average transfer rate (bytes/sec) over the download's active time, or `nil` if not yet
+    /// measurable. The companion to `peakBytesPerSecond` for the per-item stats summary.
+    public var averageBytesPerSecond: Double? {
+        guard let activeSeconds, activeSeconds > 0 else { return nil }
+        return Double(downloadedBytes) / activeSeconds
     }
 
     /// Fraction complete in `0...1`, or `nil` when it can't be determined. For media it's the share

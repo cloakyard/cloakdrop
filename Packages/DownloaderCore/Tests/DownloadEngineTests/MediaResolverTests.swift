@@ -103,4 +103,39 @@ struct MediaResolverTests {
         #expect(plan.initSegment != nil)
         #expect(mock.streamCount == 1)
     }
+
+    // MARK: Subtitles
+
+    @Test("A subtitle whose URI is a direct caption file becomes a single-segment track (no fetch)")
+    func resolvesSubtitleDirectFile() async throws {
+        let url = URL(string: "https://cdn.example.com/subs/en.vtt")!
+        let track = MediaTrack(id: "sub-en", kind: .subtitle, name: "English", language: "en", playlistURL: url)
+        let mock = client([])  // must not fetch anything
+        let resolved = try await MediaResolver(httpClient: mock).resolveSubtitleTrack(track)
+        #expect(resolved.segments.count == 1)
+        #expect(resolved.segments.first?.url == url)
+        #expect(mock.streamCount == 0)
+        #expect(resolved.asSubtitle?.language == "en")
+    }
+
+    @Test("A subtitle whose URI is a media playlist resolves its WebVTT segments")
+    func resolvesSubtitleMediaPlaylist() async throws {
+        let playlist = """
+        #EXTM3U
+        #EXT-X-TARGETDURATION:6
+        #EXTINF:6.0,
+        sub0.vtt
+        #EXTINF:6.0,
+        sub1.vtt
+        #EXT-X-ENDLIST
+        """
+        let playlistURL = "https://cdn.example.com/subs/en/index.m3u8"
+        let track = MediaTrack(id: "sub-en", kind: .subtitle, name: "English", language: "en",
+                               playlistURL: URL(string: playlistURL)!)
+        let mock = client([(playlistURL, playlist)])
+        let resolved = try await MediaResolver(httpClient: mock).resolveSubtitleTrack(track)
+        #expect(resolved.segments.count == 2)
+        #expect(resolved.segments.first?.url.absoluteString == "https://cdn.example.com/subs/en/sub0.vtt")
+        #expect(mock.streamCount == 1)
+    }
 }

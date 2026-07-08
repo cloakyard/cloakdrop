@@ -86,6 +86,38 @@ struct CapturedDownloadTests {
         #expect(parsed.source == .urlScheme)
     }
 
+    @Test("The extract flag routes a page URL to the media extractor (deep link + round-trip)")
+    func extractFlagDeepLink() throws {
+        // A "page" hand-off: cloakdrop://add?url=<page>&extract=1 → resolve via the app's yt-dlp.
+        let link = URL(string: "cloakdrop://add?url=https://www.youtube.com/watch%3Fv%3Dabc&extract=1")!
+        let parsed = try CapturedDownload.parse(cloakdropURL: link)
+        #expect(parsed.extractFromPage == true)
+        #expect(parsed.url.absoluteString == "https://www.youtube.com/watch?v=abc")
+
+        // A page capture round-trips its flag through cloakdropURL().
+        let capture = CapturedDownload(
+            url: URL(string: "https://www.youtube.com/watch?v=abc")!,
+            extractFromPage: true, source: .browserExtension
+        )
+        let round = try CapturedDownload.parse(cloakdropURL: #require(capture.cloakdropURL()))
+        #expect(round.extractFromPage == true)
+    }
+
+    @Test("A non-page capture doesn't set the extract flag")
+    func noExtractByDefault() throws {
+        let parsed = try CapturedDownload.parse(cloakdropURL: URL(string: "cloakdrop://add?url=https://x/y.mp4")!)
+        #expect(parsed.extractFromPage != true)
+    }
+
+    @Test("The extension message extract:true routes to the extractor")
+    func extractFlagExtensionMessage() throws {
+        let capture = try CapturedDownload.parse(
+            extensionMessage: ["url": "https://www.youtube.com/watch?v=abc", "extract": true],
+            source: .browserExtension
+        )
+        #expect(capture.extractFromPage == true)
+    }
+
     @Test("Missing url query item is rejected")
     func rejectsMissingURL() {
         #expect(throws: CapturedDownload.CaptureError.missingURL) {
@@ -256,6 +288,64 @@ struct CapturedDownloadTests {
         #expect(throws: CapturedDownload.CaptureError.self) {
             _ = try CapturedDownload.parse(extensionMessage: message)
         }
+    }
+
+    // MARK: audio pairing (adaptive video + separate audio, e.g. YouTube)
+
+    @Test("An audio param is parsed as the separate audio URL")
+    func parsesAudioURL() throws {
+        var comps = URLComponents()
+        comps.scheme = "cloakdrop"
+        comps.host = "add"
+        comps.queryItems = [
+            .init(name: "url", value: "https://cdn.example/video-only.mp4"),
+            .init(name: "audio", value: "https://cdn.example/audio-only.m4a")
+        ]
+        let capture = try CapturedDownload.parse(cloakdropURL: comps.url!)
+        #expect(capture.url.absoluteString == "https://cdn.example/video-only.mp4")
+        #expect(capture.audioURL?.absoluteString == "https://cdn.example/audio-only.m4a")
+    }
+
+    @Test("audioURL round-trips through cloakdropURL()")
+    func audioURLRoundTrips() throws {
+        let original = CapturedDownload(
+            url: URL(string: "https://cdn.example/v.mp4")!,
+            audioURL: URL(string: "https://cdn.example/a.m4a")!,
+            source: .browserExtension
+        )
+        let link = try #require(original.cloakdropURL())
+        let parsed = try CapturedDownload.parse(cloakdropURL: link)
+        #expect(parsed.audioURL == original.audioURL)
+    }
+
+    @Test("A native message's audioURL key is parsed")
+    func parsesAudioURLFromExtensionMessage() throws {
+        let capture = try CapturedDownload.parse(extensionMessage: [
+            "url": "https://cdn.example/v.mp4",
+            "audioURL": "https://cdn.example/a.m4a"
+        ])
+        #expect(capture.audioURL?.absoluteString == "https://cdn.example/a.m4a")
+    }
+
+    @Test("An insecure audio scheme is rejected by validation")
+    func rejectsInsecureAudioScheme() {
+        let capture = CapturedDownload(
+            url: URL(string: "https://cdn.example/v.mp4")!,
+            audioURL: URL(string: "file:///etc/passwd")!,
+            source: .browserExtension
+        )
+        #expect(throws: CapturedDownload.CaptureError.self) {
+            _ = try capture.validated()
+        }
+    }
+
+    @Test("A capture serialized before audioURL existed still decodes (audioURL nil)")
+    func decodesLegacyJSONWithoutAudioURL() throws {
+        // JSON with no audioURL key — what an older build wrote to the App Group inbox.
+        let json = #"{"url":"https://example.com/f.zip","extraHeaders":{},"source":"browserExtension"}"#
+        let decoded = try JSONDecoder().decode(CapturedDownload.self, from: Data(json.utf8))
+        #expect(decoded.url.absoluteString == "https://example.com/f.zip")
+        #expect(decoded.audioURL == nil)
     }
 
     // MARK: Codable transport (App Group inbox)

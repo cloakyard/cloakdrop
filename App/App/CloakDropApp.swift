@@ -62,10 +62,20 @@ struct CloakDropCommands: Commands {
                 model.settingsSelection = .about
                 openSettings()
             }
+            Button("Download Stats…") {
+                model.settingsSelection = .stats
+                openSettings()
+            }
+            Button("Speed Test…") {
+                model.settingsSelection = .speedTest
+                openSettings()
+            }
         }
         CommandGroup(replacing: .newItem) {
             Button("New Download…") { model.isAddSheetPresented = true }
                 .keyboardShortcut("n", modifiers: .command)
+            Button("Open Metalink…") { model.importMetalink() }
+                .keyboardShortcut("o", modifiers: .command)
         }
         CommandMenu("Downloads") {
             Button("Pause All") { model.pauseAll() }
@@ -79,7 +89,7 @@ struct CloakDropCommands: Commands {
         // The macOS-standard home for "Report a Bug" is the Help menu; also mirrored in the
         // menu-bar extra for one-click access while the main window is closed.
         CommandGroup(replacing: .help) {
-            Button("Report a Bug…") { NSWorkspace.shared.open(AppLinks.reportBug) }
+            Button("Report a Bug…") { NSWorkspace.shared.open(BugReport.issueURL) }
         }
     }
 }

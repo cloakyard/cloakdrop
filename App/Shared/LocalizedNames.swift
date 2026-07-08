@@ -1,5 +1,6 @@
 import Foundation
 import DownloadModels
+import DownloadEngine
 
 /// Localized, user-facing names for the core domain enums.
 ///
@@ -48,7 +49,29 @@ extension SchedulerPostAction {
     var localizedLabel: String {
         switch self {
         case .none: return String(localized: "Do nothing")
+        case .notify: return String(localized: "Show a notification")
         case .quit: return String(localized: "Quit CloakDrop")
+        case .runShortcut: return String(localized: "Run a Shortcut")
+        }
+    }
+}
+
+extension SpeedTestProvider {
+    var localizedLabel: String {
+        switch self {
+        case .cloudflare: return String(localized: "Cloudflare (recommended)")
+        case .ookla: return String(localized: "Ookla Speedtest")
+        }
+    }
+}
+
+extension SpeedTestPhase {
+    var localizedLabel: String {
+        switch self {
+        case .findingServer: return String(localized: "Finding server…")
+        case .latency: return String(localized: "Measuring latency…")
+        case .download: return String(localized: "Testing download…")
+        case .upload: return String(localized: "Testing upload…")
         }
     }
 }

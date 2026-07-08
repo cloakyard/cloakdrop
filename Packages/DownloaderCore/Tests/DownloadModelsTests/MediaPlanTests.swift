@@ -73,13 +73,27 @@ struct MediaPlanTests {
         #expect(sample.keyURLs.isEmpty) // only AES-128 keys are fetched
     }
 
+    @Test("pairedFiles builds a video+separate-audio plan that triggers muxing")
+    func pairedFilesPlan() {
+        let video = URL(string: "https://cdn/videoplayback?itag=137")!
+        let audio = URL(string: "https://cdn/videoplayback?itag=140")!
+        let plan = MediaPlan.pairedFiles(video: video, audio: audio,
+                                         resolution: MediaResolution(width: 1920, height: 1080))
+        #expect(plan.hasSeparateAudio)                 // the mux trigger
+        #expect(plan.segments.map(\.url) == [video])
+        #expect(plan.audioSegments?.map(\.url) == [audio])
+        #expect(plan.totalSegments == 2)               // one video + one audio
+        #expect(plan.resolution == MediaResolution(width: 1920, height: 1080))
+        #expect(plan.hasUnsupportedEncryption == false)
+    }
+
     @Test("Download media progress is segment-count based and has its own part directory")
     func mediaDownloadProgress() {
         let plan = MediaPlan(format: .hls, segments: (0..<4).map { segment($0, "https://x/\($0).ts") })
         var download = Download(url: URL(string: "https://x/master.m3u8")!, fileName: "video.mp4",
                                 destinationDirectoryPath: "/tmp/dl", mediaPlan: plan)
         #expect(download.isMedia)
-        #expect(download.mediaPartDirectoryPath == "/tmp/dl/video.mp4.cloakparts")
+        #expect(download.mediaPartDirectoryPath == "/tmp/dl/video.mp4.cdparts")
         #expect(download.fractionCompleted == 0)
         #expect(download.allSegmentsComplete == false)
 

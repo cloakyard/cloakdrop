@@ -29,6 +29,12 @@ Lint (config in `.swiftlint.yml`, covers `App/` and `Packages/DownloaderCore/Sou
 swiftlint
 ```
 
+Package a shareable installer DMG (stylised drag-to-Applications, plus the Chrome extension folder and an install guide):
+
+```bash
+scripts/dmg/make-dmg.sh <path/to/CloakDrop.app> [output.dmg]   # artwork source: scripts/dmg/background.swift
+```
+
 **Environment note (Claude Code sandbox):** this harness sets `git safe.bareRepository=explicit`, which breaks SwiftPM's git operations. Prefix any command that resolves packages or touches git — `xcodegen generate`, `swift test`, `xcodebuild` — with `GIT_CONFIG_COUNT=0`. If `xcodebuild` fails on an `IDESimulatorFoundation` plugin, run `xcodebuild -runFirstLaunch` once.
 
 ## Architecture
@@ -39,9 +45,9 @@ swiftlint
 
 **Event flow & two-tier UI state.** `DownloadManager` publishes an `AsyncStream<EngineEvent>` via its `events` property; `AppModel.apply(event)` mirrors events into observable state. Status-level changes (`.downloadAdded/Updated/Removed`) update the `downloads` array and the database; high-frequency `.progress` events (~10/sec) flow into a **separate `progress` dictionary** so live speed/ETA never thrash the `downloads` array or hit the DB. `refreshAmbient()` runs after every event to update the Dock progress ring and menu-bar.
 
-**Persistence & resume (the core invariant).** GRDB/SQLite; each `Download` is stored as a JSON payload alongside indexed scalar columns (status/queue/category/order). Bytes stream into a single sparse `*.cloakpart` file where each segment owns a contiguous region and its `downloadedBytes` is persisted — so a resume restarts at exactly `segment.start + downloadedBytes`. **Resume must survive force-quit and reboot.** A relaunch integration test enforces this (pause mid-flight → discard the manager → resume a brand-new manager from the same store + part file); extend it whenever you touch the transfer or persistence path.
+**Persistence & resume (the core invariant).** GRDB/SQLite; each `Download` is stored as a JSON payload alongside indexed scalar columns (status/queue/category/order). Bytes stream into a single sparse `*.cdpart` file where each segment owns a contiguous region and its `downloadedBytes` is persisted — so a resume restarts at exactly `segment.start + downloadedBytes`. **Resume must survive force-quit and reboot.** A relaunch integration test enforces this (pause mid-flight → discard the manager → resume a brand-new manager from the same store + part file); extend it whenever you touch the transfer or persistence path.
 
-**Protocol seams for testability.** Networking (`HTTPClient` → `URLSessionHTTPClient` prod / `MockHTTPClient` with injectable connection drops), storage (`DownloadStore` → `GRDBDownloadStore` / `.inMemory()`), and connectivity (`NetworkPathMonitoring` → `NetworkMonitor` / `AlwaysReachableMonitor`) are all behind protocols. Pure math (`SegmentPlanner`, `BandwidthLimiter`, `BackoffPolicy`, `ChecksumVerifier`, `SpeedSampler`) is I/O-free and unit-tested directly.
+**Protocol seams for testability.** Networking (`HTTPClient` → `SchemeRoutingHTTPClient` in prod, which dispatches `http(s)` → `URLSessionHTTPClient` and `ftp(s)` → the native `FTPClient`; `MockHTTPClient` with injectable connection drops in tests), storage (`DownloadStore` → `GRDBDownloadStore` / `.inMemory()`), connectivity (`NetworkPathMonitoring` → `NetworkMonitor` / `AlwaysReachableMonitor`), and credentials (`CredentialStore` → `KeychainCredentialStore` / in-memory) are all behind protocols. Pure math (`SegmentPlanner`, `BandwidthLimiter` — a GCRA virtual-clock limiter, not a per-connection token bucket, so a shared cap holds under concurrency; `BackoffPolicy`, `ChecksumVerifier`, `SpeedSampler`) is I/O-free and unit-tested directly.
 
 ## Conventions
 
@@ -49,5 +55,5 @@ swiftlint
 - **Adding a feature:** model new persisted state in `DownloadModels`; implement transfer logic in `DownloadEngine` behind the relevant protocol with `MockHTTPClient`/in-memory-store tests; surface it through `AppModel` intents and SwiftUI views. Keep the app target thin.
 - **Liquid Glass discipline:** glass only on floating chrome (toolbar/sidebar/inspector), **never on list rows or scrolling content**. **SF Symbols only** for iconography.
 - **Sandbox:** App Sandbox + hardened runtime. The default `~/Downloads` is covered by entitlement; user-chosen folders are persisted as security-scoped bookmarks and activated (`SecurityScope`) for the duration of a transfer.
-- **Dependencies:** ask before adding any beyond GRDB (persistence) and, possibly later, ffmpeg. Prefer system frameworks (e.g. CryptoKit over swift-crypto).
-- **Privacy is a hard constraint:** the only network egress is to user-initiated download URLs (and, later, a user-configured proxy). No telemetry, analytics, accounts, or phone-home.
+- **Dependencies:** the only third-party Swift dependency is GRDB (persistence). Two native tools — **ffmpeg** (muxing) and **yt-dlp** (page→formats resolver for YouTube + ~1800 sites; a read-only decipher oracle, never a downloader) — are bundled as code-signed, sandboxed `inherit` children via opt-in scripts (`scripts/fetch-ffmpeg.sh`, `scripts/fetch-ytdlp.sh`); both only *read*/*transform* and add no egress — the engine does every byte of downloading. Ask before adding anything else. Prefer system frameworks (e.g. CryptoKit over swift-crypto).
+- **Privacy is a hard constraint:** the only network egress is to user-initiated download URLs, a user-configured proxy, and the user-started speed test (Settings ▸ Speed Test; Cloudflare by default, Ookla optional — never automatic). No telemetry, analytics, accounts, or phone-home.

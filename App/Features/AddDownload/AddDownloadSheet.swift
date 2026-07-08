@@ -26,11 +26,29 @@ struct AddDownloadSheet: View {
     @State private var recurrence: ScheduleRecurrence = .none
     @State private var username = ""
     @State private var password = ""
+    @State private var rememberCredentials = false
+    /// The host the currently-shown credentials were auto-filled for, so they can be cleared if the
+    /// user then edits the URL to a different host (never send one host's saved password to another).
+    @State private var autofilledHost: String?
     @State private var referrer = ""
     @State private var cookies = ""
 
+    // On-device link intelligence: a debounced pre-flight of the entered URL, so the sheet shows
+    // what's actually there (size, type, resumability, connection estimate) before the user commits.
+    @State private var preview: LinkPreview?
+    @State private var isInspecting = false
+    @State private var previewFailed = false
+    /// The URL a preview was last resolved (or attempted) for, so re-typing the same link doesn't reprobe.
+    @State private var lastInspectedURL: URL?
+    @State private var inspectionTask: Task<Void, Never>?
+
     private var resolvedURL: URL? { AppModel.normalizedURL(urlString) }
     private var canAdd: Bool { resolvedURL != nil }
+
+    /// Any expiry deadline baked into a pre-signed / tokened URL, read purely from the query string
+    /// (no network), so an already-dead link is flagged the instant it's entered — before the user
+    /// waits on a download that can only fail.
+    private var linkExpiry: LinkExpiry? { resolvedURL.flatMap(LinkExpiryDetector.detect(in:)) }
 
     /// True when the user typed something in the checksum field that isn't a valid digest, so
     /// we can warn that it won't be used rather than silently dropping it.
@@ -48,7 +66,16 @@ struct AddDownloadSheet: View {
                 Section("Source") {
                     TextField("URL", text: $urlString, prompt: Text("https://example.com/file.zip"))
                         .textFieldStyle(.roundedBorder)
-                        .onChange(of: urlString) { _, _ in deriveFileNameIfNeeded() }
+                        .onChange(of: urlString) { _, _ in
+                            deriveFileNameIfNeeded()
+                            scheduleInspection()
+                        }
+                    if isInspecting || preview != nil || previewFailed {
+                        linkPreviewRow
+                    }
+                    if linkExpiry != nil {
+                        expiryRow
+                    }
                     TextField("Save As", text: $fileName, prompt: Text("File name"))
                         .textFieldStyle(.roundedBorder)
                 }
@@ -79,6 +106,12 @@ struct AddDownloadSheet: View {
                         Picker("Repeat", selection: $recurrence) {
                             ForEach(ScheduleRecurrence.allCases) { Text($0.localizedLabel).tag($0) }
                         }
+                        if let expiry = linkExpiry, scheduledDate >= expiry.expiresAt {
+                            Label("This link expires before the scheduled start time.",
+                                  systemImage: "exclamationmark.triangle.fill")
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+                        }
                     }
                 }
 
@@ -88,6 +121,7 @@ struct AddDownloadSheet: View {
                             .textFieldStyle(.roundedBorder)
                         SecureField("Password", text: $password, prompt: Text("HTTP Basic/Digest"))
                             .textFieldStyle(.roundedBorder)
+                        Toggle("Remember for this site", isOn: $rememberCredentials)
                     }
                     DisclosureGroup("Referrer & cookies") {
                         TextField("Referrer", text: $referrer, prompt: Text("https://example.com"))
@@ -129,6 +163,172 @@ struct AddDownloadSheet: View {
         }
         .frame(width: 520, height: 600)
         .onAppear(perform: prefill)
+        .onDisappear { inspectionTask?.cancel() }
+    }
+
+    // MARK: Link preview
+
+    /// The pre-flight summary row shown under the URL field: a spinner while probing, a compact
+    /// file card once resolved, or a muted note if the server couldn't be reached.
+    @ViewBuilder
+    private var linkPreviewRow: some View {
+        if isInspecting {
+            HStack(spacing: 8) {
+                ProgressView().controlSize(.small)
+                Text("Checking link…")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+            .transition(.opacity)
+        } else if let preview {
+            HStack(spacing: 10) {
+                Image(systemName: FileIcon.symbol(forFileName: preview.suggestedFileName))
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 24)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(preview.suggestedFileName)
+                        .font(.callout)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Text(previewDetailLine(preview))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    if preview.wasRedirected, let host = preview.finalURL.host() {
+                        Label("Redirects to \(host)", systemImage: "arrow.turn.down.right")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+            .transition(.opacity)
+        } else if previewFailed {
+            Label("Couldn’t preview this link — you can still add it.", systemImage: "wifi.exclamationmark")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .transition(.opacity)
+        }
+    }
+
+    /// Deadline warning for a pre-signed / tokened link, escalating with urgency: a red alert callout
+    /// once expired (so the user never waits on a dead link), an amber callout when it expires within a
+    /// day, and a quiet grey line when there's plenty of time left.
+    @ViewBuilder
+    private var expiryRow: some View {
+        if let expiry = linkExpiry {
+            let now = Date()
+            let remaining = expiry.timeRemaining(asOf: now)
+            if expiry.isExpired(asOf: now) {
+                expiryCallout(tint: .red,
+                              title: Text("This link has already expired"),
+                              detail: Text(Format.relativeDeadline(expiry.expiresAt, asOf: now)))
+            } else if remaining < 86_400 {
+                expiryCallout(tint: .orange,
+                              title: Text("Link expires \(Format.relativeDeadline(expiry.expiresAt, asOf: now))"),
+                              detail: nil)
+            } else {
+                Label("Link expires \(Format.relativeDeadline(expiry.expiresAt, asOf: now))", systemImage: "clock")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    /// A tinted alert banner fronted by a warning triangle — red for an expired link, amber for one
+    /// about to expire. Solid colour tint (not glass) so it reads as danger and respects the
+    /// no-material-on-scrolling-content rule.
+    private func expiryCallout(tint: Color, title: Text, detail: Text?) -> some View {
+        HStack(alignment: .center, spacing: 10) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.title3)
+                .foregroundStyle(tint)
+                .symbolRenderingMode(.hierarchical)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 1) {
+                title.font(.callout.weight(.semibold)).foregroundStyle(tint)
+                if let detail { detail.font(.caption).foregroundStyle(.secondary) }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(10)
+        .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(tint.opacity(0.28)))
+    }
+
+    /// "1.4 GB · Resumable · 8 connections" — only the parts we actually know, joined by dots.
+    private func previewDetailLine(_ preview: LinkPreview) -> String {
+        var parts: [String] = []
+        if preview.hasKnownSize { parts.append(Format.bytes(preview.totalBytes)) }
+        parts.append(preview.isResumable ? String(localized: "Resumable") : String(localized: "Not resumable"))
+        if preview.isMultiSegment { parts.append(String(localized: "\(preview.plannedSegmentCount) connections")) }
+        return parts.joined(separator: " · ")
+    }
+
+    /// Debounced pre-flight: wait for typing to settle, then probe the (valid) URL once. Cancels any
+    /// in-flight probe when the URL changes, and skips re-probing a URL already inspected.
+    private func scheduleInspection() {
+        inspectionTask?.cancel()
+        guard let url = resolvedURL else {
+            withAnimation(.smooth(duration: 0.2)) { preview = nil; isInspecting = false; previewFailed = false }
+            lastInspectedURL = nil
+            return
+        }
+        guard url != lastInspectedURL else { return }   // already have (or attempted) this exact URL
+        autofillSavedCredentials(for: url)
+        inspectionTask = Task {
+            try? await Task.sleep(for: .milliseconds(500))   // debounce keystrokes
+            guard !Task.isCancelled else { return }
+            withAnimation(.smooth(duration: 0.2)) { isInspecting = true; previewFailed = false }
+            let result = await model.preview(
+                url: url,
+                referrer: trimmedOrNil(referrer),
+                cookies: trimmedOrNil(cookies),
+                username: trimmedOrNil(username),
+                password: password.isEmpty ? nil : password
+            )
+            guard !Task.isCancelled else { return }
+            lastInspectedURL = url
+            withAnimation(.smooth(duration: 0.2)) {
+                isInspecting = false
+                preview = result
+                previewFailed = (result == nil)
+            }
+            if let result { adoptPreviewFileName(result) }
+        }
+    }
+
+    /// Adopt the server's file name when the user hasn't typed their own — the pre-flight often
+    /// knows a better name (from `Content-Disposition`) than the raw URL's last path component.
+    private func adoptPreviewFileName(_ preview: LinkPreview) {
+        guard fileName.isEmpty || fileName == lastAutoName else { return }
+        fileName = preview.suggestedFileName
+        lastAutoName = preview.suggestedFileName
+    }
+
+    private func trimmedOrNil(_ value: String) -> String? {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    /// Pre-fill saved credentials for this URL's host when the fields are still empty, so a returning
+    /// user doesn't retype them. Flips the "remember" toggle on to reflect that they're stored.
+    private func autofillSavedCredentials(for url: URL) {
+        let host = url.host
+        // If we auto-filled for a previous host and the user hasn't touched the fields, clear them
+        // before the host changes — otherwise host A's password would ride along to host B (and get
+        // re-stored under B's key on Add).
+        if let prev = autofilledHost, prev != host, let saved = model.siteCredentials(forHost: prev),
+           username == saved.username, password == saved.password {
+            username = ""; password = ""; rememberCredentials = false; autofilledHost = nil
+        }
+        guard username.isEmpty, password.isEmpty, let host,
+              let saved = model.siteCredentials(forHost: host) else { return }
+        username = saved.username
+        password = saved.password
+        rememberCredentials = true
+        autofilledHost = host
     }
 
     // MARK: Actions
@@ -180,11 +380,6 @@ struct AddDownloadSheet: View {
             return expectation.isWellFormed ? expectation : nil
         }()
 
-        func trimmedOrNil(_ value: String) -> String? {
-            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-            return trimmed.isEmpty ? nil : trimmed
-        }
-
         let request = DownloadRequest(
             url: url,
             suggestedFileName: fileName.isEmpty ? nil : fileName,
@@ -200,7 +395,13 @@ struct AddDownloadSheet: View {
             referrer: trimmedOrNil(referrer),
             cookies: trimmedOrNil(cookies)
         )
-        model.grab(request)
+        // Only hand the pre-flight to duplicate detection if it's for the URL we're actually adding
+        // (the user may have edited the URL after the last probe resolved).
+        let effectivePreview = preview?.requestedURL == url ? preview : nil
+        if rememberCredentials, let host = url.host {
+            model.rememberSiteCredentials(host: host, username: username, password: password)
+        }
+        model.grab(request, preview: effectivePreview)
         dismiss()
     }
 }

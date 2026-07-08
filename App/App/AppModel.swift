@@ -1,14 +1,22 @@
 import SwiftUI
 import Observation
+import UniformTypeIdentifiers
 import DownloadModels
 import DownloadEngine
 
-/// An add that matched an existing download by URL, awaiting the user's "download again?"
-/// decision. Held in a FIFO so several at once (e.g. a re-pasted batch) confirm one at a time.
+/// An add that matched a download already in the catalog — by URL, by same-origin ETag, or by an
+/// already-completed file of the same name and size — awaiting the user's "download again?" decision.
+/// Held in a FIFO so several at once (e.g. a re-pasted batch) confirm one at a time.
 struct DuplicateAdd: Identifiable, Equatable {
     let id = UUID()
     var request: DownloadRequest
-    let existingFileName: String
+    /// The existing download this add matched, and why.
+    let match: DuplicateMatch
+
+    var existingFileName: String { match.existing.fileName }
+    var reason: DuplicateReason { match.reason }
+    /// Whether the matched download has finished (so we can offer "Reveal in Finder").
+    var existingIsOnDisk: Bool { match.existing.status == .completed }
 }
 
 /// The single source of UI truth. Owns the `DownloadManager`, mirrors its event stream into
@@ -23,6 +31,13 @@ final class AppModel {
     private(set) var progress: [UUID: DownloadProgress] = [:]
     private(set) var queues: [DownloadQueue] = []
     private(set) var settings: EngineSettings = .default
+    /// User-defined routing rules, in evaluation order. Mirrored from the engine.
+    private(set) var rules: [SmartRule] = []
+    /// Lifetime download totals (today / this month / all-time), shown in Settings ▸ Stats.
+    private(set) var stats: DownloadStats = .empty
+    /// The single owner of speed-test runs (Settings ▸ Speed Test, menu bar). One runner on
+    /// the app model — not per-view — so concurrent surfaces can't start duelling tests.
+    let speedTest = SpeedTestRunner()
 
     /// Poster-frame thumbnails for completed video grabs, keyed by download id (see
     /// `AppModel+Thumbnails`). Settable within the module so that extension can populate it.
@@ -45,16 +60,36 @@ final class AppModel {
     /// A clipboard-detected link awaiting the user's "Add" / "Dismiss" decision.
     private(set) var detectedClipboardURL: URL?
 
-    /// A download captured from a `cloakdrop://` link (and, later, a browser/share extension),
-    /// held for a confirm-before-adding decision so nothing is ever queued silently.
-    private(set) var pendingCapture: CapturedDownload?
-
     /// A resolved media stream awaiting the user's quality selection in the picker (see
     /// `AppModel+Media`). Settable within the module rather than `private(set)` so the media-intake
     /// extension can drive it.
     var pendingMediaSelection: MediaSelection?
-    /// True while a manifest URL is being fetched and parsed, before the picker appears.
+    /// True while a manifest/page URL is being fetched and parsed, before a grab starts.
     var isResolvingMedia = false
+    /// A transient, human-readable reason a media grab couldn't be prepared (protected stream, sign-in
+    /// wall, unavailable video) — surfaced as an auto-dismissing toast. Set via `presentMediaError`.
+    var mediaExtractionError: String?
+
+    /// Whether to show the quality picker for a multi-tier grab. Off (default) grabs the best tier
+    /// immediately — one click, no dialog; on offers every resolution. Persisted in UserDefaults.
+    var askQualityEnabled: Bool {
+        didSet { UserDefaults.standard.set(askQualityEnabled, forKey: Self.askQualityKey) }
+    }
+    private static let askQualityKey = "askQualityEnabled"
+
+    /// Whether to fetch a subtitle sidecar (`.srt`) when a grabbed video offers one. Off (default)
+    /// grabs no subtitles on the one-click path; the quality picker always offers per-language choice
+    /// regardless. Persisted in UserDefaults.
+    var grabSubtitlesEnabled: Bool {
+        didSet { UserDefaults.standard.set(grabSubtitlesEnabled, forKey: Self.grabSubtitlesKey) }
+    }
+    private static let grabSubtitlesKey = "grabSubtitlesEnabled"
+
+    /// The bundled page extractor (yt-dlp), if present — resolves page URLs (YouTube & 1800+ sites)
+    /// into real format tiers. `nil` in a checkout/build without the vendored binary.
+    private(set) var mediaExtractor: (any MediaExtractor)?
+    /// Whether the bundled extractor actually ran (its version probe succeeded in-sandbox at launch).
+    private(set) var isPageExtractionAvailable = false
 
     /// Adds that matched an existing download by URL, each awaiting a "download again?" decision.
     /// FIFO so several confirm one at a time; the alert binds to the head.
@@ -83,8 +118,13 @@ final class AppModel {
     let manager: DownloadManager
     private let dock = DockProgressController()
     private let notifications = NotificationManager()
+    /// Keychain-backed store for per-site HTTP/FTP credentials the user asks CloakDrop to remember.
+    private let siteCredentialStore: any CredentialStoring = KeychainCredentialStore()
+    /// Latch so the post-completion action fires once per "work → drained" cycle, not on every drain.
+    private var postCompletionArmed = false
     private let clipboard = ClipboardMonitor()
     private let loginItem = LoginItemService()
+    private let sleepPreventer = SleepPreventer()
     private var eventTask: Task<Void, Never>?
     private var progressTask: Task<Void, Never>?
     private var didBootstrap = false
@@ -92,6 +132,8 @@ final class AppModel {
     init(manager: DownloadManager) {
         self.manager = manager
         self.clipboardMonitoringEnabled = UserDefaults.standard.bool(forKey: Self.clipboardKey)
+        self.askQualityEnabled = UserDefaults.standard.bool(forKey: Self.askQualityKey)
+        self.grabSubtitlesEnabled = UserDefaults.standard.bool(forKey: Self.grabSubtitlesKey)
         self.launchAtLoginEnabled = loginItem.isEnabled
     }
 
@@ -121,8 +163,23 @@ final class AppModel {
         downloads = snapshot.downloads
         queues = snapshot.queues
         settings = snapshot.settings
+        rules = snapshot.rules
+        stats = snapshot.stats
         startObservingEvents()
         refreshAmbient()
+
+        // Locate the bundled page extractor (yt-dlp) and confirm it actually runs inside our sandbox —
+        // a launch-time smoke test of the bundled binary. `isPageExtractionAvailable` reflects the
+        // probe; page grabs (YouTube etc.) route through it.
+        let extractor = YtDlpExtractor.locate()
+        mediaExtractor = extractor
+        if let extractor {
+            Task { [weak self] in
+                let version = await extractor.version()
+                self?.isPageExtractionAvailable = (version != nil)
+                NSLog("[CloakDrop] page extractor (yt-dlp): %@", version ?? "unavailable")
+            }
+        }
 
         clipboard.onURLDetected = { [weak self] url in
             guard let self else { return }
@@ -159,10 +216,12 @@ final class AppModel {
         switch event {
         case .downloadAdded(let download):
             upsert(download)
+            postCompletionArmed = true   // new work means the next drain should fire the action again
         case .downloadUpdated(let download):
             let previous = downloads.first { $0.id == download.id }?.status
             upsert(download)
             if download.status != previous { announce(transition: download, from: previous) }
+            if download.status == .downloading { postCompletionArmed = true }
             if download.status.isTerminal || download.status == .completed { progress[download.id] = nil }
             if download.status == .completed, download.isMedia { ensureThumbnail(for: download) }
         case .downloadRemoved(let id):
@@ -175,16 +234,57 @@ final class AppModel {
             queues = q
         case .settingsChanged(let s):
             settings = s
+        case .rulesChanged(let r):
+            rules = r
+        case .statsChanged(let s):
+            stats = s
         case .allDownloadsCompleted:
-            applyPostCompletionAction()
+            // Fire once per drain: the engine signals this on every completion that leaves the queue
+            // empty, so without a latch, finishing a later one-off download would re-run the user's
+            // Shortcut / re-notify. Re-armed when new/active work appears (above).
+            if postCompletionArmed {
+                postCompletionArmed = false
+                applyPostCompletionAction()
+            }
         }
-        refreshAmbient()
+        // Ambient surfaces (the Dock progress ring/badge) are derived from full O(n) scans of
+        // `downloads`. Status events are infrequent, so refresh right away; the ~10/sec-per-download
+        // progress firehose is coalesced so a large catalog isn't rescanned on every tick.
+        if case .progress = event {
+            refreshAmbientThrottled()
+        } else {
+            refreshAmbient()
+        }
     }
 
-    /// The user's "when everything finishes" preference. Sandbox-safe: only a clean quit.
+    /// The user's "when everything finishes" preference. Every branch is sandbox-safe — the most
+    /// powerful, `runShortcut`, delegates to the user's own Shortcut via a URL open, so CloakDrop
+    /// itself never needs a sleep/shutdown/Apple-Events entitlement.
     private func applyPostCompletionAction() {
-        guard settings.resolvedPostAction == .quit else { return }
-        NSApplication.shared.terminate(nil)
+        switch settings.resolvedPostAction {
+        case .none:
+            break
+        case .notify:
+            notifications.notifyAllCompleted()
+        case .quit:
+            NSApplication.shared.terminate(nil)
+        case .runShortcut:
+            runPostCompletionShortcut()
+        }
+    }
+
+    /// Launch the user's chosen Shortcut via `shortcuts://run-shortcut?name=…`. Opening a URL is
+    /// fully sandbox-legal, and Shortcuts is where the user composes whatever they actually want to
+    /// happen (sleep the Mac, empty a folder, ping a webhook) — so this one hook covers them all.
+    private func runPostCompletionShortcut() {
+        guard let name = settings.postCompletionShortcutName?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !name.isEmpty else { return }
+        // `URLQueryItem`/`urlQueryAllowed` does NOT escape `&`, `=`, or `+`, so a Shortcut named
+        // "Backup & Sync" would parse as name="Backup " plus a junk param and run the wrong (or no)
+        // shortcut. Percent-encode against alphanumerics so every reserved character is escaped.
+        guard let encoded = name.addingPercentEncoding(withAllowedCharacters: .alphanumerics),
+              let url = URL(string: "shortcuts://run-shortcut?name=\(encoded)") else { return }
+        NSWorkspace.shared.open(url)
     }
 
     private func upsert(_ download: Download) {
@@ -247,8 +347,25 @@ final class AppModel {
         progress[download.id]?.downloadedBytes ?? download.downloadedBytes
     }
 
+    /// The byte total to show — live from the engine when it has one (a media grab learns its total
+    /// from the segments' response heads), else the persisted value (`nil` while a media grab's
+    /// total is still unknown).
+    func liveTotalBytes(_ download: Download) -> Int64? {
+        progress[download.id]?.totalBytes ?? download.totalBytes
+    }
+
     func liveSpeed(_ download: Download) -> Double {
         progress[download.id]?.bytesPerSecond ?? 0
+    }
+
+    /// Peak transfer rate to show in the summary — live while downloading, else the persisted value.
+    func peakSpeed(_ download: Download) -> Double {
+        progress[download.id]?.peakBytesPerSecond ?? download.peakBytesPerSecond ?? 0
+    }
+
+    /// Average transfer rate over active time — live while downloading, else the persisted value.
+    func averageSpeed(_ download: Download) -> Double {
+        progress[download.id]?.averageBytesPerSecond ?? download.averageBytesPerSecond ?? 0
     }
 
     func liveFraction(_ download: Download) -> Double? {
@@ -266,19 +383,38 @@ final class AppModel {
 
     // MARK: Actions
 
-    /// Enqueue an add — but if a download for this exact URL already exists, don't silently create a
-    /// duplicate; surface a confirmation instead (the user can still choose to re-download via
+    /// Enqueue an add — but if the catalog already holds this download (same URL, same-origin ETag,
+    /// or an already-completed file of the same name and size), don't silently create a duplicate;
+    /// surface a confirmation instead (the user can still choose to re-download via
     /// `confirmDuplicateAdd`). Every intake path funnels through here, so the guard applies uniformly.
-    func add(_ request: DownloadRequest) {
-        if let existing = downloads.first(where: { $0.url == request.url }) {
-            pendingDuplicateAdds.append(DuplicateAdd(request: request, existingFileName: existing.fileName))
+    /// A `preview` from the add sheet's pre-flight sharpens detection with the resource's ETag/size.
+    func add(_ request: DownloadRequest, preview: LinkPreview? = nil) {
+        let fileName = request.suggestedFileName ?? FileNaming.fileName(url: request.url)
+        let candidate = DuplicateCandidate(request: request.url, fileName: fileName, preview: preview)
+        if let match = DuplicateDetector.findDuplicate(of: candidate, in: downloads) {
+            pendingDuplicateAdds.append(DuplicateAdd(request: request, match: match))
         } else {
-            commitAdd(request)
+            commitAdd(request, preview: preview)
         }
     }
 
-    private func commitAdd(_ request: DownloadRequest) {
-        Task { await manager.add(request) }
+    private func commitAdd(_ request: DownloadRequest, preview: LinkPreview? = nil) {
+        Task { await manager.add(request, preview: preview) }
+    }
+
+    // MARK: Link intelligence (pre-flight)
+
+    /// Pre-flight a URL against the server — best-effort — so the add sheet can show what's actually
+    /// there (final URL after redirects, size, type, resumability, connection estimate) before the
+    /// user commits. Returns `nil` when the server can't be reached; the caller degrades gracefully.
+    func preview(
+        url: URL,
+        referrer: String? = nil,
+        cookies: String? = nil,
+        username: String? = nil,
+        password: String? = nil
+    ) async -> LinkPreview? {
+        await manager.preview(url: url, username: username, password: password, referrer: referrer, cookies: cookies)
     }
 
     /// User chose to re-download a duplicate: give it a unique file name so the new transfer doesn't
@@ -287,13 +423,21 @@ final class AppModel {
     func confirmDuplicateAdd() {
         guard var pending = pendingDuplicateAdds.first else { return }
         pendingDuplicateAdds.removeFirst()
-        let base = pending.request.suggestedFileName ?? Self.fileName(fromURL: pending.request.url)
+        let base = pending.request.suggestedFileName ?? FileNaming.fileName(url: pending.request.url)
         pending.request.suggestedFileName = uniqueFileName(base: base, inDirectory: pending.request.destinationDirectoryPath)
         commitAdd(pending.request)
     }
 
     func cancelDuplicateAdd() {
         if !pendingDuplicateAdds.isEmpty { pendingDuplicateAdds.removeFirst() }
+    }
+
+    /// User chose to look at the file they already have instead of downloading it again: reveal the
+    /// matched download in Finder and dismiss the prompt.
+    func revealExistingDuplicate() {
+        guard let pending = pendingDuplicateAdds.first else { return }
+        pendingDuplicateAdds.removeFirst()
+        revealInFinder(pending.match.existing)
     }
 
     /// A file name not already used (in the catalog or on disk) in `directory`, appending " (2)",
@@ -316,12 +460,6 @@ final class AppModel {
         return base
     }
 
-    /// The file name the engine would derive from a bare URL — the base for de-collision.
-    static func fileName(fromURL url: URL) -> String {
-        let last = url.lastPathComponent
-        return (last.isEmpty || last == "/") ? "download" : last
-    }
-
     /// Build a request from a raw URL string and the default destination, then enqueue it.
     @discardableResult
     func quickAdd(urlString: String, into directory: URL = AppEnvironment.defaultDownloadsDirectory()) -> Bool {
@@ -331,20 +469,24 @@ final class AppModel {
         return true
     }
 
-    /// Add every URL parsed (and pattern-expanded) from free-form text. Returns the count added.
-    /// `bookmark` is the destination's security-scoped bookmark so batch downloads to a
-    /// user-chosen folder keep working across relaunches under the sandbox.
-    @discardableResult
-    func batchAdd(
-        text: String,
-        into directory: URL = AppEnvironment.defaultDownloadsDirectory(),
-        bookmark: Data? = nil
-    ) -> Int {
-        let urls = URLBatch.parse(text)
+    /// Fetch a single user-entered page and extract its downloadable links (the "grab everything on
+    /// this page" flow). One user-initiated request to the page the user typed — never a crawler; it
+    /// does not follow the links it finds. The body is size-capped so a pathological page can't blow up.
+    func extractPageLinks(from pageURL: URL, extensions: Set<String> = []) async -> [URL] {
+        var request = URLRequest(url: pageURL)
+        request.timeoutInterval = 20
+        request.setValue("text/html,application/xhtml+xml", forHTTPHeaderField: "Accept")
+        guard let (data, _) = try? await URLSession.shared.data(for: request) else { return [] }
+        let capped = data.prefix(10 * 1024 * 1024)
+        let html = String(bytes: capped, encoding: .utf8) ?? String(bytes: capped, encoding: .isoLatin1) ?? ""
+        return PageLinkExtractor.extract(html: html, baseURL: pageURL, extensions: extensions)
+    }
+
+    /// Enqueue a specific set of already-parsed URLs (the link-grabber's selected rows).
+    func addURLs(_ urls: [URL], into directory: URL = AppEnvironment.defaultDownloadsDirectory(), bookmark: Data? = nil) {
         for url in urls {
             add(DownloadRequest(url: url, destinationDirectoryPath: directory.path, destinationBookmark: bookmark))
         }
-        return urls.count
     }
 
     /// Accept dropped web URLs or text links onto the window.
@@ -376,49 +518,50 @@ final class AppModel {
 
     // MARK: External capture (cloakdrop:// link, Safari/browser extension, share sheet)
 
-    /// Captures waiting behind `pendingCapture` when several land at once — e.g. a burst from the
-    /// browser extension, or an inbox drained on launch. The banner confirms one at a time.
-    private var captureQueue: [CapturedDownload] = []
-
-    /// Handle an incoming deep link. Parses a `cloakdrop://add?…` URL into a validated
-    /// `CapturedDownload` and surfaces it for confirmation; non-cloakdrop or malformed links are
-    /// ignored (nothing is queued without the user's explicit "Add").
+    /// Handle an incoming deep link or opened file. A `cloakdrop://add?…` URL becomes a
+    /// `CapturedDownload`; a `.metalink`/`.meta4` file becomes one or more multi-source downloads;
+    /// anything else is ignored.
     func handleIncomingURL(_ url: URL) {
+        if url.isFileURL {
+            if Self.isMetalink(url) { openMetalink(url) }
+            return
+        }
         guard url.scheme?.lowercased() == "cloakdrop" else { return }
         guard let capture = try? CapturedDownload.parse(cloakdropURL: url) else { return }
         enqueueCapture(capture)
     }
 
-    /// Pull every capture the bundled extensions dropped into the shared App Group inbox and queue
-    /// them for confirmation. Called on the Darwin wake signal and once on launch (for anything
-    /// that arrived while the app was closed).
+    /// Pull every capture the bundled extensions dropped into the shared App Group inbox and start
+    /// them. Called on the Darwin wake signal and once on launch (for anything that arrived while the
+    /// app was closed).
     func drainCaptureInbox() {
         for capture in CaptureInbox.drain() { enqueueCapture(capture) }
     }
 
-    /// User accepted the captured download: enqueue it into the default downloads folder,
-    /// carrying its referrer/cookies/user-agent, then advance to the next pending capture.
-    func confirmPendingCapture() {
-        guard let capture = pendingCapture else { return }
-        grab(capture.toRequest(destinationDirectoryPath: AppEnvironment.defaultDownloadsDirectory().path))
-        advancePendingCapture()
-    }
-
-    func dismissPendingCapture() {
-        advancePendingCapture()
-    }
-
-    /// Surface a capture for confirmation, or hold it behind the one showing (reused by system capture).
+    /// Start a captured download immediately — no confirm step, since the user already chose to
+    /// download it in the browser (the pill) or share sheet. A *page* capture goes to the extractor
+    /// (auto-best tier, or the picker when "Ask me quality" is on); a video+audio pair is muxed;
+    /// anything else takes the normal download path. Duplicate detection still guards a re-add.
     func enqueueCapture(_ capture: CapturedDownload) {
-        if pendingCapture == nil {
-            pendingCapture = capture
+        let request = capture.toRequest(destinationDirectoryPath: AppEnvironment.defaultDownloadsDirectory().path)
+        if capture.extractFromPage == true {
+            grabFromPage(capture)
+        } else if let audioURL = capture.audioURL {
+            // A video URL paired with a separate audio URL (adaptive source with no manifest): grab
+            // both and mux them so the download has sound.
+            grabPairedMedia(request, audioURL: audioURL)
         } else {
-            captureQueue.append(capture)
+            grab(request)
         }
     }
 
-    private func advancePendingCapture() {
-        pendingCapture = captureQueue.isEmpty ? nil : captureQueue.removeFirst()
+    /// Surface a transient, auto-dismissing media error (protected stream, sign-in wall, unavailable).
+    func presentMediaError(_ message: String) {
+        mediaExtractionError = message
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(5))
+            if self?.mediaExtractionError == message { self?.mediaExtractionError = nil }
+        }
     }
 
     func pause(_ id: UUID) { Task { await manager.pause(id: id) } }
@@ -426,13 +569,16 @@ final class AppModel {
     func cancel(_ id: UUID) { Task { await manager.cancel(id: id) } }
     func remove(_ id: UUID, deleteFile: Bool) { Task { await manager.remove(id: id, deleteFile: deleteFile) } }
 
-    func pauseSelected() { selectedDownloadIDs.forEach(pause) }
-    func resumeSelected() { selectedDownloadIDs.forEach(resume) }
     func removeSelected(deleteFile: Bool) { selectedDownloadIDs.forEach { remove($0, deleteFile: deleteFile) } }
 
     func pauseAll() { Task { await manager.pauseAll() } }
     func resumeAll() { Task { await manager.resumeAll() } }
     func clearCompleted() { Task { await manager.clearCompleted() } }
+
+    /// Recompute lifetime stats (e.g. when the Stats tab appears, so "today" is fresh after midnight).
+    func refreshStats() { Task { await manager.reloadStats() } }
+    /// Clear every recorded download total (Settings ▸ Stats ▸ Reset).
+    func resetStats() { Task { await manager.resetStats() } }
 
     /// Whether any completed download is present (drives the "Clear Completed" command).
     var hasCompleted: Bool { downloads.contains { $0.status == .completed } }
@@ -440,6 +586,23 @@ final class AppModel {
     func updateSettings(_ newSettings: EngineSettings) {
         settings = newSettings
         Task { await manager.updateSettings(newSettings) }
+    }
+
+    // MARK: Smart rules
+
+    /// The next `order` value for a newly-created rule (appends to the end of the priority list).
+    var nextRuleOrder: Int { (rules.map(\.order).max() ?? -1) + 1 }
+
+    func saveRule(_ rule: SmartRule) { Task { await manager.saveRule(rule) } }
+    func deleteRule(_ id: UUID) { Task { await manager.deleteRule(id: id) } }
+
+    /// Reorder rules from a SwiftUI `.onMove` (source offsets → destination), then persist the new
+    /// priority order.
+    func moveRules(fromOffsets source: IndexSet, toOffset destination: Int) {
+        var reordered = rules
+        reordered.move(fromOffsets: source, toOffset: destination)
+        rules = reordered   // optimistic local update so the list doesn't jump before the event
+        Task { await manager.reorderRules(reordered.map(\.id)) }
     }
 
     /// Turn "open at login" on or off. Reflects the actual resulting OS state afterward (so a failed
@@ -453,8 +616,22 @@ final class AppModel {
 
     // MARK: Ambient surfaces
 
+    @ObservationIgnored private var lastAmbientRefresh: ContinuousClock.Instant?
+    @ObservationIgnored private let ambientClock = ContinuousClock()
+
+    /// Coalesce progress-driven ambient refreshes to ~3/sec so the Dock update (and the two full
+    /// `downloads` scans behind it) doesn't run on every progress tick of every active download.
+    private func refreshAmbientThrottled() {
+        let now = ambientClock.now
+        if let last = lastAmbientRefresh, last.duration(to: now) < .milliseconds(333) { return }
+        refreshAmbient()
+    }
+
     private func refreshAmbient() {
-        dock.update(fraction: aggregateFraction, activeCount: activeCount)
+        lastAmbientRefresh = ambientClock.now
+        let active = activeCount
+        dock.update(fraction: aggregateFraction, activeCount: active)
+        sleepPreventer.update(active: active > 0)
     }
 
     private func announce(transition download: Download, from previous: DownloadStatus?) {
@@ -477,16 +654,47 @@ final class AppModel {
         }
     }
 
+    /// Store a site's HTTP/FTP credentials in the Keychain so the user needn't retype them next time.
+    func rememberSiteCredentials(host: String, username: String, password: String) {
+        guard !host.isEmpty, !(username.isEmpty && password.isEmpty) else { return }
+        siteCredentialStore.setCredential(StoredCredential(username: username, password: password),
+                                          forKey: KeychainCredentialStore.siteKey(host: host))
+    }
+
+    /// Recall a site's saved credentials, if any (for the add sheet's auto-fill).
+    func siteCredentials(forHost host: String) -> (username: String, password: String)? {
+        guard !host.isEmpty,
+              let credential = siteCredentialStore.credential(forKey: KeychainCredentialStore.siteKey(host: host))
+        else { return nil }
+        return (credential.username, credential.password)
+    }
+
+    /// Write a download's provenance receipt to a user-chosen file (Save panel). The receipt is a
+    /// plain-text record; nothing leaves the Mac unless the user picks a destination here.
+    func saveProvenanceReceipt(_ receipt: ProvenanceReceipt) {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = "\(receipt.fileName) — receipt.txt"
+        panel.allowedContentTypes = [.plainText]
+        panel.message = String(localized: "Save the verified-download receipt.")
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        try? receipt.exportText().data(using: .utf8)?.write(to: url)
+    }
+
     // MARK: Helpers
 
     /// Accepts bare hosts and adds https:// when no scheme is present.
     static func normalizedURL(_ raw: String) -> URL? {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
-        if let url = URL(string: trimmed), let scheme = url.scheme, scheme == "http" || scheme == "https" {
+        if let url = URL(string: trimmed), let scheme = url.scheme?.lowercased(),
+           ["http", "https", "ftp", "ftps"].contains(scheme) {
             return url
         }
-        if let url = URL(string: "https://\(trimmed)"), url.host() != nil {
+        // Accept a bare host only if it actually looks like one (a dotted name/IP or localhost) — the
+        // same guard URLBatch.normalized applies — so a stray word like "notes" doesn't become a
+        // guaranteed-to-fail https://notes download.
+        if let url = URL(string: "https://\(trimmed)"), let host = url.host(),
+           host == "localhost" || host.contains(".") {
             return url
         }
         return nil

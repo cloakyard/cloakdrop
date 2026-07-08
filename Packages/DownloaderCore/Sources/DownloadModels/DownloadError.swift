@@ -10,6 +10,8 @@ public enum DownloadError: Error, Sendable, Hashable, Codable {
     case sizeMismatch(expected: Int64, actual: Int64)
     /// The destination location could not be written to.
     case fileSystem(reason: String)
+    /// The destination disk doesn't have enough free space for the remaining bytes.
+    case insufficientDiskSpace(needed: Int64, available: Int64)
     /// The network connection was lost.
     case networkLost
     /// A transfer exceeded its retry budget.
@@ -32,6 +34,10 @@ public enum DownloadError: Error, Sendable, Hashable, Codable {
             return "File size changed on the server (was \(expected) bytes, now \(actual)). Restart the download."
         case .fileSystem(let reason):
             return "Could not write the file: \(reason)"
+        case .insufficientDiskSpace(let needed, let available):
+            let formatter = ByteCountFormatter()
+            return "Not enough free space: needs \(formatter.string(fromByteCount: needed)), "
+                + "but only \(formatter.string(fromByteCount: available)) is available."
         case .networkLost:
             return "Network connection lost."
         case .retriesExhausted(let lastReason):

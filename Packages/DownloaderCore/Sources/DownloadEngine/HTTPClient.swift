@@ -38,19 +38,28 @@ public struct HTTPResponseHead: Sendable, Hashable {
     public let suggestedFilename: String?
     /// The resource's `ETag`, used to detect mid-download changes.
     public let etag: String?
+    /// The URL the request finally resolved to after any redirects. `nil` when the client
+    /// doesn't track redirects (e.g. the in-memory mock, which never redirects).
+    public let finalURL: URL?
+    /// The resource's MIME type (`Content-Type` with parameters stripped, lowercased), if any.
+    public let mimeType: String?
 
     public init(
         statusCode: Int,
         totalBytes: Int64?,
         acceptsRanges: Bool,
         suggestedFilename: String?,
-        etag: String?
+        etag: String?,
+        finalURL: URL? = nil,
+        mimeType: String? = nil
     ) {
         self.statusCode = statusCode
         self.totalBytes = totalBytes
         self.acceptsRanges = acceptsRanges
         self.suggestedFilename = suggestedFilename
         self.etag = etag
+        self.finalURL = finalURL
+        self.mimeType = mimeType
     }
 
     /// Whether the status code is a 2xx success.

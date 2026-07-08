@@ -13,11 +13,28 @@
   "background": {
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*/*"
+      ],
+      "js": [
+        "media.js",
+        "content.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
   "permissions": [
     "contextMenus",
     "cookies",
     "activeTab",
-    "nativeMessaging"
+    "tabs",
+    "scripting",
+    "webRequest",
+    "nativeMessaging",
+    "storage"
   ],
   "host_permissions": [
     "*://*/*"

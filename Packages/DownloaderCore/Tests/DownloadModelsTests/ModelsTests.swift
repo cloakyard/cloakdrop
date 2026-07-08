@@ -172,3 +172,25 @@ struct SmartFilterTests {
         #expect(SmartFilter.scheduled.matches(download(.scheduled)))
     }
 }
+
+@Suite("Resolution quality label")
+struct ResolutionLabelTests {
+    // Expected tiers mirror yt-dlp's own ladder labels (verified against a real 2:1 YouTube video).
+    @Test("qualityHeight matches the streaming ladder across aspect ratios", arguments: [
+        (1920, 1080, 1080),   // 16:9 1080p
+        (3840, 2160, 2160),   // 16:9 4K
+        (2560, 1440, 1440),   // 16:9 1440p
+        (1080, 1920, 1080),   // portrait/Shorts → 1080p, not 1920p
+        (720, 1280, 720),     // portrait → 720p
+        (3840, 1920, 2160),   // cinematic 2:1 → 2160p (as YouTube labels it), not 1920p
+        (1920, 960, 1080),    // cinematic 2:1 → 1080p
+        (1280, 640, 720),     // cinematic 2:1 → 720p
+        (426, 214, 240),      // cinematic 2:1 → 240p (rounds up)
+        (640, 480, 480),      // 4:3 → 480p
+        (1440, 1080, 1080),   // 4:3 → 1080p
+        (720, 720, 720)       // square → 720p
+    ])
+    func qualityHeight(width: Int, height: Int, expected: Int) {
+        #expect(MediaResolution(width: width, height: height).qualityHeight == expected)
+    }
+}

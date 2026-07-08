@@ -43,13 +43,26 @@ CloakDrop is a native, sandboxed macOS app designed to minimize attack surface:
   only the folders you point it at, via security-scoped bookmarks.
 - **Local-only state.** Download history and settings are stored in a local SQLite database that
   you can export or delete at any time.
+- **Credentials in the Keychain.** Saved per-site HTTP/FTP logins and the manual-proxy password are
+  stored in the macOS **Keychain**, never in the plaintext settings database. The on-disk proxy
+  password field is blanked and rehydrated into memory only at runtime.
 
 ### Risk areas
 
-- **Third-party dependencies.** CloakDrop's only third-party dependency is GRDB (SQLite).
-  Dependencies are kept minimal and reviewed before being added.
-- **Downloaded content.** CloakDrop transfers files but does not execute them. Always verify
-  what you download; use the built-in checksum verification when an expected hash is available.
+- **Third-party dependencies.** CloakDrop's only third-party Swift dependency is GRDB (SQLite).
+  Two native command-line tools are also bundled as code-signed, sandboxed helper binaries:
+  **ffmpeg** (stream-copy muxing) and **yt-dlp** (a read-only page→formats resolver). Both run
+  in-sandbox as `inherit`-entitled children, only ever *read* or *transform* local data, and add
+  no network egress of their own — the app's engine performs every download. Dependencies are kept
+  minimal and reviewed before being added.
+- **Downloaded content.** CloakDrop transfers files but does not execute them, and stamps the
+  `com.apple.quarantine` flag on saved files so Gatekeeper vets them on first open. Always verify
+  what you download; use the built-in checksum verification and the Provenance Receipt when an
+  expected hash or signature is available.
+- **Archive extraction.** Optional native ZIP auto-extraction is hardened against **Zip-Slip** path
+  traversal and **decompression bombs** (compression-ratio + hard per-entry size caps), and runs
+  only after the checksum verifies; each extracted file is quarantine-stamped. Only ZIP is handled
+  natively — no third-party archive library is bundled.
 - **macOS / system vulnerabilities** should be reported to Apple.
 
 ## Scope

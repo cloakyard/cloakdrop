@@ -161,11 +161,21 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
 
     // MARK: Request building
 
-    private static func makeURLRequest(_ request: HTTPDownloadRequest) -> URLRequest {
+    /// A stock desktop-Safari User-Agent, used only when the caller (a browser capture) didn't supply
+    /// one. Many CDNs — googlevideo especially — throttle or reject a generic/non-browser UA.
+    static let defaultUserAgent =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
+
+    static func makeURLRequest(_ request: HTTPDownloadRequest) -> URLRequest {
         var urlRequest = URLRequest(url: request.url)
         urlRequest.httpMethod = "GET"
         for (key, value) in request.headers {
             urlRequest.setValue(value, forHTTPHeaderField: key)
+        }
+        // A captured browser User-Agent always wins; otherwise present a stock one so media hosts
+        // don't see (and throttle) a bare URLSession agent.
+        if !request.headers.keys.contains(where: { $0.caseInsensitiveCompare("User-Agent") == .orderedSame }) {
+            urlRequest.setValue(Self.defaultUserAgent, forHTTPHeaderField: "User-Agent")
         }
         // Preemptive Basic auth avoids a 401 round-trip; Digest/NTLM still answer on challenge.
         if let user = request.username, !user.isEmpty, let password = request.password {
@@ -183,7 +193,8 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
 
     // MARK: Proxy configuration
 
-    private static func applyingProxy(_ proxy: ProxyConfiguration, to base: URLSessionConfiguration) -> URLSessionConfiguration {
+    /// Internal so the speed-test transport applies the same proxy routing as the engine.
+    static func applyingProxy(_ proxy: ProxyConfiguration, to base: URLSessionConfiguration) -> URLSessionConfiguration {
         guard let config = base.copy() as? URLSessionConfiguration else { return base }
         switch proxy.mode {
         case .system:
@@ -252,7 +263,11 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
             totalBytes: total,
             acceptsRanges: acceptsRanges,
             suggestedFilename: http.suggestedFilename,
-            etag: http.value(forHTTPHeaderField: "ETag")
+            etag: http.value(forHTTPHeaderField: "ETag"),
+            // `http.url` is the URL the request finally resolved to (URLSession follows redirects
+            // by default); `http.mimeType` is the Content-Type with parameters already stripped.
+            finalURL: http.url,
+            mimeType: http.mimeType?.lowercased()
         )
     }
 }

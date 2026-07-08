@@ -13,6 +13,10 @@ public enum EngineEvent: Sendable {
     case progress(DownloadProgress)
     case queuesChanged([DownloadQueue])
     case settingsChanged(EngineSettings)
+    case rulesChanged([SmartRule])
+    /// Lifetime download totals changed — a download completed, stats were reloaded, or they were
+    /// reset. Carries the new snapshot so the UI updates without a store round-trip.
+    case statsChanged(DownloadStats)
     /// Emitted when a download completes and the queue is then idle — drives the optional
     /// "quit when done" post-action.
     case allDownloadsCompleted

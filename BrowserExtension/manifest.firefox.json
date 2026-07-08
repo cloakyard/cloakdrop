@@ -6,7 +6,7 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "cloakdrop@cloakyard.com",
-      "strict_min_version": "121.0"
+      "strict_min_version": "128.0"
     }
   },
   "icons": {
@@ -17,13 +17,26 @@
     "512": "icon-512.png"
   },
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["media.js", "background.js"]
   },
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["media.js", "content.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
   "permissions": [
     "contextMenus",
     "cookies",
     "activeTab",
-    "nativeMessaging"
+    "tabs",
+    "scripting",
+    "webRequest",
+    "nativeMessaging",
+    "storage",
+    "downloads"
   ],
   "host_permissions": [
     "*://*/*"

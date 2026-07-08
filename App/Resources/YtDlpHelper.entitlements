@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The bundled yt-dlp is spawned by the sandboxed app ONLY to resolve a page URL into its real
+	     media format tiers — it never downloads (CloakDrop's own engine does that). It must run inside
+	     the SAME sandbox as the app, not its own: `inherit` shares the parent's container and its
+	     dynamically-acquired access — in particular the app's outbound-network entitlement, which
+	     yt-dlp needs to reach the site. `inherit` requires app-sandbox and must be the ONLY sandbox
+	     key present. -->
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<key>com.apple.security.inherit</key>
+	<true/>
+	<!-- yt-dlp loads its bundled Python runtime (Python.framework + ~100 dylibs in `_internal/`), which
+	     we re-sign with the app's identity. To stay robust against any nested dylib whose signing
+	     differs, this relaxes Library Validation for THIS helper only — it does not affect the app, and
+	     is consulted only under the hardened runtime (Developer-ID/Release builds; ignored for ad-hoc
+	     local builds). -->
+	<key>com.apple.security.cs.disable-library-validation</key>
+	<true/>
+</dict>
+</plist>

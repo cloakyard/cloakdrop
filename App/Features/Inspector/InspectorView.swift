@@ -18,6 +18,9 @@ struct InspectorView: View {
                             segments(download)
                         }
                         details(download)
+                        if let provenance = download.provenance {
+                            provenanceSection(provenance)
+                        }
                     }
                     .padding(20)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -56,7 +59,7 @@ struct InspectorView: View {
     }
 
     private func overview(_ download: Download) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 14) {
             if let fraction = model.liveFraction(download), download.status != .completed {
                 ProgressView(value: fraction) {
                     HStack {
@@ -69,12 +72,57 @@ struct InspectorView: View {
                 }
                 .tint(download.status.tint)
             }
-            LabeledContent("Size", value: Format.bytes(download.totalBytes))
-            LabeledContent("Downloaded", value: Format.bytes(model.liveDownloadedBytes(download)))
-            if download.status == .downloading {
-                LabeledContent("Time Left", value: Format.eta(model.eta(download)))
+
+            // Size / progress, in a clean baseline-aligned key–value grid.
+            Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 20, verticalSpacing: 8) {
+                statRow("Size", Format.bytes(download.totalBytes))
+                statRow("Downloaded", Format.bytes(model.liveDownloadedBytes(download)))
+                if download.status == .downloading {
+                    statRow("Time Left", Format.eta(model.eta(download)))
+                }
+            }
+
+            // Per-download speed summary — live while transferring, the final figures once done.
+            let peak = model.peakSpeed(download)
+            let average = model.averageSpeed(download)
+            if peak > 0 || average > 0 {
+                speedStats(peak: peak, average: average)
             }
         }
+    }
+
+    /// One `label — value` line in the overview grid: a secondary label and a monospaced value that
+    /// lines up in a column with its neighbours.
+    private func statRow(_ label: LocalizedStringKey, _ value: String) -> some View {
+        GridRow {
+            Text(label).foregroundStyle(.secondary)
+            Text(value).monospacedDigit().gridColumnAlignment(.leading)
+        }
+    }
+
+    /// The peak/average transfer rates presented as two side-by-side stat tiles — a compact, scannable
+    /// summary of how the download performed.
+    private func speedStats(peak: Double, average: Double) -> some View {
+        HStack(spacing: 10) {
+            if peak > 0 { speedTile("Peak Speed", value: peak, symbol: "gauge.high") }
+            if average > 0 { speedTile("Average Speed", value: average, symbol: "gauge.medium") }
+        }
+    }
+
+    private func speedTile(_ label: LocalizedStringKey, value: Double, symbol: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Label(label, systemImage: symbol)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .labelStyle(.titleAndIcon)
+            Text(Format.speed(value))
+                .font(.title3.weight(.semibold).monospacedDigit())
+                .contentTransition(.numericText())
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 10))
     }
 
     private func segments(_ download: Download) -> some View {
@@ -119,10 +167,62 @@ struct InspectorView: View {
                     verificationRow(passed: verified)
                 }
             }
+            if let signature = download.signature {
+                signatureRow(signature)
+                if let authority = signature.authority {
+                    detailRow("Signed by", value: authority)
+                }
+            }
             detailRow("Added", value: download.createdAt.formatted(date: .abbreviated, time: .shortened))
             if let completed = download.completedAt {
                 detailRow("Completed", value: completed.formatted(date: .abbreviated, time: .shortened))
             }
+        }
+    }
+
+    /// The verified-download provenance record — CloakDrop's signature feature. Shows the one trust
+    /// verdict, the SHA-256, and a button to save the full receipt.
+    private func provenanceSection(_ provenance: ProvenanceReceipt) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Divider()
+            HStack(spacing: 6) {
+                Image(systemName: trustSymbol(provenance.trustLevel))
+                    .foregroundStyle(trustColor(provenance.trustLevel))
+                    .symbolRenderingMode(.hierarchical)
+                Text("Provenance").font(.headline)
+                Spacer()
+                Button {
+                    model.saveProvenanceReceipt(provenance)
+                } label: {
+                    Label("Save Receipt…", systemImage: "square.and.arrow.down")
+                }
+                .buttonStyle(.borderless)
+                .controlSize(.small)
+            }
+            detailRow("Transport", value: provenance.transportSecure
+                      ? String(localized: "Encrypted (TLS)") : String(localized: "Cleartext"))
+            if !provenance.mirrors.isEmpty {
+                detailRow("Mirrors", value: String(provenance.mirrors.count))
+            }
+            if let sha256 = provenance.sha256 {
+                detailRow("SHA-256", value: sha256, mono: true)
+            }
+        }
+    }
+
+    private func trustSymbol(_ level: TrustLevel) -> String {
+        switch level {
+        case .verified: return "checkmark.seal.fill"
+        case .warning: return "exclamationmark.triangle.fill"
+        case .unknown: return "questionmark.circle"
+        }
+    }
+
+    private func trustColor(_ level: TrustLevel) -> Color {
+        switch level {
+        case .verified: return .green
+        case .warning: return .red
+        case .unknown: return .secondary
         }
     }
 
@@ -152,6 +252,30 @@ struct InspectorView: View {
             )
             .font(.caption)
             .foregroundStyle(passed ? Color.green : Color.red)
+        }
+    }
+
+    /// Code-signature assessment for an installable download — green & sealed when signed and valid,
+    /// red when the signature failed to validate, neutral when the file carries none.
+    private func signatureRow(_ signature: SignatureAssessment) -> some View {
+        let label: LocalizedStringKey
+        let symbol: String
+        let color: Color
+        switch signature.status {
+        case .valid:
+            label = "Signed & valid"; symbol = "checkmark.seal.fill"; color = .green
+        case .invalid:
+            label = "Invalid signature"; symbol = "exclamationmark.triangle.fill"; color = .red
+        case .unsigned:
+            label = "Unsigned"; symbol = "seal"; color = .secondary
+        }
+        return VStack(alignment: .leading, spacing: 2) {
+            Text("Signature")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Label(label, systemImage: symbol)
+                .font(.caption)
+                .foregroundStyle(color)
         }
     }
 }

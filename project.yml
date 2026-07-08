@@ -67,6 +67,14 @@ targets:
             CFBundleTypeRole: Viewer
             CFBundleURLSchemes:
               - cloakdrop
+        # Open Metalink documents (.metalink/.meta4) → one multi-source (multi-mirror) download each.
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Metalink
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Default
+            CFBundleTypeExtensions:
+              - metalink
+              - meta4
         # "Send to CloakDrop" Services item: select a link in any app, right-click ▸ Services.
         # Handled in-process by ServicesProvider (registered as NSApp.servicesProvider at launch).
         NSServices:
@@ -98,6 +106,76 @@ targets:
         product: DownloadEngine
       - package: DownloaderCore
         product: DownloadPersistence
+    postCompileScripts:
+      # Bundle the optional, git-ignored static ffmpeg (built by scripts/fetch-ffmpeg.sh) into
+      # Contents/MacOS and sign it with the app's identity + inherit entitlements, so it runs in the
+      # app's sandbox and FFmpegMuxer.locate() finds it. Runs before Xcode's CodeSign so the app
+      # seal covers it. No-ops (with a warning) when the binary isn't present, so a checkout without
+      # it still builds — the app just remuxes with AVFoundation.
+      - name: Bundle & sign ffmpeg (optional; adds VP9/AV1/Opus muxing)
+        basedOnDependencyAnalysis: false
+        script: |
+          set -euo pipefail
+          FFMPEG_SRC="${SRCROOT}/Vendor/ffmpeg/ffmpeg"
+          if [ ! -f "${FFMPEG_SRC}" ]; then
+            echo "warning: Vendor/ffmpeg/ffmpeg not found — CloakDrop will remux with AVFoundation only. Run scripts/fetch-ffmpeg.sh to add VP9/AV1/Opus muxing."
+            exit 0
+          fi
+          DEST_DIR="${CODESIGNING_FOLDER_PATH}/Contents/MacOS"
+          mkdir -p "${DEST_DIR}"
+          cp -f "${FFMPEG_SRC}" "${DEST_DIR}/ffmpeg"
+          chmod +x "${DEST_DIR}/ffmpeg"
+          ENTITLEMENTS="${SRCROOT}/App/Resources/FFmpegHelper.entitlements"
+          IDENTITY="${EXPANDED_CODE_SIGN_IDENTITY:-}"
+          NAME="${EXPANDED_CODE_SIGN_IDENTITY_NAME:-}"
+          if [ -z "${IDENTITY}" ] || [ "${IDENTITY}" = "-" ] || [ "${NAME}" = "-" ] || [ "${NAME}" = "Sign to Run Locally" ]; then
+            # Local / ad-hoc: no hardened-runtime opts, no secure timestamp (needs a real identity + network).
+            echo "note: ad-hoc signing bundled ffmpeg"
+            codesign --force --sign - --entitlements "${ENTITLEMENTS}" "${DEST_DIR}/ffmpeg"
+          else
+            # Real identity (Developer ID for distribution): hardened runtime + secure timestamp so it notarizes.
+            echo "note: signing bundled ffmpeg with ${NAME}"
+            codesign --force --options runtime --timestamp --sign "${IDENTITY}" --entitlements "${ENTITLEMENTS}" "${DEST_DIR}/ffmpeg"
+          fi
+      # Bundle the optional, git-ignored yt-dlp ONEDIR tree (vendored by scripts/fetch-ytdlp.sh) into
+      # Contents/Resources/yt-dlp and sign it, so the sandboxed app can spawn it to resolve page URLs
+      # (YouTube & 1800+ sites) into real format tiers — which our own engine then downloads. The tree
+      # is the executable + `_internal/` (an unpacked Python runtime): shipping it unpacked (vs. the
+      # self-extracting single-file build) is what lets it run under the App Sandbox at all — no temp
+      # extraction, no SysV semaphore, no Gatekeeper prompt. No-ops (with a warning) when it isn't
+      # vendored, so a checkout without it still builds — page-URL extraction is just disabled. Runs
+      # before Xcode's CodeSign so the app seal covers the tree.
+      - name: Bundle & sign yt-dlp (optional; adds page-URL extraction for YouTube & 1800+ sites)
+        basedOnDependencyAnalysis: false
+        script: |
+          set -euo pipefail
+          SRC="${SRCROOT}/Vendor/yt-dlp"
+          if [ ! -x "${SRC}/yt-dlp" ] || [ ! -d "${SRC}/_internal" ]; then
+            echo "warning: Vendor/yt-dlp not vendored — page-URL extraction (YouTube etc.) is disabled. Run scripts/fetch-ytdlp.sh to enable it."
+            exit 0
+          fi
+          DEST="${CODESIGNING_FOLDER_PATH}/Contents/Resources/yt-dlp"
+          rm -rf "${DEST}"; mkdir -p "${DEST}"
+          # ditto preserves the framework's symlinks/permissions (cp -R can mangle them).
+          ditto "${SRC}/yt-dlp" "${DEST}/yt-dlp"
+          ditto "${SRC}/_internal" "${DEST}/_internal"
+          chmod +x "${DEST}/yt-dlp"
+          ENT="${SRCROOT}/App/Resources/YtDlpHelper.entitlements"
+          IDENTITY="${EXPANDED_CODE_SIGN_IDENTITY:-}"
+          NAME="${EXPANDED_CODE_SIGN_IDENTITY_NAME:-}"
+          if [ -z "${IDENTITY}" ] || [ "${IDENTITY}" = "-" ] || [ "${NAME}" = "-" ] || [ "${NAME}" = "Sign to Run Locally" ]; then
+            echo "note: ad-hoc signing bundled yt-dlp tree"
+            SIGN=(codesign --force --sign -)
+          else
+            # Real identity (Developer ID): hardened runtime + secure timestamp. The executable's
+            # entitlements carry cs.disable-library-validation so it can load its bundled dylibs.
+            echo "note: signing bundled yt-dlp tree with ${NAME}"
+            SIGN=(codesign --force --options runtime --timestamp --sign "${IDENTITY}")
+          fi
+          # Deepest-first: nested dylibs/.so, the Python framework, then the executable (entitled).
+          find "${DEST}/_internal" -type f \( -name "*.so" -o -name "*.dylib" \) -exec "${SIGN[@]}" {} +
+          [ -d "${DEST}/_internal/Python.framework" ] && "${SIGN[@]}" --deep "${DEST}/_internal/Python.framework"
+          "${SIGN[@]}" --entitlements "${ENT}" "${DEST}/yt-dlp"
 
   # Safari Web Extension: the native "Download with CloakDrop" path. The web half (manifest +
   # background service worker) lives in SafariExtension/WebExtension; the native handler validates

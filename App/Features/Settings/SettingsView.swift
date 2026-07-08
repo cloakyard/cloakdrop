@@ -4,7 +4,7 @@ import DownloadModels
 /// The Settings window's tabs. Held as app state so a menu command (e.g. "About CloakDrop")
 /// can open Settings directly to a specific tab.
 enum SettingsTab: Hashable {
-    case general, network, browsers, privacy, about
+    case general, rules, network, speedTest, browsers, privacy, stats, about
 }
 
 /// Preferences: engine tunables, CloakDrop's privacy posture, and app/author info.
@@ -17,20 +17,31 @@ struct SettingsView: View {
             general
                 .tabItem { Label("General", systemImage: "gearshape") }
                 .tag(SettingsTab.general)
+            RulesSettingsView()
+                .tabItem { Label("Rules", systemImage: "arrow.triangle.branch") }
+                .tag(SettingsTab.rules)
             network
                 .tabItem { Label("Network", systemImage: "point.3.connected.trianglepath.dotted") }
                 .tag(SettingsTab.network)
+            SpeedTestSettingsView()
+                .tabItem { Label("Speed Test", systemImage: "gauge.with.needle") }
+                .tag(SettingsTab.speedTest)
             BrowsersSettingsView()
                 .tabItem { Label("Browsers", systemImage: "globe") }
                 .tag(SettingsTab.browsers)
-            privacy
+            StatsSettingsView()
+                .tabItem { Label("Stats", systemImage: "medal.fill") }
+                .tag(SettingsTab.stats)
+            PrivacySettingsView()
                 .tabItem { Label("Privacy", systemImage: "lock.shield") }
                 .tag(SettingsTab.privacy)
             about
                 .tabItem { Label("About", systemImage: "info.circle") }
                 .tag(SettingsTab.about)
         }
-        .frame(width: 480, height: 500)
+        // Wide enough for all eight tab buttons (narrower overflows into a "»" menu) and tall
+        // enough that the Speed Test dials fit without scrolling.
+        .frame(width: 640, height: 600)
         // Settings always reopens on the first page (General); About is reached via its own
         // "About CloakDrop" command, which sets the tab just before opening the window. Reset
         // on close so a later plain ⌘, doesn't reopen on whatever tab was last viewed.
@@ -58,6 +69,10 @@ struct SettingsView: View {
                 Toggle("Verify checksums automatically", isOn: binding(\.verifyChecksumsAutomatically))
                 Toggle("Look for checksum files on the server", isOn: binding(\.autoDiscoverChecksums))
                     .disabled(!model.settings.verifyChecksumsAutomatically)
+                Toggle("Check app signatures", isOn: binding(\.assessSignatures))
+                Toggle("Flag files as downloaded (Gatekeeper check)", isOn: binding(\.applyQuarantine))
+                Toggle("Create a provenance receipt", isOn: binding(\.generateProvenanceReceipts))
+                Toggle("Extract .zip archives automatically", isOn: binding(\.autoExtractArchives))
                 Toggle("Sort completed files into type folders", isOn: binding(\.autoCategorize))
             } header: {
                 Text("On Completion")
@@ -88,11 +103,58 @@ struct SettingsView: View {
                 Text("Applies across all active downloads combined.")
             }
 
-            Section("Capture") {
+            Section {
+                Toggle("Throttle on a schedule", isOn: scheduleEnabledBinding)
+                if model.settings.bandwidthSchedule?.isEnabled == true {
+                    DatePicker("From", selection: scheduleStartBinding, displayedComponents: .hourAndMinute)
+                    DatePicker("To", selection: scheduleEndBinding, displayedComponents: .hourAndMinute)
+                    Toggle("Unlimited during this window", isOn: scheduleUnlimitedBinding)
+                    if model.settings.bandwidthSchedule?.limitBytesPerSecond != nil {
+                        HStack {
+                            Text("Limit")
+                            Spacer()
+                            TextField("1", value: scheduleLimitMBs, format: .number)
+                                .labelsHidden()
+                                .frame(width: 70)
+                                .textFieldStyle(.roundedBorder)
+                                .multilineTextAlignment(.trailing)
+                                .accessibilityLabel("Scheduled limit")
+                            Text("MB/s").foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            } header: {
+                Text("Bandwidth Schedule")
+            } footer: {
+                Text("""
+                Overrides the speed limit above during this window — throttle during work hours, \
+                or go unlimited overnight. A window whose end is before its start wraps past midnight.
+                """)
+            }
+
+            Section {
                 Toggle("Watch clipboard for links", isOn: Binding(
                     get: { model.clipboardMonitoringEnabled },
                     set: { model.clipboardMonitoringEnabled = $0 }
                 ))
+                Toggle("Ask which quality to download", isOn: Binding(
+                    get: { model.askQualityEnabled },
+                    set: { model.askQualityEnabled = $0 }
+                ))
+                Toggle("Download subtitles when available", isOn: Binding(
+                    get: { model.grabSubtitlesEnabled },
+                    set: { model.grabSubtitlesEnabled = $0 }
+                ))
+            } header: {
+                Text("Capture")
+            } footer: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("""
+                    Off grabs the best quality automatically — one click. On shows a picker for videos \
+                    that offer several resolutions.
+                    """)
+                    Text("Subtitles are saved as a matching “.srt” file next to the video.")
+                }
             }
 
             Section("Reliability") {
@@ -116,9 +178,22 @@ struct SettingsView: View {
                 Text("Open CloakDrop automatically when you log in.")
             }
 
-            Section("When Finished") {
+            Section {
                 Picker("After all downloads finish", selection: postActionBinding) {
                     ForEach(SchedulerPostAction.allCases) { Text($0.localizedLabel).tag($0) }
+                }
+                if model.settings.resolvedPostAction.needsShortcutName {
+                    TextField("Shortcut name", text: shortcutNameBinding, prompt: Text("Exact name in Shortcuts"))
+                        .textFieldStyle(.roundedBorder)
+                }
+            } header: {
+                Text("When Finished")
+            } footer: {
+                if model.settings.resolvedPostAction == .runShortcut {
+                    Text("""
+                    Runs a Shortcut of this name from your Shortcuts library — use it to sleep the \
+                    Mac, tidy a folder, or anything else.
+                    """)
                 }
             }
         }
@@ -137,7 +212,10 @@ struct SettingsView: View {
             } header: {
                 Text("Proxy")
             } footer: {
-                Text("A proxy is the only connection CloakDrop makes beyond the URLs you download.")
+                Text("""
+                Beyond the URLs you download, CloakDrop only ever connects to a proxy configured \
+                here — or to the server you pick in Speed Test, when you run one.
+                """)
             }
 
             if model.settings.resolvedProxy.mode == .manual {
@@ -160,76 +238,16 @@ struct SettingsView: View {
         .scrollBounceBehavior(.basedOnSize)
     }
 
-    // MARK: Privacy
-
-    private var privacy: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "lock.shield.fill")
-                .font(.system(size: 46))
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(.tint)
-                .padding(.top, 8)
-
-            Text("Private by design")
-                .font(.title2.weight(.semibold))
-
-            Text("CloakDrop is part of the Cloakyard privacy-first suite.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-
-            VStack(alignment: .leading, spacing: 14) {
-                guarantee("Everything runs on-device")
-                guarantee("No accounts, analytics, or telemetry")
-                guarantee("Network access only to the URLs you download")
-            }
-            .padding(18)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 12))
-
-            Text("CloakDrop never phones home. Your download history and settings stay on this Mac, fully under your control.")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-
-            Spacer(minLength: 0)
-        }
-        .padding(24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private func guarantee(_ text: String) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: "checkmark.seal.fill")
-                .foregroundStyle(.green)
-            Text(text)
-            Spacer(minLength: 0)
-        }
-    }
-
     // MARK: About
 
     private var about: some View {
-        VStack(spacing: 14) {
-            // A dedicated asset, not `NSApp.applicationIconImage`: the latter is served from
-            // macOS's icon cache, which can lag a rebuilt icon (showing a stale version). This
-            // loads the exact shipped artwork straight from the catalog.
-            Image("AboutAppIcon")
-                .resizable()
-                .interpolation(.high)
-                .frame(width: 96, height: 96)
-                .padding(.top, 4)
-
-            VStack(spacing: 3) {
-                Text(verbatim: "CloakDrop")
-                    .font(.title2.weight(.semibold))
-                Text("Version \(Self.appVersion)")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
+        VStack(spacing: 18) {
+            // The hero header. Tap the icon five times for a Matrix easter egg (see AboutHeaderView).
+            AboutHeaderView(version: Self.appVersion)
 
             Text("Created by Sumit Sahoo")
                 .font(.callout)
+                .foregroundStyle(.secondary)
 
             VStack(spacing: 2) {
                 linkRow(symbol: "person.crop.circle", label: Text(verbatim: "github.com/sumitsahoo"), url: AppLinks.author)
@@ -240,7 +258,7 @@ struct SettingsView: View {
                     url: AppLinks.repository
                 )
                 Divider()
-                linkRow(symbol: "ladybug", label: Text("Report a Bug"), url: AppLinks.reportBug)
+                linkRow(symbol: "ladybug", label: Text("Report a Bug"), url: BugReport.issueURL)
             }
             .padding(.vertical, 4)
             .padding(.horizontal, 14)
@@ -304,6 +322,18 @@ struct SettingsView: View {
         )
     }
 
+    private var shortcutNameBinding: Binding<String> {
+        Binding(
+            get: { model.settings.postCompletionShortcutName ?? "" },
+            set: { newValue in
+                var settings = model.settings
+                let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                settings.postCompletionShortcutName = trimmed.isEmpty ? nil : newValue
+                model.updateSettings(settings)
+            }
+        )
+    }
+
     private func proxyBinding<Value>(_ keyPath: WritableKeyPath<ProxyConfiguration, Value>) -> Binding<Value> {
         Binding(
             get: { model.settings.resolvedProxy[keyPath: keyPath] },
@@ -336,6 +366,57 @@ struct SettingsView: View {
                 settings.globalSpeedLimitBytesPerSecond = Int64(max(0.1, mb) * 1_000_000)
                 model.updateSettings(settings)
             }
+        )
+    }
+
+    // MARK: Bandwidth schedule bindings
+
+    /// Mutate the schedule, materializing a sensible default the first time it's enabled.
+    private func updateSchedule(_ transform: (inout BandwidthSchedule) -> Void) {
+        var settings = model.settings
+        var schedule = settings.bandwidthSchedule ?? BandwidthSchedule(isEnabled: true)
+        transform(&schedule)
+        settings.bandwidthSchedule = schedule
+        model.updateSettings(settings)
+    }
+
+    private var scheduleEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { model.settings.bandwidthSchedule?.isEnabled ?? false },
+            set: { on in updateSchedule { $0.isEnabled = on } }
+        )
+    }
+
+    /// A start/end minute-of-day rendered as a `Date` today, for the hour-and-minute `DatePicker`.
+    private func minuteBinding(_ keyPath: WritableKeyPath<BandwidthSchedule, Int>) -> Binding<Date> {
+        Binding(
+            get: {
+                let minute = model.settings.bandwidthSchedule?[keyPath: keyPath] ?? 0
+                return Calendar.current.startOfDay(for: Date())
+                    .addingTimeInterval(TimeInterval(minute * 60))
+            },
+            set: { date in
+                let c = Calendar.current.dateComponents([.hour, .minute], from: date)
+                let minute = (c.hour ?? 0) * 60 + (c.minute ?? 0)
+                updateSchedule { $0[keyPath: keyPath] = minute }
+            }
+        )
+    }
+
+    private var scheduleStartBinding: Binding<Date> { minuteBinding(\.startMinute) }
+    private var scheduleEndBinding: Binding<Date> { minuteBinding(\.endMinute) }
+
+    private var scheduleUnlimitedBinding: Binding<Bool> {
+        Binding(
+            get: { model.settings.bandwidthSchedule?.limitBytesPerSecond == nil },
+            set: { unlimited in updateSchedule { $0.limitBytesPerSecond = unlimited ? nil : 1_000_000 } }
+        )
+    }
+
+    private var scheduleLimitMBs: Binding<Double> {
+        Binding(
+            get: { Double(model.settings.bandwidthSchedule?.limitBytesPerSecond ?? 0) / 1_000_000 },
+            set: { mb in updateSchedule { $0.limitBytesPerSecond = Int64(max(0.1, mb) * 1_000_000) } }
         )
     }
 }

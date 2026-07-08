@@ -3,7 +3,7 @@ import DownloadModels
 
 /// File-system operations for an in-progress download.
 ///
-/// Bytes are written into a single sparse `.cloakpart` file. Each segment owns a disjoint,
+/// Bytes are written into a single sparse `.cdpart` file. Each segment owns a disjoint,
 /// contiguous byte region and writes it through its *own* `SegmentFileHandle`, so parallel
 /// segments never contend on a shared handle. When every segment is complete the part file
 /// is atomically moved to its final destination.
@@ -51,8 +51,8 @@ public enum SegmentedFileWriter {
         try? FileManager.default.removeItem(atPath: partPath)
     }
 
-    /// Discard all in-progress data for a download — the `.cloakpart` file and, for a media grab,
-    /// the `.cloakparts` segment directory.
+    /// Discard all in-progress data for a download — the `.cdpart` file and, for a media grab,
+    /// the `.cdparts` segment directory.
     public static func discardPartData(for download: Download) {
         discardPartFile(partPath: download.partFilePath)
         if download.isMedia {

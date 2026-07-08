@@ -48,6 +48,24 @@ struct RemuxerTests {
         #expect(try await !asset.loadTracks(withMediaType: .audio).isEmpty)
     }
 
+    @Test("Muxes a separate video-only and audio-only file into one file carrying both tracks")
+    func muxesVideoAndAudioIntoOneFile() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let video = dir.appendingPathComponent("video.mp4")
+        let audio = dir.appendingPathComponent("audio.m4a")
+        try await MediaFixtures.writeVideoMP4(to: video)     // video-only (adaptive video stream)
+        try MediaFixtures.writeAudioM4A(to: audio)           // audio-only (matching audio stream)
+
+        let result = try await AVFoundationRemuxer().mux(videoPath: video.path, audioPath: audio.path)
+
+        #expect(result.fileExtension == "mp4")
+        let asset = AVURLAsset(url: URL(fileURLWithPath: result.outputPath))
+        #expect(try await !asset.loadTracks(withMediaType: .video).isEmpty)   // video kept
+        #expect(try await !asset.loadTracks(withMediaType: .audio).isEmpty)   // ...now WITH audio
+        #expect(try await asset.load(.duration).seconds > 0)
+    }
+
     @Test("A non-media file is rejected as unsupported so the caller keeps the raw concatenation")
     func rejectsNonMedia() async throws {
         let dir = try tempDir()
@@ -92,6 +110,85 @@ struct RemuxerTests {
         let asset = AVURLAsset(url: URL(fileURLWithPath: done.destinationFilePath))
         #expect(try await !asset.loadTracks(withMediaType: .video).isEmpty)     // a real, openable video
         #expect(!FileManager.default.fileExists(atPath: done.mediaPartDirectoryPath))  // parts cleaned up
+    }
+
+    @Test("A media grab with separate video and audio streams assembles one file with both tracks")
+    func grabMuxesSeparateAudioAndVideo() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        // A video-only MP4 and an audio-only M4A stand in for one video segment and one audio segment
+        // of an adaptive rendition whose audio is a separate stream (DASH-style).
+        let videoFile = dir.appendingPathComponent("v.mp4")
+        let audioFile = dir.appendingPathComponent("a.m4a")
+        try await MediaFixtures.writeVideoMP4(to: videoFile)
+        try MediaFixtures.writeAudioM4A(to: audioFile)
+
+        let videoSeg = URL(string: "https://cdn/x/v0.mp4")!
+        let audioSeg = URL(string: "https://cdn/x/a0.m4a")!
+        let mock = MockHTTPClient()
+        mock.setResource(.init(data: try Data(contentsOf: videoFile)), for: videoSeg)
+        mock.setResource(.init(data: try Data(contentsOf: audioFile)), for: audioSeg)
+
+        // Same segment id in each stream — exercises the separate audio-/seg- part-file namespaces.
+        let plan = MediaPlan(
+            format: .dash,
+            segments: [MediaSegment(id: 0, url: videoSeg, duration: 1)],
+            audioSegments: [MediaSegment(id: 0, url: audioSeg, duration: 1)]
+        )
+
+        let store = try GRDBDownloadStore.inMemory()
+        let manager = DownloadManager(
+            store: store, httpClient: mock,
+            networkMonitor: AlwaysReachableMonitor(), remuxer: AVFoundationRemuxer()
+        )
+        try await manager.start()
+        let request = DownloadRequest(
+            url: URL(string: "https://cdn/x/manifest.mpd")!,
+            suggestedFileName: "clip.mp4", destinationDirectoryPath: dir.path
+        )
+        let download = await manager.addMedia(request, plan: plan)
+
+        let done = try await waitForCompletion(manager, download.id)
+        let asset = AVURLAsset(url: URL(fileURLWithPath: done.destinationFilePath))
+        #expect(try await !asset.loadTracks(withMediaType: .video).isEmpty)   // video present
+        #expect(try await !asset.loadTracks(withMediaType: .audio).isEmpty)   // ...and it has sound
+        #expect(!FileManager.default.fileExists(atPath: done.mediaPartDirectoryPath))  // parts cleaned up
+    }
+
+    @Test("A pairedFiles plan (direct video + audio URLs, no manifest) grabs both and muxes them")
+    func grabPairedFilesMuxes() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let videoFile = dir.appendingPathComponent("v.mp4")
+        let audioFile = dir.appendingPathComponent("a.m4a")
+        try await MediaFixtures.writeVideoMP4(to: videoFile)
+        try MediaFixtures.writeAudioM4A(to: audioFile)
+
+        // YouTube-style adaptive URLs: video-only and audio-only, no extension, no manifest.
+        let videoURL = URL(string: "https://cdn/videoplayback?itag=137")!
+        let audioURL = URL(string: "https://cdn/videoplayback?itag=140")!
+        let mock = MockHTTPClient()
+        mock.setResource(.init(data: try Data(contentsOf: videoFile)), for: videoURL)
+        mock.setResource(.init(data: try Data(contentsOf: audioFile)), for: audioURL)
+
+        // The exact plan the app builds for a capture carrying a separate audio URL (AppModel.grabPairedMedia).
+        let plan = MediaPlan.pairedFiles(video: videoURL, audio: audioURL)
+
+        let store = try GRDBDownloadStore.inMemory()
+        let manager = DownloadManager(
+            store: store, httpClient: mock,
+            networkMonitor: AlwaysReachableMonitor(), remuxer: AVFoundationRemuxer()
+        )
+        try await manager.start()
+        let request = DownloadRequest(url: videoURL, suggestedFileName: "clip.mp4", destinationDirectoryPath: dir.path)
+        let download = await manager.addMedia(request, plan: plan)
+
+        let done = try await waitForCompletion(manager, download.id)
+        let asset = AVURLAsset(url: URL(fileURLWithPath: done.destinationFilePath))
+        #expect(try await !asset.loadTracks(withMediaType: .video).isEmpty)   // video present
+        #expect(try await !asset.loadTracks(withMediaType: .audio).isEmpty)   // ...and it has sound
+        #expect(!FileManager.default.fileExists(atPath: done.mediaPartDirectoryPath))
     }
 
     // MARK: - Helpers

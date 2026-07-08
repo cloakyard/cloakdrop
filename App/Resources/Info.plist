@@ -6,6 +6,22 @@
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
 	<string>CloakDrop</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>metalink</string>
+				<string>meta4</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Metalink</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Default</string>
+		</dict>
+	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

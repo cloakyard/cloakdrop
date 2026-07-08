@@ -49,6 +49,16 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         )
     }
 
+    /// A single "everything's done" ping for the post-completion action — distinct from the
+    /// per-download completion notices, and carrying no download id (nothing to open).
+    func notifyAllCompleted() {
+        let content = UNMutableNotificationContent()
+        content.title = String(localized: "All Downloads Complete")
+        content.body = String(localized: "Every download in the queue has finished.")
+        content.sound = .default
+        center.add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
+    }
+
     func notifyFailed(_ download: Download, reason: String) {
         post(
             title: String(localized: "Download Failed"),

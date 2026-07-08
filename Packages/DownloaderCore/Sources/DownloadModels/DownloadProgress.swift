@@ -10,6 +10,10 @@ public struct DownloadProgress: Sendable, Hashable, Identifiable {
     public let totalBytes: Int64?
     /// Instantaneous transfer rate in bytes/sec (smoothed by the engine).
     public let bytesPerSecond: Double
+    /// Peak transfer rate observed so far (bytes/sec) and the average over active time — the live
+    /// feed for the per-item stats summary. `0` when nothing has been measured yet.
+    public let peakBytesPerSecond: Double
+    public let averageBytesPerSecond: Double
     /// Per-segment downloaded byte counts, for the inspector's segment view.
     public let segmentBytes: [Int: Int64]
 
@@ -23,6 +27,8 @@ public struct DownloadProgress: Sendable, Hashable, Identifiable {
         downloadedBytes: Int64,
         totalBytes: Int64?,
         bytesPerSecond: Double,
+        peakBytesPerSecond: Double = 0,
+        averageBytesPerSecond: Double = 0,
         segmentBytes: [Int: Int64] = [:],
         completedSegments: Int? = nil,
         totalSegments: Int? = nil
@@ -31,19 +37,25 @@ public struct DownloadProgress: Sendable, Hashable, Identifiable {
         self.downloadedBytes = downloadedBytes
         self.totalBytes = totalBytes
         self.bytesPerSecond = bytesPerSecond
+        self.peakBytesPerSecond = peakBytesPerSecond
+        self.averageBytesPerSecond = averageBytesPerSecond
         self.segmentBytes = segmentBytes
         self.completedSegments = completedSegments
         self.totalSegments = totalSegments
     }
 
-    /// Fraction complete in `0...1`, or `nil` if it can't be determined. Media uses the segment
-    /// share; a file download uses bytes over the total.
+    /// Fraction complete in `0...1`, or `nil` if it can't be determined. Bytes over the total when
+    /// the total is known — the accurate measure, and the only smooth one for a media grab whose
+    /// whole video is a single segment (a paired video+audio grab). The segment share is the
+    /// fallback for media whose byte total isn't known (typical HLS/DASH).
     public var fractionCompleted: Double? {
+        if let totalBytes, totalBytes > 0 {
+            return min(1.0, Double(downloadedBytes) / Double(totalBytes))
+        }
         if let completedSegments, let totalSegments, totalSegments > 0 {
             return min(1.0, Double(completedSegments) / Double(totalSegments))
         }
-        guard let totalBytes, totalBytes > 0 else { return nil }
-        return min(1.0, Double(downloadedBytes) / Double(totalBytes))
+        return nil
     }
 
     /// Estimated time remaining in seconds, or `nil` if it cannot be computed.

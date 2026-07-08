@@ -11,11 +11,34 @@ struct DownloadRowView: View {
     private var fraction: Double? { model.liveFraction(download) }
     private var isSelected: Bool { model.selectedDownloadIDs.contains(download.id) }
 
-    /// A compact quality/format badge for a media grab — "1080p", "HLS", … `nil` for file downloads.
+    /// A compact quality/format badge for a media grab — "1080p", "2160p", "HLS", … `nil` for file
+    /// downloads. Labels by the streaming convention (`qualityHeight`), so a portrait/Shorts grab
+    /// reads "1080p" (not "1920p") and a cinematic 2:1 grab reads "2160p", matching YouTube.
     private var mediaBadge: String? {
         guard let plan = download.mediaPlan else { return nil }
-        if let height = plan.resolution?.height { return "\(height)p" }
+        if let resolution = plan.resolution { return "\(resolution.qualityHeight)p" }
         return plan.format == .hls ? "HLS" : "DASH"
+    }
+
+    /// An at-a-glance integrity seal for a finished download: green when a checksum matched or the
+    /// code signature is valid, red when either failed. Nothing to show otherwise. Semantic colors
+    /// are kept even on the selection highlight — a warning must always read as a warning.
+    @ViewBuilder
+    private var trustBadge: some View {
+        switch download.trustLevel {
+        case .verified:
+            Image(systemName: "checkmark.seal.fill")
+                .font(.caption)
+                .foregroundStyle(.green)
+                .accessibilityLabel(Text("Verified"))
+        case .warning:
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.caption)
+                .foregroundStyle(.red)
+                .accessibilityLabel(Text("Integrity warning"))
+        case .unknown:
+            EmptyView()
+        }
     }
 
     var body: some View {
@@ -34,6 +57,7 @@ struct DownloadRowView: View {
                         .fontWeight(.medium)
                         .lineLimit(1)
                         .truncationMode(.middle)
+                    trustBadge
                     if let badge = mediaBadge {
                         Text(badge)
                             .font(.caption2.weight(.semibold))
@@ -166,12 +190,15 @@ struct DownloadRowView: View {
     private var detailLine: String {
         switch download.status {
         case .downloading:
-            if let segments = model.liveMediaSegments(download) {
+            // A media grab shows its segment count only until the engine learns the byte total
+            // (immediately for a paired video+audio grab) — then the byte/ETA line takes over,
+            // which moves smoothly even when the whole video is a single segment.
+            if let segments = model.liveMediaSegments(download), model.liveTotalBytes(download) == nil {
                 let speed = Format.speed(model.liveSpeed(download))
                 return String(localized: "\(segments.completed) of \(segments.total) segments · \(speed)")
             }
             let done = Format.bytes(model.liveDownloadedBytes(download))
-            let total = Format.bytes(download.totalBytes)
+            let total = Format.bytes(model.liveTotalBytes(download))
             let speed = Format.speed(model.liveSpeed(download))
             let eta = Format.eta(model.eta(download))
             return String(localized: "\(done) of \(total) · \(speed) · \(eta) left")

@@ -120,7 +120,8 @@ public enum URLBatch {
     public static func normalized(_ raw: String) -> URL? {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
-        if let url = URL(string: trimmed), let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" {
+        if let url = URL(string: trimmed), let scheme = url.scheme?.lowercased(),
+           ["http", "https", "ftp", "ftps"].contains(scheme) {
             return url
         }
         // Accept a bare host (we'll prepend https://) only if it actually looks like one — a

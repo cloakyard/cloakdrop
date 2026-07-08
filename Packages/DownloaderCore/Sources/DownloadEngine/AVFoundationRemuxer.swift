@@ -40,4 +40,52 @@ public struct AVFoundationRemuxer: Remuxer {
         }
         return RemuxResult(outputPath: outputPath, fileExtension: ext)
     }
+
+    public func mux(videoPath: String, audioPath: String) async throws -> RemuxResult {
+        let videoAsset = AVURLAsset(url: URL(fileURLWithPath: videoPath))
+        let audioAsset = AVURLAsset(url: URL(fileURLWithPath: audioPath))
+
+        // Both tracks are copied into one composition, then exported passthrough (no re-encode).
+        // A file whose codecs AVFoundation can't carry in MP4 (VP9/AV1/Opus) fails to load or export
+        // here → unsupported, and the ffmpeg backend takes over.
+        guard let sourceVideo = (try? await videoAsset.loadTracks(withMediaType: .video))?.first else {
+            throw RemuxError.unsupported
+        }
+        // Audio is mandatory: the whole point of muxing is to give the video sound. If AVFoundation
+        // can't read the audio (e.g. Opus), report `.unsupported` and let the ffmpeg backend mux it
+        // rather than silently exporting a soundless video — which would satisfy the caller and
+        // strand the download without audio.
+        guard let sourceAudio = (try? await audioAsset.loadTracks(withMediaType: .audio))?.first else {
+            throw RemuxError.unsupported
+        }
+        let videoDuration = (try? await videoAsset.load(.duration)) ?? .zero
+        let audioDuration = (try? await audioAsset.load(.duration)) ?? videoDuration
+
+        let composition = AVMutableComposition()
+        guard let videoTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid),
+              let audioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) else {
+            throw RemuxError.unsupported
+        }
+        do {
+            try videoTrack.insertTimeRange(CMTimeRange(start: .zero, duration: videoDuration), of: sourceVideo, at: .zero)
+            // Clamp audio to the video's length so a slightly longer/shorter track can't skew A/V sync.
+            let span = CMTimeMinimum(videoDuration, audioDuration)
+            try audioTrack.insertTimeRange(CMTimeRange(start: .zero, duration: span), of: sourceAudio, at: .zero)
+        } catch {
+            throw RemuxError.unsupported     // couldn't assemble these tracks → let ffmpeg try
+        }
+
+        guard let session = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetPassthrough) else {
+            throw RemuxError.unsupported
+        }
+        let outputPath = (videoPath as NSString).deletingPathExtension + ".muxed.mp4"
+        try? FileManager.default.removeItem(atPath: outputPath)
+        do {
+            try await session.export(to: URL(fileURLWithPath: outputPath), as: .mp4)
+        } catch {
+            try? FileManager.default.removeItem(atPath: outputPath)
+            throw RemuxError.failed(error.localizedDescription)
+        }
+        return RemuxResult(outputPath: outputPath, fileExtension: "mp4")
+    }
 }

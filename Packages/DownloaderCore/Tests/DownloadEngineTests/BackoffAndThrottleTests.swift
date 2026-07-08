@@ -26,34 +26,37 @@ struct BackoffPolicyTests {
     }
 }
 
-@Suite("Token-bucket math")
-struct TokenBucketMathTests {
-    @Test("Spends available tokens with no wait")
-    func noWaitWhenFunded() {
-        let (wait, after) = TokenBucketMath.plan(tokens: 1000, ratePerSecond: 1000, requested: 400)
-        #expect(wait == 0)
-        #expect(after == 600)
+@Suite("Rate schedule (virtual-clock reservation)")
+struct RateScheduleTests {
+    private let burst = 0.5   // seconds
+
+    @Test("An idle bucket serves a within-burst request with no wait")
+    func idleWithinBurstNoWait() {
+        // Bucket idle (tat behind now); 100 KB at 1 MB/s = 0.1 s cost < 0.5 s burst → wakeAt in the past.
+        let (tat, wakeAt) = RateSchedule.reserve(tat: 0, now: 10, cost: 0.1, burst: burst)
+        #expect(tat == 10.1)          // reservation starts from `now`, not the stale tat
+        #expect(wakeAt <= 10)         // no wait
     }
 
-    @Test("Waits exactly the deficit divided by rate")
-    func waitsForDeficit() {
-        // Need 1000, have 200, rate 100/s → deficit 800 → 8 s.
-        let (wait, after) = TokenBucketMath.plan(tokens: 200, ratePerSecond: 100, requested: 1000)
-        #expect(wait == 8.0)
-        #expect(after == 0)
+    @Test("Successive reservations serialize, spaced by their cost")
+    func successiveReservationsSpace() {
+        // Three back-to-back 600 KB chunks (0.6 s each) at the same instant. The virtual clock, not
+        // `now`, spaces them — so their absolute wake instants step by 0.6 s regardless of overlap.
+        let now = 10.0
+        let (t1, w1) = RateSchedule.reserve(tat: 0, now: now, cost: 0.6, burst: burst)
+        let (t2, w2) = RateSchedule.reserve(tat: t1, now: now, cost: 0.6, burst: burst)
+        let (_, w3) = RateSchedule.reserve(tat: t2, now: now, cost: 0.6, burst: burst)
+        #expect(abs(w1 - (now + 0.1)) < 1e-9)   // 0.6 − 0.5 burst
+        #expect(abs(w2 - (now + 0.7)) < 1e-9)
+        #expect(abs(w3 - (now + 1.3)) < 1e-9)   // steady 0.6 s spacing → the aggregate rate
     }
 
-    @Test("Unlimited rate never waits")
-    func unlimited() {
-        let (wait, after) = TokenBucketMath.plan(tokens: 0, ratePerSecond: 0, requested: 5000)
-        #expect(wait == 0)
-        #expect(after == 0)
-    }
-
-    @Test("Refill is clamped to capacity")
-    func refillClamp() {
-        let refilled = TokenBucketMath.refill(tokens: 500, ratePerSecond: 1000, elapsed: 10, capacity: 1000)
-        #expect(refilled == 1000)
+    @Test("A bucket that fell behind resets to now rather than accumulating backlog")
+    func idleResets() {
+        // tat is far in the past relative to now → base is `now`, no burst of catch-up traffic.
+        let (tat, wakeAt) = RateSchedule.reserve(tat: 1, now: 100, cost: 0.6, burst: burst)
+        #expect(tat == 100.6)
+        #expect(abs(wakeAt - 100.1) < 1e-9)
     }
 }
 
@@ -83,5 +86,37 @@ struct BandwidthLimiterTests {
         // finished ~0.7 s. Lower bound catches overshoot; generous upper bound avoids flakiness.
         #expect(elapsed >= 1.1)
         #expect(elapsed < 3.0)
+    }
+
+    /// The invariant both real limits rely on: **one** limiter instance shared by many concurrent
+    /// consumers caps their *aggregate* throughput, not each consumer independently. This is exactly
+    /// how the engine enforces a per-download limit (one limiter shared across a download's segment
+    /// workers) and the global limit (one limiter shared across every download). Four workers hammering
+    /// the same 1 MB/s bucket must still finish no faster than the aggregate rate allows — if each got
+    /// its own effective allowance they'd finish ~4× too fast.
+    @Test("A shared limiter caps aggregate throughput across concurrent consumers")
+    func sharedLimiterCapsAggregate() async {
+        let rate: Int64 = 1_000_000           // 1 MB/s → burst capacity 500 KB
+        let workers = 4
+        let chunksEach = 6
+        let chunk = 100_000                    // 4 × 6 × 100 KB = 2.4 MB total
+        let limiter = BandwidthLimiter(bytesPerSecond: rate)
+
+        let clock = ContinuousClock()
+        let start = clock.now
+        await withTaskGroup(of: Void.self) { group in
+            for _ in 0..<workers {
+                group.addTask {
+                    for _ in 0..<chunksEach { await limiter.awaitAllowance(byteCount: chunk) }
+                }
+            }
+        }
+        let elapsed = seconds(start, clock.now)
+
+        // 2.4 MB at 1 MB/s ≈ 2.4 s, minus the one-time 500 KB burst ≈ 1.9 s. A per-consumer bucket
+        // would let all four run in ~0.5 s. Lower bound proves the cap is aggregate; upper bound is
+        // generous against scheduler jitter.
+        #expect(elapsed >= 1.5)
+        #expect(elapsed < 4.5)
     }
 }

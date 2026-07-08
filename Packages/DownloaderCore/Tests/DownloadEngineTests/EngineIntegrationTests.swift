@@ -13,13 +13,13 @@ private struct Harness {
     let manager: DownloadManager
     let url = URL(string: "https://example.com/payload.bin")!
 
-    init(data: Data, acceptsRanges: Bool = true, pendingDrops: Int = 0, dropAfterBytes: Int = 0) async throws {
+    init(data: Data, acceptsRanges: Bool = true, pendingDrops: Int = 0, dropAfterBytes: Int = 0, etag: String? = nil) async throws {
         directory = FileManager.default.temporaryDirectory.appendingPathComponent("cloakdrop-test-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         store = try GRDBDownloadStore.inMemory()
         mock = MockHTTPClient(pendingDrops: pendingDrops, dropAfterBytes: dropAfterBytes)
         mock.chunkSize = 4096
-        mock.setResource(.init(data: data, acceptsRanges: acceptsRanges, suggestedFilename: "payload.bin"), for: url)
+        mock.setResource(.init(data: data, acceptsRanges: acceptsRanges, suggestedFilename: "payload.bin", etag: etag), for: url)
         manager = DownloadManager(store: store, httpClient: mock, networkMonitor: AlwaysReachableMonitor())
         try await manager.start()
         // Small segments so test payloads still split into several connections.
@@ -67,6 +67,26 @@ private func makePayload(_ count: Int) -> Data {
 @Suite("Engine integration (mock server)")
 struct EngineIntegrationTests {
 
+    @Test("A completed download records the server's ETag (for later duplicate detection)")
+    func recordsETag() async throws {
+        let payload = makePayload(60_000)
+        let h = try await Harness(data: payload, etag: "\"abc-123\"")
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        let done = try await h.waitFor(download.id) { $0.status == .completed }
+        #expect(done.etag == "\"abc-123\"")
+
+        // And the recorded ETag makes a re-add of the same content a detectable duplicate.
+        let candidate = DuplicateCandidate(
+            url: URL(string: "https://example.com/other-link.bin")!,
+            etag: "\"abc-123\"",
+            totalBytes: Int64(payload.count),
+            fileName: "payload.bin"
+        )
+        #expect(DuplicateDetector.findDuplicate(of: candidate, in: [done])?.reason == .sameETag)
+    }
+
     @Test("Multi-segment download completes and reassembles byte-perfectly")
     func multiSegmentCompletes() async throws {
         let payload = makePayload(200_000)
@@ -80,6 +100,45 @@ struct EngineIntegrationTests {
         #expect(try h.fileData(done) == payload)        // exact reassembly
         #expect(done.totalBytes == Int64(payload.count))
         #expect(!FileManager.default.fileExists(atPath: done.partFilePath))  // part file cleaned up
+    }
+
+    @Test("A slow straggler segment gets its tail stolen, splitting into more segments, and still reassembles byte-perfectly")
+    func dynamicResplittingStealsStragglerTail() async throws {
+        let payload = makePayload(1_000_000)
+        let h = try await Harness(data: payload)
+        // Four ~250 KB segments. The last quarter streams slowly, so the first three finish and steal
+        // its tail; the others race ahead at full speed.
+        var settings = await h.manager.currentSettings()
+        settings.defaultSegmentCount = 4
+        settings.minimumSegmentSizeBytes = 32 * 1024   // split threshold 64 KB ⇒ several splits, no tiny ones
+        await h.manager.updateSettings(settings)
+        h.mock.chunkSize = 8192
+        h.mock.slowFromOffset = 750_000
+        h.mock.slowChunkDelay = .milliseconds(4)
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        let done = try await h.waitFor(download.id, timeout: .seconds(30)) { $0.status == .completed }
+
+        #expect(done.segments.count > 4)          // the straggler's tail was split off at least once
+        #expect(try h.fileData(done) == payload)  // every split half landed in the right place
+        #expect(done.totalBytes == Int64(payload.count))
+    }
+
+    @Test("A completed download records peak and average speed stats")
+    func recordsSpeedStats() async throws {
+        let payload = makePayload(200_000)
+        let h = try await Harness(data: payload)
+        h.mock.chunkSize = 2048
+        h.mock.perChunkDelay = .milliseconds(8)   // span the transfer past the sampler's 50ms floor
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        let done = try await h.waitFor(download.id) { $0.status == .completed }
+
+        #expect((done.peakBytesPerSecond ?? 0) > 0)          // saw a positive peak rate
+        #expect((done.activeSeconds ?? 0) > 0)               // accumulated active transfer time
+        #expect((done.averageBytesPerSecond ?? 0) > 0)       // ⇒ a computable average
     }
 
     @Test("Falls back to a single stream when the server lacks Range support")
@@ -96,6 +155,24 @@ struct EngineIntegrationTests {
         #expect(try h.fileData(done) == payload)
     }
 
+    @Test("A non-resumable server that drops mid-stream restarts cleanly (no offset corruption)")
+    func nonResumableDropRestartsCleanly() async throws {
+        // A server with a known size but no Range support replays from byte 0 on every connection.
+        // A mid-stream drop must rewind and overwrite from the start — not write the replayed bytes
+        // at the advanced offset — or the finished file is silently corrupted and over-length.
+        let payload = makePayload(120_000)
+        let h = try await Harness(data: payload, acceptsRanges: false, pendingDrops: 1, dropAfterBytes: 20_000)
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        let done = try await h.waitFor(download.id) { $0.status == .completed }
+
+        #expect(done.supportsResume == false)
+        #expect(done.segments.count == 1)          // the single-stream fallback
+        #expect(h.mock.streamCount >= 2)           // it actually dropped and retried
+        #expect(try h.fileData(done) == payload)   // and the restart produced a byte-perfect file
+    }
+
     @Test("Resumes and completes after injected mid-transfer connection drops")
     func resumesAfterDrops() async throws {
         let payload = makePayload(200_000)
@@ -107,6 +184,63 @@ struct EngineIntegrationTests {
 
         #expect(try h.fileData(done) == payload)        // still byte-perfect after retries
         #expect(h.mock.streamCount > done.segments.count) // retries actually happened
+    }
+
+    @Test("A destination bookmark that no longer resolves fails the download with a clear reason")
+    func unresolvableDestinationBookmarkFails() async throws {
+        let payload = makePayload(20_000)
+        let h = try await Harness(data: payload)
+        defer { h.cleanup() }
+
+        // A non-nil bookmark that can't be resolved to a security-scoped URL (folder moved/revoked,
+        // here simulated with garbage) must fail fast — not attempt to write and error cryptically.
+        var request = h.request()
+        request.destinationBookmark = Data("not-a-resolvable-bookmark".utf8)
+        let download = await h.manager.add(request)
+
+        let done = try await h.waitFor(download.id) { if case .failed = $0.status { return true } else { return false } }
+        guard case .failed(let reason) = done.status else { Issue.record("expected a failed status"); return }
+        #expect(reason.contains("no longer accessible"))
+        #expect(!FileManager.default.fileExists(atPath: download.destinationFilePath))   // nothing written
+    }
+
+    @Test("A resumable download restarts cleanly when the server's copy changes while paused")
+    func resumeRestartsOnServerContentChange() async throws {
+        let original = makePayload(300_000)
+        let h = try await Harness(data: original, etag: "\"v1\"")
+        h.mock.chunkSize = 2048
+        h.mock.perChunkDelay = .milliseconds(8)   // stay in-flight long enough to pause mid-transfer
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        try await awaitFirstBytes(h.manager, download.id)   // deterministic: pause only after real bytes land
+        await h.manager.pause(id: download.id)
+        let paused = try await h.waitFor(download.id) { $0.status == .paused }
+        #expect(paused.downloadedBytes > 0)
+
+        // The server swaps in different content (new bytes, new size, new ETag) while it's paused.
+        let replacement = Data((0..<180_000).map { UInt8(($0 &+ 100) % 251) })
+        h.mock.setResource(.init(data: replacement, acceptsRanges: true, suggestedFilename: "payload.bin", etag: "\"v2\""), for: h.url)
+        h.mock.perChunkDelay = .zero
+
+        await h.manager.resume(id: download.id)
+        let done = try await h.waitFor(download.id) { $0.status == .completed }
+        #expect(try h.fileData(done) == replacement)      // the NEW content, not old+new stitched together
+        #expect(done.etag == "\"v2\"")
+        #expect(done.totalBytes == Int64(replacement.count))
+    }
+
+    @Test("An unknown-size response that yields zero bytes fails instead of completing empty")
+    func unknownSizeZeroBytesFails() async throws {
+        let h = try await Harness(data: Data())
+        // Emulate a server that advertises no size and then sends nothing (truncated/empty response).
+        h.mock.setResource(.init(data: Data(), acceptsRanges: false, advertisesSize: false), for: h.url)
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        let done = try await h.waitFor(download.id) { if case .failed = $0.status { return true } else { return false } }
+        if case .failed = done.status {} else { Issue.record("expected a failed status") }
+        #expect(!FileManager.default.fileExists(atPath: download.destinationFilePath))
     }
 
     @Test("Verifies a correct checksum and fails a wrong one")
@@ -197,8 +331,7 @@ struct EngineIntegrationTests {
         defer { h.cleanup() }
 
         let download = await h.manager.add(h.request())
-        _ = try await h.waitFor(download.id) { $0.status == .downloading }
-        try await Task.sleep(for: .milliseconds(120))   // let several chunks land
+        try await awaitFirstBytes(h.manager, download.id)   // deterministic: pause only after real bytes land
         await h.manager.pause(id: download.id)
         let paused = try await h.waitFor(download.id) { $0.status == .paused }
         #expect(paused.downloadedBytes > 0)
@@ -210,6 +343,32 @@ struct EngineIntegrationTests {
         #expect(try h.fileData(done) == payload)
     }
 
+    @Test("Resume restarts cleanly when the part file has vanished (no corrupt stitch)")
+    func resumeRestartsWhenPartFileMissing() async throws {
+        let payload = makePayload(400_000)
+        let h = try await Harness(data: payload)
+        h.mock.chunkSize = 2048
+        h.mock.perChunkDelay = .milliseconds(8)   // slow enough to pause mid-flight
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        try await awaitFirstBytes(h.manager, download.id)
+        await h.manager.pause(id: download.id)
+        let paused = try await h.waitFor(download.id) { $0.status == .paused }
+        #expect(paused.downloadedBytes > 0)
+        #expect(paused.downloadedBytes < Int64(payload.count))   // a genuine partial to resume from
+
+        // The part file that backs the persisted segment offsets disappears — deleted, moved, or
+        // orphaned by a format change. Resuming from those offsets into a fresh, zero-filled file
+        // would stitch garbage into the output; the engine must discard the stale progress instead.
+        try FileManager.default.removeItem(atPath: paused.partFilePath)
+
+        h.mock.perChunkDelay = .zero
+        await h.manager.resume(id: download.id)
+        let done = try await h.waitFor(download.id) { $0.status == .completed }
+        #expect(try h.fileData(done) == payload)   // byte-perfect ⇒ a clean restart, not a corrupt resume
+    }
+
     @Test("Resume issued immediately after pause is honored (no stuck-paused race)")
     func pauseThenImmediateResumeCompletes() async throws {
         let payload = makePayload(400_000)
@@ -219,8 +378,7 @@ struct EngineIntegrationTests {
         defer { h.cleanup() }
 
         let download = await h.manager.add(h.request())
-        _ = try await h.waitFor(download.id) { $0.status == .downloading }
-        try await Task.sleep(for: .milliseconds(60))   // let some bytes land
+        try await awaitFirstBytes(h.manager, download.id)   // deterministic: pause only after real bytes land
 
         // Pause then resume back-to-back, without waiting for `.paused` in between. Because
         // pause() awaits the task's full unwind, the resume's `.queued` can't be clobbered by
@@ -260,11 +418,7 @@ struct EngineIntegrationTests {
         let added = await manager1.add(DownloadRequest(url: url, suggestedFileName: "relaunch.bin", destinationDirectoryPath: directory.path))
         // Let it get in-flight and transfer some bytes, then pause.
         let deadline = ContinuousClock().now + .seconds(10)
-        while ContinuousClock().now < deadline {
-            if let d = await manager1.snapshot().downloads.first(where: { $0.id == added.id }), d.status == .downloading { break }
-            try await Task.sleep(for: .milliseconds(15))
-        }
-        try await Task.sleep(for: .milliseconds(120))
+        try await awaitFirstBytes(manager1, added.id)   // deterministic: pause only after real bytes land
         await manager1.pause(id: added.id)
         var partialBytes: Int64 = 0
         while ContinuousClock().now < deadline {

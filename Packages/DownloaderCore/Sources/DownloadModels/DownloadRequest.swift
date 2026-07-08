@@ -6,6 +6,9 @@ import Foundation
 /// `Download` once it knows the file size and resume support.
 public struct DownloadRequest: Sendable, Hashable {
     public var url: URL
+    /// Additional mirror URLs for the same content (from a Metalink), strongest-first and excluding
+    /// `url` — the engine spreads segments across them and fails over between them.
+    public var mirrors: [URL]
     /// Override for the file name; when `nil`, the engine derives it from the URL/headers.
     public var suggestedFileName: String?
     public var destinationDirectoryPath: String
@@ -32,6 +35,7 @@ public struct DownloadRequest: Sendable, Hashable {
 
     public init(
         url: URL,
+        mirrors: [URL] = [],
         suggestedFileName: String? = nil,
         destinationDirectoryPath: String,
         destinationBookmark: Data? = nil,
@@ -49,6 +53,7 @@ public struct DownloadRequest: Sendable, Hashable {
         cookies: String? = nil
     ) {
         self.url = url
+        self.mirrors = mirrors
         self.suggestedFileName = suggestedFileName
         self.destinationDirectoryPath = destinationDirectoryPath
         self.destinationBookmark = destinationBookmark
