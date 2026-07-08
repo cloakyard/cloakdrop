@@ -86,20 +86,9 @@ targets:
               - public.url
               - public.utf8-plain-text
     dependencies:
-      # Bundled Safari Web Extension, embedded into Contents/PlugIns and signed on copy.
-      - target: CloakDropSafariExtension
-        embed: true
       # Native share-sheet extension ("Share ▸ CloakDrop"), embedded into Contents/PlugIns.
       - target: CloakDropShareExtension
         embed: true
-      # Native-messaging host for the Chrome/Edge/Brave/Firefox extension, embedded into
-      # Contents/MacOS (resolved at runtime via `Bundle.main.url(forAuxiliaryExecutable:)`) and
-      # re-signed on copy so it carries the app's identity/entitlements.
-      - target: CloakDropNativeHost
-        embed: true
-        codeSign: true
-        copy:
-          destination: executables
       - package: DownloaderCore
         product: DownloadModels
       - package: DownloaderCore
@@ -176,71 +165,6 @@ targets:
           find "${DEST}/_internal" -type f \( -name "*.so" -o -name "*.dylib" \) -exec "${SIGN[@]}" {} +
           [ -d "${DEST}/_internal/Python.framework" ] && "${SIGN[@]}" --deep "${DEST}/_internal/Python.framework"
           "${SIGN[@]}" --entitlements "${ENT}" "${DEST}/yt-dlp"
-
-  # Safari Web Extension: the native "Download with CloakDrop" path. The web half (manifest +
-  # background service worker) lives in SafariExtension/WebExtension; the native handler validates
-  # the capture and drops it in the shared App Group inbox for the app to pick up.
-  CloakDropSafariExtension:
-    type: app-extension
-    platform: macOS
-    sources:
-      - path: SafariExtension
-        excludes:
-          - "Info.plist"
-          - "CloakDropSafariExtension.entitlements"
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.cloakyard.cloakdrop.SafariExtension
-        PRODUCT_NAME: CloakDropSafariExtension
-        PRODUCT_MODULE_NAME: CloakDropSafariExtension
-        # Debug: sandbox only (team-less). Release: adds the shared App Group (needs a team).
-        CODE_SIGN_ENTITLEMENTS: SafariExtension/CloakDropSafariExtension.entitlements
-      configs:
-        Release:
-          CODE_SIGN_ENTITLEMENTS: SafariExtension/CloakDropSafariExtension.Release.entitlements
-    info:
-      path: SafariExtension/Info.plist
-      properties:
-        CFBundleName: CloakDrop
-        CFBundleDisplayName: CloakDrop
-        CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "1"
-        LSMinimumSystemVersion: "26.0"
-        NSHumanReadableCopyright: "CloakDrop is part of the Cloakyard privacy-first suite. Runs entirely on-device."
-        NSExtension:
-          NSExtensionPointIdentifier: com.apple.Safari.web-extension
-          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).SafariWebExtensionHandler
-    dependencies:
-      - package: DownloaderCore
-        product: DownloadModels
-
-  # Native-messaging host: the bridge for the Chrome/Edge/Brave/Firefox extension (Phase 3c). A tiny
-  # stdio helper the browser launches; it validates the capture and drops it in the shared App Group
-  # inbox — the same path the Safari extension uses. Deliberately NOT sandboxed (browser-launched),
-  # so it ships in the Developer ID build, not the Mac App Store build.
-  CloakDropNativeHost:
-    type: tool
-    platform: macOS
-    sources:
-      - path: NativeMessagingHost
-        excludes:
-          - "CloakDropNativeHost.Release.entitlements"
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.cloakyard.cloakdrop.NativeHost
-        PRODUCT_NAME: CloakDropNativeHost
-        # Debug: no entitlements — a team-less, non-sandboxed helper. Release: adds the App Group so
-        # the browser-launched host can reach the shared inbox (needs a development team).
-      configs:
-        Release:
-          CODE_SIGN_ENTITLEMENTS: NativeMessagingHost/CloakDropNativeHost.Release.entitlements
-          # Defined alongside the App Group entitlement: only then does the host actually share the
-          # inbox with the app. In Debug it's absent, so the host reports the inbox unavailable and
-          # the extension falls back to cloakdrop:// (see relay() in main.swift).
-          SWIFT_ACTIVE_COMPILATION_CONDITIONS: APP_GROUP_INBOX
-    dependencies:
-      - package: DownloaderCore
-        product: DownloadModels
 
   # Native share-sheet extension: accepts a web URL shared from any app and drops it in the shared
   # inbox for the app to confirm — the same path as the Safari/browser extensions (Phase 3d).

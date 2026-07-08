@@ -29,7 +29,7 @@ Serious multi-segment download power with the look and feel of a first-party app
 | 🗂️ **Queues, categories & rules** | Per-queue concurrency limits, smart filters, a rule-based routing engine (folder / queue / speed cap / auto-start), duplicate detection, and auto-sorting of finished files into per-type folders. |
 | 📦 **Post-processing** | Native ZIP auto-extraction (Zip-Slip + decompression-bomb guarded), a Gatekeeper quarantine flag on saved files, and post-download actions (notify / quit / run a Shortcut). |
 | 📋 **Effortless capture** | Clipboard watching, drag & drop, a link-grabber (paste mixed links or **grab all** from a page → dedupe → pattern-expand `file[01-50].zip` → pick), scheduler, Keychain-backed HTTP/FTP auth, cookies/referrer, and system/manual proxy. |
-| 🌐 **Browser & system capture** | Safari, Chrome/Edge/Brave, and Firefox extensions — plus a Share Extension and a "Send to CloakDrop" Services item — funnel through one on-device inbox. They detect page media (HLS/DASH manifests, direct files, `attachment` responses) with an on-video **Save** pill and, IDM-style, can **take over browser downloads**, falling back to the browser untouched if the app isn't reachable so a file is never lost. |
+| 🌐 **Built-in browser** | A WebKit browser inside the app (⇧⌘B): visit any site and a live badge lists the video, audio, and files on the page (HLS/DASH manifests, direct files, `attachment` responses) — deduped down to the one thing worth grabbing. IDM-style, it **takes over downloads** the moment a page starts one. Streams open a quality picker so you choose the resolution; logged-in grabs carry your cookies. Plus a Share Extension and a "Send to CloakDrop" Services item for capture from other apps. |
 | 🎬 **Media grabbing** | Detects HLS (`.m3u8`) and DASH (`.mpd`) streams, lists qualities, decrypts AES-128, and pairs each video rendition with its audio track — muxed into a clean, playable file with no re-encode (AVFoundation → `.mp4`/`.m4a`; bundled ffmpeg stream-copies VP9/AV1/Opus → `.mkv`). |
 | 🎥 **Site & video extraction** | Paste a YouTube page — or any of the **~1800 sites** yt-dlp knows — and CloakDrop resolves the formats and grabs them with **its own** segmented engine. yt-dlp only *reads and deciphers*; it never downloads a byte, so pause/resume, persistence, and the sandbox stay CloakDrop's. |
 | 🪞 **Multi-source mirrors** | Open a Metalink (`.metalink` / `.meta4`) and CloakDrop spreads segments across its mirrors, fails over the moment one dies or serves corrupt bytes, and verifies the finished file against the Metalink checksum. |
@@ -59,7 +59,7 @@ CloakDrop makes **no** network requests except to the URLs you choose to downloa
 | Integrity | CryptoKit (checksums) + Security framework (code-signature trust, Provenance Receipt) |
 | Media | AVFoundation for passthrough remux/mux (HLS/DASH → clean `.mp4`/`.m4a`) with a bundled ffmpeg fallback for VP9/AV1/Opus (→ `.mkv`), plus poster-frame thumbnails |
 | Extraction | A bundled, code-signed **yt-dlp** as a read-only page→formats resolver (YouTube + ~1800 sites); it deciphers URLs while CloakDrop's own engine downloads every byte |
-| Capture | Safari/WebExtension + native-messaging host + Share/Services, bridged through a shared App Group inbox |
+| Capture | A built-in WebKit browser (first-party media sniffing + download takeover), plus Share/Services bridged through a shared App Group inbox |
 | Build | XcodeGen (`project.yml` → `.xcodeproj`), SwiftLint |
 
 No third-party Swift dependencies beyond GRDB. Two native command-line tools — **ffmpeg** (muxing) and **yt-dlp** (page extraction) — are bundled as code-signed, sandboxed helper binaries via opt-in build scripts (`scripts/fetch-ffmpeg.sh`, `scripts/fetch-ytdlp.sh`); both only ever *read* or *transform* and add no network egress of their own.
@@ -80,7 +80,7 @@ open CloakDrop.xcodeproj                # …or build from the command line:
 xcodebuild -project CloakDrop.xcodeproj -scheme CloakDrop -destination 'platform=macOS' build
 ```
 
-The `.xcodeproj` is generated and git-ignored — regenerate it any time with `xcodegen generate`. To package a shareable installer DMG (drag-to-Applications, with the browser extension and a guide), run `scripts/dmg/make-dmg.sh <path/to/CloakDrop.app>`.
+The `.xcodeproj` is generated and git-ignored — regenerate it any time with `xcodegen generate`. To package a shareable installer DMG (drag-to-Applications, with an install guide), run `scripts/dmg/make-dmg.sh <path/to/CloakDrop.app>`.
 
 ## 🧪 Testing
 
@@ -99,12 +99,9 @@ swift test
 cloakdrop/
 ├── App/                    # Thin SwiftUI app shell (CloakDrop target)
 │   ├── App/                #   @main entry, AppModel, environment
-│   ├── Features/           #   Sidebar · DownloadList · Inspector · AddDownload · Settings
+│   ├── Features/           #   Sidebar · DownloadList · Inspector · AddDownload · Browser · Settings
 │   ├── Ambient/            #   MenuBarExtra · Dock progress · Notifications
 │   └── Shared/             #   Formatters, icons, shared views
-├── SafariExtension/        # Bundled Safari Web Extension (App-Store-friendly capture)
-├── BrowserExtension/       # MV3 extension for Chrome · Edge · Brave · Firefox
-├── NativeMessagingHost/    # stdio host bridging those browsers to the app
 ├── ShareExtension/         # macOS share-sheet capture
 ├── scripts/                # Opt-in helpers: fetch-ffmpeg.sh · fetch-ytdlp.sh (bundle & sign the native tools) · dmg/ (build the installer DMG)
 └── Packages/

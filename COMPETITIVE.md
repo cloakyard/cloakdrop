@@ -41,8 +41,8 @@ Legend: ✅ full · ⚠️ partial/limited · ❌ none · 🚫 deliberately out 
 | **Provenance Receipt (verified-download record)** | ✅ **unique** | ❌ | ❌ | ❌ |
 | **C2PA / Content Credentials verify on ingest** | ❌ *(white space)* | ❌ | ❌ | ❌ |
 | **Intake** |
-| Browser extensions | ✅ (Safari + Chromium + Firefox) | ✅ | ✅ | ✅ |
-| Browser-download interception (takeover) | ✅ (fail-safe: falls back to the browser) | ✅ | ✅ | ⚠️ |
+| Built-in browser (grab media by browsing in-app; no extension to install) | ✅ (WebKit + first-party sniffing) | ❌ | ❌ | ❌ |
+| Browser-download interception (takeover) | ✅ (native, inside the built-in browser) | ✅ | ✅ | ⚠️ |
 | Clipboard monitor / drag-drop | ✅ | ✅ | ✅ | ✅ |
 | Batch / pattern add | ✅ | ✅ | ⚠️ | ✅ |
 | Link-grabber (paste wall → analyze → pick) | ✅ | ⚠️ | ⚠️ | ✅ (best) |

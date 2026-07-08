@@ -97,7 +97,7 @@ struct CapturedDownloadTests {
         // A page capture round-trips its flag through cloakdropURL().
         let capture = CapturedDownload(
             url: URL(string: "https://www.youtube.com/watch?v=abc")!,
-            extractFromPage: true, source: .browserExtension
+            extractFromPage: true, source: .builtInBrowser
         )
         let round = try CapturedDownload.parse(cloakdropURL: #require(capture.cloakdropURL()))
         #expect(round.extractFromPage == true)
@@ -107,15 +107,6 @@ struct CapturedDownloadTests {
     func noExtractByDefault() throws {
         let parsed = try CapturedDownload.parse(cloakdropURL: URL(string: "cloakdrop://add?url=https://x/y.mp4")!)
         #expect(parsed.extractFromPage != true)
-    }
-
-    @Test("The extension message extract:true routes to the extractor")
-    func extractFlagExtensionMessage() throws {
-        let capture = try CapturedDownload.parse(
-            extensionMessage: ["url": "https://www.youtube.com/watch?v=abc", "extract": true],
-            source: .browserExtension
-        )
-        #expect(capture.extractFromPage == true)
     }
 
     @Test("Missing url query item is rejected")
@@ -173,7 +164,7 @@ struct CapturedDownloadTests {
         let capture = CapturedDownload(
             url: URL(string: "https://example.com/f")!,
             cookies: String(repeating: "a", count: CapturedDownload.Limits.cookies + 1),
-            source: .safariExtension
+            source: .shareExtension
         )
         #expect(throws: CapturedDownload.CaptureError.self) {
             _ = try capture.validated()
@@ -187,7 +178,7 @@ struct CapturedDownloadTests {
         let capture = CapturedDownload(
             url: URL(string: "https://example.com/f")!,
             extraHeaders: headers,
-            source: .browserExtension
+            source: .builtInBrowser
         )
         #expect(throws: CapturedDownload.CaptureError.tooManyHeaders(max: CapturedDownload.Limits.headerCount)) {
             _ = try capture.validated()
@@ -226,70 +217,6 @@ struct CapturedDownloadTests {
         #expect(request.requestHeaders["X-Extra"] == "1")
     }
 
-    // MARK: browser extension message
-
-    @Test("Parses a full native-message dictionary from the browser extension")
-    func parsesExtensionMessage() throws {
-        let message: [String: Any] = [
-            "url": "https://example.com/big.zip",
-            "filename": "big.zip",
-            "referrer": "https://example.com/page",
-            "cookies": "session=abc; theme=dark",
-            "userAgent": "Mozilla/5.0 (Macintosh)",
-            "headers": ["X-Token": "secret123"]
-        ]
-        let capture = try CapturedDownload.parse(extensionMessage: message)
-
-        #expect(capture.url.absoluteString == "https://example.com/big.zip")
-        #expect(capture.suggestedFileName == "big.zip")
-        #expect(capture.referrer == "https://example.com/page")
-        #expect(capture.cookies == "session=abc; theme=dark")
-        #expect(capture.userAgent == "Mozilla/5.0 (Macintosh)")
-        #expect(capture.extraHeaders["X-Token"] == "secret123")
-        #expect(capture.source == .safariExtension)
-    }
-
-    @Test("Blank string fields in a message are treated as absent")
-    func extensionMessageBlanksAreNil() throws {
-        let message: [String: Any] = [
-            "url": "https://example.com/file.bin",
-            "filename": "",
-            "referrer": "   ",
-            "cookies": "",
-            "userAgent": ""
-        ]
-        let capture = try CapturedDownload.parse(extensionMessage: message)
-        #expect(capture.suggestedFileName == nil)
-        #expect(capture.referrer == nil)
-        #expect(capture.cookies == nil)
-        #expect(capture.userAgent == nil)
-    }
-
-    @Test("A message without a url is rejected")
-    func extensionMessageMissingURL() {
-        #expect(throws: CapturedDownload.CaptureError.missingURL) {
-            _ = try CapturedDownload.parse(extensionMessage: ["filename": "x"])
-        }
-    }
-
-    @Test("A message with an insecure target scheme is rejected")
-    func extensionMessageInsecureScheme() {
-        #expect(throws: CapturedDownload.CaptureError.self) {
-            _ = try CapturedDownload.parse(extensionMessage: ["url": "file:///etc/passwd"])
-        }
-    }
-
-    @Test("An oversized cookie from the extension is rejected by validation")
-    func extensionMessageOversizedField() {
-        let message: [String: Any] = [
-            "url": "https://example.com/f",
-            "cookies": String(repeating: "a", count: CapturedDownload.Limits.cookies + 1)
-        ]
-        #expect(throws: CapturedDownload.CaptureError.self) {
-            _ = try CapturedDownload.parse(extensionMessage: message)
-        }
-    }
-
     // MARK: audio pairing (adaptive video + separate audio, e.g. YouTube)
 
     @Test("An audio param is parsed as the separate audio URL")
@@ -311,20 +238,11 @@ struct CapturedDownloadTests {
         let original = CapturedDownload(
             url: URL(string: "https://cdn.example/v.mp4")!,
             audioURL: URL(string: "https://cdn.example/a.m4a")!,
-            source: .browserExtension
+            source: .builtInBrowser
         )
         let link = try #require(original.cloakdropURL())
         let parsed = try CapturedDownload.parse(cloakdropURL: link)
         #expect(parsed.audioURL == original.audioURL)
-    }
-
-    @Test("A native message's audioURL key is parsed")
-    func parsesAudioURLFromExtensionMessage() throws {
-        let capture = try CapturedDownload.parse(extensionMessage: [
-            "url": "https://cdn.example/v.mp4",
-            "audioURL": "https://cdn.example/a.m4a"
-        ])
-        #expect(capture.audioURL?.absoluteString == "https://cdn.example/a.m4a")
     }
 
     @Test("An insecure audio scheme is rejected by validation")
@@ -332,7 +250,7 @@ struct CapturedDownloadTests {
         let capture = CapturedDownload(
             url: URL(string: "https://cdn.example/v.mp4")!,
             audioURL: URL(string: "file:///etc/passwd")!,
-            source: .browserExtension
+            source: .builtInBrowser
         )
         #expect(throws: CapturedDownload.CaptureError.self) {
             _ = try capture.validated()
@@ -342,7 +260,7 @@ struct CapturedDownloadTests {
     @Test("A capture serialized before audioURL existed still decodes (audioURL nil)")
     func decodesLegacyJSONWithoutAudioURL() throws {
         // JSON with no audioURL key — what an older build wrote to the App Group inbox.
-        let json = #"{"url":"https://example.com/f.zip","extraHeaders":{},"source":"browserExtension"}"#
+        let json = #"{"url":"https://example.com/f.zip","extraHeaders":{},"source":"shareExtension"}"#
         let decoded = try JSONDecoder().decode(CapturedDownload.self, from: Data(json.utf8))
         #expect(decoded.url.absoluteString == "https://example.com/f.zip")
         #expect(decoded.audioURL == nil)
@@ -359,7 +277,7 @@ struct CapturedDownloadTests {
             cookies: "a=b; c=d",
             userAgent: "UA/2.0",
             extraHeaders: ["X-One": "1", "X-Two": "2"],
-            source: .safariExtension
+            source: .shareExtension
         )
         let data = try JSONEncoder().encode(capture)
         let decoded = try JSONDecoder().decode(CapturedDownload.self, from: data)

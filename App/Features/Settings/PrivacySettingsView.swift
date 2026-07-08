@@ -90,6 +90,7 @@ struct PrivacySettingsView: View {
                 """,
                 bullets: [
                     "The download links you choose — and any redirects or mirrors they point to.",
+                    // swiftlint:disable:next line_length
                     "The sites you visit in the built-in browser — the pages you open, and (if address-bar search is on) the query you type when you press Return.",
                     "A proxy server, and only if you configure one in Network settings.",
                     "A speed-test provider (Cloudflare or Ookla), and only while a test you started is running."

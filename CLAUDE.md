@@ -29,7 +29,7 @@ Lint (config in `.swiftlint.yml`, covers `App/` and `Packages/DownloaderCore/Sou
 swiftlint
 ```
 
-Package a shareable installer DMG (stylised drag-to-Applications, plus the Chrome extension folder and an install guide):
+Package a shareable installer DMG (stylised drag-to-Applications, plus an install guide):
 
 ```bash
 scripts/dmg/make-dmg.sh <path/to/CloakDrop.app> [output.dmg]   # artwork source: scripts/dmg/background.swift

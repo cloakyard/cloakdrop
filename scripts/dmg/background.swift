@@ -6,13 +6,13 @@
 //
 //   swift background.swift <app-icon.png> <out.png>
 //
-// SF Rounded wordmark, soft framed cards behind each icon row, dimensional brand-purple step
-// badges, and a single-polygon arrow — on a soft lavender gradient.
+// SF Rounded wordmark, a soft framed card behind the drag-to-install row, a dimensional
+// brand-purple step badge, and a single-polygon arrow — on a soft lavender gradient.
 
 import AppKit
 
 let W: CGFloat = 720
-let H: CGFloat = 640
+let H: CGFloat = 560
 
 let iconPath = CommandLine.arguments[1]   // pre-glassed app icon PNG for the header
 let outPath  = CommandLine.arguments[2]
@@ -141,9 +141,8 @@ let image = NSImage(size: NSSize(width: W, height: H), flipped: true) { _ in
                   toCenter: NSPoint(x: W / 2, y: 72), radius: 280, options: [])
     }
 
-    // Framed wells behind the two icon rows (Finder overlays the real icons on top).
-    drawCard(NSRect(x: 96, y: 232, width: 528, height: 156))    // install row
-    drawCard(NSRect(x: 96, y: 448, width: 528, height: 150))    // extension row
+    // Framed well behind the drag-to-install icon row (Finder overlays the real icons on top).
+    drawCard(NSRect(x: 96, y: 232, width: 528, height: 152))    // install row
 
     // Header: logo, wordmark, tagline.
     if let logo = NSImage(contentsOfFile: iconPath) {
@@ -160,12 +159,13 @@ let image = NSImage(size: NSSize(width: W, height: H), flipped: true) { _ in
     draw("CloakDrop", roundedFont(32, .bold), ink, centerX: W / 2, centerY: 114)
     draw("Private download manager for macOS", roundedFont(13.5, .regular), secondary, centerX: W / 2, centerY: 140)
 
-    // Step 1 — install. The arrow bridges the app icon and Applications alias placed by Finder.
-    drawStep("1", "Drag CloakDrop into your Applications folder", centerY: 198)
-    drawArrow(x0: 287, tipX: 433, y: 300)
+    // The one step. The arrow bridges the app icon and Applications alias placed by Finder at y=296.
+    drawStep("1", "Drag CloakDrop into your Applications folder", centerY: 196)
+    drawArrow(x0: 287, tipX: 433, y: 296)
 
-    // Step 2 — extension. Finder overlays "Chrome Extension" and "Read Me.txt" in the lower card.
-    drawStep("2", "Optional — load the Chrome Extension (see Read Me)", centerY: 424)
+    // A quiet caption above the "Read Me.txt" Finder icon (placed at y=470).
+    draw("New here? Open Read Me for a 20-second tour.",
+         roundedFont(12.5, .regular), secondary, centerX: W / 2, centerY: 424)
 
     return true
 }

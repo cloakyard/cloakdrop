@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Build the stylised CloakDrop installer DMG — a drag-to-Applications window that also carries the
-# Chrome extension folder and an install guide, on the branded background rendered by background.swift.
+# Build the stylised CloakDrop installer DMG — a drag-to-Applications window with an install guide,
+# on the branded background rendered by background.swift.
 #
 # Usage:
 #   scripts/dmg/make-dmg.sh <path/to/CloakDrop.app> [output.dmg]
@@ -41,13 +41,6 @@ sips -s dpiWidth 144 -s dpiHeight 144 "$STAGE/.background/background.png" >/dev/
 # Keep a version-controlled preview copy next to the source art.
 cp "$STAGE/.background/background.png" "$HERE/background.png"
 
-echo "▸ Assembling Chrome extension folder…"
-CHROME="$STAGE/Chrome Extension"
-mkdir -p "$CHROME"
-cp "$REPO"/BrowserExtension/shared/* "$CHROME/"
-cp "$REPO/BrowserExtension/manifest.chrome.json" "$CHROME/manifest.json"
-python3 -c "import json; json.load(open('$CHROME/manifest.json'))"  # fail loud on malformed JSON
-
 echo "▸ Staging app, guide, Applications alias, volume icon…"
 ditto "$APP" "$STAGE/CloakDrop.app"
 cp "$HERE/ReadMe.txt" "$STAGE/Read Me.txt"
@@ -73,17 +66,16 @@ tell application "Finder"
     set current view of container window to icon view
     set toolbar visible of container window to false
     set statusbar visible of container window to false
-    -- 720x640 content + 28pt title bar
-    set the bounds of container window to {240, 110, 960, 778}
+    -- 720x560 content + 28pt title bar
+    set the bounds of container window to {240, 110, 960, 698}
     set theView to the icon view options of container window
     set arrangement of theView to not arranged
     set icon size of theView to 104
     set text size of theView to 12
     set background picture of theView to file ".background:background.png"
-    set position of item "CloakDrop.app" of container window to {215, 300}
-    set position of item "Applications" of container window to {505, 300}
-    set position of item "Chrome Extension" of container window to {252, 514}
-    set position of item "Read Me.txt" of container window to {470, 514}
+    set position of item "CloakDrop.app" of container window to {215, 296}
+    set position of item "Applications" of container window to {505, 296}
+    set position of item "Read Me.txt" of container window to {360, 470}
     update without registering applications
     delay 1
     close

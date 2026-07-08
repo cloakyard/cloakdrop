@@ -204,10 +204,13 @@ final class AppModel {
         }
         if clipboardMonitoringEnabled { clipboard.start() }
 
-        // Drain any captures the bundled extensions dropped while we were launching, then watch for
-        // new ones arriving via the Darwin wake signal.
+        // Drain any captures the share extension / deep links dropped while we were launching, then
+        // watch for new ones arriving via the Darwin wake signal.
         drainCaptureInbox()
         CaptureInboxObserver.shared.start { [weak self] in self?.drainCaptureInbox() }
+
+        // One-time tidy-up of the removed browser extensions' native-messaging manifests.
+        LegacyExtensionCleanup.runIfNeeded()
     }
 
     private func startObservingEvents() {
@@ -546,7 +549,7 @@ final class AppModel {
         enqueueCapture(capture)
     }
 
-    /// Pull every capture the bundled extensions dropped into the shared App Group inbox and start
+    /// Pull every capture the Share extension / deep links dropped into the shared App Group inbox and start
     /// them. Called on the Darwin wake signal and once on launch (for anything that arrived while the
     /// app was closed).
     func drainCaptureInbox() {
