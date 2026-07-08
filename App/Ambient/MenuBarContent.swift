@@ -38,7 +38,7 @@ struct MenuBarContent: View {
             model.settingsSelection = .speedTest
             openSettings()
         }
-        Button("Report a Bug…") { NSWorkspace.shared.open(AppLinks.reportBug) }
+        Button("Report a Bug…") { NSWorkspace.shared.open(BugReport.issueURL) }
         Button("Quit CloakDrop") { NSApp.terminate(nil) }
     }
 

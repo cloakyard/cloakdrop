@@ -258,7 +258,7 @@ struct SettingsView: View {
                     url: AppLinks.repository
                 )
                 Divider()
-                linkRow(symbol: "ladybug", label: Text("Report a Bug"), url: AppLinks.reportBug)
+                linkRow(symbol: "ladybug", label: Text("Report a Bug"), url: BugReport.issueURL)
             }
             .padding(.vertical, 4)
             .padding(.horizontal, 14)

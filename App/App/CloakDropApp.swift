@@ -89,7 +89,7 @@ struct CloakDropCommands: Commands {
         // The macOS-standard home for "Report a Bug" is the Help menu; also mirrored in the
         // menu-bar extra for one-click access while the main window is closed.
         CommandGroup(replacing: .help) {
-            Button("Report a Bug…") { NSWorkspace.shared.open(AppLinks.reportBug) }
+            Button("Report a Bug…") { NSWorkspace.shared.open(BugReport.issueURL) }
         }
     }
 }
