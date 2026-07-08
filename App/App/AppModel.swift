@@ -101,6 +101,14 @@ final class AppModel {
     private(set) var pendingDuplicateAdds: [DuplicateAdd] = []
     var currentDuplicateAdd: DuplicateAdd? { pendingDuplicateAdds.first }
 
+    /// Whether the built-in browser's address bar treats non-URL text as a DuckDuckGo search (on)
+    /// or always tries it as an `https://` address (off). Off means zero query egress from typing.
+    /// Persisted in UserDefaults.
+    var browserSearchEnabled: Bool {
+        didSet { UserDefaults.standard.set(browserSearchEnabled, forKey: Self.browserSearchKey) }
+    }
+    static let browserSearchKey = "browserSearchEnabled"
+
     /// Whether clipboard monitoring is on. Persisted in UserDefaults.
     var clipboardMonitoringEnabled: Bool {
         didSet {
@@ -139,6 +147,8 @@ final class AppModel {
         self.clipboardMonitoringEnabled = UserDefaults.standard.bool(forKey: Self.clipboardKey)
         self.askQualityEnabled = UserDefaults.standard.bool(forKey: Self.askQualityKey)
         self.grabSubtitlesEnabled = UserDefaults.standard.bool(forKey: Self.grabSubtitlesKey)
+        // Address-bar search defaults ON (absent key → true) for a browser that feels normal.
+        self.browserSearchEnabled = UserDefaults.standard.object(forKey: Self.browserSearchKey) as? Bool ?? true
         self.launchAtLoginEnabled = loginItem.isEnabled
     }
 

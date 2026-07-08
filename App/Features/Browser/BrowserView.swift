@@ -44,6 +44,7 @@ struct BrowserView: View {
         .frame(minWidth: 760, minHeight: 480)
         .onAppear {
             session.sink = model
+            session.searchEnabled = model.browserSearchEnabled
             session.onOpenWindow = { openWindow(id: BrowserScene.windowID, value: BrowserLaunch(url: $0, openedByPage: true)) }
             BrowserStore.shared.applyProxy(model.settings.resolvedProxy)
             if let initialURL {
@@ -58,6 +59,7 @@ struct BrowserView: View {
         .onChange(of: session.urlBarFocusToken) { urlBarFocused = true }
         .onChange(of: urlBarFocused) { session.isEditingURLBar = urlBarFocused }
         .onChange(of: session.dialog?.id) { promptText = session.dialog?.promptDefault ?? "" }
+        .onChange(of: model.browserSearchEnabled) { session.searchEnabled = model.browserSearchEnabled }
         .alert(dialogTitle, isPresented: dialogPresented, presenting: session.dialog) { dialog in
             dialogButtons(dialog)
         } message: { dialog in

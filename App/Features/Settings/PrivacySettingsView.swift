@@ -90,6 +90,7 @@ struct PrivacySettingsView: View {
                 """,
                 bullets: [
                     "The download links you choose — and any redirects or mirrors they point to.",
+                    "The sites you visit in the built-in browser — the pages you open, and (if address-bar search is on) the query you type when you press Return.",
                     "A proxy server, and only if you configure one in Network settings.",
                     "A speed-test provider (Cloudflare or Ookla), and only while a test you started is running."
                 ],
@@ -128,12 +129,15 @@ struct PrivacySettingsView: View {
             neither tool opens a network connection of its own.
             """)
 
-            section("Browser extensions", """
-            The optional Safari, Chrome, and Firefox extensions detect downloadable media on the \
-            page you are viewing and pass it to CloakDrop. When you pick a download, the extension \
-            reads the cookies scoped to that one address — so files behind a login download \
-            correctly — and forwards them a single time to the app on your Mac. Those cookies are \
-            never stored by the extension and never sent anywhere else.
+            section("The built-in browser", """
+            CloakDrop has a browser built in: open it, visit any site, and grab the video, audio, \
+            or files on the page. It renders with the same WebKit engine as Safari and connects \
+            only to the sites you navigate to. It keeps no browsing history — only cookies and \
+            site data, so you stay signed in between launches — and one button in Browser settings \
+            wipes all of it. When you grab a file, the cookies scoped to that address ride along \
+            so downloads behind a login work; they go only to that site, exactly as your browsing \
+            already does. If you turn address-bar search off, nothing you type is ever sent to a \
+            search engine.
             """)
 
             section("Open source and licensing", """

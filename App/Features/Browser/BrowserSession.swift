@@ -128,6 +128,8 @@ final class BrowserSession: NSObject {
     private(set) var urlBarFocusToken = 0
     /// The view keeps this current so background navigation never stomps on the user's typing.
     var isEditingURLBar = false
+    /// Whether non-URL address-bar text becomes a DuckDuckGo search (mirrors the setting).
+    var searchEnabled = true
 
     weak var sink: (any BrowserCaptureSink)?
     /// Opens a sibling browser window (wired to `openWindow` by the view).
@@ -210,11 +212,11 @@ final class BrowserSession: NSObject {
     func commitURLBar() {
         let text = urlText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
-        guard let destination = Self.destination(for: text) else { return }
+        guard let destination = Self.destination(for: text, searchEnabled: searchEnabled) else { return }
         load(destination)
     }
 
-    static func destination(for text: String) -> URL? {
+    static func destination(for text: String, searchEnabled: Bool = true) -> URL? {
         if let url = URL(string: text), let scheme = url.scheme?.lowercased(),
            ["http", "https", "file", "about"].contains(scheme) {
             return url
@@ -222,6 +224,11 @@ final class BrowserSession: NSObject {
         // Address-like (a dot, no spaces): try it as https.
         if !text.contains(" "), text.contains("."), let url = URL(string: "https://" + text), url.host != nil {
             return url
+        }
+        // With search off, no query ever leaves — coerce the text to an https address instead.
+        guard searchEnabled else {
+            let stripped = text.split(separator: " ").joined()
+            return URL(string: "https://" + stripped)
         }
         // Otherwise a search — user-typed, submit-only (no keystroke egress ever).
         var components = URLComponents(string: "https://duckduckgo.com/")!

@@ -2536,6 +2536,71 @@
         }
       }
     },
+    "Address Bar": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Barra de direcciones"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Barre d’adresse"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adressleiste"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地址栏"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アドレスバー"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "주소 표시줄"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Barra de endereço"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Адресная строка"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "شريط العنوان"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पता बार"
+          }
+        }
+      }
+    },
     "After all downloads finish": {
       "extractionState": "manual",
       "localizations": {
@@ -4031,71 +4096,6 @@
         }
       }
     },
-    "Browser extensions": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "إضافات المتصفح"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Browsererweiterungen"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Extensiones de navegador"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Extensions de navigateur"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ब्राउज़र एक्सटेंशन"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ブラウザ拡張機能"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "브라우저 확장 프로그램"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Extensões de navegador"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Расширения для браузера"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "浏览器扩展"
-          }
-        }
-      }
-    },
     "Browsers": {
       "extractionState": "manual",
       "localizations": {
@@ -4157,6 +4157,71 @@
           "stringUnit": {
             "state": "translated",
             "value": "ब्राउज़र"
+          }
+        }
+      }
+    },
+    "Browsing Data": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datos de navegación"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Données de navigation"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browserdaten"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浏览数据"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "閲覧データ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "탐색 데이터"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dados de navegação"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Данные браузера"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بيانات التصفّح"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ब्राउज़िंग डेटा"
           }
         }
       }
@@ -5461,6 +5526,136 @@
         }
       }
     },
+    "Clear Browsing Data": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar datos de navegación"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer les données de navigation"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browserdaten löschen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除浏览数据"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "閲覧データを消去"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "탐색 데이터 지우기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar dados de navegação"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистить данные браузера"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مسح بيانات التصفّح"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ब्राउज़िंग डेटा साफ़ करें"
+          }
+        }
+      }
+    },
+    "Clear Browsing Data…": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar datos de navegación…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer les données de navigation…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browserdaten löschen…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除浏览数据…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "閲覧データを消去…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "탐색 데이터 지우기…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar dados de navegação…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистить данные браузера…"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مسح بيانات التصفّح…"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ब्राउज़िंग डेटा साफ़ करें…"
+          }
+        }
+      }
+    },
     "Clear Completed": {
       "extractionState": "manual",
       "localizations": {
@@ -5526,6 +5721,71 @@
         }
       }
     },
+    "Clear all browsing data?": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Borrar todos los datos de navegación?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer toutes les données de navigation ?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Browserdaten löschen?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除所有浏览数据？"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべての閲覧データを消去しますか？"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "모든 탐색 데이터를 지울까요?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar todos os dados de navegação?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистить все данные браузера?"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مسح جميع بيانات التصفّح؟"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सभी ब्राउज़िंग डेटा साफ़ करें?"
+          }
+        }
+      }
+    },
     "Clear folder": {
       "extractionState": "manual",
       "localizations": {
@@ -5587,6 +5847,71 @@
           "stringUnit": {
             "state": "translated",
             "value": "फ़ोल्डर हटाएँ"
+          }
+        }
+      }
+    },
+    "Cleared": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacé"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gelöscht"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已清除"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消去しました"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지워짐"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очищено"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم المسح"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "साफ़ किया गया"
           }
         }
       }
@@ -5717,6 +6042,71 @@
           "stringUnit": {
             "state": "translated",
             "value": "CloakDrop 不会收集、存储或传输任何个人信息，包括："
+          }
+        }
+      }
+    },
+    "CloakDrop has a browser built in: open it, visit any site, and grab the video, audio, or files on the page. It renders with the same WebKit engine as Safari and connects only to the sites you navigate to. It keeps no browsing history — only cookies and site data, so you stay signed in between launches — and one button in Browser settings wipes all of it. When you grab a file, the cookies scoped to that address ride along so downloads behind a login work; they go only to that site, exactly as your browsing already does. If you turn address-bar search off, nothing you type is ever sent to a search engine.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop lleva un navegador integrado: ábrelo, visita cualquier sitio y captura el vídeo, el audio o los archivos de la página. Se muestra con el mismo motor WebKit que Safari y solo se conecta a los sitios a los que navegas. No guarda historial de navegación, solo cookies y datos de sitios, para que sigas con la sesión iniciada entre inicios, y un botón en los ajustes del navegador lo borra todo. Cuando capturas un archivo, las cookies del ámbito de esa dirección lo acompañan para que las descargas tras un inicio de sesión funcionen; solo van a ese sitio, igual que ya hace tu navegación. Si desactivas la búsqueda en la barra de direcciones, nada de lo que escribes se envía a un motor de búsqueda."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop intègre un navigateur : ouvrez-le, visitez n’importe quel site et capturez la vidéo, l’audio ou les fichiers de la page. Il s’affiche avec le même moteur WebKit que Safari et ne se connecte qu’aux sites que vous parcourez. Il ne conserve aucun historique de navigation — seulement les cookies et les données de sites, pour que vous restiez connecté d’un lancement à l’autre — et un bouton dans les réglages du navigateur efface tout. Lorsque vous capturez un fichier, les cookies liés à cette adresse l’accompagnent pour que les téléchargements derrière une connexion fonctionnent ; ils ne vont qu’à ce site, exactement comme le fait déjà votre navigation. Si vous désactivez la recherche dans la barre d’adresse, rien de ce que vous saisissez n’est envoyé à un moteur de recherche."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop hat einen Browser eingebaut: Öffne ihn, besuche jede Website und schnapp dir das Video, das Audio oder die Dateien auf der Seite. Er wird mit derselben WebKit-Engine wie Safari dargestellt und verbindet sich nur mit den Websites, die du aufrufst. Er speichert keinen Browserverlauf – nur Cookies und Websitedaten, damit du zwischen den Starts angemeldet bleibst – und eine Schaltfläche in den Browsereinstellungen löscht alles. Wenn du eine Datei holst, kommen die auf diese Adresse beschränkten Cookies mit, damit Downloads hinter einer Anmeldung funktionieren; sie gehen nur an diese Website, genau wie es dein Surfen ohnehin tut. Wenn du die Adressleistensuche ausschaltest, wird nichts von dem, was du eingibst, an eine Suchmaschine gesendet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop 内置了一个浏览器：打开它，访问任意站点，抓取页面上的视频、音频或文件。它使用与 Safari 相同的 WebKit 引擎渲染，并且只连接你所访问的站点。它不保存浏览历史——只保存 Cookie 和网站数据，让你在两次启动之间保持登录状态——浏览器设置中的一个按钮即可清除全部。当你抓取文件时，作用于该地址的 Cookie 会一并携带，以便登录后的下载正常进行；它们只发送到该站点，与你的浏览行为完全一致。如果你关闭地址栏搜索，你输入的任何内容都不会发送到搜索引擎。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop にはブラウザが内蔵されています。開いて任意のサイトを訪れ、ページ上の動画・音声・ファイルを取得できます。Safari と同じ WebKit エンジンで表示され、あなたが移動したサイトにのみ接続します。閲覧履歴は保存せず、Cookie とサイトデータのみを保持するため、起動をまたいでサインイン状態が保たれます。ブラウザ設定のボタン一つですべて消去できます。ファイルを取得する際は、そのアドレスに限定された Cookie が同行するため、ログイン後のダウンロードも機能します。それらはそのサイトにのみ送信され、通常の閲覧とまったく同じです。アドレスバー検索をオフにすれば、入力内容が検索エンジンに送信されることはありません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop에는 브라우저가 내장되어 있습니다. 열어서 어떤 사이트든 방문하고 페이지의 동영상, 오디오 또는 파일을 가져오세요. Safari와 동일한 WebKit 엔진으로 렌더링되며 사용자가 이동한 사이트에만 연결합니다. 탐색 기록은 저장하지 않고 쿠키와 사이트 데이터만 유지하므로 실행 간에 로그인 상태가 유지되며, 브라우저 설정의 버튼 하나로 모두 지울 수 있습니다. 파일을 가져올 때 해당 주소로 범위가 지정된 쿠키가 함께 전송되어 로그인 뒤의 다운로드가 작동합니다. 쿠키는 그 사이트로만 전송되며, 이는 평소 탐색과 정확히 같습니다. 주소 표시줄 검색을 끄면 입력한 내용이 검색 엔진으로 전송되지 않습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O CloakDrop tem um navegador integrado: abra-o, visite qualquer site e capture o vídeo, o áudio ou os arquivos da página. Ele é renderizado com o mesmo motor WebKit do Safari e conecta-se apenas aos sites que você acessa. Não mantém histórico de navegação — apenas cookies e dados de sites, para que você continue conectado entre as inicializações — e um botão nas configurações do navegador apaga tudo. Ao capturar um arquivo, os cookies restritos a esse endereço vão junto para que downloads atrás de um login funcionem; eles vão somente para esse site, exatamente como a sua navegação já faz. Se você desativar a pesquisa na barra de endereço, nada do que você digita é enviado a um mecanismo de busca."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В CloakDrop встроен браузер: откройте его, зайдите на любой сайт и захватите видео, аудио или файлы на странице. Он отображается тем же движком WebKit, что и Safari, и подключается только к сайтам, на которые вы переходите. Он не хранит историю посещений — только файлы cookie и данные сайтов, чтобы вы оставались в системе между запусками, — а одна кнопка в настройках браузера стирает всё. Когда вы захватываете файл, привязанные к этому адресу cookie отправляются вместе с ним, чтобы работали загрузки за входом; они идут только на этот сайт, ровно как и при обычном просмотре. Если выключить поиск в адресной строке, ничего из введённого не отправляется в поисковую систему."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يتضمّن CloakDrop متصفّحًا مدمجًا: افتحه، وزُر أي موقع، والتقط الفيديو أو الصوت أو الملفات الموجودة في الصفحة. يُعرَض بمحرّك WebKit نفسه الذي يستخدمه Safari، ويتّصل فقط بالمواقع التي تتصفّحها. لا يحتفظ بأي سِجِلّ تصفّح — فقط ملفات تعريف الارتباط وبيانات المواقع، لتبقى مسجَّل الدخول بين عمليات التشغيل — وزر واحد في إعدادات المتصفّح يمسح كل ذلك. عند التقاط ملف، تُرافقه ملفات تعريف الارتباط المخصَّصة لذلك العنوان لكي تعمل التنزيلات خلف تسجيل الدخول؛ وهي تذهب إلى ذلك الموقع فقط، تمامًا كما يفعل تصفّحك بالفعل. إذا أوقفت بحث شريط العنوان، فلن يُرسَل أي شيء تكتبه إلى محرّك بحث."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CloakDrop में एक ब्राउज़र अंतर्निहित है: इसे खोलें, किसी भी साइट पर जाएँ, और पेज पर मौजूद वीडियो, ऑडियो या फ़ाइलें लें। यह Safari के समान WebKit इंजन से रेंडर होता है और केवल उन्हीं साइटों से जुड़ता है जिन पर आप जाते हैं। यह कोई ब्राउज़िंग इतिहास नहीं रखता — केवल कुकीज़ और साइट डेटा, ताकि आप लॉन्च के बीच साइन-इन रहें — और ब्राउज़र सेटिंग्स में एक बटन यह सब मिटा देता है। जब आप कोई फ़ाइल लेते हैं, तो उस पते तक सीमित कुकीज़ साथ जाती हैं ताकि लॉगिन के पीछे के डाउनलोड काम करें; वे केवल उसी साइट पर जाती हैं, ठीक वैसे ही जैसे आपकी ब्राउज़िंग पहले से करती है। यदि आप पता-बार खोज बंद कर देते हैं, तो आप जो टाइप करते हैं वह किसी सर्च इंजन को कभी नहीं भेजा जाता।"
           }
         }
       }
@@ -6237,6 +6627,136 @@
           "stringUnit": {
             "state": "translated",
             "value": "कुकीज़"
+          }
+        }
+      }
+    },
+    "Cookies & Site Data": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cookies y datos de sitios"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cookies et données de sites"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cookies & Websitedaten"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cookie 和网站数据"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cookie とサイトデータ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "쿠키 및 사이트 데이터"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cookies e dados de sites"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файлы cookie и данные сайтов"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ملفات تعريف الارتباط وبيانات المواقع"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कुकीज़ और साइट डेटा"
+          }
+        }
+      }
+    },
+    "Cookies and site data keep you signed in to sites between launches. Clearing them signs you out everywhere and removes all cached site data. CloakDrop never records your browsing history.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las cookies y los datos de sitios te mantienen con la sesión iniciada entre inicios. Al borrarlos, se cierra tu sesión en todas partes y se eliminan todos los datos de sitios en caché. CloakDrop nunca registra tu historial de navegación."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les cookies et les données de sites vous gardent connecté aux sites d’un lancement à l’autre. Les effacer vous déconnecte partout et supprime toutes les données de sites mises en cache. CloakDrop n’enregistre jamais votre historique de navigation."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cookies und Websitedaten halten dich zwischen den Starts bei Websites angemeldet. Beim Löschen wirst du überall abgemeldet und alle zwischengespeicherten Websitedaten werden entfernt. CloakDrop zeichnet deinen Browserverlauf niemals auf."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cookie 和网站数据让你在两次启动之间保持登录状态。清除它们会让你在所有站点退出登录，并删除所有缓存的网站数据。CloakDrop 从不记录你的浏览历史。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cookie とサイトデータにより、起動をまたいでサイトへのサインイン状態が保たれます。消去すると、すべてのサイトからサインアウトされ、キャッシュされたサイトデータもすべて削除されます。CloakDrop が閲覧履歴を記録することは一切ありません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "쿠키와 사이트 데이터는 실행 간에 사이트 로그인 상태를 유지합니다. 이를 지우면 모든 곳에서 로그아웃되고 캐시된 사이트 데이터가 모두 제거됩니다. CloakDrop은 사용자의 탐색 기록을 절대 기록하지 않습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cookies e dados de sites mantêm você conectado aos sites entre as inicializações. Limpá-los desconecta você em todos os lugares e remove todos os dados de sites em cache. O CloakDrop nunca registra seu histórico de navegação."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файлы cookie и данные сайтов сохраняют вход на сайты между запусками. Их очистка выполняет выход везде и удаляет все кэшированные данные сайтов. CloakDrop никогда не записывает историю вашего браузера."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تُبقيك ملفات تعريف الارتباط وبيانات المواقع مسجَّل الدخول إلى المواقع بين عمليات التشغيل. مسحها يسجّل خروجك من كل مكان ويزيل جميع بيانات المواقع المخزَّنة مؤقتًا. لا يسجّل CloakDrop سِجِلّ تصفّحك أبدًا."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कुकीज़ और साइट डेटा आपको लॉन्च के बीच साइटों में साइन-इन रखते हैं। इन्हें साफ़ करने से आप हर जगह साइन आउट हो जाते हैं और सभी कैश किए गए साइट डेटा हट जाते हैं। CloakDrop आपका ब्राउज़िंग इतिहास कभी रिकॉर्ड नहीं करता।"
           }
         }
       }
@@ -15796,6 +16316,71 @@
         }
       }
     },
+    "Off: the address bar never searches, so nothing you type is ever sent to a search engine. Non-address text is opened as an https:// address.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desactivado: la barra de direcciones nunca busca, por lo que nada de lo que escribes se envía a un motor de búsqueda. El texto que no sea una dirección se abre como una dirección https://."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Désactivé : la barre d’adresse ne recherche jamais, donc rien de ce que vous saisissez n’est envoyé à un moteur de recherche. Le texte qui n’est pas une adresse est ouvert comme une adresse https://."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus: Die Adressleiste sucht nie, sodass nichts von dem, was du eingibst, an eine Suchmaschine gesendet wird. Text, der keine Adresse ist, wird als https://-Adresse geöffnet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭：地址栏从不搜索，因此你输入的任何内容都不会发送到搜索引擎。非地址文本将作为 https:// 地址打开。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オフ：アドレスバーは検索を一切行わないため、入力した内容が検索エンジンに送信されることはありません。アドレス以外のテキストは https:// アドレスとして開かれます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "끄기: 주소 표시줄은 검색하지 않으므로 입력한 내용이 검색 엔진으로 전송되지 않습니다. 주소가 아닌 텍스트는 https:// 주소로 열립니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desativado: a barra de endereço nunca pesquisa, então nada do que você digita é enviado a um mecanismo de busca. Texto que não é endereço é aberto como um endereço https://."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выключено: адресная строка никогда не ищет, поэтому ничего из введённого не отправляется в поисковую систему. Текст, не являющийся адресом, открывается как адрес https://."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "معطَّل: لا يبحث شريط العنوان أبدًا، لذا لا يُرسَل أي شيء تكتبه إلى محرّك بحث. يُفتح النص الذي ليس عنوانًا كعنوان https://."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बंद: पता बार कभी खोज नहीं करता, इसलिए आप जो टाइप करते हैं वह किसी सर्च इंजन को नहीं भेजा जाता। गैर-पता टेक्स्ट को https:// पते के रूप में खोला जाता है।"
+          }
+        }
+      }
+    },
     "On Completion": {
       "extractionState": "manual",
       "localizations": {
@@ -21971,6 +22556,71 @@
         }
       }
     },
+    "Search from the address bar": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar desde la barra de direcciones"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher depuis la barre d’adresse"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über die Adressleiste suchen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从地址栏搜索"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アドレスバーから検索"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "주소 표시줄에서 검색"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pesquisar na barra de endereço"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поиск из адресной строки"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "البحث من شريط العنوان"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पता बार से खोजें"
+          }
+        }
+      }
+    },
     "Search or enter a website address": {
       "extractionState": "manual",
       "localizations": {
@@ -24896,6 +25546,71 @@
         }
       }
     },
+    "Text that isn’t a web address is searched on DuckDuckGo when you press Return. Nothing is sent as you type — there are no search suggestions.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El texto que no sea una dirección web se busca en DuckDuckGo al pulsar Intro. No se envía nada mientras escribes: no hay sugerencias de búsqueda."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le texte qui n’est pas une adresse web est recherché sur DuckDuckGo lorsque vous appuyez sur Entrée. Rien n’est envoyé pendant la saisie — il n’y a aucune suggestion de recherche."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text, der keine Webadresse ist, wird bei Drücken der Eingabetaste auf DuckDuckGo gesucht. Während der Eingabe wird nichts gesendet – es gibt keine Suchvorschläge."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按下 Return 键时，非网址文本将在 DuckDuckGo 上搜索。输入过程中不会发送任何内容——没有搜索建议。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ウェブアドレス以外のテキストは、Return キーを押すと DuckDuckGo で検索されます。入力中には何も送信されず、検索候補もありません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "웹 주소가 아닌 텍스트는 Return 키를 누르면 DuckDuckGo에서 검색됩니다. 입력하는 동안에는 아무것도 전송되지 않으며 검색 제안도 없습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O texto que não for um endereço web é pesquisado no DuckDuckGo ao pressionar Return. Nada é enviado enquanto você digita — não há sugestões de pesquisa."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текст, не являющийся веб-адресом, ищется в DuckDuckGo при нажатии Return. Во время ввода ничего не отправляется — подсказок поиска нет."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يُبحث عن النص الذي ليس عنوان ويب في DuckDuckGo عند الضغط على Return. لا يُرسَل شيء أثناء الكتابة — ولا توجد اقتراحات بحث."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जो टेक्स्ट वेब पता नहीं है, Return दबाने पर उसे DuckDuckGo पर खोजा जाता है। टाइप करते समय कुछ नहीं भेजा जाता — कोई खोज सुझाव नहीं हैं।"
+          }
+        }
+      }
+    },
     "That doesn’t look like a valid Metalink file.": {
       "extractionState": "manual",
       "localizations": {
@@ -25087,6 +25802,71 @@
           "stringUnit": {
             "state": "translated",
             "value": "इस बिल्ड में ब्राउज़र कनेक्टर उपलब्ध नहीं है।"
+          }
+        }
+      }
+    },
+    "The built-in browser": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El navegador integrado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le navigateur intégré"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der integrierte Browser"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内置浏览器"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内蔵ブラウザ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내장 브라우저"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O navegador integrado"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Встроенный браузер"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المتصفّح المدمج"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अंतर्निहित ब्राउज़र"
           }
         }
       }
@@ -25286,71 +26066,6 @@
         }
       }
     },
-    "The optional Safari, Chrome, and Firefox extensions detect downloadable media on the page you are viewing and pass it to CloakDrop. When you pick a download, the extension reads the cookies scoped to that one address — so files behind a login download correctly — and forwards them a single time to the app on your Mac. Those cookies are never stored by the extension and never sent anywhere else.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تكتشف إضافات Safari و Chrome و Firefox الاختيارية الوسائط القابلة للتنزيل في الصفحة التي تتصفّحها وتمرّرها إلى CloakDrop. وعندما تختار تنزيلًا، تقرأ الإضافة ملفات تعريف الارتباط المقتصرة على ذلك العنوان وحده — كي تُنزَّل الملفات التي خلف تسجيل الدخول بشكل صحيح — وتُعيد توجيهها مرة واحدة فقط إلى التطبيق على جهاز Mac. ولا تُخزَّن ملفات تعريف الارتباط هذه في الإضافة أبدًا ولا تُرسَل إلى أي مكان آخر."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die optionalen Erweiterungen für Safari, Chrome und Firefox erkennen herunterladbare Medien auf der Seite, die du gerade ansiehst, und übergeben sie an CloakDrop. Wenn du einen Download auswählst, liest die Erweiterung die auf genau diese Adresse beschränkten Cookies – damit Dateien hinter einer Anmeldung korrekt geladen werden – und leitet sie ein einziges Mal an die App auf deinem Mac weiter. Diese Cookies werden von der Erweiterung nie gespeichert und nie irgendwohin sonst gesendet."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Las extensiones opcionales de Safari, Chrome y Firefox detectan medios descargables en la página que estás viendo y los pasan a CloakDrop. Cuando eliges una descarga, la extensión lee las cookies limitadas a esa única dirección —para que los archivos tras un inicio de sesión se descarguen correctamente— y las reenvía una sola vez a la aplicación en tu Mac. Esas cookies nunca las almacena la extensión ni se envían a ningún otro sitio."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Les extensions optionnelles pour Safari, Chrome et Firefox détectent les médias téléchargeables sur la page que vous consultez et les transmettent à CloakDrop. Lorsque vous choisissez un téléchargement, l’extension lit les cookies limités à cette seule adresse — pour que les fichiers derrière une connexion se téléchargent correctement — et les transmet une seule fois à l’application sur votre Mac. Ces cookies ne sont jamais stockés par l’extension ni envoyés ailleurs."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "वैकल्पिक Safari, Chrome और Firefox एक्सटेंशन उस पेज पर डाउनलोड करने योग्य मीडिया का पता लगाते हैं जिसे आप देख रहे हैं और उसे CloakDrop को सौंप देते हैं। जब आप कोई डाउनलोड चुनते हैं, तो एक्सटेंशन उस एक पते तक सीमित कुकीज़ पढ़ता है — ताकि लॉगिन के पीछे की फ़ाइलें सही ढंग से डाउनलोड हों — और उन्हें एक ही बार आपके Mac पर मौजूद ऐप को भेज देता है। ये कुकीज़ एक्सटेंशन द्वारा कभी संग्रहीत नहीं की जातीं और न ही कहीं और भेजी जाती हैं।"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "オプションの Safari・Chrome・Firefox 拡張機能は、閲覧中のページ上のダウンロード可能なメディアを検出し、CloakDrop に渡します。ダウンロードを選ぶと、拡張機能はその 1 つのアドレスに限定された Cookie を読み取り（ログインの先にあるファイルを正しくダウンロードするため）、Mac 上のアプリに一度だけ転送します。これらの Cookie が拡張機能に保存されることはなく、他のどこかに送信されることもありません。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "선택적 Safari, Chrome, Firefox 확장 프로그램은 사용자가 보고 있는 페이지에서 다운로드 가능한 미디어를 감지하여 CloakDrop에 전달합니다. 다운로드를 선택하면, 확장 프로그램은 해당 주소에만 한정된 쿠키를 읽어(로그인 뒤의 파일이 올바르게 다운로드되도록) Mac의 앱으로 단 한 번 전달합니다. 이 쿠키는 확장 프로그램에 저장되지 않으며 다른 어디로도 전송되지 않습니다."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "As extensões opcionais para Safari, Chrome e Firefox detectam mídias baixáveis na página que você está vendo e as passam ao CloakDrop. Quando você escolhe um download, a extensão lê os cookies restritos àquele único endereço — para que arquivos atrás de um login sejam baixados corretamente — e os encaminha uma única vez ao aplicativo no seu Mac. Esses cookies nunca são armazenados pela extensão nem enviados a qualquer outro lugar."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Дополнительные расширения для Safari, Chrome и Firefox обнаруживают доступные для загрузки медиа на просматриваемой странице и передают их в CloakDrop. Когда вы выбираете загрузку, расширение считывает файлы cookie, ограниченные этим одним адресом (чтобы файлы за авторизацией скачивались корректно), и передаёт их один раз приложению на вашем Mac. Эти файлы cookie никогда не сохраняются расширением и не отправляются куда-либо ещё."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "可选的 Safari、Chrome 和 Firefox 扩展会检测你正在浏览的页面上的可下载媒体，并将其传递给 CloakDrop。当你选择下载时，扩展会读取仅限于该地址的 Cookie（以便登录后的文件能正确下载），并将它们一次性转发给你 Mac 上的应用。这些 Cookie 绝不会被扩展存储，也绝不会发送到其他任何地方。"
-          }
-        }
-      }
-    },
     "The page at %@ says:": {
       "extractionState": "manual",
       "localizations": {
@@ -25542,6 +26257,71 @@
           "stringUnit": {
             "state": "translated",
             "value": "सर्वर को जवाब देने में बहुत समय लगा।"
+          }
+        }
+      }
+    },
+    "The sites you visit in the built-in browser — the pages you open, and (if address-bar search is on) the query you type when you press Return.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los sitios que visitas en el navegador integrado: las páginas que abres y (si la búsqueda en la barra de direcciones está activada) la consulta que escribes al pulsar Intro."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les sites que vous visitez dans le navigateur intégré — les pages que vous ouvrez et (si la recherche dans la barre d’adresse est activée) la requête que vous saisissez en appuyant sur Entrée."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Websites, die du im integrierten Browser besuchst – die Seiten, die du öffnest, und (wenn die Adressleistensuche aktiviert ist) die Suchanfrage, die du bei Drücken der Eingabetaste eingibst."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你在内置浏览器中访问的站点——你打开的页面，以及（如果启用了地址栏搜索）你按下 Return 键时输入的查询。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内蔵ブラウザで訪問するサイト——開いたページと、（アドレスバー検索がオンの場合は）Return キーを押したときに入力したクエリ。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내장 브라우저에서 방문하는 사이트 — 여는 페이지, 그리고 (주소 표시줄 검색이 켜져 있으면) Return 키를 누를 때 입력한 검색어."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os sites que você visita no navegador integrado — as páginas que você abre e (se a pesquisa na barra de endereço estiver ativada) a consulta que você digita ao pressionar Return."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сайты, которые вы посещаете во встроенном браузере, — открываемые страницы и (если включён поиск в адресной строке) запрос, который вы вводите при нажатии Return."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المواقع التي تزورها في المتصفّح المدمج — الصفحات التي تفتحها، و(إذا كان بحث شريط العنوان مفعَّلًا) الاستعلام الذي تكتبه عند الضغط على Return."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अंतर्निहित ब्राउज़र में आप जो साइटें देखते हैं — जो पेज आप खोलते हैं, और (यदि पता-बार खोज चालू है) जो क्वेरी आप Return दबाने पर टाइप करते हैं।"
           }
         }
       }
@@ -26192,6 +26972,71 @@
           "stringUnit": {
             "state": "translated",
             "value": "इस पेज का वीडियो — गुणवत्ता चुनें"
+          }
+        }
+      }
+    },
+    "This signs you out of every site in the built-in browser and removes all cookies and cached site data. It can’t be undone.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esto cierra tu sesión en todos los sitios del navegador integrado y elimina todas las cookies y los datos de sitios en caché. No se puede deshacer."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cela vous déconnecte de tous les sites du navigateur intégré et supprime tous les cookies et données de sites mises en cache. Cette action est irréversible."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dadurch wirst du in jeder Website des integrierten Browsers abgemeldet und alle Cookies sowie zwischengespeicherten Websitedaten werden entfernt. Dies kann nicht rückgängig gemacht werden."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这会让你在内置浏览器的所有站点退出登录，并删除所有 Cookie 和缓存的网站数据。此操作无法撤销。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "これにより、内蔵ブラウザのすべてのサイトからサインアウトされ、すべての Cookie とキャッシュされたサイトデータが削除されます。元に戻すことはできません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 작업은 내장 브라우저의 모든 사이트에서 로그아웃하고 모든 쿠키와 캐시된 사이트 데이터를 제거합니다. 실행을 취소할 수 없습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isso desconecta você de todos os sites no navegador integrado e remove todos os cookies e dados de sites em cache. Não pode ser desfeito."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Это выполнит выход со всех сайтов во встроенном браузере и удалит все файлы cookie и кэшированные данные сайтов. Отменить это нельзя."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سيؤدي ذلك إلى تسجيل خروجك من كل موقع في المتصفّح المدمج وإزالة جميع ملفات تعريف الارتباط وبيانات المواقع المخزَّنة مؤقتًا. لا يمكن التراجع عن ذلك."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इससे आप अंतर्निहित ब्राउज़र की हर साइट से साइन आउट हो जाएँगे और सभी कुकीज़ व कैश किए गए साइट डेटा हट जाएँगे। इसे पूर्ववत नहीं किया जा सकता।"
           }
         }
       }

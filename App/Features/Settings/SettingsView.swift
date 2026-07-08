@@ -4,7 +4,7 @@ import DownloadModels
 /// The Settings window's tabs. Held as app state so a menu command (e.g. "About CloakDrop")
 /// can open Settings directly to a specific tab.
 enum SettingsTab: Hashable {
-    case general, rules, network, speedTest, browsers, privacy, stats, about
+    case general, rules, network, speedTest, browser, privacy, stats, about
 }
 
 /// Preferences: engine tunables, CloakDrop's privacy posture, and app/author info.
@@ -26,9 +26,9 @@ struct SettingsView: View {
             SpeedTestSettingsView()
                 .tabItem { Label("Speed Test", systemImage: "gauge.with.needle") }
                 .tag(SettingsTab.speedTest)
-            BrowsersSettingsView()
-                .tabItem { Label("Browsers", systemImage: "globe") }
-                .tag(SettingsTab.browsers)
+            BrowserSettingsView()
+                .tabItem { Label("Browser", systemImage: "globe") }
+                .tag(SettingsTab.browser)
             StatsSettingsView()
                 .tabItem { Label("Stats", systemImage: "medal.fill") }
                 .tag(SettingsTab.stats)
