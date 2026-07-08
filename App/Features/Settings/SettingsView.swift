@@ -241,21 +241,13 @@ struct SettingsView: View {
     // MARK: About
 
     private var about: some View {
-        VStack(spacing: 14) {
-            // Tap it more than five times for a Matrix easter egg (see AboutIconView).
-            AboutIconView()
-                .padding(.top, 4)
-
-            VStack(spacing: 3) {
-                Text(verbatim: "CloakDrop")
-                    .font(.title2.weight(.semibold))
-                Text("Version \(Self.appVersion)")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
+        VStack(spacing: 18) {
+            // The hero header. Tap the icon five times for a Matrix easter egg (see AboutHeaderView).
+            AboutHeaderView(version: Self.appVersion)
 
             Text("Created by Sumit Sahoo")
                 .font(.callout)
+                .foregroundStyle(.secondary)
 
             VStack(spacing: 2) {
                 linkRow(symbol: "person.crop.circle", label: Text(verbatim: "github.com/sumitsahoo"), url: AppLinks.author)

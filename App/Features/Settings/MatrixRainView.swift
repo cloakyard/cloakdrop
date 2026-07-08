@@ -1,34 +1,81 @@
 import SwiftUI
 
-/// The About-page app icon with a hidden toggle: tap the tile more than five times and it fills
-/// with Matrix "digital rain" (masked to the icon's silhouette). Tap the rain to switch it back
-/// off and re-arm the counter, so the gag is replayable. Purely decorative — no user-facing text,
-/// so nothing here is localized.
-struct AboutIconView: View {
+/// The About page's hero header — the app icon, name, and version on a soft brand-purple card —
+/// with a hidden, replayable easter egg. Tap the icon five times and the whole header fills with
+/// Matrix "digital rain"; tap anywhere on it while it's raining to switch it off and re-arm the
+/// counter. The gag is purely decorative; only the version line (whose key lives elsewhere) is
+/// localized.
+struct AboutHeaderView: View {
+    /// Rendered app version, e.g. "1.0 (1)".
+    let version: String
+
     @State private var taps = 0
     @State private var matrixMode = false
 
+    private static let cornerRadius: CGFloat = 20
+    /// Phosphor green used for the title/version while the rain is on.
+    private static let phosphor = Color(red: 0.62, green: 1.0, blue: 0.62)
+
     var body: some View {
         ZStack {
-            icon.opacity(matrixMode ? 0 : 1)
+            // Soft brand-purple wash normally; a black Matrix field once armed. The Canvas is only
+            // mounted while active — `TimelineView(.animation)` redraws every display frame as long
+            // as it's in the tree, so a hidden-but-present rain would burn CPU/GPU the whole time
+            // the About pane is open. Gating it keeps the header idle when the egg is off.
+            LinearGradient(
+                colors: [Color.accentColor.opacity(0.22), Color.accentColor.opacity(0.05)],
+                startPoint: .top, endPoint: .bottom
+            )
 
-            // Only mount the Canvas while the egg is active: `TimelineView(.animation)` redraws every
-            // display frame as long as it's in the tree, so a permanently-present-but-hidden rain would
-            // burn CPU/GPU the whole time the About pane is open. Gating it keeps it idle when off.
             if matrixMode {
                 MatrixRainView()
-                    .mask { icon }
-                    .shadow(color: .green.opacity(0.55), radius: 10)
                     .transition(.opacity)
             }
+
+            content
+
+            // While it rains, a transparent catcher above everything turns any tap into "stop",
+            // so the icon, the title, and the empty field all dismiss the egg.
+            if matrixMode {
+                Color.clear
+                    .contentShape(.rect)
+                    .onTapGesture { stop() }
+            }
         }
-        .frame(width: 96, height: 96)
-        .scaleEffect(matrixMode ? 1.04 : 1)
-        .contentShape(.rect)
-        .onTapGesture { registerTap() }
+        .frame(height: 190)
+        .frame(maxWidth: .infinity)
+        .clipShape(.rect(cornerRadius: Self.cornerRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: Self.cornerRadius)
+                .strokeBorder(.white.opacity(matrixMode ? 0 : 0.08), lineWidth: 1)
+        )
         .animation(.easeInOut(duration: 0.45), value: matrixMode)
-        // Brand name is verbatim elsewhere too, so keep it out of the String Catalog.
-        .accessibilityLabel(Text(verbatim: "CloakDrop"))
+    }
+
+    private var content: some View {
+        VStack(spacing: 12) {
+            icon
+                .frame(width: 84, height: 84)
+                .scaleEffect(matrixMode ? 1.05 : 1)
+                .shadow(color: .green.opacity(matrixMode ? 0.7 : 0), radius: 14)
+                .contentShape(.rect)
+                .onTapGesture { registerTap() }
+                .accessibilityLabel(Text(verbatim: "CloakDrop"))
+                .accessibilityAddTraits(.isButton)
+
+            VStack(spacing: 3) {
+                Text(verbatim: "CloakDrop")
+                    .font(matrixMode
+                          ? .title2.weight(.semibold).monospaced()
+                          : .title2.weight(.semibold))
+                    .foregroundStyle(matrixMode ? Self.phosphor : .primary)
+                    .shadow(color: .green.opacity(matrixMode ? 0.8 : 0), radius: 8)
+                Text("Version \(version)")
+                    .font(.callout)
+                    .monospacedDigit()
+                    .foregroundStyle(matrixMode ? Self.phosphor.opacity(0.85) : .secondary)
+            }
+        }
     }
 
     // A pre-glassed copy of the app icon (baked by scripts/bake_about_icon.swift from how macOS
@@ -39,14 +86,17 @@ struct AboutIconView: View {
         Image("AboutAppIcon").resizable().interpolation(.high)
     }
 
+    // MARK: Easter egg
+
     private func registerTap() {
-        if matrixMode {            // tapping the rain dismisses it and re-arms the counter
-            matrixMode = false
-            taps = 0
-            return
-        }
+        if matrixMode { stop(); return }        // tapping the icon while it rains dismisses it
         taps += 1
-        if taps > 5 { matrixMode = true }   // "more than five times"
+        if taps >= 5 { matrixMode = true }      // five taps arms the rain
+    }
+
+    private func stop() {                        // switch it off and re-arm the counter
+        matrixMode = false
+        taps = 0
     }
 }
 
