@@ -5,6 +5,7 @@ import DownloadModels
 /// Liquid Glass toolbar above it.
 struct DownloadListView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.openWindow) private var openWindow
 
     /// The downloads awaiting "delete the file(s) from disk too?" confirmation (one or many,
     /// depending on the selection the row menu acted on).
@@ -159,6 +160,15 @@ struct DownloadListView: View {
                 model.isAddSheetPresented = true
             }
             .help("Add a new download (⌘N) — or a batch from the menu")
+        }
+
+        ToolbarItem {
+            Button {
+                openWindow(id: BrowserScene.windowID)
+            } label: {
+                Label("Browser", systemImage: "globe")
+            }
+            .help("Open the built-in browser — browse any site and grab its media (⇧⌘B)")
         }
 
         ToolbarItemGroup {

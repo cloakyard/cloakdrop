@@ -91,6 +91,11 @@ final class AppModel {
     /// Whether the bundled extractor actually ran (its version probe succeeded in-sandbox at launch).
     private(set) var isPageExtractionAvailable = false
 
+    /// Reopens/raises the main window (set where SwiftUI's `openWindow` is available). Browser
+    /// media grabs call it so the quality picker — hosted by the main window — is actually visible
+    /// even when that window was closed.
+    @ObservationIgnored var raiseMainWindow: (() -> Void)?
+
     /// Adds that matched an existing download by URL, each awaiting a "download again?" decision.
     /// FIFO so several confirm one at a time; the alert binds to the head.
     private(set) var pendingDuplicateAdds: [DuplicateAdd] = []
@@ -586,6 +591,8 @@ final class AppModel {
     func updateSettings(_ newSettings: EngineSettings) {
         settings = newSettings
         Task { await manager.updateSettings(newSettings) }
+        // Keep the built-in browser on the same route as the engine.
+        BrowserStore.shared.applyProxy(newSettings.resolvedProxy)
     }
 
     // MARK: Smart rules

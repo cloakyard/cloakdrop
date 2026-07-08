@@ -34,6 +34,8 @@ struct CloakDropApp: App {
         }
         .commands { CloakDropCommands(model: model) }
 
+        BrowserScene(model: model)
+
         MenuBarExtra("CloakDrop", systemImage: "arrow.down.circle") {
             MenuBarContent()
                 .environment(model)
@@ -53,6 +55,7 @@ struct CloakDropCommands: Commands {
     /// SwiftUI's official action to open the Settings scene (macOS 14+) — reliable, unlike
     /// poking `showSettingsWindow:` down the responder chain.
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
         // App info lives in Settings ▸ About (there's no separate About panel), so route the
@@ -74,6 +77,8 @@ struct CloakDropCommands: Commands {
         CommandGroup(replacing: .newItem) {
             Button("New Download…") { model.isAddSheetPresented = true }
                 .keyboardShortcut("n", modifiers: .command)
+            Button("New Browser Window") { openWindow(id: BrowserScene.windowID) }
+                .keyboardShortcut("b", modifiers: [.command, .shift])
             Button("Open Metalink…") { model.importMetalink() }
                 .keyboardShortcut("o", modifiers: .command)
         }
@@ -122,6 +127,11 @@ private struct CaptureIntakeInstaller: View {
                     NSApp.activate(ignoringOtherApps: true)
                     openWindow(id: CloakDropApp.mainWindowID)
                     for url in urls { model.handleIncomingURL(url) }
+                }
+                // Lets browser windows summon the main window (quality picker, duplicate prompts).
+                model.raiseMainWindow = {
+                    NSApp.activate(ignoringOtherApps: true)
+                    openWindow(id: CloakDropApp.mainWindowID)
                 }
                 // Register the "Send to CloakDrop" Services item. NSApp doesn't retain the provider,
                 // so the delegate holds it; NSUpdateDynamicServices refreshes the system registration.
