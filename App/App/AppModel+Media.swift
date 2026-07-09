@@ -37,24 +37,29 @@ extension AppModel {
     /// `isMediaManifest` gate can't see. `forcePicker` opens the quality picker whenever the stream
     /// offers a real choice, even with "Ask me quality" off. Falls back to a plain download.
     func grabStream(_ request: DownloadRequest, forcePicker: Bool = false) {
-        isResolvingMedia = true
+        beginMediaResolve()
         Task {
-            defer { isResolvingMedia = false }
+            defer { endMediaResolve() }
             let headers = Self.mediaHeaders(for: request)
             guard let stream = try? await manager.resolveMediaStream(url: request.url, headers: headers),
                   !stream.variants.isEmpty else {
-                // Falling back to a plain download of the manifest itself: a browser-supplied
-                // title *stem* (no extension) only makes sense for the media path — drop it so
-                // the file keeps its real `.m3u8`/`.mpd` name.
-                var fallback = request
-                if let name = fallback.suggestedFileName, (name as NSString).pathExtension.isEmpty {
-                    fallback.suggestedFileName = nil
-                }
-                add(fallback)
+                addManifestFallback(request)
                 return
             }
             routeStream(stream, request: request, extracted: nil, forcePicker: forcePicker)
         }
+    }
+
+    /// Fall back to a plain download of the manifest itself. A browser-supplied title stem — or any
+    /// "Save As" name that doesn't name a manifest ("Ep 2.5" would read as extension "5") — only
+    /// makes sense for the media output, so drop it and keep the real `.m3u8`/`.mpd` name.
+    private func addManifestFallback(_ request: DownloadRequest) {
+        var fallback = request
+        if let name = fallback.suggestedFileName,
+           !["m3u8", "m3u", "mpd"].contains((name as NSString).pathExtension.lowercased()) {
+            fallback.suggestedFileName = nil
+        }
+        add(fallback)
     }
 
     /// Grab a *page* URL (a YouTube watch page, etc.): run the media extractor, then auto-download the
@@ -71,10 +76,10 @@ extension AppModel {
             presentMediaError(String(localized: "Video extraction isn’t available in this build."))
             return
         }
-        isResolvingMedia = true
+        beginMediaResolve()
         Task {
             defer {
-                isResolvingMedia = false
+                endMediaResolve()
                 if let cookiesFile { try? FileManager.default.removeItem(at: cookiesFile) }
             }
             do {
@@ -108,13 +113,14 @@ extension AppModel {
             pendingMediaSelection = MediaSelection(stream: stream, request: request, extracted: extracted)
             return
         }
-        guard let best = stream.bestVariant else { add(request); return }
+        guard let best = stream.bestVariant else { addManifestFallback(request); return }
         Task {
             let subtitleIDs = defaultSubtitleTrackIDs(for: stream)
             guard let plan = await buildPlan(from: stream, variantID: best.id, subtitleTrackIDs: subtitleIDs,
-                                             audioOnly: false, audioTrackID: nil, request: request) else {
+                                             audioOnly: false, audioTrackID: nil,
+                                             isExtracted: extracted != nil, request: request) else {
                 // A manifest can still fall back to a plain download; a page URL cannot (it's HTML).
-                if extracted == nil { add(request) } else {
+                if extracted == nil { addManifestFallback(request) } else {
                     presentMediaError(String(localized: "Couldn’t prepare this download."))
                 }
                 return
@@ -149,14 +155,14 @@ extension AppModel {
         Task {
             guard let plan = await buildPlan(from: selection.stream, variantID: variantID,
                                              subtitleTrackIDs: subtitleTrackIDs, audioOnly: audioOnly,
-                                             audioTrackID: audioTrackID, request: selection.request) else { return }
-            var request = selection.request
-            // For a manifest, drop the `.m3u8`/`.mpd` "Save As" name so the engine derives a proper one.
-            if selection.extracted == nil, let name = request.suggestedFileName,
-               ["m3u8", "m3u", "mpd"].contains((name as NSString).pathExtension.lowercased()) {
-                request.suggestedFileName = nil
+                                             audioTrackID: audioTrackID,
+                                             isExtracted: selection.extracted != nil,
+                                             request: selection.request) else {
+                // The sheet is already dismissed — a silent no-op would read as a successful grab.
+                presentMediaError(String(localized: "Couldn’t prepare this download."))
+                return
             }
-            await manager.addMedia(named(request, from: selection.extracted, variantID: variantID), plan: plan)
+            await manager.addMedia(named(selection.request, from: selection.extracted, variantID: variantID), plan: plan)
         }
     }
 
@@ -170,7 +176,8 @@ extension AppModel {
     /// `variantID` instead names the audio track to grab on its own (empty = default track).
     private func buildPlan(
         from stream: MediaStream, variantID: String,
-        subtitleTrackIDs: [String], audioOnly: Bool, audioTrackID: String?, request: DownloadRequest
+        subtitleTrackIDs: [String], audioOnly: Bool, audioTrackID: String?,
+        isExtracted: Bool, request: DownloadRequest
     ) async -> MediaPlan? {
         if audioOnly {
             return await buildAudioOnlyPlan(from: stream, trackID: variantID,
@@ -185,11 +192,21 @@ extension AppModel {
                 subtitleTrackIDs: subtitleTrackIDs, headers: headers
             )
         }
-        // Pre-resolved (extractor / DASH / inline playlist): pair the chosen (else container-matched)
-        // audio and subtitles and build locally.
-        let audio = audioTrackID.flatMap { id in stream.audioTracks.first { $0.id == id } }
-            ?? stream.audioTracks.first { $0.groupID == variant.audioGroupID }
-            ?? stream.audioTrack(for: variant)
+        // Pre-resolved (extractor / DASH / inline playlist): pair the chosen audio, else the variant's
+        // own rendition group, else the stream default. An extractor tier with no audio group is
+        // *progressive* — it already carries its sound, so pairing a separate track would download
+        // redundant audio and mux a mismatched codec over the tier's own.
+        let audio: MediaTrack?
+        if let audioTrackID, let chosen = stream.audioTracks.first(where: { $0.id == audioTrackID }) {
+            audio = chosen
+        } else if let group = variant.audioGroupID {
+            let inGroup = stream.audioTracks.filter { $0.groupID == group }
+            audio = inGroup.first(where: \.isDefault) ?? inGroup.first ?? stream.audioTrack(for: variant)
+        } else if isExtracted {
+            audio = nil
+        } else {
+            audio = stream.audioTrack(for: variant)
+        }
         let subtitles = subtitleTrackIDs.compactMap { id in
             stream.subtitleTracks.first { $0.id == id }?.asSubtitle
         }
@@ -203,25 +220,47 @@ extension AppModel {
         from stream: MediaStream, trackID: String,
         subtitleTrackIDs: [String], request: DownloadRequest
     ) async -> MediaPlan? {
-        let track = stream.audioTracks.first { $0.id == trackID } ?? stream.defaultAudioTrack
-        guard let track else { return nil }
-        if track.segments.isEmpty {
-            let headers = Self.mediaHeaders(for: request)
-            return try? await manager.resolveAudioOnlyPlan(
-                from: stream, trackID: track.id, subtitleTrackIDs: subtitleTrackIDs, headers: headers
-            )
+        if let track = stream.audioTracks.first(where: { $0.id == trackID }) ?? stream.defaultAudioTrack {
+            if track.segments.isEmpty {
+                let headers = Self.mediaHeaders(for: request)
+                return try? await manager.resolveAudioOnlyPlan(
+                    from: stream, trackID: track.id, subtitleTrackIDs: subtitleTrackIDs, headers: headers
+                )
+            }
+            let subtitles = subtitleTrackIDs.compactMap { id in
+                stream.subtitleTracks.first { $0.id == id }?.asSubtitle
+            }
+            return stream.audioOnlyPlan(for: track, subtitles: subtitles)
+        }
+        // No separate audio tracks — but `hasGrabbableAudio` (the picker's gate) also admits streams
+        // whose only audio is an audio-only *variant* (an HLS master listing the audio rendition as a
+        // variant). Grab the best of those as the audio, or the offer would silently do nothing.
+        guard let variant = stream.variants.first(where: { $0.id == trackID && $0.isAudioOnly })
+                ?? stream.variants.filter(\.isAudioOnly).max(by: { $0.bandwidth < $1.bandwidth }) else {
+            return nil
         }
         let subtitles = subtitleTrackIDs.compactMap { id in
             stream.subtitleTracks.first { $0.id == id }?.asSubtitle
         }
-        return stream.audioOnlyPlan(for: track, subtitles: subtitles)
+        if variant.segments.isEmpty {
+            let headers = Self.mediaHeaders(for: request)
+            return try? await manager.resolveMediaPlan(
+                from: stream, variantID: variant.id, subtitleTrackIDs: subtitleTrackIDs, headers: headers
+            )
+        }
+        return stream.plan(for: variant, audio: nil, subtitles: subtitles)
     }
 
-    /// Name a page grab from the video title + the chosen format's container; leaves a manifest/plain
-    /// request's own name untouched.
+    /// Name a page grab from the video title + the chosen format's container. For a manifest grab,
+    /// a `.m3u8`/`.mpd` "Save As" name would misname the media output — drop it so the engine
+    /// derives a proper one; any other supplied name is left untouched.
     private func named(_ request: DownloadRequest, from extracted: ExtractedMedia?, variantID: String) -> DownloadRequest {
-        guard let extracted, request.suggestedFileName == nil else { return request }
         var request = request
+        if extracted == nil, let name = request.suggestedFileName,
+           ["m3u8", "m3u", "mpd"].contains((name as NSString).pathExtension.lowercased()) {
+            request.suggestedFileName = nil
+        }
+        guard let extracted, request.suggestedFileName == nil else { return request }
         request.suggestedFileName = extracted.downloadName(forFormatID: variantID)
         return request
     }
@@ -230,7 +269,7 @@ extension AppModel {
     /// falling back to the persisted record. `nil` for a normal file download.
     func liveMediaSegments(_ download: Download) -> (completed: Int, total: Int)? {
         guard let plan = download.mediaPlan else { return nil }
-        if let live = progress[download.id], let completed = live.completedSegments, let total = live.totalSegments {
+        if let live = progress[download.id]?.value, let completed = live.completedSegments, let total = live.totalSegments {
             return (completed, total)
         }
         return (download.mediaCompletedSegments, plan.totalSegments)

@@ -76,6 +76,6 @@ struct StatsSettingsView: View {
     }
 
     private func bytes(_ n: Int64) -> String {
-        ByteCountFormatter.string(fromByteCount: max(0, n), countStyle: .file)
+        Format.bytes(max(0, n))
     }
 }

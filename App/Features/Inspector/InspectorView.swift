@@ -210,7 +210,7 @@ struct InspectorView: View {
     private func segments(_ download: Download) -> some View {
         section("Segments (\(download.segments.count))", "rectangle.split.3x1") {
             ForEach(download.segments) { segment in
-                let live = model.progress[download.id]?.segmentBytes[segment.id] ?? segment.downloadedBytes
+                let live = model.progress[download.id]?.value.segmentBytes[segment.id] ?? segment.downloadedBytes
                 let fraction = segment.length > 0 ? min(1, Double(live) / Double(segment.length)) : 0
                 HStack(spacing: 8) {
                     Text("#\(segment.id + 1)")

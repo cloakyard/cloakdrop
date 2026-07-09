@@ -255,7 +255,7 @@ struct BrowserView: View {
         }
     }
 
-    private var shelfCount: Int { session.media.candidates.count }
+    private var shelfCount: Int { session.shelfItems.count }
 
     // MARK: - Overlays
 

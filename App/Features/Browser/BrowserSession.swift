@@ -149,6 +149,11 @@ final class BrowserSession: NSObject {
 
     // Sniffing.
     private(set) var media = PageMediaState()
+    /// The deduped, ranked shelf items — cached because `PageMediaState.candidates` runs the full
+    /// dedupe cascade (quadratic over up to 60 records): recomputed only when a sniff envelope or
+    /// navigation changes the state, not on every toolbar render (progress KVO, address-bar
+    /// keystrokes, favicon) that reads the badge.
+    private(set) var shelfItems: [SniffedItem] = []
 
     // Interactions awaiting the user.
     var dialog: BrowserDialog?
@@ -372,10 +377,12 @@ final class BrowserSession: NSObject {
         hasCommittedNavigation = true
         favicon = nil
         media.reset(pageURL: url?.absoluteString ?? "")
+        shelfItems = []
     }
 
     func applySniff(_ envelope: SniffEnvelope) {
         media.apply(envelope)
+        shelfItems = media.candidates
     }
 
     func captureUserAgentIfNeeded() {

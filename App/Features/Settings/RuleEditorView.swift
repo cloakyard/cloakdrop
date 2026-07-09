@@ -68,10 +68,17 @@ private struct DraftCondition: Identifiable {
         case .url: return trimmed.isEmpty ? nil : .urlContains(trimmed)
         case .mimeType: return trimmed.isEmpty ? nil : .mimeTypeContains(trimmed)
         case .category: return .categoryIs(category)
-        case .largerThan: return .largerThan(Int64(max(0, sizeMB) * 1_000_000))
-        case .smallerThan: return .smallerThan(Int64(max(0, sizeMB) * 1_000_000))
+        case .largerThan: return .largerThan(bytesFromMegabytes(sizeMB))
+        case .smallerThan: return .smallerThan(bytesFromMegabytes(sizeMB))
         }
     }
+}
+
+/// Megabytes → bytes for user-typed values: non-finite input collapses to `minimum`, and the
+/// byte result is capped below `Int64.max` so the conversion can never trap on a huge number.
+private func bytesFromMegabytes(_ megabytes: Double, minimum: Double = 0) -> Int64 {
+    let clamped = megabytes.isFinite ? max(minimum, megabytes) : minimum
+    return Int64(min(clamped * 1_000_000, 9e18))
 }
 
 /// How a rule should affect a matched download's start behavior.
@@ -285,7 +292,7 @@ struct RuleEditorView: View {
         var actions: [SmartRuleAction] = []
         if let destinationPath { actions.append(.setDestination(path: destinationPath, bookmark: destinationBookmark)) }
         if let assignedQueueID { actions.append(.assignQueue(assignedQueueID)) }
-        if limitSpeed { actions.append(.limitSpeed(bytesPerSecond: Int64(max(0.1, speedMBs) * 1_000_000))) }
+        if limitSpeed { actions.append(.limitSpeed(bytesPerSecond: bytesFromMegabytes(speedMBs, minimum: 0.1))) }
         switch startMode {
         case .useDefault: break
         case .start: actions.append(.autoStart(true))
