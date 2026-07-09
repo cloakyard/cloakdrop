@@ -116,19 +116,24 @@ public struct SystemProcessRunner: ProcessRunning {
                     try? await Task.sleep(for: timeout)
                     guard !Task.isCancelled else { return }
                     resume.once { continuation.resume(throwing: MediaExtractionError.timedOut) }
-                    box.value.terminate()
+                    if box.value.isRunning { box.value.terminate() }
                 }
                 process.terminationHandler = { finished in
                     timeoutTask.cancel()
                     resume.once { continuation.resume(returning: finished.terminationStatus) }
                 }
-                do { try process.run() } catch {
+                do {
+                    // A cancel that lands before launch must not spawn the process at all — and
+                    // `terminate()` on a never-launched Process raises, so `onCancel` guards too.
+                    try Task.checkCancellation()
+                    try process.run()
+                } catch {
                     timeoutTask.cancel()
                     resume.once { continuation.resume(throwing: error) }
                 }
             }
         } onCancel: {
-            box.value.terminate()
+            if box.value.isRunning { box.value.terminate() }
         }
 
         try? outHandle.close()

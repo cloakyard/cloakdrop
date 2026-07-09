@@ -151,14 +151,21 @@ public enum DASHParser {
 
         var segments: [MediaSegment] = []
         if let timeline = template.elements(forName: "SegmentTimeline").first {
+            let runs = timeline.elements(forName: "S")
             var number = startNumber
             var time: Int64 = 0
             var index = 0
-            build: for segmentRun in timeline.elements(forName: "S") {
+            build: for (runIndex, segmentRun) in runs.enumerated() {
                 if let explicit = int64Attr(segmentRun, "t") { time = explicit }
                 let duration = int64Attr(segmentRun, "d") ?? 0
-                let repeatCount = intAttr(segmentRun, "r") ?? 0
-                for _ in 0...max(0, repeatCount) {
+                let occurrences = occurrenceCount(
+                    repeatCount: intAttr(segmentRun, "r") ?? 0,
+                    time: time,
+                    duration: duration,
+                    nextT: runIndex + 1 < runs.count ? int64Attr(runs[runIndex + 1], "t") : nil,
+                    periodEnd: runIndex == runs.count - 1 ? periodDuration.map { $0 * timescale } : nil
+                )
+                for _ in 0..<occurrences {
                     if segments.count >= Self.maxSegmentsPerRepresentation { break build }
                     let url = expand(media, repID: repID, bandwidth: bandwidth, number: number, time: time)
                     if let resolved = resolve(url, base) {
@@ -187,6 +194,24 @@ public enum DASHParser {
             }
         }
         return (segments, initSegment)
+    }
+
+    /// How many times one `<S>` run occurs. A non-negative `r` repeats it `r` more times; a negative
+    /// `r` (DASH: repeat until further notice) fills up to the next run's `@t` — or, on the last run,
+    /// to the period's end in timescale units — and with neither known keeps the single occurrence.
+    /// Clamped to `maxSegmentsPerRepresentation`, the same hostile-manifest bound as the caller's.
+    private static func occurrenceCount(
+        repeatCount: Int,
+        time: Int64,
+        duration: Int64,
+        nextT: Int64?,
+        periodEnd: Double?
+    ) -> Int {
+        guard repeatCount < 0 else { return min(repeatCount, Self.maxSegmentsPerRepresentation) + 1 }
+        guard duration > 0, let end = nextT.map(Double.init) ?? periodEnd else { return 1 }
+        let rawCount = ((end - Double(time)) / Double(duration)).rounded(.up)
+        guard rawCount.isFinite, rawCount > 0 else { return 1 }
+        return Int(min(rawCount, Double(Self.maxSegmentsPerRepresentation)))
     }
 
     private static func fromList(
@@ -235,9 +260,18 @@ public enum DASHParser {
         return expanded.replacingOccurrences(of: "\u{0}", with: "$")
     }
 
+    /// Expand a `%0Nd` (or `%0Nx`/`%0NX`) format tag by hand: `String(format:)` reads only 32 bits
+    /// of the vararg for `%d`, silently mangling values past `Int32.max` — a 90 kHz `$Time$` gets
+    /// there within seven hours of media.
     private static func formatted(_ value: Int, _ format: String?) -> String {
-        guard let format else { return "\(value)" }
-        return String(format: format, value)
+        guard let format, let match = format.wholeMatch(of: /%0?(\d*)([dxX])/) else { return "\(value)" }
+        var digits = match.output.2 == "d"
+            ? String(value.magnitude)
+            : String(value.magnitude, radix: 16, uppercase: match.output.2 == "X")
+        if let width = Int(match.output.1), digits.count < width {
+            digits = String(repeating: "0", count: width - digits.count) + digits
+        }
+        return value < 0 ? "-" + digits : digits
     }
 
     // MARK: Attribute & element helpers

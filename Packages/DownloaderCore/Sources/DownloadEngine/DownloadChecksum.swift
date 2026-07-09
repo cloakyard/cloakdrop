@@ -48,7 +48,7 @@ enum DownloadChecksum {
         }
 
         let fileURL = URL(fileURLWithPath: download.destinationFilePath)
-        let actual = try ChecksumVerifier.hash(fileURL: fileURL, algorithm: expectation.algorithm)
+        let actual = try await ChecksumVerifier.hash(fileURL: fileURL, algorithm: expectation.algorithm)
         let matches = actual == expectation.expectedHex
         if !matches, userProvided {
             throw DownloadError.checksumMismatch(

@@ -215,6 +215,25 @@ struct MediaTransferTests {
         // A generic "master.m3u8" name falls back to the containing path segment.
         let genericURL = URL(string: "https://cdn.example.com/myvideo/master.m3u8")!
         #expect(DownloadManager.deriveMediaFileName(from: genericURL, plan: fmp4Plan) == "myvideo.mp4")
+
+        // A percent-encoded separator in the path must not smuggle traversal into the file name:
+        // separators become "-", leaving any ".." inert text inside a single component.
+        let hostileURL = URL(string: "https://cdn.example.com/videos%2F..%2F..%2Fx/master.m3u8")!
+        #expect(DownloadManager.deriveMediaFileName(from: hostileURL, plan: fmp4Plan) == "videos-..-..-x.mp4")
+
+        // A Unified Streaming-style master (`…/asset.ism/.m3u8`) must not become a hidden dot-file:
+        // the ".m3u8" stem is as generic as "master", so the parent supplies the name.
+        let ismURL = URL(string: "https://demo.example.com/video/tears.ism/.m3u8")!
+        #expect(DownloadManager.deriveMediaFileName(from: ismURL, plan: fmp4Plan) == "tears.ism.mp4")
+    }
+
+    @Test("uniqueMediaFileName de-collides against the catalog so a re-grab can't overwrite")
+    func mediaFileNameDeCollision() {
+        let dir = FileManager.default.temporaryDirectory.path
+        #expect(DownloadManager.uniqueMediaFileName("Talk.mp4", inDirectory: dir, takenNames: []) == "Talk.mp4")
+        #expect(DownloadManager.uniqueMediaFileName("Talk.mp4", inDirectory: dir, takenNames: ["Talk.mp4"]) == "Talk (2).mp4")
+        #expect(DownloadManager.uniqueMediaFileName(
+            "Talk.mp4", inDirectory: dir, takenNames: ["Talk.mp4", "Talk (2).mp4"]) == "Talk (3).mp4")
     }
 
     @Test("addMedia treats an extensionless suggested name as a title stem and appends the plan's container")

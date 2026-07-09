@@ -71,17 +71,53 @@ public extension DownloadManager {
     /// the container from the segment kind: fMP4 (has an init segment) or `.ts` → `.mp4`/`.ts`. (The
     /// remuxer may later correct this to a clean `.mp4`/`.m4a` at finalize.)
     internal static func deriveMediaFileName(from url: URL, plan: MediaPlan) -> String {
-        let generic: Set<String> = ["master", "index", "playlist", "manifest", "stream", "media", ""]
-        let last = url.deletingPathExtension().lastPathComponent
+        // A stem that *is* a manifest extension (`…/asset.ism/.m3u8`) is as meaningless as "master".
+        let generic: Set<String> = ["master", "index", "playlist", "manifest", "stream", "media",
+                                    "m3u8", "m3u", "mpd", ""]
+        let last = sanitizedStem(url.deletingPathExtension().lastPathComponent)
         let stem: String
         if !generic.contains(last.lowercased()) {
             stem = last
         } else {
-            let parent = url.deletingLastPathComponent().lastPathComponent
-            stem = (parent.isEmpty || parent == "/") ? (url.host() ?? "video") : parent
+            let parent = sanitizedStem(url.deletingLastPathComponent().lastPathComponent)
+            stem = parent.isEmpty ? (url.host() ?? "video") : parent
         }
 
         return "\(stem).\(mediaContainerExtension(for: plan))"
+    }
+
+    /// Make a URL-derived stem safe as a single file name: `lastPathComponent` percent-decodes, so a
+    /// crafted path segment (`videos%2F..%2Fx`) would smuggle separators into the destination path,
+    /// and a leading dot would hide the finished file in Finder.
+    private static func sanitizedStem(_ raw: String) -> String {
+        guard raw != "/" else { return "" }
+        var stem = raw
+            .replacingOccurrences(of: "/", with: "-")
+            .replacingOccurrences(of: "\\", with: "-")
+            .replacingOccurrences(of: ":", with: "-")
+        while stem.hasPrefix(".") { stem.removeFirst() }
+        return stem.trimmingCharacters(in: .whitespaces)
+    }
+
+    /// De-collide an output name against the catalog (`takenNames`) and the destination folder
+    /// (`name (2).ext`), so re-grabbing the same title can't silently overwrite an existing file
+    /// at finalize.
+    internal static func uniqueMediaFileName(
+        _ fileName: String, inDirectory directory: String, takenNames: Set<String>
+    ) -> String {
+        let base = (fileName as NSString).deletingPathExtension
+        let ext = (fileName as NSString).pathExtension
+        func taken(_ name: String) -> Bool {
+            takenNames.contains(name)
+                || FileManager.default.fileExists(atPath: (directory as NSString).appendingPathComponent(name))
+        }
+        guard taken(fileName) else { return fileName }
+        for n in 2...999 {
+            let candidate = ext.isEmpty ? "\(base) (\(n))" : "\(base) (\(n)).\(ext)"
+            if !taken(candidate) { return candidate }
+        }
+        return ext.isEmpty ? "\(base)-\(UUID().uuidString.prefix(8))"
+                           : "\(base)-\(UUID().uuidString.prefix(8)).\(ext)"
     }
 
     /// The container extension a media grab's output starts with: fMP4 (has an init segment) →

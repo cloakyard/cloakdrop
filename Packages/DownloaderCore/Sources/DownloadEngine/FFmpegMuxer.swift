@@ -78,6 +78,9 @@ public struct FFmpegMuxer: Remuxer {
         let status: Int32
         do {
             status = try await Self.execute(executableURL: executableURL, arguments: arguments, stderrLog: logURL)
+        } catch is CancellationError {
+            try? FileManager.default.removeItem(atPath: output)
+            throw CancellationError()
         } catch {
             // Failed to even launch the process → treat as unsupported so the composite can recover.
             try? FileManager.default.removeItem(atPath: output)
@@ -86,6 +89,9 @@ public struct FFmpegMuxer: Remuxer {
 
         guard status == 0 else {
             try? FileManager.default.removeItem(atPath: output)
+            // A cancel-killed child exits nonzero — report the cancellation, not a codec failure,
+            // so callers don't fall through to a "ship it without audio" recovery path.
+            try Task.checkCancellation()
             let log = (try? String(contentsOf: logURL, encoding: .utf8)) ?? ""
             throw RemuxError.failed("ffmpeg exited \(status): \(String(log.suffix(500)))")
         }
@@ -96,7 +102,9 @@ public struct FFmpegMuxer: Remuxer {
     }
 
     /// Launch ffmpeg and await its termination, returning the exit status. stdin/stdout are silenced;
-    /// stderr is redirected to `stderrLog`. Throws only if the process can't be launched.
+    /// stderr is redirected to `stderrLog`. Cooperative: cancelling the awaiting task terminates the
+    /// child (a multi-GB mux must not outlive a cancelled download). Throws only if the process can't
+    /// be launched or the task was cancelled before launch.
     private static func execute(executableURL: URL, arguments: [String], stderrLog: URL) async throws -> Int32 {
         let errorHandle = try FileHandle(forWritingTo: stderrLog)
         let process = Process()
@@ -111,17 +119,32 @@ public struct FFmpegMuxer: Remuxer {
             try? errorHandle.close()
             withExtendedLifetime(process) {}
         }
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Int32, any Error>) in
-            // `terminationHandler` is @Sendable and captures only the (Sendable) continuation; it
-            // reads the status off the process passed into it, never the captured local.
-            process.terminationHandler = { finished in
-                continuation.resume(returning: finished.terminationStatus)
+        let box = UncheckedProcessBox(process)
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Int32, any Error>) in
+                // `terminationHandler` is @Sendable and captures only the (Sendable) continuation; it
+                // reads the status off the process passed into it, never the captured local.
+                process.terminationHandler = { finished in
+                    continuation.resume(returning: finished.terminationStatus)
+                }
+                do {
+                    // A cancel that lands before launch must not start a mux at all — and
+                    // `terminate()` on a never-launched Process raises, so `onCancel` guards too.
+                    try Task.checkCancellation()
+                    try process.run()
+                } catch {
+                    continuation.resume(throwing: error)
+                }
             }
-            do {
-                try process.run()
-            } catch {
-                continuation.resume(throwing: error)
-            }
+        } onCancel: {
+            if box.value.isRunning { box.value.terminate() }
         }
     }
+}
+
+/// Carries the non-`Sendable` `Process` into the cancellation handler. Only its thread-safe
+/// `isRunning`/`terminate()` are touched off the launching task.
+private final class UncheckedProcessBox: @unchecked Sendable {
+    let value: Process
+    init(_ value: Process) { self.value = value }
 }

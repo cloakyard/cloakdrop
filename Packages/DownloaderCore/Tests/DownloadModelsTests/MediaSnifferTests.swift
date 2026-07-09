@@ -100,6 +100,8 @@ struct MediaSnifferClassificationTests {
     @Test func attachmentFilenameParsesRFC5987QuotedAndBareForms() {
         #expect(MediaSniffer.attachmentFilename("attachment; filename=\"report final.pdf\"") == "report final.pdf")
         #expect(MediaSniffer.attachmentFilename("attachment; filename*=UTF-8''r%C3%A9sum%C3%A9.pdf") == "résumé.pdf")
+        // RFC 5987 allows a language tag in the middle slot.
+        #expect(MediaSniffer.attachmentFilename("attachment; filename*=UTF-8'en'r%C3%A9sum%C3%A9.pdf") == "résumé.pdf")
         #expect(MediaSniffer.attachmentFilename("attachment; filename=plain.zip") == "plain.zip")
         #expect(MediaSniffer.attachmentFilename("attachment") == "")
         #expect(MediaSniffer.attachmentFilename("inline; filename=\"preview.pdf\"") == nil)
@@ -235,6 +237,19 @@ struct MediaSnifferDedupeTests {
             item("\(base)/v9/prog_index.m3u8", .stream),
             item("\(base)/a1/prog_index.m3u8", .stream),
             item("\(base)/s1/en/prog_index.m3u8", .stream)
+        ])
+        #expect(items.count == 1)
+        #expect(items.first?.url.hasSuffix("/master.m3u8") == true)
+    }
+
+    @Test func collapsesARootLevelMasterWithItsSubfolderVariantsAndSegments() {
+        // The master sits at the host root — its folder key is the bare host, and the containment
+        // tests must still match its /v4/ descendants.
+        let items = MediaSniffer.dedupeAndRank([
+            item("https://cdn.example/master.m3u8", .stream),
+            item("https://cdn.example/v4/prog_index.m3u8", .stream),
+            item("https://cdn.example/v4/fileSequence0.aac", .audio),
+            item("https://cdn.example/v4/fileSequence1.aac", .audio)
         ])
         #expect(items.count == 1)
         #expect(items.first?.url.hasSuffix("/master.m3u8") == true)

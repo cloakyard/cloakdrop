@@ -54,7 +54,7 @@ public struct PageMediaState: Sendable {
                     contentLength: event.contentLength,
                     contentDisposition: event.contentDisposition
                 )
-                record(byHeaders ?? MediaSniffer.classifyByURL(url))
+                record(byHeaders ?? MediaSniffer.classifyByURL(url, contentLength: event.contentLength))
             case .element:
                 applyElement(event)
             case .mse:
