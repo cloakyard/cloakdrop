@@ -12,22 +12,28 @@ struct AboutHeaderView: View {
     @State private var taps = 0
     @State private var matrixMode = false
 
+    private static let cornerRadius: CGFloat = 8   // matches the grouped-Form section radius
     /// Phosphor green used for the title/version while the rain is on.
     private static let phosphor = Color(red: 0.62, green: 1.0, blue: 0.62)
 
     // Rendered as a single grouped-Form row (see SettingsView.about), so the Section supplies the grey
-    // card, width, and corner radius — identical to every other Settings tab. The Matrix easter egg
-    // rides in as the row's background (which the Section clips to its rounded corners) only while
-    // armed; the Canvas is otherwise absent, so no `TimelineView` redraws burn CPU when the egg is off.
+    // card, width, and corner radius — identical to every other Settings tab. The Matrix easter egg is
+    // a *live* `.background` (NOT a `listRowBackground`, which SwiftUI snapshots — that froze the rain):
+    // a plain background keeps the Canvas mounted so `TimelineView(.animation)` actually ticks. It's
+    // clipped to the card radius and only mounted while armed, so nothing redraws when the egg is off.
     var body: some View {
         content
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 18)
+            .padding(.vertical, 20)
+            .background {
+                if matrixMode {
+                    MatrixRainView().clipShape(.rect(cornerRadius: Self.cornerRadius))
+                }
+            }
             .overlay {
                 // While it rains, a transparent catcher turns any tap into "stop".
                 if matrixMode { Color.clear.contentShape(.rect).onTapGesture { stop() } }
             }
-            .listRowBackground(matrixMode ? AnyView(MatrixRainView()) : nil)
             .animation(.easeInOut(duration: 0.45), value: matrixMode)
     }
 
@@ -53,6 +59,10 @@ struct AboutHeaderView: View {
                     .font(.callout)
                     .monospacedDigit()
                     .foregroundStyle(matrixMode ? Self.phosphor.opacity(0.85) : .secondary)
+                Text("Created by Sumit Sahoo")
+                    .font(.footnote)
+                    .foregroundStyle(matrixMode ? Self.phosphor.opacity(0.7) : .secondary)
+                    .padding(.top, 3)
             }
         }
     }

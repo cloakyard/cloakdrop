@@ -242,12 +242,11 @@ struct SettingsView: View {
 
     private var about: some View {
         Form {
-            // The hero header. Tap the icon five times for a Matrix easter egg (see AboutHeaderView).
+            // The hero header (icon, name, version, credit). Tap the icon five times for a Matrix
+            // easter egg (see AboutHeaderView). Zero row insets so the rain fills the card edge-to-edge.
             Section {
                 AboutHeaderView(version: Self.appVersion)
-            } footer: {
-                Text("Created by Sumit Sahoo")
-                    .frame(maxWidth: .infinity, alignment: .center)
+                    .listRowInsets(EdgeInsets())
             }
 
             Section {
