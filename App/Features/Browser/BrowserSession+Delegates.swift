@@ -68,6 +68,7 @@ extension BrowserSession: WKNavigationDelegate {
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         captureUserAgentIfNeeded()
+        refreshFavicon()
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: any Error) {

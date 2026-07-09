@@ -14,6 +14,13 @@ struct BrowserSettingsView: View {
         Form {
             Section {
                 Toggle("Search from the address bar", isOn: $model.browserSearchEnabled)
+                if model.browserSearchEnabled {
+                    Picker("Search Engine", selection: $model.browserSearchEngine) {
+                        ForEach(SearchEngine.allCases) { engine in
+                            Text(engine.displayName).tag(engine)
+                        }
+                    }
+                }
             } header: {
                 Text("Address Bar")
             } footer: {
@@ -62,7 +69,7 @@ struct BrowserSettingsView: View {
     private var addressBarFooter: LocalizedStringKey {
         model.browserSearchEnabled
             // swiftlint:disable:next line_length
-            ? "Text that isn’t a web address is searched on DuckDuckGo when you press Return. Nothing is sent as you type — there are no search suggestions."
+            ? "Text that isn’t a web address is searched on \(model.browserSearchEngine.displayName) when you press Return. Nothing is sent as you type — there are no search suggestions."
             // swiftlint:disable:next line_length
             : "Off: the address bar never searches, so nothing you type is ever sent to a search engine. Non-address text is opened as an https:// address."
     }

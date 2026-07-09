@@ -2,6 +2,37 @@ import SwiftUI
 import WebKit
 import DownloadModels
 
+/// The search engine the address bar uses for a typed query. The query is only ever sent on Return
+/// (submit-only) — there is no as-you-type suggestion traffic to any of these providers.
+enum SearchEngine: String, CaseIterable, Identifiable, Sendable {
+    case duckDuckGo
+    case google
+    case bing
+
+    var id: String { rawValue }
+
+    /// Brand name — a proper noun, shown verbatim in every locale.
+    var displayName: String {
+        switch self {
+        case .duckDuckGo: "DuckDuckGo"
+        case .google: "Google"
+        case .bing: "Bing"
+        }
+    }
+
+    /// The results URL for a user-typed query.
+    func searchURL(for query: String) -> URL? {
+        var components: URLComponents?
+        switch self {
+        case .duckDuckGo: components = URLComponents(string: "https://duckduckgo.com/")
+        case .google: components = URLComponents(string: "https://www.google.com/search")
+        case .bing: components = URLComponents(string: "https://www.bing.com/search")
+        }
+        components?.queryItems = [URLQueryItem(name: "q", value: query)]
+        return components?.url
+    }
+}
+
 /// What the browser hands to the app — implemented by `AppModel`. A protocol seam (not AppModel
 /// directly) so the browser feature stays testable in isolation.
 @MainActor
@@ -113,6 +144,8 @@ final class BrowserSession: NSObject {
     private(set) var canGoForward = false
     private(set) var isSecure = false
     private(set) var loadError: BrowserLoadError?
+    /// The current page's favicon, shown next to the address bar in place of the window title.
+    private(set) var favicon: NSImage?
 
     // Sniffing.
     private(set) var media = PageMediaState()
@@ -128,8 +161,10 @@ final class BrowserSession: NSObject {
     private(set) var urlBarFocusToken = 0
     /// The view keeps this current so background navigation never stomps on the user's typing.
     var isEditingURLBar = false
-    /// Whether non-URL address-bar text becomes a DuckDuckGo search (mirrors the setting).
+    /// Whether non-URL address-bar text becomes a search (mirrors the setting).
     var searchEnabled = true
+    /// Which engine an address-bar search uses (mirrors the setting).
+    var searchEngine: SearchEngine = .duckDuckGo
 
     weak var sink: (any BrowserCaptureSink)?
     /// Opens a sibling browser window (wired to `openWindow` by the view).
@@ -208,15 +243,15 @@ final class BrowserSession: NSObject {
     // MARK: - Navigation intents
 
     /// Load whatever the user typed: a URL as-is, a bare host with `https://` prefixed, or a
-    /// DuckDuckGo search for anything that doesn't look like an address.
+    /// search (on the chosen engine) for anything that doesn't look like an address.
     func commitURLBar() {
         let text = urlText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
-        guard let destination = Self.destination(for: text, searchEnabled: searchEnabled) else { return }
+        guard let destination = Self.destination(for: text, searchEnabled: searchEnabled, searchEngine: searchEngine) else { return }
         load(destination)
     }
 
-    static func destination(for text: String, searchEnabled: Bool = true) -> URL? {
+    static func destination(for text: String, searchEnabled: Bool = true, searchEngine: SearchEngine = .duckDuckGo) -> URL? {
         if let url = URL(string: text), let scheme = url.scheme?.lowercased(),
            ["http", "https", "file", "about"].contains(scheme) {
             return url
@@ -230,10 +265,8 @@ final class BrowserSession: NSObject {
             let stripped = text.split(separator: " ").joined()
             return URL(string: "https://" + stripped)
         }
-        // Otherwise a search — user-typed, submit-only (no keystroke egress ever).
-        var components = URLComponents(string: "https://duckduckgo.com/")!
-        components.queryItems = [URLQueryItem(name: "q", value: text)]
-        return components.url
+        // Otherwise a search on the chosen engine — user-typed, submit-only (no keystroke egress ever).
+        return searchEngine.searchURL(for: text)
     }
 
     func load(_ url: URL) {
@@ -331,6 +364,7 @@ final class BrowserSession: NSObject {
 
     func markCommitted(url: URL?) {
         hasCommittedNavigation = true
+        favicon = nil
         media.reset(pageURL: url?.absoluteString ?? "")
     }
 
@@ -345,6 +379,47 @@ final class BrowserSession: NSObject {
                 if let agent = result as? String, !agent.isEmpty { self?.userAgent = agent }
             }
         }
+    }
+
+    /// Best-effort favicon for the current page. Fetched *inside* the page context (isolated world,
+    /// but the page's cookies and origin) so it adds no new egress beyond the browsing the user is
+    /// already doing, and returned as a base64 data URL. Cross-origin icons without CORS, SVG data,
+    /// or a missing file simply leave it nil — the chrome falls back to a globe.
+    func refreshFavicon() {
+        webView.callAsyncJavaScript(Self.faviconScript, in: nil, in: .defaultClient) { [weak self] result in
+            MainActor.assumeIsolated {
+                guard case .success(let value) = result, let dataURL = value as? String,
+                      let image = Self.decodeFaviconDataURL(dataURL) else { return }
+                self?.favicon = image
+            }
+        }
+    }
+
+    private static let faviconScript = """
+    const rels = ["link[rel~='icon']", "link[rel='shortcut icon']", "link[rel='apple-touch-icon']"];
+    let href = null;
+    for (const sel of rels) { const el = document.querySelector(sel); if (el && el.href) { href = el.href; break; } }
+    if (!href) { href = location.origin + '/favicon.ico'; }
+    try {
+        const resp = await fetch(href, { cache: 'force-cache' });
+        if (!resp.ok) { return null; }
+        const blob = await resp.blob();
+        if (!blob.size || blob.size > 524288) { return null; }
+        return await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(blob);
+        });
+    } catch (e) { return null; }
+    """
+
+    private static func decodeFaviconDataURL(_ string: String) -> NSImage? {
+        guard let marker = string.range(of: ";base64,") else { return nil }
+        let base64 = String(string[marker.upperBound...])
+        guard let data = Data(base64Encoded: base64), !data.isEmpty,
+              let image = NSImage(data: data) else { return nil }
+        return image
     }
 
     /// Whether the crash handler should quietly reload (first crash in a while) or show the error

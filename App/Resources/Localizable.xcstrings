@@ -14431,6 +14431,71 @@
         }
       }
     },
+    "New Tab": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva pestaña"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvel onglet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Tab"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新标签页"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新規タブ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 탭"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nova aba"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новая вкладка"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "علامة تبويب جديدة"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "नया टैब"
+          }
+        }
+      }
+    },
     "Next badge": {
       "extractionState": "manual",
       "localizations": {
@@ -16507,6 +16572,71 @@
           "stringUnit": {
             "state": "translated",
             "value": "打开 Metalink…"
+          }
+        }
+      }
+    },
+    "Open a new tab": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir una pestaña nueva"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir un nouvel onglet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuen Tab öffnen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开新标签页"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新規タブを開く"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 탭 열기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir uma nova aba"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть новую вкладку"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فتح علامة تبويب جديدة"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "नया टैब खोलें"
           }
         }
       }
@@ -21971,6 +22101,71 @@
         }
       }
     },
+    "Search Engine": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Motor de búsqueda"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moteur de recherche"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suchmaschine"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索引擎"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "検索エンジン"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "검색 엔진"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mecanismo de busca"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поисковая система"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "محرك البحث"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "खोज इंजन"
+          }
+        }
+      }
+    },
     "Search downloads": {
       "extractionState": "manual",
       "localizations": {
@@ -25026,67 +25221,67 @@
         }
       }
     },
-    "Text that isn’t a web address is searched on DuckDuckGo when you press Return. Nothing is sent as you type — there are no search suggestions.": {
+    "Text that isn’t a web address is searched on %@ when you press Return. Nothing is sent as you type — there are no search suggestions.": {
       "extractionState": "manual",
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El texto que no sea una dirección web se busca en DuckDuckGo al pulsar Intro. No se envía nada mientras escribes: no hay sugerencias de búsqueda."
+            "value": "El texto que no sea una dirección web se busca en %@ al pulsar Intro. No se envía nada mientras escribes: no hay sugerencias de búsqueda."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le texte qui n’est pas une adresse web est recherché sur DuckDuckGo lorsque vous appuyez sur Entrée. Rien n’est envoyé pendant la saisie — il n’y a aucune suggestion de recherche."
+            "value": "Le texte qui n’est pas une adresse web est recherché sur %@ lorsque vous appuyez sur Entrée. Rien n’est envoyé pendant la saisie — il n’y a aucune suggestion de recherche."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Text, der keine Webadresse ist, wird bei Drücken der Eingabetaste auf DuckDuckGo gesucht. Während der Eingabe wird nichts gesendet – es gibt keine Suchvorschläge."
+            "value": "Text, der keine Webadresse ist, wird bei Drücken der Eingabetaste auf %@ gesucht. Während der Eingabe wird nichts gesendet – es gibt keine Suchvorschläge."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "按下 Return 键时，非网址文本将在 DuckDuckGo 上搜索。输入过程中不会发送任何内容——没有搜索建议。"
+            "value": "按下 Return 键时，非网址文本将在 %@ 上搜索。输入过程中不会发送任何内容——没有搜索建议。"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ウェブアドレス以外のテキストは、Return キーを押すと DuckDuckGo で検索されます。入力中には何も送信されず、検索候補もありません。"
+            "value": "ウェブアドレス以外のテキストは、Return キーを押すと %@ で検索されます。入力中には何も送信されず、検索候補もありません。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "웹 주소가 아닌 텍스트는 Return 키를 누르면 DuckDuckGo에서 검색됩니다. 입력하는 동안에는 아무것도 전송되지 않으며 검색 제안도 없습니다."
+            "value": "웹 주소가 아닌 텍스트는 Return 키를 누르면 %@에서 검색됩니다. 입력하는 동안에는 아무것도 전송되지 않으며 검색 제안도 없습니다."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O texto que não for um endereço web é pesquisado no DuckDuckGo ao pressionar Return. Nada é enviado enquanto você digita — não há sugestões de pesquisa."
+            "value": "O texto que não for um endereço web é pesquisado no %@ ao pressionar Return. Nada é enviado enquanto você digita — não há sugestões de pesquisa."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Текст, не являющийся веб-адресом, ищется в DuckDuckGo при нажатии Return. Во время ввода ничего не отправляется — подсказок поиска нет."
+            "value": "Текст, не являющийся веб-адресом, ищется в %@ при нажатии Return. Во время ввода ничего не отправляется — подсказок поиска нет."
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يُبحث عن النص الذي ليس عنوان ويب في DuckDuckGo عند الضغط على Return. لا يُرسَل شيء أثناء الكتابة — ولا توجد اقتراحات بحث."
+            "value": "يُبحث عن النص الذي ليس عنوان ويب في %@ عند الضغط على Return. لا يُرسَل شيء أثناء الكتابة — ولا توجد اقتراحات بحث."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "जो टेक्स्ट वेब पता नहीं है, Return दबाने पर उसे DuckDuckGo पर खोजा जाता है। टाइप करते समय कुछ नहीं भेजा जाता — कोई खोज सुझाव नहीं हैं।"
+            "value": "जो टेक्स्ट वेब पता नहीं है, Return दबाने पर उसे %@ पर खोजा जाता है। टाइप करते समय कुछ नहीं भेजा जाता — कोई खोज सुझाव नहीं हैं।"
           }
         }
       }
