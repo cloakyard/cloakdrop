@@ -75,7 +75,8 @@ tell application "Finder"
     set background picture of theView to file ".background:background.png"
     set position of item "CloakDrop.app" of container window to {200, 258}
     set position of item "Applications" of container window to {560, 258}
-    set position of item "Read Me.txt" of container window to {175, 458}
+    -- Read Me.txt sits directly under the app icon (same x=200) so the left column lines up.
+    set position of item "Read Me.txt" of container window to {200, 452}
     update without registering applications
     delay 1
     close
