@@ -241,34 +241,27 @@ struct SettingsView: View {
     // MARK: About
 
     private var about: some View {
-        VStack(spacing: 18) {
+        Form {
             // The hero header. Tap the icon five times for a Matrix easter egg (see AboutHeaderView).
-            AboutHeaderView(version: Self.appVersion)
+            Section {
+                AboutHeaderView(version: Self.appVersion)
+            } footer: {
+                Text("Created by Sumit Sahoo")
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
 
-            Text("Created by Sumit Sahoo")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-
-            VStack(spacing: 2) {
+            Section {
                 linkRow(symbol: "person.crop.circle", label: Text(verbatim: "github.com/sumitsahoo"), url: AppLinks.author)
-                Divider()
                 linkRow(
                     symbol: "chevron.left.forwardslash.chevron.right",
                     label: Text(verbatim: "github.com/cloakyard/cloakdrop"),
                     url: AppLinks.repository
                 )
-                Divider()
                 linkRow(symbol: "ladybug", label: Text("Report a Bug"), url: BugReport.issueURL)
             }
-            .padding(.vertical, 4)
-            .padding(.horizontal, 14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 12))
-
-            Spacer(minLength: 0)
         }
-        .padding(24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .formStyle(.grouped)
+        .scrollBounceBehavior(.basedOnSize)
     }
 
     /// A tappable row that opens `url` in the default browser (native `Link`), styled to read
@@ -286,7 +279,6 @@ struct SettingsView: View {
                     .foregroundStyle(.tertiary)
             }
             .contentShape(.rect)
-            .padding(.vertical, 8)
         }
         .buttonStyle(.plain)
     }

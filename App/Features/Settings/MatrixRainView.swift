@@ -12,42 +12,23 @@ struct AboutHeaderView: View {
     @State private var taps = 0
     @State private var matrixMode = false
 
-    private static let cornerRadius: CGFloat = 20
     /// Phosphor green used for the title/version while the rain is on.
     private static let phosphor = Color(red: 0.62, green: 1.0, blue: 0.62)
 
+    // Rendered as a single grouped-Form row (see SettingsView.about), so the Section supplies the grey
+    // card, width, and corner radius — identical to every other Settings tab. The Matrix easter egg
+    // rides in as the row's background (which the Section clips to its rounded corners) only while
+    // armed; the Canvas is otherwise absent, so no `TimelineView` redraws burn CPU when the egg is off.
     var body: some View {
-        ZStack {
-            // A neutral grey card normally (matching the grouped Stats hero), a black Matrix field
-            // once armed. The Canvas is only mounted while active — `TimelineView(.animation)`
-            // redraws every display frame as long as it's in the tree, so a hidden-but-present rain
-            // would burn CPU/GPU the whole time the About pane is open. Gating it keeps the header
-            // idle when the egg is off.
-            Rectangle().fill(.quaternary.opacity(0.4))
-
-            if matrixMode {
-                MatrixRainView()
-                    .transition(.opacity)
+        content
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 18)
+            .overlay {
+                // While it rains, a transparent catcher turns any tap into "stop".
+                if matrixMode { Color.clear.contentShape(.rect).onTapGesture { stop() } }
             }
-
-            content
-
-            // While it rains, a transparent catcher above everything turns any tap into "stop",
-            // so the icon, the title, and the empty field all dismiss the egg.
-            if matrixMode {
-                Color.clear
-                    .contentShape(.rect)
-                    .onTapGesture { stop() }
-            }
-        }
-        .frame(height: 190)
-        .frame(maxWidth: .infinity)
-        .clipShape(.rect(cornerRadius: Self.cornerRadius))
-        .overlay(
-            RoundedRectangle(cornerRadius: Self.cornerRadius)
-                .strokeBorder(.primary.opacity(matrixMode ? 0 : 0.06), lineWidth: 1)
-        )
-        .animation(.easeInOut(duration: 0.45), value: matrixMode)
+            .listRowBackground(matrixMode ? AnyView(MatrixRainView()) : nil)
+            .animation(.easeInOut(duration: 0.45), value: matrixMode)
     }
 
     private var content: some View {
