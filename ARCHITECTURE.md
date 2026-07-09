@@ -81,7 +81,7 @@ The concurrency core. Everything mutable is actor-isolated.
   engine treats an offset transfer exactly like an HTTP partial. Control + data connections carry
   idle timeouts, a bounded reply buffer, and cooperative cancellation so a dead/hung server can
   never wedge a transfer.
-- **Saved credentials (`CredentialStore` → `KeychainCredentialStore`)** — per-site HTTP/FTP logins
+- **Saved credentials (`CredentialStoring` → `KeychainCredentialStore`)** — per-site HTTP/FTP logins
   and the manual-proxy password live in the **Keychain** (`kSecClassGenericPassword`, keyed on an
   opaque identifier, `…AfterFirstUnlockThisDeviceOnly`), never in the plaintext settings payload;
   the proxy password is blanked on disk and rehydrated into memory at launch.
@@ -102,7 +102,7 @@ The concurrency core. Everything mutable is actor-isolated.
   directory — the one deliberate, disclosed exception to "egress only to your download URLs".
 - **Intake seams** — `LinkInspector` turns one `HTTPClient.probe` into a `LinkPreview` (final URL
   after redirects, size, range-support, MIME, ETag, connection estimate) for the add sheet's live
-  pre-flight; `CodeSignatureInspector` (protocol → `SecCodeSignatureInspector`, Security framework,
+  pre-flight; `CodeSignatureInspecting` (protocol → `SecCodeSignatureInspector`, Security framework,
   in-process, no network) assesses a finished `.app`/`.dmg`'s code signature in `DownloadTask.finalize`.
   Smart-rule routing is applied in `DownloadManager.add` (folder / queue / speed cap / auto-start).
   After verify, `DownloadTask` assembles the **`ProvenanceReceipt`** from signals already in the
@@ -111,7 +111,9 @@ The concurrency core. Everything mutable is actor-isolated.
 - **Media** — `MediaResolver` fetches + parses a manifest URL into a ready `MediaPlan`, pairing an
   adaptive video rendition with its separate audio track so a "video" grab always has sound;
   `DownloadTask` grabs the video *and* audio segments over the same engine, decrypting AES-128
-  (`AES128`), then muxes and passthrough-remuxes the result into a clean container. The `Remuxer`
+  (`AES128`), then muxes and passthrough-remuxes the result into a clean container; selected
+  subtitle tracks are converted (`SubtitleConverter`, WebVTT → SRT) and written as sidecar `.srt`
+  files next to the finished video. The `Remuxer`
   protocol has two backends behind a `CompositeRemuxer` (tries each in order): `AVFoundationRemuxer`
   first — fast, in-process, no dependency, H.264/HEVC + AAC → `.mp4`/`.m4a` — falling back to a
   bundled `FFmpegMuxer` (stream-copy via a `Process`) for the codecs AVFoundation can't carry

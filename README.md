@@ -23,14 +23,14 @@ Serious multi-segment download power with the look and feel of a first-party app
 | 🔌 **HTTP, HTTPS & FTP/FTPS** | One engine, many transports — a native FTP/FTPS client (over Network.framework: EPSV/PASV, `REST` resume, implicit TLS for `ftps`) segments and resumes just like HTTP, with no bundled library. |
 | ⏯️ **True pause & resume** | Real byte-range resume that survives app relaunch *and* reboot — it never re-downloads a byte. |
 | 🔁 **Auto-recovery** | Per-segment retry with exponential backoff + jitter; auto-pauses when the network drops and resumes when it returns. |
-| ✅ **Integrity & trust** | MD5 / SHA-1 / SHA-256 verification on completion — from a checksum you supply or auto-discovered from a sibling `.sha256`/`.sha1`/`.md5` — plus a code-signature/notarization trust check on `.app`/`.dmg`/`.pkg`. |
+| ✅ **Integrity & trust** | MD5 / SHA-1 / SHA-256 verification on completion — from a checksum you supply or auto-discovered from a sibling `.sha256`/`.sha1`/`.md5` — plus a code-signature/notarization trust check on `.app`/`.dmg`. |
 | 🧾 **Provenance Receipt** | Every completed download gets a local, exportable *verified-download record* — sources, TLS, whole-file SHA-256, and checksum + signature verdicts in one trust verdict. No other download manager produces one. |
 | 🐢 **Bandwidth control** | Global **and** per-download speed limits (a GCRA throttle that holds the aggregate cap honestly under many concurrent connections), plus optional time-of-day profiles. |
 | 🗂️ **Queues, categories & rules** | Per-queue concurrency limits, smart filters, a rule-based routing engine (folder / queue / speed cap / auto-start), duplicate detection, and auto-sorting of finished files into per-type folders. |
 | 📦 **Post-processing** | Native ZIP auto-extraction (Zip-Slip + decompression-bomb guarded), a Gatekeeper quarantine flag on saved files, and post-download actions (notify / quit / run a Shortcut). |
 | 📋 **Effortless capture** | Clipboard watching, drag & drop, a link-grabber (paste mixed links or **grab all** from a page → dedupe → pattern-expand `file[01-50].zip` → pick), scheduler, Keychain-backed HTTP/FTP auth, cookies/referrer, and system/manual proxy. |
 | 🌐 **Built-in browser** | A WebKit browser inside the app (⇧⌘B): visit any site and a live badge lists the video, audio, and files on the page (HLS/DASH manifests, direct files, `attachment` responses) — deduped down to the one thing worth grabbing and titled by the page, with ads, tracking beacons, and stream chunks filtered out (players hidden in shadow DOM still found). IDM-style, it **takes over downloads** the moment a page starts one. Streams open a quality picker so you choose the resolution; logged-in grabs carry your cookies. Plus a Share Extension and a "Send to CloakDrop" Services item for capture from other apps. |
-| 🎬 **Media grabbing** | Detects HLS (`.m3u8`) and DASH (`.mpd`) streams, lists qualities, decrypts AES-128, and pairs each video rendition with its audio track — muxed into a clean, playable file with no re-encode (AVFoundation → `.mp4`/`.m4a`; bundled ffmpeg stream-copies VP9/AV1/Opus → `.mkv`). |
+| 🎬 **Media grabbing** | Detects HLS (`.m3u8`) and DASH (`.mpd`) streams, lists qualities, decrypts AES-128, and pairs each video rendition with its audio track — muxed into a clean, playable file with no re-encode (AVFoundation → `.mp4`/`.m4a`; bundled ffmpeg stream-copies VP9/AV1/Opus → `.mkv`). Subtitle tracks come along as sidecar `.srt` files, and audio-only grabs extract a lossless `.m4a`. |
 | 🎥 **Site & video extraction** | Paste a YouTube page — or any of the **~1800 sites** yt-dlp knows — and CloakDrop resolves the formats and grabs them with **its own** segmented engine. yt-dlp only *reads and deciphers*; it never downloads a byte, so pause/resume, persistence, and the sandbox stay CloakDrop's. |
 | 🪞 **Multi-source mirrors** | Open a Metalink (`.metalink` / `.meta4`) and CloakDrop spreads segments across its mirrors, fails over the moment one dies or serves corrupt bytes, and verifies the finished file against the Metalink checksum. |
 | 🏅 **Download stats** | Local, private lifetime totals — today / this month / all-time — with a playful monthly tier badge that resets each month (Warming Up → ISP's Worst Nightmare). Just counters on your Mac; nothing leaves the device. |
@@ -40,9 +40,10 @@ Serious multi-segment download power with the look and feel of a first-party app
 
 ## 🛡️ Privacy first
 
-CloakDrop makes **no** network requests except to the URLs you choose to download (and, when you configure one, your proxy). The single exception is the built-in **speed test**: it runs only when you press Start, against the provider you pick in Settings ▸ Speed Test (Cloudflare by default, Ookla optional) — never on its own.
+CloakDrop makes **no** network requests except the ones you start: the URLs you choose to download, the sites you visit in the built-in browser (address-bar search, when enabled, sends the typed query to your chosen engine — DuckDuckGo by default — only when you press Return), a proxy you configure, and the built-in **speed test**, which runs only when you press Start against the provider you pick in Settings ▸ Speed Test (Cloudflare by default, Ookla optional) — never on its own.
 
 - **On-device only** — no accounts, no analytics, no crash reporting, no phone-home.
+- **A browser that forgets** — the built-in browser keeps cookies and site data so logins persist, but records **no browsing history**, and offers a one-click wipe of all site data.
 - **Your data stays yours** — download history and settings live in a local SQLite database you can export or delete at any time.
 - **Sandboxed** — App Sandbox with security-scoped bookmarks; it only ever touches the folders you point it at.
 - **Transparent** — a full privacy policy ships in-app under Settings ▸ Privacy.
@@ -66,7 +67,7 @@ No third-party Swift dependencies beyond GRDB. Two native command-line tools —
 
 ## 🚀 Getting started
 
-Requires **macOS Tahoe 26+**, **Xcode 26+**, and [XcodeGen](https://github.com/yonyz/XcodeGen).
+Requires **macOS Tahoe 26+**, **Xcode 26+**, and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
 
 ```bash
 brew install xcodegen                  # one-time

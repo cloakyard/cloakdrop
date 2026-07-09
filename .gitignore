@@ -55,5 +55,5 @@ secrets.plist
 *.provisionprofile
 
 # CloakDrop runtime artifacts (should never be committed)
-*.cloakpart
-*.cloakparts/
+*.cdpart
+*.cdparts/
