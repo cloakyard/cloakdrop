@@ -18,14 +18,12 @@ struct AboutHeaderView: View {
 
     var body: some View {
         ZStack {
-            // Soft brand-purple wash normally; a black Matrix field once armed. The Canvas is only
-            // mounted while active — `TimelineView(.animation)` redraws every display frame as long
-            // as it's in the tree, so a hidden-but-present rain would burn CPU/GPU the whole time
-            // the About pane is open. Gating it keeps the header idle when the egg is off.
-            LinearGradient(
-                colors: [Color.accentColor.opacity(0.22), Color.accentColor.opacity(0.05)],
-                startPoint: .top, endPoint: .bottom
-            )
+            // A neutral grey card normally (matching the grouped Stats hero), a black Matrix field
+            // once armed. The Canvas is only mounted while active — `TimelineView(.animation)`
+            // redraws every display frame as long as it's in the tree, so a hidden-but-present rain
+            // would burn CPU/GPU the whole time the About pane is open. Gating it keeps the header
+            // idle when the egg is off.
+            Rectangle().fill(.quaternary.opacity(0.4))
 
             if matrixMode {
                 MatrixRainView()
@@ -47,7 +45,7 @@ struct AboutHeaderView: View {
         .clipShape(.rect(cornerRadius: Self.cornerRadius))
         .overlay(
             RoundedRectangle(cornerRadius: Self.cornerRadius)
-                .strokeBorder(.white.opacity(matrixMode ? 0 : 0.08), lineWidth: 1)
+                .strokeBorder(.primary.opacity(matrixMode ? 0 : 0.06), lineWidth: 1)
         )
         .animation(.easeInOut(duration: 0.45), value: matrixMode)
     }
