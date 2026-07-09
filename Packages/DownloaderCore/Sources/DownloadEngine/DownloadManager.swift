@@ -249,7 +249,17 @@ public actor DownloadManager {
     /// transfer path. Otherwise identical to `add` — same queue, persistence, and scheduling.
     @discardableResult
     public func addMedia(_ request: DownloadRequest, plan: MediaPlan) async -> Download {
-        let fileName = request.suggestedFileName ?? Self.deriveMediaFileName(from: request.url, plan: plan)
+        // A suggested name without a media extension is a *stem* (the in-app browser passes the
+        // page title for a sniffed stream, whose URL only names its manifest) — give it the plan's
+        // container extension. A dot inside a title ("Ep 2.5") is not an extension.
+        let fileName: String
+        if let suggested = request.suggestedFileName {
+            let ext = (suggested as NSString).pathExtension.lowercased()
+            let isMediaExt = MediaSniffer.mediaExtensions.contains(ext) || MediaSniffer.segmentExtensions.contains(ext)
+            fileName = isMediaExt ? suggested : "\(suggested).\(Self.mediaContainerExtension(for: plan))"
+        } else {
+            fileName = Self.deriveMediaFileName(from: request.url, plan: plan)
+        }
         let order = (downloads.values.map(\.order).max() ?? -1) + 1
 
         var headers = request.requestHeaders

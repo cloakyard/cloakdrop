@@ -107,7 +107,15 @@ public enum MediaSniffer {
         "teads.tv", "smartadserver.com", "pubmatic.com", "rubiconproject.com",
         "criteo.com", "criteo.net", "taboola.com", "outbrain.com", "yieldmo.com",
         "3lift.com", "casalemedia.com", "conversantmedia.com", "adcolony.com",
-        "aniview.com", "flashtalking.com", "celtra.com", "sizmek.com", "freewheel.tv", "fwmrm.net"
+        "aniview.com", "flashtalking.com", "celtra.com", "sizmek.com", "freewheel.tv", "fwmrm.net",
+        "stickyadstv.com", "tremorhub.com", "telaria.com", "unrulymedia.com", "openx.net",
+        "contextweb.com", "sonobi.com", "gumgum.com", "sharethrough.com", "media.net",
+        "zedo.com", "yieldlab.net", "improvedigital.com", "smartclip.net", "adroll.com",
+        "bidswitch.net", "mgid.com", "revcontent.com", "applovin.com", "vungle.com", "inmobi.com",
+        // Pop/banner networks that dominate video-piracy and adult sites — the pages where a
+        // sniffer sees the most third-party "media" that is really an ad creative.
+        "exoclick.com", "trafficjunky.net", "juicyads.com", "popads.net", "propellerads.com",
+        "adsterra.com", "hilltopads.net", "adcash.com", "popcash.net", "tsyndicate.com"
     ]
     /// Generic UI / notification sound basenames (site-agnostic). These short, generically-named
     /// audio clips are overwhelmingly interface sounds, not content — this kills YouTube's
@@ -201,6 +209,11 @@ public enum MediaSniffer {
         if beaconHints.contains(where: { lower.contains($0) }) { return true }
         let ext = extensionOf(url)
         if segmentExtensions.contains(ext) { return true }
+        // A byte-windowed fetch (Facebook/Instagram-style `bytestart=…&byteend=…`, or an explicit
+        // `range=0-1023`) is one chunk of a file the player assembles — downloading the URL yields
+        // a broken partial, so it must never be offered. The page-extraction path grabs the real thing.
+        if lower.contains("bytestart=") && lower.contains("byteend=") { return true }
+        if lower.firstMatch(of: /[?&]range=\d+-\d+/) != nil { return true }
         // Interface sound effects: a short, generically-named audio clip.
         let base = stripLastExtension(fileNameFromURL(url)).lowercased()
         if audioExt(ext) && uiSoundNames.contains(base) { return true }
@@ -277,7 +290,10 @@ public enum MediaSniffer {
         }
         guard let contentType, !contentType.isEmpty else { return nil }
         if isNoise(url, contentLength: contentLength) { return nil }
-        if type == "application/vnd.apple.mpegurl" || type == "application/x-mpegurl" || type == "application/dash+xml" {
+        // HLS servers are split between the registered type, the legacy x- form, and the audio/
+        // variants (`audio/mpegurl` predates video HLS and is still common).
+        if type == "application/vnd.apple.mpegurl" || type == "application/x-mpegurl"
+            || type == "audio/mpegurl" || type == "audio/x-mpegurl" || type == "application/dash+xml" {
             return SniffedItem(url: url, type: .stream)
         }
         if type.hasPrefix("video/") { return SniffedItem(url: url, type: .video) }

@@ -36,7 +36,9 @@ public struct SniffEvent: Sendable {
         case element
         /// `MediaSource.addSourceBuffer` fired — the page assembles its media in JS.
         case mse
-        /// `navigator.requestMediaKeySystemAccess` fired — DRM; grabbing is off the table.
+        /// DRM actually engaged — `setMediaKeys(non-nil)` on a player, or an `encrypted` media
+        /// event (the stream carries encrypted init data). Deliberately NOT the
+        /// `requestMediaKeySystemAccess` capability probe, which players run on clear content too.
         case drm
         /// A page snapshot: URL, title, and every player's kind/on-screen area (for the
         /// primary-player pick). Sent by the top frame only, repeated as the page changes.

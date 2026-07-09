@@ -307,7 +307,13 @@ final class BrowserSession: NSObject {
     func download(_ item: SniffedItem) {
         guard let url = item.resolvedURL else { return }
         let kind = item.type
-        let filename = item.filename.flatMap(CapturedDownload.sanitizedFileName)
+        var filename = item.filename.flatMap(CapturedDownload.sanitizedFileName)
+        // A sniffed stream's URL names its manifest ("master.m3u8"), not the video — hand the
+        // engine the page title as the save-name stem; `addMedia` appends the container extension
+        // once the plan is known.
+        if kind == .stream, filename == nil, !media.pageTitle.isEmpty {
+            filename = CapturedDownload.sanitizedFileName(media.pageTitle)
+        }
         Task { [weak self] in
             guard let self else { return }
             let cookies = await BrowserStore.shared.cookieHeader(for: url)

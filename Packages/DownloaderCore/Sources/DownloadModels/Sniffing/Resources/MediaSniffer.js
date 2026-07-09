@@ -152,6 +152,47 @@
     } catch (e) { /* leave XHR alone */ }
 
     // ── 4. Media elements — src sightings plus the page snapshot's player inventory.
+    //
+    // Shadow DOM: media events (loadstart/durationchange/encrypted) are non-composed — they never
+    // cross a shadow boundary — and querySelectorAll doesn't pierce one, so a player inside a web
+    // component (Reddit-style) is invisible to document-level hooks. Wrapping attachShadow at
+    // document start captures every root the page creates (open AND closed, since we hold the
+    // return value); each root gets the same listeners and mutation observer as the document.
+    var shadowRoots = [];
+    var SHADOW_MAX = 100;   // components beyond this are decorative, not players
+
+    function collectMediaElements() {
+        var out = [];
+        function grab(scope) {
+            try {
+                var els = scope.querySelectorAll("video,audio");
+                for (var i = 0; i < els.length; i++) { out.push(els[i]); }
+            } catch (e) { /* scope not queryable */ }
+        }
+        grab(document);
+        for (var i = 0; i < shadowRoots.length; i++) { grab(shadowRoots[i]); }
+        return out;
+    }
+
+    function adoptShadowRoot(root) {
+        if (!root || shadowRoots.length >= SHADOW_MAX) { return; }
+        shadowRoots.push(root);
+        try { installMediaListeners(root); } catch (e) { /* root gone */ }
+        try { watchMutations(root); } catch (e) { /* observer unsupported */ }
+        schedulePageSnapshot();
+    }
+
+    try {
+        var originalAttachShadow = Element.prototype.attachShadow;
+        if (typeof originalAttachShadow === "function") {
+            Element.prototype.attachShadow = function () {
+                var root = originalAttachShadow.apply(this, arguments);
+                try { adoptShadowRoot(root); } catch (e) { /* observe only */ }
+                return root;
+            };
+        }
+    } catch (e) { /* leave attachShadow alone */ }
+
     function reportElement(el) {
         try {
             var isVideo = el.tagName === "VIDEO";
@@ -177,22 +218,26 @@
 
     function scanMediaElements() {
         try {
-            var els = document.querySelectorAll("video,audio");
+            var els = collectMediaElements();
             for (var i = 0; i < els.length; i++) { reportElement(els[i]); }
         } catch (e) { /* document not ready */ }
     }
 
-    // Capture-phase listeners see events for players inside closed shadow roots too.
-    try {
-        document.addEventListener("loadstart", function (ev) {
-            var t = ev.target;
-            if (t && (t.tagName === "VIDEO" || t.tagName === "AUDIO")) { reportElement(t); schedulePageSnapshot(); }
+    // Capture-phase listeners on a scope (the document, or one shadow root — media events don't
+    // cross shadow boundaries). `encrypted` is the content-side DRM proof: the stream itself
+    // carries encrypted init data.
+    function onMediaEvent(ev) {
+        var t = ev.target;
+        if (t && (t.tagName === "VIDEO" || t.tagName === "AUDIO")) { reportElement(t); schedulePageSnapshot(); }
+    }
+    function installMediaListeners(scope) {
+        scope.addEventListener("loadstart", onMediaEvent, true);
+        scope.addEventListener("durationchange", onMediaEvent, true);
+        scope.addEventListener("encrypted", function () {
+            try { report("drm", "drm:encrypted", {}); } catch (e) { /* report only */ }
         }, true);
-        document.addEventListener("durationchange", function (ev) {
-            var t = ev.target;
-            if (t && (t.tagName === "VIDEO" || t.tagName === "AUDIO")) { reportElement(t); schedulePageSnapshot(); }
-        }, true);
-    } catch (e) { /* no document yet */ }
+    }
+    try { installMediaListeners(document); } catch (e) { /* no document yet */ }
 
     // ── 5. MediaSource + EME hooks — "assembled in JS" and "DRM" signals.
     try {
@@ -204,12 +249,15 @@
             };
         }
     } catch (e) { /* leave MSE alone */ }
+    // DRM = MediaKeys actually attached to a player (or an `encrypted` event, hooked above) — NOT
+    // `requestMediaKeySystemAccess`, which players (video.js/Shaka/JW) call as a capability probe
+    // even for clear content; flagging the probe would wrongly mark ordinary pages as protected.
     try {
-        if (navigator.requestMediaKeySystemAccess) {
-            var originalRequestMediaKeySystemAccess = navigator.requestMediaKeySystemAccess.bind(navigator);
-            navigator.requestMediaKeySystemAccess = function (keySystem, configurations) {
-                try { report("drm", "drm:" + String(keySystem || ""), { keySystem: String(keySystem || "") }); } catch (e) { /* report only */ }
-                return originalRequestMediaKeySystemAccess(keySystem, configurations);
+        if (window.HTMLMediaElement && HTMLMediaElement.prototype.setMediaKeys) {
+            var originalSetMediaKeys = HTMLMediaElement.prototype.setMediaKeys;
+            HTMLMediaElement.prototype.setMediaKeys = function (mediaKeys) {
+                try { if (mediaKeys) { report("drm", "drm:mediakeys", {}); } } catch (e) { /* report only */ }
+                return originalSetMediaKeys.apply(this, arguments);
             };
         }
     } catch (e) { /* leave EME alone */ }
@@ -221,7 +269,7 @@
         pageTimer = null;
         if (window !== window.top) { return; }
         try {
-            var els = document.querySelectorAll("video,audio");
+            var els = collectMediaElements();
             var players = [];
             var hasBlobPlayer = false;
             for (var i = 0; i < els.length; i++) {
@@ -250,14 +298,22 @@
         if (!pageTimer) { pageTimer = setTimeout(sendPageSnapshot, PAGE_SNAPSHOT_MS); }
     }
 
-    // Re-scan when media elements are added or re-sourced.
-    function watchMutations() {
+    // Re-scan a scope (the document, or one shadow root) when media elements are added or
+    // re-sourced. Attribute mutations only count for media tags — every lazy-loaded <img> also
+    // flips `src`, and rescanning per image would burn CPU on infinite-scroll pages.
+    function watchMutations(scope) {
         try {
             new MutationObserver(function (mutations) {
                 var relevant = false;
                 for (var i = 0; i < mutations.length && !relevant; i++) {
                     var m = mutations[i];
-                    if (m.type === "attributes") { relevant = true; break; }
+                    if (m.type === "attributes") {
+                        var t = m.target;
+                        if (t && (t.tagName === "VIDEO" || t.tagName === "AUDIO" || t.tagName === "SOURCE")) {
+                            relevant = true;
+                        }
+                        continue;
+                    }
                     var added = m.addedNodes || [];
                     for (var j = 0; j < added.length; j++) {
                         var node = added[j];
@@ -267,7 +323,7 @@
                     }
                 }
                 if (relevant) { scanMediaElements(); schedulePageSnapshot(); }
-            }).observe(document.documentElement || document, {
+            }).observe(scope, {
                 childList: true,
                 subtree: true,
                 attributes: true,
@@ -308,7 +364,7 @@
     // ── Boot: scan whatever already exists, then watch.
     function boot() {
         scanMediaElements();
-        watchMutations();
+        watchMutations(document.documentElement || document);
         schedulePageSnapshot();
     }
     if (document.readyState === "loading") {

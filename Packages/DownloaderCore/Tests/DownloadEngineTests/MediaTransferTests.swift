@@ -217,6 +217,31 @@ struct MediaTransferTests {
         #expect(DownloadManager.deriveMediaFileName(from: genericURL, plan: fmp4Plan) == "myvideo.mp4")
     }
 
+    @Test("addMedia treats an extensionless suggested name as a title stem and appends the plan's container")
+    func addMediaNamesFromTitleStem() async throws {
+        let store = try GRDBDownloadStore.inMemory()
+        let manager = try await makeManager(store: store, mock: MockHTTPClient())
+        let master = URL(string: "https://cdn.example.com/v/master.m3u8")!
+        let tsPlan = MediaPlan(format: .hls, segments: [
+            MediaSegment(id: 0, url: URL(string: "https://cdn.example.com/v/seg0.ts")!, duration: 6)
+        ])
+
+        // The in-app browser passes the page title for a sniffed stream — the plan supplies the
+        // container. A dot inside the title ("Ep 2.5") must not read as an extension.
+        func request(_ name: String?) -> DownloadRequest {
+            DownloadRequest(url: master, suggestedFileName: name,
+                            destinationDirectoryPath: "/tmp", startImmediately: false)
+        }
+        let titled = await manager.addMedia(request("My Show – Ep 2.5"), plan: tsPlan)
+        #expect(titled.fileName == "My Show – Ep 2.5.ts")
+
+        // A real media extension is respected as-is; no name still derives from the URL.
+        let explicit = await manager.addMedia(request("clip.mp4"), plan: tsPlan)
+        #expect(explicit.fileName == "clip.mp4")
+        let derived = await manager.addMedia(request(nil), plan: tsPlan)
+        #expect(derived.fileName == "v.ts")
+    }
+
     @Test("A drop mid-segment resumes from the bytes on disk with a ranged request, not from scratch")
     func segmentDropResumesWithRange() async throws {
         let dir = try tempDir()

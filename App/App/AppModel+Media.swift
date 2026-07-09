@@ -43,7 +43,14 @@ extension AppModel {
             let headers = Self.mediaHeaders(for: request)
             guard let stream = try? await manager.resolveMediaStream(url: request.url, headers: headers),
                   !stream.variants.isEmpty else {
-                add(request)
+                // Falling back to a plain download of the manifest itself: a browser-supplied
+                // title *stem* (no extension) only makes sense for the media path — drop it so
+                // the file keeps its real `.m3u8`/`.mpd` name.
+                var fallback = request
+                if let name = fallback.suggestedFileName, (name as NSString).pathExtension.isEmpty {
+                    fallback.suggestedFileName = nil
+                }
+                add(fallback)
                 return
             }
             routeStream(stream, request: request, extracted: nil, forcePicker: forcePicker)

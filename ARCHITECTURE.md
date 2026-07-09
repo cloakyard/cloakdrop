@@ -183,9 +183,16 @@ duration of each transfer.
 The primary capture surface is the **built-in browser** (`App/Features/Browser/`): a WKWebView the
 user opens from the app, navigates anywhere, and grabs media from. A collector script injected into
 every frame (document-start, page world) reports raw sightings — resource URLs, response headers,
-`<video>`/`<audio>` elements, MediaSource/EME signals, SPA navigations — to the app, where the pure
+`<video>`/`<audio>` elements (including players inside open *and closed* shadow roots, via a
+wrapped `attachShadow`), MediaSource signals, SPA navigations — to the app, where the pure
 `MediaSniffer` (pure and DOM-free, run against a captured fixture test
-corpus) classifies, dedupes, and ranks them into the shelf. Grabs and IDM-style download takeovers
+corpus) classifies, dedupes, and ranks them into the shelf. The classifier is also a *filter*:
+ad-network hosts, analytics beacons, adaptive-stream chunks (segment extensions, byte-windowed
+`bytestart=`/`range=` fetches), and UI sound effects never surface as grabs. DRM is flagged only on
+real engagement — `setMediaKeys` with keys, or an `encrypted` media event — never on the capability
+probes players run against clear content. A sniffed stream is shown and saved under the **page
+title** (its URL only names a manifest); the engine appends the container extension once the plan
+is known. Grabs and IDM-style download takeovers
 become `CapturedDownload`s and route through the same media/add funnels as everything else; every
 byte is still fetched by the engine, now carrying the page's referer, real user-agent, and cookies.
 

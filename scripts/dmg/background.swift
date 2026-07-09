@@ -6,9 +6,10 @@
 //
 //   swift background.swift <app-icon.png> <out.png>
 //
-// Ported from the Claude Design mock (CloakDrop Installer.dc.html): a lavender radial field, a
-// left-aligned brand masthead (glowing icon + wordmark + two-line pitch), a "DRAG TO INSTALL"
-// hairline divider, a soft "drag stage" card, and a dashed guide arrow into a dashed drop-zone ring.
+// Layout descends from the Claude Design mock (CloakDrop Installer.dc.html), restyled onto a
+// clean near-white canvas (accent color only on the arrow / ring / icon glows): a left-aligned
+// brand masthead (glowing icon + wordmark + two-line pitch), a "DRAG TO INSTALL" hairline
+// divider, a white "drag stage" card, and a dashed guide arrow into a dashed drop-zone ring.
 // The three functional icons — CloakDrop.app, the Applications alias and Read Me.txt — are placed
 // *by Finder* on top (positions live in make-dmg.sh), so the ring frames the real Applications folder
 // and the app glow sits under the real app icon. The GitHub link lives in Read Me.txt, not the art.
@@ -29,14 +30,16 @@ func hex(_ s: String, _ a: CGFloat = 1) -> NSColor {
     return NSColor(srgbRed: CGFloat((v >> 16) & 0xff) / 255, green: CGFloat((v >> 8) & 0xff) / 255,
                    blue: CGFloat(v & 0xff) / 255, alpha: a)
 }
-let bgTop = hex("#eceafb"), bgMid = hex("#e6e4f6"), bgBot = hex("#dedbef")
-let ink        = hex("#141330")   // wordmark
-let desc       = hex("#6a6785")   // description
+// Near-white neutral canvas — the purple lives only in the accent elements (icon glow, arrow,
+// drop-zone ring), so the art reads clean rather than tinted.
+let bgTop = hex("#fdfdfe"), bgBot = hex("#f2f2f6")
+let ink        = hex("#1a1a22")   // wordmark
+let desc       = hex("#63636e")   // description
 let accent     = hex("#7a6ef6")   // arrow / ring / glow periwinkle
-let accentDeep = hex("#6a5ae0")   // arrowhead / chip text
-let dividerCol = hex("#8a7ff0")   // "DRAG TO INSTALL"
-let hairline   = hex("#786eb4")   // rgba(120,110,180,…) — borders & divider lines
-let stageTop = hex("#faf9ff"), stageBot = hex("#f3f1fc")
+let accentDeep = hex("#6a5ae0")   // arrowhead
+let dividerCol = hex("#8f8f9a")   // "DRAG TO INSTALL" — neutral, tracked caps
+let hairline   = hex("#141428")   // borders & divider lines (used at low alpha)
+let stageFill  = hex("#ffffff")
 
 func font(_ size: CGFloat, _ weight: NSFont.Weight) -> NSFont { NSFont.systemFont(ofSize: size, weight: weight) }
 
@@ -61,7 +64,7 @@ func radialGlow(cx: CGFloat, cy: CGFloat, radius: CGFloat, color: NSColor) {
 /// A horizontal hairline that fades to transparent at `fadeEnd` — the divider's flanks.
 func fadingLine(x0: CGFloat, x1: CGFloat, y: CGFloat, solidAt fadeEnd: CGFloat) {
     let rect = NSRect(x: min(x0, x1), y: y - 0.5, width: abs(x1 - x0), height: 1)
-    let solid = hairline.withAlphaComponent(0.30)
+    let solid = hairline.withAlphaComponent(0.14)
     guard let g = NSGradient(colors: fadeEnd < x0 ? [solid, solid.withAlphaComponent(0)]
                                                    : [solid.withAlphaComponent(0), solid]) else { return }
     g.draw(in: rect, angle: 0)
@@ -71,33 +74,35 @@ let image = NSImage(size: NSSize(width: W, height: H), flipped: true) { _ in
     let ctx = NSGraphicsContext.current!
     ctx.imageInterpolation = .high
 
-    // Lavender radial field, centred on the top edge (matches the mock's 50% 0% radial).
-    bgBot.setFill(); NSRect(x: 0, y: 0, width: W, height: H).fill()
-    if let bg = NSGradient(colorsAndLocations: (bgTop, 0.0), (bgMid, 0.42), (bgBot, 1.0)) {
-        bg.draw(fromCenter: NSPoint(x: W / 2, y: 0), radius: 0,
-                toCenter: NSPoint(x: W / 2, y: 0), radius: 720, options: [.drawsAfterEndingLocation])
+    // Near-white vertical wash with a whisper of accent bleeding down from the top edge —
+    // clean canvas, not a tinted field.
+    if let bg = NSGradient(colors: [bgTop, bgBot]) {
+        bg.draw(in: NSRect(x: 0, y: 0, width: W, height: H), angle: -90)
     }
+    radialGlow(cx: W / 2, cy: -40, radius: 460, color: hex("#7a6ef6", 0.05))
 
     // ── Masthead: glowing app icon + wordmark + two-line pitch ──────────────────────────────────
-    let hIcon: CGFloat = 60, hIconX: CGFloat = 60, hIconY: CGFloat = 42
+    let hIcon: CGFloat = 62, hIconX: CGFloat = 60, hIconY: CGFloat = 40
     let hIconCenter = NSPoint(x: hIconX + hIcon / 2, y: hIconY + hIcon / 2)
-    radialGlow(cx: hIconCenter.x, cy: hIconCenter.y + 2, radius: 58, color: hex("#7868f0", 0.34))
+    radialGlow(cx: hIconCenter.x, cy: hIconCenter.y + 2, radius: 50, color: hex("#7868f0", 0.20))
     if let logo = NSImage(contentsOfFile: iconPath) {
         ctx.saveGraphicsState()
         let shadow = NSShadow()
-        shadow.shadowColor = accentDeep.withAlphaComponent(0.42)
-        shadow.shadowBlurRadius = 14
-        shadow.shadowOffset = NSSize(width: 0, height: -6)
+        shadow.shadowColor = hex("#20204a", 0.22)
+        shadow.shadowBlurRadius = 12
+        shadow.shadowOffset = NSSize(width: 0, height: -5)
         shadow.set()
         logo.draw(in: NSRect(x: hIconX, y: hIconY, width: hIcon, height: hIcon))
         ctx.restoreGraphicsState()
     }
-    let textX = hIconX + hIcon + 20
-    drawLeft("CloakDrop", font(29, .bold), ink, x: textX, y: hIconY + 16, kern: -0.4)
+    // The title sits on its own line with clear air before the pitch; the pitch gets a roomier
+    // line height so the masthead doesn't read cramped.
+    let textX = hIconX + hIcon + 22
+    drawLeft("CloakDrop", font(30, .bold), ink, x: textX, y: hIconY + 14, kern: -0.4)
     drawLeft("Fast multi-segment downloads with a built-in private browser for grabbing",
-             font(13.5, .regular), desc, x: textX + 1, y: hIconY + 40)
+             font(13, .regular), desc, x: textX + 1, y: hIconY + 48)
     drawLeft("video, audio & files from any site — on-device, no accounts, no telemetry.",
-             font(13.5, .regular), desc, x: textX + 1, y: hIconY + 60)
+             font(13, .regular), desc, x: textX + 1, y: hIconY + 69)
 
     // ── "DRAG TO INSTALL" divider ───────────────────────────────────────────────────────────────
     let dY: CGFloat = 152
@@ -111,13 +116,18 @@ let image = NSImage(size: NSSize(width: W, height: H), flipped: true) { _ in
     // ── Drag stage (Finder overlays the real app icon + Applications alias inside it) ────────────
     let stage = NSRect(x: 56, y: 176, width: W - 112, height: 200)   // y 176…376
     let stagePath = NSBezierPath(roundedRect: stage, xRadius: 20, yRadius: 20)
-    NSGradient(colors: [stageTop, stageBot])!.draw(in: stagePath, angle: -90)
+    // A clean white card floating on the canvas: soft neutral drop shadow, hairline border,
+    // no interior tint.
     ctx.saveGraphicsState()
-    stagePath.addClip()
-    radialGlow(cx: stage.minX + stage.width * 0.22, cy: stage.midY, radius: stage.width * 0.55,
-               color: hex("#7e6ef6", 0.12))
+    let cardShadow = NSShadow()
+    cardShadow.shadowColor = hex("#20204a", 0.10)
+    cardShadow.shadowBlurRadius = 22
+    cardShadow.shadowOffset = NSSize(width: 0, height: -8)
+    cardShadow.set()
+    stageFill.setFill()
+    stagePath.fill()
     ctx.restoreGraphicsState()
-    hairline.withAlphaComponent(0.16).setStroke()
+    hairline.withAlphaComponent(0.08).setStroke()
     let border = NSBezierPath(roundedRect: stage.insetBy(dx: 0.5, dy: 0.5), xRadius: 20, yRadius: 20)
     border.lineWidth = 1; border.stroke()
 
@@ -125,7 +135,7 @@ let image = NSImage(size: NSSize(width: W, height: H), flipped: true) { _ in
     let appSlot = NSPoint(x: 200, y: 258), appsSlot = NSPoint(x: 560, y: 258)
 
     // Soft glow grounding the real app icon.
-    radialGlow(cx: appSlot.x, cy: appSlot.y + 4, radius: 66, color: hex("#5c4adc", 0.30))
+    radialGlow(cx: appSlot.x, cy: appSlot.y + 4, radius: 62, color: hex("#5c4adc", 0.16))
 
     // Dashed drop-zone ring framing the real Applications folder.
     let ring = NSBezierPath(ovalIn: NSRect(x: appsSlot.x - 56, y: appsSlot.y - 56, width: 112, height: 112))
