@@ -165,6 +165,24 @@ targets:
           find "${DEST}/_internal" -type f \( -name "*.so" -o -name "*.dylib" \) -exec "${SIGN[@]}" {} +
           [ -d "${DEST}/_internal/Python.framework" ] && "${SIGN[@]}" --deep "${DEST}/_internal/Python.framework"
           "${SIGN[@]}" --entitlements "${ENT}" "${DEST}/yt-dlp"
+    postBuildScripts:
+      # Stamp CFBundleVersion with the build date (ddmmyyyy, e.g. 09072026) on every build, so the
+      # build number always reflects the day it was built — no manual bumping. This is the LAST build
+      # phase, so it runs after Xcode has written the processed Info.plist and before the implicit
+      # CodeSign, so the stamped value is the one that gets sealed. basedOnDependencyAnalysis is off
+      # so it re-runs every build; the static "1" in the Info.plist above is the pre-stamp fallback.
+      - name: Stamp build number (CFBundleVersion = build date)
+        basedOnDependencyAnalysis: false
+        script: |
+          set -euo pipefail
+          BUILD_NUMBER="$(date +%d%m%Y)"
+          PLIST="${CODESIGNING_FOLDER_PATH}/Contents/Info.plist"
+          if [ -f "${PLIST}" ]; then
+            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${BUILD_NUMBER}" "${PLIST}"
+            echo "note: stamped CFBundleVersion = ${BUILD_NUMBER}"
+          else
+            echo "warning: ${PLIST} not found — CFBundleVersion not stamped"
+          fi
 
   # Native share-sheet extension: accepts a web URL shared from any app and drops it in the shared
   # inbox for the app to confirm — the same path as the Safari/browser extensions (Phase 3d).
@@ -204,3 +222,19 @@ targets:
     dependencies:
       - package: DownloaderCore
         product: DownloadModels
+    postBuildScripts:
+      # Keep the embedded extension's build number in lockstep with the app (same ddmmyyyy stamp),
+      # so the bundle and its plug-in never disagree on version. Last phase → runs after the plist is
+      # written and before this target's CodeSign, so the seal covers the stamped value.
+      - name: Stamp build number (CFBundleVersion = build date)
+        basedOnDependencyAnalysis: false
+        script: |
+          set -euo pipefail
+          BUILD_NUMBER="$(date +%d%m%Y)"
+          PLIST="${CODESIGNING_FOLDER_PATH}/Contents/Info.plist"
+          if [ -f "${PLIST}" ]; then
+            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${BUILD_NUMBER}" "${PLIST}"
+            echo "note: stamped CFBundleVersion = ${BUILD_NUMBER}"
+          else
+            echo "warning: ${PLIST} not found — CFBundleVersion not stamped"
+          fi

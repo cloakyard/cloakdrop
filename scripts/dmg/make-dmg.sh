@@ -73,9 +73,9 @@ tell application "Finder"
     set icon size of theView to 104
     set text size of theView to 12
     set background picture of theView to file ".background:background.png"
-    set position of item "CloakDrop.app" of container window to {215, 302}
-    set position of item "Applications" of container window to {505, 302}
-    set position of item "Read Me.txt" of container window to {360, 480}
+    set position of item "CloakDrop.app" of container window to {215, 310}
+    set position of item "Applications" of container window to {505, 310}
+    set position of item "Read Me.txt" of container window to {360, 488}
     update without registering applications
     delay 1
     close

@@ -1,13 +1,14 @@
 // Renders the CloakDrop installer DMG background — the elegant drag-to-Applications art.
 //
 // Source of truth for the DMG artwork; edit this to iterate. `make-dmg.sh` runs it and tags the
-// output 144 dpi so it stays crisp on Retina. The layout is authored in 720x640 points and drawn
+// output 144 dpi so it stays crisp on Retina. The layout is authored in 720x584 points and drawn
 // through a flipped handler (top-left origin, y increases downward). Rasterizes at 2x.
 //
 //   swift background.swift <app-icon.png> <out.png>
 //
-// SF Rounded wordmark, a soft framed card behind the drag-to-install row, a dimensional
-// brand-purple step badge, and a single-polygon arrow — on a soft lavender gradient.
+// Layout is deliberately *off-centre*: a left-aligned brand lockup (icon + SF Rounded wordmark +
+// tagline) sits in a soft brand wash across the top, then the centred drag-to-install card with a
+// single-polygon swoosh arrow filled with the same periwinkle→indigo gradient as the app icon.
 
 import AppKit
 
@@ -18,12 +19,15 @@ let iconPath = CommandLine.arguments[1]   // pre-glassed app icon PNG for the he
 let outPath  = CommandLine.arguments[2]
 
 let brand      = NSColor(srgbRed: 0.357, green: 0.357, blue: 0.871, alpha: 1)
-let brandDeep  = NSColor(srgbRed: 0.286, green: 0.286, blue: 0.780, alpha: 1)
 let ink        = NSColor(srgbRed: 0.13,  green: 0.12,  blue: 0.17,  alpha: 1)
 let secondary  = NSColor(srgbRed: 0.40,  green: 0.40,  blue: 0.47,  alpha: 1)
 let gradTop    = NSColor(srgbRed: 0.909, green: 0.906, blue: 0.980, alpha: 1)
 let gradBottom = NSColor(srgbRed: 0.965, green: 0.965, blue: 0.992, alpha: 1)
 let panelShade = NSColor(srgbRed: 0.25,  green: 0.24,  blue: 0.45,  alpha: 0.14)
+// Arrow gradient — the app icon's own periwinkle→indigo, from a light tail to a deep head, so the
+// arrow reads as the same material as the icon (not the flat solid it was before).
+let arrowLight = NSColor(srgbRed: 0.545, green: 0.533, blue: 0.914, alpha: 1)   // #8B88E9 icon periwinkle
+let arrowDeep  = NSColor(srgbRed: 0.278, green: 0.243, blue: 0.741, alpha: 1)   // #473EBD deep indigo
 
 func roundedFont(_ size: CGFloat, _ weight: NSFont.Weight) -> NSFont {
     let base = NSFont.systemFont(ofSize: size, weight: weight)
@@ -35,6 +39,13 @@ func draw(_ s: String, _ font: NSFont, _ color: NSColor, centerX: CGFloat, cente
     let str = NSAttributedString(string: s, attributes: [.font: font, .foregroundColor: color])
     let sz = str.size()
     str.draw(at: NSPoint(x: centerX - sz.width / 2, y: centerY - sz.height / 2))
+}
+
+/// Left-aligned text, vertically centred on `centerY` — for the editorial header lockup.
+func drawLeft(_ s: String, _ font: NSFont, _ color: NSColor, x: CGFloat, centerY: CGFloat) {
+    let str = NSAttributedString(string: s, attributes: [.font: font, .foregroundColor: color])
+    let sz = str.size()
+    str.draw(at: NSPoint(x: x, y: centerY - sz.height / 2))
 }
 
 /// A soft translucent card that frames an icon row so the Finder icons read as sitting in a well.
@@ -63,15 +74,14 @@ func drawCard(_ rect: NSRect) {
     border.stroke()
 }
 
-/// A soft-tipped instruction line, centred. No number badge — a single step reads cleaner as a
-/// plain subheading than as a rigid "1.".
+/// A soft-tipped instruction line, centred above the card.
 func drawInstruction(_ text: String, centerY: CGFloat) {
     draw(text, roundedFont(17, .semibold), ink, centerX: W / 2, centerY: centerY)
 }
 
 /// A curved "swoosh" arrow from the app icon to the Applications alias — a gentle downward bow with
-/// a tangent-aligned head, so it feels hand-drawn rather than stamped. Stroke + head are unioned
-/// into one region and filled with the brand gradient (soft shadow underneath), so there's no seam.
+/// a tangent-aligned head, so it feels hand-drawn rather than stamped. Stroke + head are filled with
+/// the app icon's periwinkle→indigo gradient (soft shadow underneath), so there's no seam.
 func drawCurvedArrow(x0: CGFloat, tipX: CGFloat, y: CGFloat) {
     let dip: CGFloat = 15          // how far the middle bows below the icon centre line
     let lineW: CGFloat = 9
@@ -120,19 +130,20 @@ func drawCurvedArrow(x0: CGFloat, tipX: CGFloat, y: CGFloat) {
     let ctx = NSGraphicsContext.current!
     ctx.saveGraphicsState()
     let shadow = NSShadow()
-    shadow.shadowColor = brand.withAlphaComponent(0.3)
+    shadow.shadowColor = arrowDeep.withAlphaComponent(0.30)
     shadow.shadowBlurRadius = 9
     shadow.shadowOffset = NSSize(width: 0, height: -2)
     shadow.set()
-    brandDeep.setFill()
+    arrowDeep.setFill()   // solid base beneath the gradient so no anti-aliased seam shows through
     shaftPath.fill()
     headPath.fill()
     ctx.restoreGraphicsState()
-    // Brand gradient, clipped to each piece over their shared bounds so it reads as one shape.
+    // Icon gradient, clipped to each piece over their shared bounds so it reads as one shape. Angle
+    // tilts slightly down-right so the tail is light and the head is deepest (matches the icon flow).
     for piece in [shaftPath, headPath] {
         ctx.saveGraphicsState()
         piece.addClip()
-        NSGradient(colors: [brand, brandDeep])!.draw(in: bounds, angle: 0)
+        NSGradient(colors: [arrowLight, arrowDeep])!.draw(in: bounds, angle: -14)
         ctx.restoreGraphicsState()
     }
 }
@@ -141,42 +152,47 @@ let image = NSImage(size: NSSize(width: W, height: H), flipped: true) { _ in
     // Background gradient (top-left origin: top is y=0).
     NSGradient(colors: [gradTop, gradBottom])!.draw(in: NSRect(x: 0, y: 0, width: W, height: H), angle: -90)
 
-    // Soft brand glow behind the header for depth.
-    if let glow = NSGradient(colors: [brand.withAlphaComponent(0.16), brand.withAlphaComponent(0)]) {
-        glow.draw(fromCenter: NSPoint(x: W / 2, y: 72), radius: 0,
-                  toCenter: NSPoint(x: W / 2, y: 72), radius: 280, options: [])
+    // Gentle brand wash across the top so the left-aligned header reads as an intentional band and
+    // the upper negative space is filled — no hard divider needed.
+    if let wash = NSGradient(colors: [brand.withAlphaComponent(0.13), brand.withAlphaComponent(0)]) {
+        wash.draw(in: NSRect(x: 0, y: 0, width: W, height: 156), angle: -90)
     }
 
-    // Framed well behind the drag-to-install icon row (Finder overlays the real icons on top).
-    drawCard(NSRect(x: 84, y: 228, width: 552, height: 168))    // install row
-
-    // Header: logo, wordmark, tagline.
+    // Header: left-aligned brand lockup (icon + wordmark + tagline), anchored to the left margin so
+    // the composition isn't a single rigid centre stack.
+    let iconSize: CGFloat = 60
+    let iconX: CGFloat = 64
+    let iconY: CGFloat = 46
     if let logo = NSImage(contentsOfFile: iconPath) {
-        let box = NSRect(x: W / 2 - 32, y: 30, width: 64, height: 64)
+        let box = NSRect(x: iconX, y: iconY, width: iconSize, height: iconSize)
         let shadow = NSShadow()
-        shadow.shadowColor = brand.withAlphaComponent(0.38)
-        shadow.shadowBlurRadius = 17
-        shadow.shadowOffset = NSSize(width: 0, height: -6)
+        shadow.shadowColor = brand.withAlphaComponent(0.36)
+        shadow.shadowBlurRadius = 16
+        shadow.shadowOffset = NSSize(width: 0, height: -5)
         NSGraphicsContext.current?.saveGraphicsState()
         shadow.set()
         logo.draw(in: box)
         NSGraphicsContext.current?.restoreGraphicsState()
     }
-    draw("CloakDrop", roundedFont(33, .bold), ink, centerX: W / 2, centerY: 120)
-    draw("Private download manager for macOS", roundedFont(13.5, .regular), secondary, centerX: W / 2, centerY: 147)
+    let textX = iconX + iconSize + 18
+    drawLeft("CloakDrop", roundedFont(30, .bold), ink, x: textX, centerY: iconY + 21)
+    drawLeft("Private download manager for macOS", roundedFont(13.5, .regular), secondary, x: textX + 1, centerY: iconY + 45)
+
+    // Framed well behind the drag-to-install icon row (Finder overlays the real icons on top).
+    drawCard(NSRect(x: 84, y: 232, width: 552, height: 172))    // install row
 
     // One clean instruction, then the curved arrow bridging the app icon and the Applications alias
-    // (Finder places both at y=302 inside the card).
-    drawInstruction("Drag CloakDrop to your Applications folder", centerY: 199)
-    drawCurvedArrow(x0: 292, tipX: 430, y: 302)
+    // (Finder places both at y=310 inside the card).
+    drawInstruction("Drag CloakDrop to your Applications folder", centerY: 202)
+    drawCurvedArrow(x0: 292, tipX: 430, y: 310)
 
-    // "Read Me.txt" (placed by Finder at y=486) sits on its own below the card — its label speaks
+    // "Read Me.txt" (placed by Finder at y=488) sits on its own below the card — its label speaks
     // for itself, so nothing overlaps it.
 
     return true
 }
 
-// Rasterize to a 2x bitmap; make-dmg.sh tags it 144 dpi so Finder renders it crisp at 720x640 pt.
+// Rasterize to a 2x bitmap; make-dmg.sh tags it 144 dpi so Finder renders it crisp at 720x584 pt.
 let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: Int(W * 2), pixelsHigh: Int(H * 2),
     bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
     colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
