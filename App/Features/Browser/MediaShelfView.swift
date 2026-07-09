@@ -137,10 +137,17 @@ private struct ShelfRow: View {
     }
 
     private var title: String {
-        if item.type == .page {
+        switch item.type {
+        case .page:
             return pageTitle.isEmpty ? item.label : pageTitle
+        case .stream:
+            // A manifest's filename ("master.m3u8") says nothing about the video — show the page
+            // title, the name the user actually recognizes. A server-supplied filename still wins.
+            if let filename = item.filename { return filename }
+            return pageTitle.isEmpty ? item.label : pageTitle
+        case .video, .audio, .file:
+            return item.filename ?? item.label
         }
-        return item.filename ?? item.label
     }
 
     private var subtitle: String {

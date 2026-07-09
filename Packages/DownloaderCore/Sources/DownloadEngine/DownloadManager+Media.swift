@@ -81,14 +81,13 @@ public extension DownloadManager {
             stem = (parent.isEmpty || parent == "/") ? (url.host() ?? "video") : parent
         }
 
-        let ext: String
-        if plan.initSegment != nil {
-            ext = "mp4"
-        } else if plan.segments.first?.url.pathExtension.lowercased() == "ts" {
-            ext = "ts"
-        } else {
-            ext = "mp4"
-        }
-        return "\(stem).\(ext)"
+        return "\(stem).\(mediaContainerExtension(for: plan))"
+    }
+
+    /// The container extension a media grab's output starts with: fMP4 (has an init segment) →
+    /// `.mp4`, raw `.ts` segments → `.ts`, else `.mp4`. (The remuxer may correct this to a clean
+    /// `.mp4`/`.m4a` at finalize.)
+    internal static func mediaContainerExtension(for plan: MediaPlan) -> String {
+        plan.initSegment == nil && plan.segments.first?.url.pathExtension.lowercased() == "ts" ? "ts" : "mp4"
     }
 }
