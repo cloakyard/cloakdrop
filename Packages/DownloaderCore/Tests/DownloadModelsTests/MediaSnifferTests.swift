@@ -42,6 +42,29 @@ struct MediaSnifferClassificationTests {
         #expect(!MediaSniffer.isNoise("https://cdn.example.com/movie.mp4"))
     }
 
+    @Test func thirdPartyAdNetworkMediaIsNoiseButRealCDNMediaIsKept() {
+        // Video ads from ad-network / ad-exchange / video-ad-server hosts (and any subdomain) are
+        // advertisements, never the page's own content — dropped from the shelf and never taken over.
+        for adURL in [
+            "https://s0.2mdn.net/video/ad/creative-1080p.mp4",
+            "https://securepubads.g.doubleclick.net/gampad/ads?sz=640x480",
+            "https://imasdk.googleapis.com/video/preroll.mp4",
+            "https://pagead2.googlesyndication.com/pagead/ad.mp4",
+            "https://ads.adnxs.com/preroll.mp4",
+            "https://cdn.teads.tv/media/video-ad.mp4",
+            "https://cdn.fwmrm.net/ad/creative.mp4"
+        ] {
+            #expect(MediaSniffer.isNoise(adURL), "\(adURL) is an ad")
+            #expect(MediaSniffer.classifyByURL(adURL) == nil, "\(adURL) must not be a grabbable item")
+            #expect(!MediaSniffer.interceptable(adURL, filename: "", mime: "video/mp4"), "\(adURL) must not be taken over")
+        }
+        // Look-alike shared hosts serving real content are NOT blocked: Google Cloud Storage assets
+        // (imasdk/adservice are specific subdomains, not the whole parent) and any ordinary CDN.
+        #expect(!MediaSniffer.isNoise("https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd"))
+        #expect(MediaSniffer.classifyByURL("https://storage.googleapis.com/bucket/movie.mp4")?.type == .video)
+        #expect(MediaSniffer.classifyByURL("https://cdn.example.com/movie.mp4")?.type == .video)
+    }
+
     @Test func subKilobyteMediaIsNoiseByContentLength() {
         #expect(MediaSniffer.classifyByContentType("https://x.com/blip", contentType: "audio/mpeg", contentLength: 512) == nil)
         #expect(MediaSniffer.classifyByContentType(

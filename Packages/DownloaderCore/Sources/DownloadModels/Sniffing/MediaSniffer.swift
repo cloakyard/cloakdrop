@@ -90,6 +90,26 @@ public enum MediaSniffer {
         "/csi?", "/pagead/", "doubleclick.net", "google-analytics.com", "scorecardresearch",
         "/beacon", "/collect?", "/measurement", "/interaction?"
     ]
+    /// Third-party ad-network / ad-exchange / video-ad-server hosts. Media served from these is an
+    /// advertisement (pre-roll, mid-roll, banner video, VAST/VMAP creative), never the page's own
+    /// content — so it must never reach the shelf or a download takeover. Matched on the registrable
+    /// host so every subdomain is covered (`s0.2mdn.net`, `pubads.g.doubleclick.net`). YouTube's own
+    /// ad segments ride googlevideo.com (already dropped in `isNoise`); the page's real video comes via
+    /// the yt-dlp page-extraction path, which skips ads itself.
+    static let adHostSuffixes: [String] = [
+        // Google ad stack — specific ad subdomains for the shared parents, so google.com and
+        // googleapis.com themselves (e.g. Cloud Storage media) stay clear.
+        "doubleclick.net", "2mdn.net", "googlesyndication.com", "googleadservices.com",
+        "googletagservices.com", "adservice.google.com", "imasdk.googleapis.com",
+        "amazon-adsystem.com",
+        // Exchanges, SSPs & dedicated video-ad servers.
+        "adnxs.com", "adsrvr.org", "adform.net", "adsafeprotected.com", "moatads.com",
+        "serving-sys.com", "innovid.com", "springserve.com", "spotxchange.com", "spotx.tv",
+        "teads.tv", "smartadserver.com", "pubmatic.com", "rubiconproject.com",
+        "criteo.com", "criteo.net", "taboola.com", "outbrain.com", "yieldmo.com",
+        "3lift.com", "casalemedia.com", "conversantmedia.com", "adcolony.com",
+        "aniview.com", "flashtalking.com", "celtra.com", "sizmek.com", "freewheel.tv", "fwmrm.net"
+    ]
     /// Generic UI / notification sound basenames (site-agnostic). These short, generically-named
     /// audio clips are overwhelmingly interface sounds, not content — this kills YouTube's
     /// open.mp3 / success.mp3 / failure.mp3 junk without any YouTube-specific rule.
@@ -162,6 +182,13 @@ public enum MediaSniffer {
 
     // MARK: - Noise
 
+    /// True when `host` (as returned by `hostOf`, so it may carry a `:port`) is, or is a subdomain of,
+    /// a known ad-network host — matched on the registrable domain so every subdomain is covered.
+    static func isAdHost(_ host: String) -> Bool {
+        let h = host.split(separator: ":").first.map(String.init) ?? host
+        return adHostSuffixes.contains { h == $0 || h.hasSuffix("." + $0) }
+    }
+
     /// True when a URL/response is noise we must never surface as downloadable media. `contentLength`
     /// comes from response headers when known.
     public static func isNoise(_ url: String, contentLength: Int64? = nil) -> Bool {
@@ -170,6 +197,8 @@ public enum MediaSniffer {
         // Raw adaptive chunk hosts — split, signed, per-range; useless as bare URLs. YouTube's
         // googlevideo traffic is handled by the dedicated page-extraction path, not the generic list.
         if host.hasSuffix("googlevideo.com") { return true }
+        // Third-party ad-network media is an advertisement, never the page's own content.
+        if isAdHost(host) { return true }
         if beaconHints.contains(where: { lower.contains($0) }) { return true }
         let ext = extensionOf(url)
         if segmentExtensions.contains(ext) { return true }
