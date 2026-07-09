@@ -135,6 +135,17 @@ final class AppModel {
     }
     static let browserSearchEngineKey = "browserSearchEngine"
 
+    /// Whether the built-in browser blocks ads, trackers, and ad popups (a compiled WebKit content
+    /// rule list + ad-host popup rejection). **Off by default** — the user opts in from Settings ▸
+    /// Browser. Persisted in UserDefaults.
+    var browserAdBlockEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(browserAdBlockEnabled, forKey: Self.browserAdBlockKey)
+            if browserAdBlockEnabled { BrowserStore.shared.prepareAdBlock() }
+        }
+    }
+    static let browserAdBlockKey = "browserAdBlockEnabled"
+
     /// Whether clipboard monitoring is on. Persisted in UserDefaults.
     var clipboardMonitoringEnabled: Bool {
         didSet {
@@ -178,7 +189,10 @@ final class AppModel {
         // Default to DuckDuckGo (the most private of the offered engines).
         self.browserSearchEngine = UserDefaults.standard.string(forKey: Self.browserSearchEngineKey)
             .flatMap(SearchEngine.init(rawValue:)) ?? .duckDuckGo
+        // Ad/tracker blocking defaults OFF (absent key → false) — opt-in.
+        self.browserAdBlockEnabled = UserDefaults.standard.bool(forKey: Self.browserAdBlockKey)
         self.launchAtLoginEnabled = loginItem.isEnabled
+        if browserAdBlockEnabled { BrowserStore.shared.prepareAdBlock() }
     }
 
     /// Build the live, production-backed app model.

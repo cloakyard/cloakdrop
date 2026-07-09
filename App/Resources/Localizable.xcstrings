@@ -3836,6 +3836,71 @@
         }
       }
     },
+    "Block Ads & Trackers": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حظر الإعلانات والمتعقّبات"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werbung & Tracker blockieren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloquear anuncios y rastreadores"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloquer les publicités et les traqueurs"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "विज्ञापन और ट्रैकर ब्लॉक करें"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "広告とトラッカーをブロック"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "광고 및 추적기 차단"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloquear anúncios e rastreadores"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Блокировать рекламу и трекеры"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拦截广告和跟踪器"
+          }
+        }
+      }
+    },
     "Browser": {
       "extractionState": "manual",
       "localizations": {
@@ -6107,6 +6172,71 @@
           "stringUnit": {
             "state": "translated",
             "value": "连接数"
+          }
+        }
+      }
+    },
+    "Content Blocking": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حظر المحتوى"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inhaltsblockierung"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqueo de contenido"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocage de contenu"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सामग्री ब्लॉकिंग"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コンテンツブロック"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "콘텐츠 차단"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqueio de conteúdo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Блокировка контента"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内容拦截"
           }
         }
       }
@@ -15467,6 +15597,71 @@
           "stringUnit": {
             "state": "translated",
             "value": "好"
+          }
+        }
+      }
+    },
+    "Off by default. When on, the built-in browser blocks ads, tracking scripts, and ad pop-ups on nearly every site — pages load faster and cleaner. Blocking happens entirely on your Mac, and never affects your downloads. If a site misbehaves, turn this off.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مُعطَّل افتراضيًا. عند تفعيله، يحظر المتصفّح المدمج الإعلانات ونصوص التتبّع والنوافذ الإعلانية المنبثقة في جميع المواقع تقريبًا — فتُحمَّل الصفحات بشكل أسرع وأنظف. تتم عملية الحظر بالكامل على جهاز Mac الخاص بك ولا تؤثّر أبدًا على تنزيلاتك. إذا لم يعمل أحد المواقع بشكل صحيح، فأوقف تشغيل هذا الخيار."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardmäßig aus. Wenn aktiviert, blockiert der integrierte Browser Werbung, Tracking-Skripte und Werbe-Pop-ups auf nahezu jeder Website – Seiten laden schneller und sauberer. Die Blockierung erfolgt vollständig auf deinem Mac und wirkt sich nie auf deine Downloads aus. Falls eine Website nicht richtig funktioniert, schalte dies aus."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desactivado de forma predeterminada. Cuando está activado, el navegador integrado bloquea anuncios, scripts de rastreo y ventanas emergentes publicitarias en casi todos los sitios: las páginas se cargan más rápido y más limpias. El bloqueo ocurre por completo en tu Mac y nunca afecta a tus descargas. Si un sitio no funciona bien, desactívalo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Désactivé par défaut. Une fois activé, le navigateur intégré bloque les publicités, les scripts de suivi et les fenêtres publicitaires sur presque tous les sites : les pages se chargent plus vite et plus proprement. Le blocage a lieu entièrement sur votre Mac et n’affecte jamais vos téléchargements. Si un site fonctionne mal, désactivez cette option."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डिफ़ॉल्ट रूप से बंद। चालू होने पर, अंतर्निहित ब्राउज़र लगभग हर साइट पर विज्ञापन, ट्रैकिंग स्क्रिप्ट और विज्ञापन पॉप-अप ब्लॉक करता है — पेज तेज़ी से और साफ़-सुथरे लोड होते हैं। ब्लॉकिंग पूरी तरह आपके Mac पर होती है और आपके डाउनलोड को कभी प्रभावित नहीं करती। यदि कोई साइट ठीक से काम न करे, तो इसे बंद कर दें।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デフォルトはオフです。オンにすると、内蔵ブラウザがほぼすべてのサイトで広告、トラッキングスクリプト、広告ポップアップをブロックし、ページの読み込みが速く、すっきりします。ブロックはすべてお使いの Mac 上で行われ、ダウンロードに影響することはありません。サイトの動作がおかしい場合はオフにしてください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기본적으로 꺼져 있습니다. 켜면 내장 브라우저가 거의 모든 사이트에서 광고, 추적 스크립트, 광고 팝업을 차단하여 페이지가 더 빠르고 깔끔하게 로드됩니다. 차단은 전적으로 Mac에서 이루어지며 다운로드에는 전혀 영향을 주지 않습니다. 사이트가 제대로 작동하지 않으면 이 기능을 끄세요."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desativado por padrão. Quando ativado, o navegador integrado bloqueia anúncios, scripts de rastreamento e pop-ups publicitários em quase todos os sites — as páginas carregam mais rápido e mais limpas. O bloqueio acontece inteiramente no seu Mac e nunca afeta seus downloads. Se um site não funcionar bem, desative isto."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По умолчанию выключено. Когда включено, встроенный браузер блокирует рекламу, отслеживающие скрипты и рекламные всплывающие окна почти на всех сайтах — страницы загружаются быстрее и чище. Блокировка выполняется полностью на вашем Mac и никогда не влияет на загрузки. Если сайт работает некорректно, отключите это."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认关闭。开启后，内置浏览器会在几乎所有网站上拦截广告、跟踪脚本和广告弹窗——页面加载更快、更干净。拦截完全在你的 Mac 上进行，绝不影响你的下载。如果某个网站出现异常，请关闭此项。"
           }
         }
       }

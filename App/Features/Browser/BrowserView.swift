@@ -51,6 +51,7 @@ struct BrowserView: View {
             session.sink = model
             session.searchEnabled = model.browserSearchEnabled
             session.searchEngine = model.browserSearchEngine
+            session.setAdBlock(model.browserAdBlockEnabled)
             session.onOpenWindow = { openWindow(id: BrowserScene.windowID, value: BrowserLaunch(url: $0, openedByPage: true)) }
             BrowserStore.shared.applyProxy(model.settings.resolvedProxy)
             if let initialURL {
@@ -66,6 +67,7 @@ struct BrowserView: View {
         .onChange(of: session.dialog?.id) { promptText = session.dialog?.promptDefault ?? "" }
         .onChange(of: model.browserSearchEnabled) { session.searchEnabled = model.browserSearchEnabled }
         .onChange(of: model.browserSearchEngine) { session.searchEngine = model.browserSearchEngine }
+        .onChange(of: model.browserAdBlockEnabled) { session.setAdBlock(model.browserAdBlockEnabled) }
         .alert(dialogTitle, isPresented: dialogPresented, presenting: session.dialog) { dialog in
             dialogButtons(dialog)
         } message: { dialog in

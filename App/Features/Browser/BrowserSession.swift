@@ -170,6 +170,9 @@ final class BrowserSession: NSObject {
     var searchEnabled = true
     /// Which engine an address-bar search uses (mirrors the setting).
     var searchEngine: SearchEngine = .duckDuckGo
+    /// Whether ad/tracker blocking is on (mirrors the setting). Gates the compiled content-rule list
+    /// on this web view and ad-host popup rejection in the UI delegate.
+    private(set) var adBlockEnabled = false
 
     weak var sink: (any BrowserCaptureSink)?
     /// Opens a sibling browser window (wired to `openWindow` by the view).
@@ -383,6 +386,23 @@ final class BrowserSession: NSObject {
     func applySniff(_ envelope: SniffEnvelope) {
         media.apply(envelope)
         shelfItems = media.candidates
+    }
+
+    /// Turn ad/tracker blocking on or off for this web view. Adds the compiled content-rule list to
+    /// the user-content controller (dropping ad requests at the network layer + hiding ad slots), or
+    /// removes it. Idempotent; the compile is shared and cached, so toggling is cheap.
+    func setAdBlock(_ enabled: Bool) {
+        adBlockEnabled = enabled
+        let controller = webView.configuration.userContentController
+        if enabled {
+            Task {
+                guard let list = await BrowserStore.shared.adBlockRuleList() else { return }
+                // Re-check: the user may have toggled back off while the first compile was running.
+                if adBlockEnabled { controller.add(list) }
+            }
+        } else {
+            controller.removeAllContentRuleLists()
+        }
     }
 
     func captureUserAgentIfNeeded() {

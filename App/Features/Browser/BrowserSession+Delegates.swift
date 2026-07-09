@@ -149,6 +149,12 @@ extension BrowserSession: WKUIDelegate {
         _ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration,
         for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures
     ) -> WKWebView? {
+        // With blocking on, drop popups aimed at a known ad/tracker host outright — pop-unders and
+        // redirect ads target those, and they never reach the network rules (a popup is a brand-new
+        // top-level load). Legit popups (OAuth, "open in new window") target content hosts and pass.
+        if adBlockEnabled, let host = navigationAction.request.url?.host, AdBlockList.isBlockedHost(host) {
+            return nil
+        }
         // Popups become real sibling windows (opened via SwiftUI, not this configuration), with a
         // storm guard so an abusive page can't spray windows. Returning nil tells the page the
         // popup was blocked — fine: window.opener scripting isn't a capability this browser sells.

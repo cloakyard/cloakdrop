@@ -198,6 +198,17 @@ is known. Grabs and IDM-style download takeovers
 become `CapturedDownload`s and route through the same media/add funnels as everything else; every
 byte is still fetched by the engine, now carrying the page's referer, real user-agent, and cookies.
 
+An optional **ad/tracker blocker** (off by default; Settings ▸ Browser) rides on the same browser.
+The ruleset is pure data — `AdBlockList` (in `DownloadModels`, unit-tested) emits a WebKit
+**content-rule list** (the Safari content-blocker JSON format): a block rule per ad/tracker host
+(seeded from the sniffer's `adHostSuffixes`, broadened with trackers and pop/push-ad networks), a
+few third-party-only ad path rules, and one cosmetic `display:none` rule for ad containers. The app
+layer (`BrowserStore`) compiles it once via `WKContentRuleListStore` — WebKit enforces it in its
+networking process, so ad requests are dropped *before* egress — caches the compiled list, and evicts
+stale versions by identifier hash. Popups aimed at a blocked host are rejected in the UI delegate
+(the network rules can't see a brand-new top-level load). Downloads never pass through the list —
+only in-browser page loads do.
+
 The other intake paths — the `cloakdrop://` URL scheme, the Share Extension, and the in-process
 Services item — funnel into the same validated `CapturedDownload` value. The Share Extension hands
 off **without any cross-process network path**: it writes the capture as JSON into a shared **App

@@ -28,6 +28,15 @@ struct BrowserSettingsView: View {
             }
 
             Section {
+                Toggle("Block Ads & Trackers", isOn: $model.browserAdBlockEnabled)
+            } header: {
+                Text("Content Blocking")
+            } footer: {
+                // swiftlint:disable:next line_length
+                Text("Off by default. When on, the built-in browser blocks ads, tracking scripts, and ad pop-ups on nearly every site — pages load faster and cleaner. Blocking happens entirely on your Mac, and never affects your downloads. If a site misbehaves, turn this off.")
+            }
+
+            Section {
                 LabeledContent {
                     Button(role: .destructive) {
                         confirmClear = true

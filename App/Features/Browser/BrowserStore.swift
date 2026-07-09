@@ -16,6 +16,12 @@ final class BrowserStore {
 
     let dataStore: WKWebsiteDataStore
 
+    /// The compiled ad/tracker content-rule list, cached after the first compile so opening more
+    /// browser windows (or toggling the setting) is instant. `nil` until prepared or if compilation
+    /// fails — in which case browsing simply proceeds unblocked (fail-open).
+    private(set) var adBlockRuleList: WKContentRuleList?
+    private var adBlockCompileTask: Task<WKContentRuleList?, Never>?
+
     private init() {
         dataStore = WKWebsiteDataStore(forIdentifier: Self.storeID)
     }
@@ -39,6 +45,68 @@ final class BrowserStore {
             in: .page
         ))
         return configuration
+    }
+
+    // MARK: - Ad / tracker blocking
+
+    /// Compile (or reuse) the ad/tracker content-rule list. WebKit caches the compiled bytecode on
+    /// disk keyed by identifier, so this is a fast lookup after the first launch; concurrent callers
+    /// share one in-flight compile. Returns `nil` on failure so browsing degrades to unblocked
+    /// rather than broken.
+    func adBlockRuleList() async -> WKContentRuleList? {
+        if let ready = adBlockRuleList { return ready }
+        if let inFlight = adBlockCompileTask { return await inFlight.value }
+
+        let task = Task<WKContentRuleList?, Never> {
+            guard let store = WKContentRuleListStore.default() else { return nil }
+            let identifier = AdBlockList.identifier
+            // Reuse the already-compiled list when present; otherwise compile the JSON once.
+            var list = await Self.lookUp(identifier, in: store)
+            if list == nil {
+                list = await Self.compile(identifier, json: AdBlockList.json, in: store)
+            }
+            await Self.evictStaleLists(keeping: identifier, in: store)
+            return list
+        }
+        adBlockCompileTask = task
+        let result = await task.value
+        adBlockRuleList = result
+        adBlockCompileTask = nil
+        return result
+    }
+
+    /// Warm the compile in the background so the list is ready before a browser window opens.
+    func prepareAdBlock() {
+        Task { _ = await adBlockRuleList() }
+    }
+
+    private static func lookUp(_ identifier: String, in store: WKContentRuleListStore) async -> WKContentRuleList? {
+        await withCheckedContinuation { continuation in
+            store.lookUpContentRuleList(forIdentifier: identifier) { list, _ in
+                continuation.resume(returning: list)
+            }
+        }
+    }
+
+    private static func compile(_ identifier: String, json: String, in store: WKContentRuleListStore) async -> WKContentRuleList? {
+        await withCheckedContinuation { continuation in
+            store.compileContentRuleList(forIdentifier: identifier, encodedContentRuleList: json) { list, _ in
+                continuation.resume(returning: list)
+            }
+        }
+    }
+
+    /// Remove previously-compiled rule lists from older ruleset versions (their identifiers share our
+    /// prefix but differ by content hash), so the on-disk store doesn't accumulate stale bytecode.
+    private static func evictStaleLists(keeping current: String, in store: WKContentRuleListStore) async {
+        let identifiers: [String] = await withCheckedContinuation { continuation in
+            store.getAvailableContentRuleListIdentifiers { continuation.resume(returning: $0 ?? []) }
+        }
+        for identifier in identifiers where identifier != current && identifier.hasPrefix(AdBlockList.identifierPrefix) {
+            await withCheckedContinuation { continuation in
+                store.removeContentRuleList(forIdentifier: identifier) { _ in continuation.resume() }
+            }
+        }
     }
 
     // MARK: - Proxy mirror
