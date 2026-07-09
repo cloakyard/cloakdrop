@@ -34,7 +34,7 @@ mirrors, whole-file checksum carried through); the lifetime `DownloadStats` coun
 all-time bytes); the checksum-sibling logic (`ChecksumDiscovery`); the capture payload
 (`CapturedDownload`) shared by every intake path; and the built-in browser's media sniffer
 (`MediaSniffer` + its dedupe cascade, `PageMediaState`, and the injected collector script) plus
-`BrowserCookies` — all pure, DOM-free, and unit-tested against the extension's original corpus.
+`BrowserCookies` — all pure, DOM-free, and unit-tested against a captured fixture corpus.
 Because they're plain values, they cross actor boundaries freely and are trivial to test. The
 on-device *intake intelligence* lives here too, all pure and I/O-free: `LinkPreview` (the pre-flight
 result), `DuplicateDetector`/`DuplicateCandidate` (content-addressed duplicate detection by URL /
@@ -184,14 +184,14 @@ The primary capture surface is the **built-in browser** (`App/Features/Browser/`
 user opens from the app, navigates anywhere, and grabs media from. A collector script injected into
 every frame (document-start, page world) reports raw sightings — resource URLs, response headers,
 `<video>`/`<audio>` elements, MediaSource/EME signals, SPA navigations — to the app, where the pure
-`MediaSniffer` (a 1:1 Swift port of the old extension's `media.js`, run against its original test
+`MediaSniffer` (pure and DOM-free, run against a captured fixture test
 corpus) classifies, dedupes, and ranks them into the shelf. Grabs and IDM-style download takeovers
 become `CapturedDownload`s and route through the same media/add funnels as everything else; every
 byte is still fetched by the engine, now carrying the page's referer, real user-agent, and cookies.
 
 The other intake paths — the `cloakdrop://` URL scheme, the Share Extension, and the in-process
 Services item — funnel into the same validated `CapturedDownload` value. The Share Extension hands
-off **without any extension↔app network path**: it writes the capture as JSON into a shared **App
+off **without any cross-process network path**: it writes the capture as JSON into a shared **App
 Group** container (`CaptureInbox`) and posts a payload-free Darwin notification; the app drains the
 inbox on that signal and on launch. App Groups require a team, so the shared-inbox path lives only
 in the **Release** entitlements; Debug builds fall back to the `cloakdrop://` deep link.

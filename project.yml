@@ -185,7 +185,7 @@ targets:
           fi
 
   # Native share-sheet extension: accepts a web URL shared from any app and drops it in the shared
-  # inbox for the app to confirm — the same path as the Safari/browser extensions (Phase 3d).
+  # App Group inbox for the app to confirm.
   CloakDropShareExtension:
     type: app-extension
     platform: macOS

@@ -1,7 +1,6 @@
 import Foundation
 
-/// Cross-process transport for `CapturedDownload` between the bundled extensions (Safari today;
-/// Chrome/Firefox/share later) and the main app.
+/// Cross-process transport for `CapturedDownload` from the Share Extension to the main app.
 ///
 /// Sandboxed processes can't call each other directly, so a capture crosses the boundary as a
 /// JSON file dropped into a shared **App Group** container (the "inbox"), paired with a
@@ -14,8 +13,8 @@ import Foundation
 /// Foundation-only and dependency-free so both the app target and the lightweight extension target
 /// can link it without pulling in the engine.
 public enum CaptureInbox {
-    /// The App Group both the app and its extensions declare in their entitlements. Changing this
-    /// requires updating `CloakDrop.entitlements` and every extension's entitlements in lockstep.
+    /// The App Group both the app and its Share Extension declare in their entitlements. Changing
+    /// this requires updating `CloakDrop.entitlements` and the Share Extension's entitlements in lockstep.
     public static let appGroupID = "group.com.cloakyard.cloakdrop"
 
     /// Payload-free wake signal posted after a capture is written; the data rides the inbox files.

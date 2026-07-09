@@ -37,7 +37,7 @@ public struct SniffedItem: Sendable, Hashable, Identifiable {
 }
 
 /// The media classifier/filter behind both the in-app browser's sniffer and download takeover — a
-/// 1:1 Swift port of the browser extension's battle-tested `media.js` (same function names, same
+/// 1:1 Swift port of the original battle-tested `media.js` sniffer (same function names, same
 /// heuristics, same test corpus), so years of accumulated noise/dedupe rules survive the move.
 /// Everything here is pure and string-based: no I/O, no WebKit, unit-tested directly.
 public enum MediaSniffer {

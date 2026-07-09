@@ -3,11 +3,11 @@ import Foundation
 /// The per-page aggregation of everything the collector sniffed: raw events go in (`apply`), a
 /// ranked, deduped candidate list comes out (`candidates`) — what the browser's media shelf shows.
 ///
-/// Mirrors the extension's per-tab store: items are keyed by `MediaSniffer.recordKey` so a signed
+/// The in-app browser's per-tab store: items are keyed by `MediaSniffer.recordKey` so a signed
 /// CDN URL that rotates its token *overwrites* its earlier sighting (freshest URL wins) instead of
 /// duplicating, the store is capped, and everything resets on navigation.
 public struct PageMediaState: Sendable {
-    /// Cap on distinct recorded items per page — extension parity (60/tab). Overwrites of an
+    /// Cap on distinct recorded items per page — original sniffer parity (60/tab). Overwrites of an
     /// already-recorded key are always allowed; only *new* keys are refused at the cap.
     public static let maxItems = 60
 
@@ -105,7 +105,7 @@ public struct PageMediaState: Sendable {
 
     /// The shelf's list: everything recorded, run through the dedupe cascade, with the synthetic
     /// "this page's video" extraction item when the page plays via MediaSource and has a player
-    /// (extension `pageScan` parity). `dedupeAndRank` suppresses that item again when a direct
+    /// (original `pageScan` parity). `dedupeAndRank` suppresses that item again when a direct
     /// stream was sniffed — the stream is the better grab.
     public var candidates: [SniffedItem] {
         var items = order.compactMap { recorded[$0] }

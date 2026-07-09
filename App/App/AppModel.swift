@@ -217,9 +217,6 @@ final class AppModel {
         // watch for new ones arriving via the Darwin wake signal.
         drainCaptureInbox()
         CaptureInboxObserver.shared.start { [weak self] in self?.drainCaptureInbox() }
-
-        // One-time tidy-up of the removed browser extensions' native-messaging manifests.
-        LegacyExtensionCleanup.runIfNeeded()
     }
 
     private func startObservingEvents() {
@@ -543,7 +540,7 @@ final class AppModel {
         detectedClipboardURL = nil
     }
 
-    // MARK: External capture (cloakdrop:// link, Safari/browser extension, share sheet)
+    // MARK: External capture (cloakdrop:// link, Share Extension, Services item)
 
     /// Handle an incoming deep link or opened file. A `cloakdrop://add?…` URL becomes a
     /// `CapturedDownload`; a `.metalink`/`.meta4` file becomes one or more multi-source downloads;
