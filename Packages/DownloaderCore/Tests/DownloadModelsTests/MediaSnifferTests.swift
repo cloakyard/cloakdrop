@@ -2,8 +2,8 @@ import Foundation
 import Testing
 @testable import DownloadModels
 
-/// The original `media.test.js` corpus, ported case-for-case alongside the `media.js` → Swift
-/// port — the heuristics must survive the translation bit-exact.
+/// The media-sniffer fixture corpus — real-world streaming layouts and noise cases, exercised
+/// case-for-case so the classification/dedupe heuristics stay exact.
 @Suite("Media sniffer — classification")
 struct MediaSnifferClassificationTests {
     @Test func classifyByURLRecognisesStreamsVideoAudioAndSkipsNonMedia() {

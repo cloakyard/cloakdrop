@@ -3,7 +3,7 @@ import Foundation
 // The dedupe cascade: one video on a page shows up as dozens of URLs (master playlist, per-quality
 // variant playlists, progressive renditions, hundreds of segments, HLS+DASH twins, CDN mirrors).
 // `dedupeAndRank` collapses all of that to one row per *thing the user would actually download*.
-// Direct port of media.js — same passes, same heuristics, same test corpus.
+// The passes below encode years of real-world streaming-layout heuristics, unit-tested directly.
 extension MediaSniffer {
     // MARK: - Stream playlist + segment collapsing
 

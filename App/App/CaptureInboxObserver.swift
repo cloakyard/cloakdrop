@@ -1,7 +1,7 @@
 import Foundation
 import DownloadModels
 
-/// Watches for the payload-free Darwin signal the bundled extensions post after writing a capture
+/// Watches for the payload-free Darwin signal the Share Extension posts after writing a capture
 /// to the shared `CaptureInbox`, and runs a drain handler on the main actor. One observer for the
 /// app's lifetime — it's registered once and never removed.
 ///

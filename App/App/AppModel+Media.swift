@@ -33,7 +33,7 @@ extension AppModel {
     }
 
     /// Grab a *known* adaptive stream regardless of its URL's extension — the in-app browser's
-    /// sniffer classifies manifests by response MIME type, which the extension-based
+    /// sniffer classifies manifests by response MIME type, which the file-extension-based
     /// `isMediaManifest` gate can't see. `forcePicker` opens the quality picker whenever the stream
     /// offers a real choice, even with "Ask me quality" off. Falls back to a plain download.
     func grabStream(_ request: DownloadRequest, forcePicker: Bool = false) {

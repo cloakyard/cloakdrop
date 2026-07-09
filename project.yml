@@ -223,7 +223,7 @@ targets:
       - package: DownloaderCore
         product: DownloadModels
     postBuildScripts:
-      # Keep the embedded extension's build number in lockstep with the app (same ddmmyyyy stamp),
+      # Keep the embedded Share Extension's build number in lockstep with the app (same ddmmyyyy stamp),
       # so the bundle and its plug-in never disagree on version. Last phase → runs after the plist is
       # written and before this target's CodeSign, so the seal covers the stamped value.
       - name: Stamp build number (CFBundleVersion = build date)

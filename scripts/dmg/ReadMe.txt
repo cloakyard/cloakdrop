@@ -8,7 +8,7 @@ THE APP
       right-click the app → Open → Open. This build is signed ad-hoc for
       testing, so Gatekeeper asks once; afterwards it opens normally.
 
-GRABBING WEB VIDEO  (no browser extension needed)
+GRABBING WEB VIDEO  (built-in browser — nothing to install)
   CloakDrop has a browser built in. In the app, click the globe in the
   toolbar (or press ⇧⌘B), go to any site, and a badge shows the video,
   audio, and files on the page — click one to download it. You can also

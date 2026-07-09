@@ -41,7 +41,7 @@ Legend: ✅ full · ⚠️ partial/limited · ❌ none · 🚫 deliberately out 
 | **Provenance Receipt (verified-download record)** | ✅ **unique** | ❌ | ❌ | ❌ |
 | **C2PA / Content Credentials verify on ingest** | ❌ *(white space)* | ❌ | ❌ | ❌ |
 | **Intake** |
-| Built-in browser (grab media by browsing in-app; no extension to install) | ✅ (WebKit + first-party sniffing) | ❌ | ❌ | ❌ |
+| Built-in browser (grab media by browsing in-app; nothing to install) | ✅ (WebKit + first-party sniffing) | ❌ | ❌ | ❌ |
 | Browser-download interception (takeover) | ✅ (native, inside the built-in browser) | ✅ | ✅ | ⚠️ |
 | Clipboard monitor / drag-drop | ✅ | ✅ | ✅ | ✅ |
 | Batch / pattern add | ✅ | ✅ | ⚠️ | ✅ |

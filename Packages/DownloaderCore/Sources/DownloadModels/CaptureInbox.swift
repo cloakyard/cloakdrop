@@ -10,7 +10,7 @@ import Foundation
 /// entitled to. A notification missed because the app wasn't running is recovered by draining the
 /// inbox on launch.
 ///
-/// Foundation-only and dependency-free so both the app target and the lightweight extension target
+/// Foundation-only and dependency-free so both the app target and the lightweight Share Extension target
 /// can link it without pulling in the engine.
 public enum CaptureInbox {
     /// The App Group both the app and its Share Extension declare in their entitlements. Changing
@@ -35,7 +35,7 @@ public enum CaptureInbox {
         case containerUnavailable
     }
 
-    /// Persist a capture as a uniquely-named JSON file in the inbox (the extension side). Assumes
+    /// Persist a capture as a uniquely-named JSON file in the inbox (the Share Extension side). Assumes
     /// the capture is already `validated()`. Atomic so the app never reads a half-written file.
     @discardableResult
     public static func write(_ capture: CapturedDownload) throws -> URL {
@@ -74,7 +74,7 @@ public enum CaptureInbox {
         return captures
     }
 
-    /// Broadcast the payload-free wake signal (the extension side, after `write`).
+    /// Broadcast the payload-free wake signal (the Share Extension side, after `write`).
     public static func postNotification() {
         CFNotificationCenterPostNotification(
             CFNotificationCenterGetDarwinNotifyCenter(),
