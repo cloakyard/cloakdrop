@@ -18,4 +18,6 @@ PRIVACY
   Everything runs on your Mac — no accounts, no telemetry, no phone-home.
   Full details live in the app under  Settings ▸ Privacy.
 
-Questions or bugs:   github.com/cloakyard/cloakdrop/issues
+SOURCE  (on GitHub)
+  Project    github.com/cloakyard/cloakdrop
+  Issues     github.com/cloakyard/cloakdrop/issues
