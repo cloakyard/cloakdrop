@@ -15,7 +15,7 @@
 	<!-- Convenience access to the standard Downloads folder. -->
 	<key>com.apple.security.files.downloads.read-write</key>
 	<true/>
-	<!-- NOTE: the App Group that the bundled extensions share with the app (see CaptureInbox) is
+	<!-- NOTE: the App Group that the bundled Share extension shares with the app (see CaptureInbox) is
 	     added only in the Release variant (CloakDrop.Release.entitlements), because App Groups
 	     require provisioning with a development team. Keeping it out of the Debug/base entitlements
 	     preserves team-less ad-hoc builds for fast local iteration. -->

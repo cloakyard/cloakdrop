@@ -19,8 +19,8 @@
 	<!-- Convenience access to the standard Downloads folder. -->
 	<key>com.apple.security.files.downloads.read-write</key>
 	<true/>
-	<!-- Shared container with the bundled Safari/browser extensions: captured downloads cross the
-	     sandbox boundary here (see CaptureInbox). Must match every extension's entitlements. -->
+	<!-- Shared container with the bundled Share extension: captured downloads cross the sandbox
+	     boundary here (see CaptureInbox). Must match the Share extension's entitlements. -->
 	<key>com.apple.security.application-groups</key>
 	<array>
 		<string>group.com.cloakyard.cloakdrop</string>

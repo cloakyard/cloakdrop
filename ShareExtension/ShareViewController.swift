@@ -2,10 +2,9 @@ import AppKit
 import UniformTypeIdentifiers
 import DownloadModels
 
-/// The native "share to CloakDrop" path (Phase 3d). The macOS share sheet hands this extension a
-/// single web URL (from Safari or any app); it validates the URL with the shared `CapturedDownload`
-/// bounds and drops it in the App Group inbox for the running app to confirm — the same inbox the
-/// Safari and browser extensions use.
+/// The native "share to CloakDrop" path. The macOS share sheet hands this extension a single web URL
+/// (from Safari or any app); it validates the URL with the shared `CapturedDownload` bounds and drops
+/// it in the App Group inbox for the running app to confirm.
 ///
 /// The activation rule (`NSExtensionActivationSupportsWebURLWithMaxCount = 1`) means we only ever get
 /// one URL, so there's no batching to coordinate. If the shared container is unavailable (an

@@ -57,10 +57,3 @@ secrets.plist
 # CloakDrop runtime artifacts (should never be committed)
 *.cloakpart
 *.cloakparts/
-
-# Browser extension build output (assembled from BrowserExtension/shared + manifests)
-BrowserExtension/dist/
-
-# Browser extension signing key (Chrome/Edge). Only the public "key" in manifest.chrome.json is
-# committed; the private key is generated locally and never checked in.
-key.pem

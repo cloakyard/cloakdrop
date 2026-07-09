@@ -2,11 +2,11 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- The share extension runs fully sandboxed, like the app and the Safari extension. -->
+	<!-- The share extension runs fully sandboxed, like the app. -->
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
 	<!-- NOTE: the App Group shared with the app is added only in the Release variant
 	     (CloakDropShareExtension.Release.entitlements), because App Groups require a development
-	     team. Debug builds stay team-less; the share inbox is exercised in Release (like Safari). -->
+	     team. Debug builds stay team-less; the share inbox is exercised in Release. -->
 </dict>
 </plist>

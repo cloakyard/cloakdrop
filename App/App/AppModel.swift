@@ -91,10 +91,29 @@ final class AppModel {
     /// Whether the bundled extractor actually ran (its version probe succeeded in-sandbox at launch).
     private(set) var isPageExtractionAvailable = false
 
+    /// Reopens/raises the main window (set where SwiftUI's `openWindow` is available). Browser
+    /// media grabs call it so the quality picker — hosted by the main window — is actually visible
+    /// even when that window was closed.
+    @ObservationIgnored var raiseMainWindow: (() -> Void)?
+
     /// Adds that matched an existing download by URL, each awaiting a "download again?" decision.
     /// FIFO so several confirm one at a time; the alert binds to the head.
     private(set) var pendingDuplicateAdds: [DuplicateAdd] = []
     var currentDuplicateAdd: DuplicateAdd? { pendingDuplicateAdds.first }
+
+    /// Whether the built-in browser's address bar treats non-URL text as a search (on) or always
+    /// tries it as an `https://` address (off). Off means zero query egress from typing.
+    /// Persisted in UserDefaults.
+    var browserSearchEnabled: Bool {
+        didSet { UserDefaults.standard.set(browserSearchEnabled, forKey: Self.browserSearchKey) }
+    }
+    static let browserSearchKey = "browserSearchEnabled"
+
+    /// Which search engine the address bar uses for a typed query. Persisted in UserDefaults.
+    var browserSearchEngine: SearchEngine {
+        didSet { UserDefaults.standard.set(browserSearchEngine.rawValue, forKey: Self.browserSearchEngineKey) }
+    }
+    static let browserSearchEngineKey = "browserSearchEngine"
 
     /// Whether clipboard monitoring is on. Persisted in UserDefaults.
     var clipboardMonitoringEnabled: Bool {
@@ -134,6 +153,11 @@ final class AppModel {
         self.clipboardMonitoringEnabled = UserDefaults.standard.bool(forKey: Self.clipboardKey)
         self.askQualityEnabled = UserDefaults.standard.bool(forKey: Self.askQualityKey)
         self.grabSubtitlesEnabled = UserDefaults.standard.bool(forKey: Self.grabSubtitlesKey)
+        // Address-bar search defaults ON (absent key → true) for a browser that feels normal.
+        self.browserSearchEnabled = UserDefaults.standard.object(forKey: Self.browserSearchKey) as? Bool ?? true
+        // Default to DuckDuckGo (the most private of the offered engines).
+        self.browserSearchEngine = UserDefaults.standard.string(forKey: Self.browserSearchEngineKey)
+            .flatMap(SearchEngine.init(rawValue:)) ?? .duckDuckGo
         self.launchAtLoginEnabled = loginItem.isEnabled
     }
 
@@ -189,8 +213,8 @@ final class AppModel {
         }
         if clipboardMonitoringEnabled { clipboard.start() }
 
-        // Drain any captures the bundled extensions dropped while we were launching, then watch for
-        // new ones arriving via the Darwin wake signal.
+        // Drain any captures the share extension / deep links dropped while we were launching, then
+        // watch for new ones arriving via the Darwin wake signal.
         drainCaptureInbox()
         CaptureInboxObserver.shared.start { [weak self] in self?.drainCaptureInbox() }
     }
@@ -516,7 +540,7 @@ final class AppModel {
         detectedClipboardURL = nil
     }
 
-    // MARK: External capture (cloakdrop:// link, Safari/browser extension, share sheet)
+    // MARK: External capture (cloakdrop:// link, Share Extension, Services item)
 
     /// Handle an incoming deep link or opened file. A `cloakdrop://add?…` URL becomes a
     /// `CapturedDownload`; a `.metalink`/`.meta4` file becomes one or more multi-source downloads;
@@ -531,7 +555,7 @@ final class AppModel {
         enqueueCapture(capture)
     }
 
-    /// Pull every capture the bundled extensions dropped into the shared App Group inbox and start
+    /// Pull every capture the Share extension / deep links dropped into the shared App Group inbox and start
     /// them. Called on the Darwin wake signal and once on launch (for anything that arrived while the
     /// app was closed).
     func drainCaptureInbox() {
@@ -586,6 +610,8 @@ final class AppModel {
     func updateSettings(_ newSettings: EngineSettings) {
         settings = newSettings
         Task { await manager.updateSettings(newSettings) }
+        // Keep the built-in browser on the same route as the engine.
+        BrowserStore.shared.applyProxy(newSettings.resolvedProxy)
     }
 
     // MARK: Smart rules

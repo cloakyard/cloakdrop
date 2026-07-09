@@ -33,6 +33,10 @@ struct MenuBarContent: View {
         Button("Resume All") { model.resumeAll() }
         Divider()
         Button("Open CloakDrop") { showMainWindow() }
+        Button("Open Browser") {
+            NSApp.activate(ignoringOtherApps: true)
+            openWindow(id: BrowserScene.windowID)
+        }
         Button("Speed Test…") {
             NSApp.activate(ignoringOtherApps: true)
             model.settingsSelection = .speedTest

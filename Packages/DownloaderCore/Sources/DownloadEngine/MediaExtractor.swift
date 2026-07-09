@@ -8,14 +8,24 @@ import DownloadModels
 /// the sandbox story stay ours. Modelled after `HTTPClient`: a protocol with a production
 /// implementation (`YtDlpExtractor`, spawning the bundled binary) and a mock for tests.
 public protocol MediaExtractor: Sendable {
-    /// Resolve `pageURL` into its available formats. `cookies` (a `Cookie:`-header string) and
-    /// `userAgent`, when supplied by the browser extension, let the tool authenticate exactly as the
-    /// page did — the difference between a real grab and a bot-check on many sites.
-    func extract(pageURL: URL, cookies: String?, userAgent: String?) async throws -> ExtractedMedia
+    /// Resolve `pageURL` into its available formats. `cookies` and `userAgent`, when supplied by
+    /// the capturing browser, let the tool authenticate exactly as the page did — the difference
+    /// between a real grab and a bot-check on many sites.
+    func extract(pageURL: URL, cookies: ExtractionCookies?, userAgent: String?) async throws -> ExtractedMedia
 
     /// The tool's version string, or `nil` when no runnable extractor is bundled — used to
     /// feature-detect at launch so the UI only offers page extraction when it can actually work.
     func version() async -> String?
+}
+
+/// How browser cookies ride into a page extraction.
+public enum ExtractionCookies: Sendable, Hashable {
+    /// A flattened `Cookie:`-header string for the page's own host — what a single-site capture
+    /// (deep link, share) carries.
+    case header(String)
+    /// A Netscape `cookies.txt` on disk — a whole multi-domain jar with its scoping intact (the
+    /// in-app browser's store; a youtube.com grab may need accounts.google.com cookies too).
+    case file(URL)
 }
 
 // MARK: - Extracted models

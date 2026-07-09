@@ -1,7 +1,7 @@
 import Foundation
 
-/// A download captured from outside the app — a `cloakdrop://` link, a browser extension, the
-/// share sheet — before it becomes a `DownloadRequest`. It carries the context a gated file
+/// A download captured before it becomes a `DownloadRequest` — from a `cloakdrop://` link, the
+/// share sheet, the Services menu, or the built-in browser. It carries the context a gated file
 /// needs (referrer, cookies, user-agent, extra headers) so the transfer reproduces the browser's
 /// request.
 ///
@@ -41,10 +41,10 @@ public struct CapturedDownload: Sendable, Hashable, Codable {
     /// Which intake path produced this capture.
     public enum Source: String, Sendable, Hashable, Codable {
         case urlScheme
-        case safariExtension
-        case browserExtension
         case shareExtension
         case services
+        /// The in-app browser (sniffed candidate, page extraction, or download takeover).
+        case builtInBrowser
     }
 
     /// Size ceilings applied by `validated()`. Every field is bounded so a hostile or malformed
@@ -189,45 +189,6 @@ public struct CapturedDownload: Sendable, Hashable, Codable {
         }
         comps.queryItems = items
         return comps.url
-    }
-
-    // MARK: - Browser extension message
-
-    /// Build a validated capture from a browser extension's native message — the loosely-typed
-    /// dictionary `runtime.sendNativeMessage` delivers to the Safari handler (keys: `url`,
-    /// `audioURL`, `filename`, `referrer`, `cookies`, `userAgent`, `headers`). Blank strings are
-    /// treated as absent so the extension can always send the full key set. Runs the same
-    /// bounds/scheme checks as every other intake path.
-    public static func parse(extensionMessage message: [String: Any], source: Source = .safariExtension) throws -> CapturedDownload {
-        func string(_ key: String) -> String? {
-            guard let value = message[key] as? String else { return nil }
-            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-            return trimmed.isEmpty ? nil : trimmed
-        }
-        guard let rawURL = string("url") else { throw CaptureError.missingURL }
-        guard let target = URL(string: rawURL) else { throw CaptureError.invalidURL }
-
-        var extraHeaders: [String: String] = [:]
-        if let headers = message["headers"] as? [String: String] {
-            for (name, value) in headers {
-                let key = name.trimmingCharacters(in: .whitespaces)
-                if !key.isEmpty { extraHeaders[key] = value }
-            }
-        }
-
-        let captured = CapturedDownload(
-            url: target,
-            // A malformed audio value degrades to a video-only grab rather than failing the capture.
-            audioURL: (string("audioURL") ?? string("audio")).flatMap { URL(string: $0) },
-            extractFromPage: (message["extract"] as? Bool) ?? (message["page"] as? Bool) ?? (string("extract") == "1"),
-            suggestedFileName: sanitizedFileName(string("filename")),
-            referrer: string("referrer"),
-            cookies: string("cookies"),
-            userAgent: string("userAgent"),
-            extraHeaders: extraHeaders,
-            source: source
-        )
-        return try captured.validated()
     }
 
     /// Strip path separators and control characters from a source-supplied name so it can't

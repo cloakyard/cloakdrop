@@ -18,6 +18,9 @@ let package = Package(
         // MARK: Models — pure value types, no dependencies.
         .target(
             name: "DownloadModels",
+            // The browser's collector script ships beside its Swift decoder/classifier so the two
+            // halves of the sniffing wire format version together (see MediaSniffer.collectorScript).
+            resources: [.copy("Sniffing/Resources/MediaSniffer.js")],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .testTarget(

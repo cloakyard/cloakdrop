@@ -12,44 +12,29 @@ struct AboutHeaderView: View {
     @State private var taps = 0
     @State private var matrixMode = false
 
-    private static let cornerRadius: CGFloat = 20
+    private static let cornerRadius: CGFloat = 8   // matches the grouped-Form section radius
     /// Phosphor green used for the title/version while the rain is on.
     private static let phosphor = Color(red: 0.62, green: 1.0, blue: 0.62)
 
+    // Rendered as a single grouped-Form row (see SettingsView.about), so the Section supplies the grey
+    // card, width, and corner radius — identical to every other Settings tab. The Matrix easter egg is
+    // a *live* `.background` (NOT a `listRowBackground`, which SwiftUI snapshots — that froze the rain):
+    // a plain background keeps the Canvas mounted so `TimelineView(.animation)` actually ticks. It's
+    // clipped to the card radius and only mounted while armed, so nothing redraws when the egg is off.
     var body: some View {
-        ZStack {
-            // Soft brand-purple wash normally; a black Matrix field once armed. The Canvas is only
-            // mounted while active — `TimelineView(.animation)` redraws every display frame as long
-            // as it's in the tree, so a hidden-but-present rain would burn CPU/GPU the whole time
-            // the About pane is open. Gating it keeps the header idle when the egg is off.
-            LinearGradient(
-                colors: [Color.accentColor.opacity(0.22), Color.accentColor.opacity(0.05)],
-                startPoint: .top, endPoint: .bottom
-            )
-
-            if matrixMode {
-                MatrixRainView()
-                    .transition(.opacity)
+        content
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+            .background {
+                if matrixMode {
+                    MatrixRainView().clipShape(.rect(cornerRadius: Self.cornerRadius))
+                }
             }
-
-            content
-
-            // While it rains, a transparent catcher above everything turns any tap into "stop",
-            // so the icon, the title, and the empty field all dismiss the egg.
-            if matrixMode {
-                Color.clear
-                    .contentShape(.rect)
-                    .onTapGesture { stop() }
+            .overlay {
+                // While it rains, a transparent catcher turns any tap into "stop".
+                if matrixMode { Color.clear.contentShape(.rect).onTapGesture { stop() } }
             }
-        }
-        .frame(height: 190)
-        .frame(maxWidth: .infinity)
-        .clipShape(.rect(cornerRadius: Self.cornerRadius))
-        .overlay(
-            RoundedRectangle(cornerRadius: Self.cornerRadius)
-                .strokeBorder(.white.opacity(matrixMode ? 0 : 0.08), lineWidth: 1)
-        )
-        .animation(.easeInOut(duration: 0.45), value: matrixMode)
+            .animation(.easeInOut(duration: 0.45), value: matrixMode)
     }
 
     private var content: some View {
@@ -74,6 +59,10 @@ struct AboutHeaderView: View {
                     .font(.callout)
                     .monospacedDigit()
                     .foregroundStyle(matrixMode ? Self.phosphor.opacity(0.85) : .secondary)
+                Text("Created by Sumit Sahoo")
+                    .font(.footnote)
+                    .foregroundStyle(matrixMode ? Self.phosphor.opacity(0.7) : .secondary)
+                    .padding(.top, 3)
             }
         }
     }

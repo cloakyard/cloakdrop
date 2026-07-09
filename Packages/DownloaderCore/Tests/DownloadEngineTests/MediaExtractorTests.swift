@@ -147,7 +147,7 @@ struct YtDlpExtractorTests {
     @Test func buildsExpectedArgumentsAndParses() async throws {
         let runner = MockProcessRunner(json: sampleJSON)
         let extractor = YtDlpExtractor(executableURL: fakeBinary, runner: runner)
-        let media = try await extractor.extract(pageURL: page, cookies: "SID=abc", userAgent: "UA/1")
+        let media = try await extractor.extract(pageURL: page, cookies: .header("SID=abc"), userAgent: "UA/1")
 
         #expect(media.formats.count == 7)
         let args = runner.lastArguments
@@ -160,12 +160,24 @@ struct YtDlpExtractorTests {
         #expect(args.last == page.absoluteString)
     }
 
+    @Test func aCookiesFilePassesTheNetscapeJarPath() async throws {
+        let runner = MockProcessRunner(json: sampleJSON)
+        let extractor = YtDlpExtractor(executableURL: fakeBinary, runner: runner)
+        let jar = URL(fileURLWithPath: "/tmp/cloakdrop-jar/cookies.txt")
+        _ = try await extractor.extract(pageURL: page, cookies: .file(jar), userAgent: nil)
+        let args = runner.lastArguments
+        #expect(args.contains("--cookies"))
+        #expect(args.contains(jar.path))
+        #expect(!args.contains("--add-header"), "a jar replaces the flattened header, never joins it")
+    }
+
     @Test func omitsCookieAndUAWhenNotProvided() async throws {
         let runner = MockProcessRunner(json: sampleJSON)
         let extractor = YtDlpExtractor(executableURL: fakeBinary, runner: runner)
         _ = try await extractor.extract(pageURL: page, cookies: nil, userAgent: nil)
         #expect(!runner.lastArguments.contains("--add-header"))
         #expect(!runner.lastArguments.contains("--user-agent"))
+        #expect(!runner.lastArguments.contains("--cookies"))
     }
 
     @Test func nonzeroExitSurfacesStderrTail() async {

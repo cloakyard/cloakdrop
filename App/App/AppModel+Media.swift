@@ -29,6 +29,14 @@ extension AppModel {
             add(request, preview: preview)
             return
         }
+        grabStream(request)
+    }
+
+    /// Grab a *known* adaptive stream regardless of its URL's extension — the in-app browser's
+    /// sniffer classifies manifests by response MIME type, which the file-extension-based
+    /// `isMediaManifest` gate can't see. `forcePicker` opens the quality picker whenever the stream
+    /// offers a real choice, even with "Ask me quality" off. Falls back to a plain download.
+    func grabStream(_ request: DownloadRequest, forcePicker: Bool = false) {
         isResolvingMedia = true
         Task {
             defer { isResolvingMedia = false }
@@ -38,24 +46,34 @@ extension AppModel {
                 add(request)
                 return
             }
-            routeStream(stream, request: request, extracted: nil)
+            routeStream(stream, request: request, extracted: nil, forcePicker: forcePicker)
         }
     }
 
     /// Grab a *page* URL (a YouTube watch page, etc.): run the media extractor, then auto-download the
     /// best tier with audio — or open the picker when "Ask me quality" is on. On failure, surface an
     /// honest, human message (a protected/SABR stream, a sign-in wall, an unavailable video).
-    func grabFromPage(_ capture: CapturedDownload) {
+    ///
+    /// `cookiesFile` (a Netscape jar in a private temp file, deleted here after use) wins over the
+    /// capture's flattened cookie header — the in-app browser passes its whole store this way so
+    /// multi-domain logins survive extraction. `forcePicker` opens the quality picker whenever
+    /// there's a real choice, even with "Ask me quality" off.
+    func grabFromPage(_ capture: CapturedDownload, cookiesFile: URL? = nil, forcePicker: Bool = false) {
         guard let extractor = mediaExtractor else {
+            if let cookiesFile { try? FileManager.default.removeItem(at: cookiesFile) }
             presentMediaError(String(localized: "Video extraction isn’t available in this build."))
             return
         }
         isResolvingMedia = true
         Task {
-            defer { isResolvingMedia = false }
+            defer {
+                isResolvingMedia = false
+                if let cookiesFile { try? FileManager.default.removeItem(at: cookiesFile) }
+            }
             do {
+                let cookies = cookiesFile.map(ExtractionCookies.file) ?? capture.cookies.map(ExtractionCookies.header)
                 let media = try await extractor.extract(
-                    pageURL: capture.url, cookies: capture.cookies, userAgent: capture.userAgent
+                    pageURL: capture.url, cookies: cookies, userAgent: capture.userAgent
                 )
                 guard let stream = media.toMediaStream(pageURL: capture.url) else {
                     presentMediaError(Self.friendlyExtractionMessage(.noGrabbableFormats))
@@ -66,7 +84,7 @@ extension AppModel {
                 // actually fetch the deciphered URLs — apply them over the capture's.
                 for (name, value) in media.downloadHeaders { request.requestHeaders[name] = value }
                 request.suggestedFileName = nil                       // named from the title per tier below
-                routeStream(stream, request: request, extracted: media)
+                routeStream(stream, request: request, extracted: media, forcePicker: forcePicker)
             } catch let error as MediaExtractionError {
                 presentMediaError(Self.friendlyExtractionMessage(error))
             } catch {
@@ -75,10 +93,11 @@ extension AppModel {
         }
     }
 
-    /// Auto-download the best tier, or open the picker when "Ask me quality" is on and there's a real
-    /// choice to make (multiple qualities, or subtitles to pick).
-    private func routeStream(_ stream: MediaStream, request: DownloadRequest, extracted: ExtractedMedia?) {
-        if askQualityEnabled, stream.variants.count > 1 || !stream.subtitleTracks.isEmpty {
+    /// Auto-download the best tier, or open the picker when there's a real choice to make (multiple
+    /// qualities, or subtitles to pick) and either "Ask me quality" is on or the caller forces it
+    /// (browser grabs always let the user pick the resolution).
+    private func routeStream(_ stream: MediaStream, request: DownloadRequest, extracted: ExtractedMedia?, forcePicker: Bool = false) {
+        if askQualityEnabled || forcePicker, stream.variants.count > 1 || !stream.subtitleTracks.isEmpty {
             pendingMediaSelection = MediaSelection(stream: stream, request: request, extracted: extracted)
             return
         }
