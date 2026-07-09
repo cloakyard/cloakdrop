@@ -7,9 +7,9 @@
 //   swift background.swift <app-icon.png> <out.png>
 //
 // Off-centre by design: a left-aligned brand lockup (icon + SF Rounded wordmark + a two-line
-// description) in a soft brand wash across the top, a GitHub link chip top-right, then the centred
-// drag-to-install card with a tapered "smile" arrow (thin tail → thick head, an Amazon-style swoosh
-// in our own periwinkle→indigo — the same gradient as the app icon).
+// description) in a soft brand wash across the top, a GitHub link chip at the foot, then the centred
+// drag-to-install card with an Amazon-style "smile" arrow (the real Amazon swoosh geometry, recoloured
+// in our periwinkle→indigo — the same gradient as the app icon).
 
 import AppKit
 
@@ -95,85 +95,85 @@ func drawGitHubChip(_ text: String, centerY: CGFloat) {
     str.draw(at: NSPoint(x: W / 2 - tsz.width / 2, y: centerY - tsz.height / 2))
 }
 
-/// An Amazon-style "smile" swoosh: a downward-bowing curve that tapers from a thin tail to a thick
-/// head and finishes in a flared arrowhead pointing up-right. Built as a single filled ribbon (top
-/// edge → arrowhead → bottom edge) so the varying width has no seam, then filled with the icon
-/// gradient. Distinct from Amazon's mark: our own curvature, taper, arrowhead, and violet gradient.
+/// Minimal SVG-path evaluator (M/m L/l H/h V/v C/c Z/z — enough for the Amazon swoosh), appending to
+/// `path` after mapping each point through (x·scale+ox, y·scale+oy). Both the SVG and our render use
+/// a y-down space, so no axis flip is needed.
+func appendSVGPath(_ d: String, to path: NSBezierPath, scale: CGFloat, ox: CGFloat, oy: CGFloat) {
+    var tokens: [String] = [], num = ""
+    for ch in d {
+        if ch.isLetter {
+            if !num.isEmpty { tokens.append(num); num = "" }
+            tokens.append(String(ch))
+        } else if ch == "-" {
+            if !num.isEmpty { tokens.append(num) }
+            num = "-"
+        } else if ch == " " || ch == "," || ch == "\n" || ch == "\t" {
+            if !num.isEmpty { tokens.append(num); num = "" }
+        } else {
+            num.append(ch)
+        }
+    }
+    if !num.isEmpty { tokens.append(num) }
+
+    func tf(_ x: CGFloat, _ y: CGFloat) -> NSPoint { NSPoint(x: ox + x * scale, y: oy + y * scale) }
+    var i = 0, cmd = "", cur = CGPoint.zero, sub = CGPoint.zero
+    func n() -> CGFloat { let v = CGFloat(Double(tokens[i]) ?? 0); i += 1; return v }
+    while i < tokens.count {
+        if Double(tokens[i]) == nil { cmd = tokens[i]; i += 1 }   // else: implicit repeat of last command
+        switch cmd {
+        case "M": cur = CGPoint(x: n(), y: n()); sub = cur; path.move(to: tf(cur.x, cur.y)); cmd = "L"
+        case "m": cur = CGPoint(x: cur.x + n(), y: cur.y + n()); sub = cur; path.move(to: tf(cur.x, cur.y)); cmd = "l"
+        case "L": cur = CGPoint(x: n(), y: n()); path.line(to: tf(cur.x, cur.y))
+        case "l": cur = CGPoint(x: cur.x + n(), y: cur.y + n()); path.line(to: tf(cur.x, cur.y))
+        case "H": cur.x = n(); path.line(to: tf(cur.x, cur.y))
+        case "h": cur.x += n(); path.line(to: tf(cur.x, cur.y))
+        case "V": cur.y = n(); path.line(to: tf(cur.x, cur.y))
+        case "v": cur.y += n(); path.line(to: tf(cur.x, cur.y))
+        case "C":
+            let c1 = CGPoint(x: n(), y: n()), c2 = CGPoint(x: n(), y: n()), e = CGPoint(x: n(), y: n())
+            path.curve(to: tf(e.x, e.y), controlPoint1: tf(c1.x, c1.y), controlPoint2: tf(c2.x, c2.y)); cur = e
+        case "c":
+            let c1 = CGPoint(x: cur.x + n(), y: cur.y + n()), c2 = CGPoint(x: cur.x + n(), y: cur.y + n())
+            let e = CGPoint(x: cur.x + n(), y: cur.y + n())
+            path.curve(to: tf(e.x, e.y), controlPoint1: tf(c1.x, c1.y), controlPoint2: tf(c2.x, c2.y)); cur = e
+        case "Z", "z": path.close(); cur = sub
+        default: i += 1
+        }
+    }
+}
+
+// The real Amazon swoosh, straight from the logo SVG (viewBox units): the crescent "smile" body and
+// its up-right arrowhead flick. Rounded, tapered, concave-under arrowhead — not a sharp spike. We
+// recolour it in our violet gradient (the brand tweak) and drop the letter glyph.
+let amazonSmileBody = "M 0.164 64.582 c 0.273 -0.436 0.709 -0.464 1.309 -0.082 c 13.636 7.909 28.473 11.864 44.509 11.864 c 10.691 0 21.245 -1.991 31.664 -5.973 c 0.273 -0.109 0.668 -0.273 1.186 -0.491 c 0.518 -0.218 0.886 -0.382 1.105 -0.491 c 0.818 -0.327 1.459 -0.164 1.923 0.491 c 0.464 0.655 0.314 1.255 -0.45 1.8 c -0.982 0.709 -2.236 1.527 -3.764 2.455 c -4.691 2.782 -9.927 4.936 -15.709 6.464 C 56.155 82.145 50.509 82.909 45 82.909 c -8.509 0 -16.555 -1.486 -24.136 -4.459 c -7.582 -2.973 -14.373 -7.159 -20.373 -12.559 C 0.164 65.618 0 65.345 0 65.073 C 0 64.909 0.054 64.745 0.164 64.582 z"
+let amazonArrowhead = "M 73.227 65.973 c 0.109 -0.218 0.273 -0.436 0.491 -0.655 c 1.364 -0.927 2.673 -1.555 3.927 -1.882 c 2.073 -0.545 4.091 -0.845 6.055 -0.9 c 0.545 -0.055 1.064 -0.027 1.555 0.082 c 2.455 0.218 3.927 0.627 4.418 1.227 C 89.891 64.173 90 64.664 90 65.318 v 0.573 c 0 1.909 -0.518 4.159 -1.555 6.75 c -1.036 2.591 -2.482 4.677 -4.336 6.259 c -0.273 0.218 -0.518 0.327 -0.736 0.327 c -0.109 0 -0.218 -0.027 -0.327 -0.082 c -0.327 -0.164 -0.409 -0.464 -0.245 -0.9 c 2.018 -4.745 3.027 -8.045 3.027 -9.9 c 0 -0.6 -0.109 -1.036 -0.327 -1.309 c -0.545 -0.655 -2.073 -0.982 -4.582 -0.982 c -0.927 0 -2.018 0.055 -3.273 0.164 c -1.364 0.164 -2.618 0.327 -3.764 0.491 c -0.327 0 -0.545 -0.055 -0.655 -0.164 c -0.109 -0.109 -0.136 -0.218 -0.082 -0.327 C 73.145 66.164 73.173 66.082 73.227 65.973 z"
+
+/// The Amazon-style swoosh, positioned so its ~90×21 logo box spans [x0…xEnd] with the tail/arrowhead
+/// ends resting near baseline `y`, filled with the icon's periwinkle→indigo gradient.
 func drawSmileArrow(x0: CGFloat, xEnd: CGFloat, y: CGFloat) {
-    let dx = xEnd - x0
-    let dip: CGFloat = 27          // how far the middle bows below the baseline (the "smile")
-    let rise: CGFloat = 12         // how much the head lifts above the baseline (points up-right)
-    let p0 = CGPoint(x: x0, y: y)
-    let p1 = CGPoint(x: x0 + dx * 0.30, y: y + dip)
-    let p2 = CGPoint(x: xEnd - dx * 0.26, y: y + dip)
-    let p3 = CGPoint(x: xEnd, y: y - rise)
-
-    func bez(_ t: CGFloat) -> CGPoint {
-        let m = 1 - t
-        return CGPoint(x: m*m*m*p0.x + 3*m*m*t*p1.x + 3*m*t*t*p2.x + t*t*t*p3.x,
-                       y: m*m*m*p0.y + 3*m*m*t*p1.y + 3*m*t*t*p2.y + t*t*t*p3.y)
-    }
-    func tangent(_ t: CGFloat) -> CGVector {
-        let m = 1 - t
-        return CGVector(dx: 3*m*m*(p1.x-p0.x) + 6*m*t*(p2.x-p1.x) + 3*t*t*(p3.x-p2.x),
-                        dy: 3*m*m*(p1.y-p0.y) + 6*m*t*(p2.y-p1.y) + 3*t*t*(p3.y-p2.y))
-    }
-    func normal(_ t: CGFloat) -> CGVector {
-        let v = tangent(t); let m = max(hypot(v.dx, v.dy), 0.0001)
-        return CGVector(dx: -v.dy / m, dy: v.dx / m)
-    }
-
-    let tHead: CGFloat = 0.72      // shaft runs 0…tHead; arrowhead spans tHead…1
-    let wTail: CGFloat = 3.5       // shaft width at the tail (thin)
-    let wThick: CGFloat = 17       // shaft width where it meets the arrowhead (thick)
-    let headHalf: CGFloat = 22     // arrowhead half-width at its base (flares beyond the shaft)
-
-    func halfW(_ s: CGFloat) -> CGFloat {   // s in 0…1 along the shaft
-        (wTail + (wThick - wTail) * (s * s)) / 2   // quadratic ease-in: stays thin, thickens near head
-    }
-
-    let steps = 60
-    var top: [CGPoint] = [], bot: [CGPoint] = []
-    for i in 0...steps {
-        let s = CGFloat(i) / CGFloat(steps)
-        let c = bez(tHead * s), n = normal(tHead * s), hw = halfW(s)
-        top.append(CGPoint(x: c.x + n.dx * hw, y: c.y + n.dy * hw))
-        bot.append(CGPoint(x: c.x - n.dx * hw, y: c.y - n.dy * hw))
-    }
-    let cH = bez(tHead), nH = normal(tHead), tip = bez(1)
-    let wingU = CGPoint(x: cH.x + nH.dx * headHalf, y: cH.y + nH.dy * headHalf)
-    let wingL = CGPoint(x: cH.x - nH.dx * headHalf, y: cH.y - nH.dy * headHalf)
+    let scale = (xEnd - x0) / 90.0
+    let ox = x0
+    let oy = y - 65 * scale            // path y≈65 is the ends' level; the belly bows below it
 
     let path = NSBezierPath()
-    path.move(to: top[0])
-    for p in top.dropFirst() { path.line(to: p) }   // top edge, tail → head
-    path.line(to: wingU); path.line(to: tip); path.line(to: wingL)   // arrowhead
-    for p in bot.reversed() { path.line(to: p) }     // bottom edge, head → tail
-    // Rounded tail cap so the thin start is soft, not a blunt flat edge.
-    let c0 = bez(0), n0 = normal(0), hw0 = halfW(0), tv = tangent(0)
-    let tm = max(hypot(tv.dx, tv.dy), 0.0001)
-    let back = CGVector(dx: -tv.dx / tm, dy: -tv.dy / tm)
-    for k in 1...8 {
-        let th = -CGFloat.pi / 2 + CGFloat.pi * CGFloat(k) / 8
-        path.line(to: CGPoint(x: c0.x + cos(th) * back.dx * hw0 + sin(th) * n0.dx * hw0,
-                              y: c0.y + cos(th) * back.dy * hw0 + sin(th) * n0.dy * hw0))
-    }
-    path.close()
+    path.windingRule = .nonZero
+    appendSVGPath(amazonSmileBody, to: path, scale: scale, ox: ox, oy: oy)
+    appendSVGPath(amazonArrowhead, to: path, scale: scale, ox: ox, oy: oy)
 
     let ctx = NSGraphicsContext.current!
     ctx.saveGraphicsState()
     let shadow = NSShadow()
-    shadow.shadowColor = arrowDeep.withAlphaComponent(0.30)
-    shadow.shadowBlurRadius = 9
+    shadow.shadowColor = arrowDeep.withAlphaComponent(0.28)
+    shadow.shadowBlurRadius = 8
     shadow.shadowOffset = NSSize(width: 0, height: -2)
     shadow.set()
     arrowDeep.setFill()   // solid base beneath the gradient so no anti-aliased seam shows through
     path.fill()
     ctx.restoreGraphicsState()
-    // Icon gradient, clipped to the single ribbon: light tail → deep head, tilted slightly down-right.
+    // Icon gradient, clipped to the swoosh: light tail (left) → deep head (right).
     ctx.saveGraphicsState()
     path.addClip()
-    NSGradient(colors: [arrowLight, arrowDeep])!.draw(in: path.bounds, angle: -16)
+    NSGradient(colors: [arrowLight, arrowDeep])!.draw(in: path.bounds, angle: -6)
     ctx.restoreGraphicsState()
 }
 
@@ -214,10 +214,10 @@ let image = NSImage(size: NSSize(width: W, height: H), flipped: true) { _ in
     // Framed well behind the drag-to-install icon row (Finder overlays the real icons on top).
     drawCard(NSRect(x: 84, y: 214, width: 552, height: 168))    // install row
 
-    // Instruction, then the tapered smile arrow bridging the app icon and the Applications alias
+    // Instruction, then the Amazon-style smile arrow bridging the app icon and the Applications alias
     // (Finder places both at y=290 inside the card).
     drawInstruction("Drag CloakDrop to your Applications folder", centerY: 182)
-    drawSmileArrow(x0: 290, xEnd: 442, y: 290)
+    drawSmileArrow(x0: 286, xEnd: 449, y: 293)
 
     // "Read Me.txt" (placed by Finder at y=458) sits below the card; the GitHub chip anchors the foot.
 
