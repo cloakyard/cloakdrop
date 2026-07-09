@@ -52,7 +52,12 @@ struct MediaSnifferClassificationTests {
             "https://pagead2.googlesyndication.com/pagead/ad.mp4",
             "https://ads.adnxs.com/preroll.mp4",
             "https://cdn.teads.tv/media/video-ad.mp4",
-            "https://cdn.fwmrm.net/ad/creative.mp4"
+            "https://cdn.fwmrm.net/ad/creative.mp4",
+            "https://cdn.stickyadstv.com/prime-time/creative.mp4",
+            "https://ads.exoclick.com/video/banner.mp4",
+            "https://media.trafficjunky.net/preroll-720p.mp4",
+            "https://delivery.propellerads.com/pop/clip.mp4",
+            "https://player.mgid.com/widget/teaser.mp4"
         ] {
             #expect(MediaSniffer.isNoise(adURL), "\(adURL) is an ad")
             #expect(MediaSniffer.classifyByURL(adURL) == nil, "\(adURL) must not be a grabbable item")
@@ -65,6 +70,16 @@ struct MediaSnifferClassificationTests {
         #expect(MediaSniffer.classifyByURL("https://cdn.example.com/movie.mp4")?.type == .video)
     }
 
+    @Test func byteWindowedChunkFetchesAreNoise() {
+        // Facebook/Instagram-style ranged media fetches assemble a file in the player; each URL is
+        // a partial chunk, never a standalone download.
+        #expect(MediaSniffer.isNoise("https://video.xx.fbcdn.net/v/t42/clip.mp4?bytestart=0&byteend=524287&efg=abc"))
+        #expect(MediaSniffer.isNoise("https://cdn.example.com/seg/video.mp4?range=0-1023"))
+        // A whole-file URL — even with unrelated query params, or "range" in a non-window form — is kept.
+        #expect(!MediaSniffer.isNoise("https://cdn.example.com/movie.mp4?token=abc&expires=99"))
+        #expect(!MediaSniffer.isNoise("https://cdn.example.com/free-range-farming.mp4?range=full"))
+    }
+
     @Test func subKilobyteMediaIsNoiseByContentLength() {
         #expect(MediaSniffer.classifyByContentType("https://x.com/blip", contentType: "audio/mpeg", contentLength: 512) == nil)
         #expect(MediaSniffer.classifyByContentType(
@@ -75,6 +90,8 @@ struct MediaSnifferClassificationTests {
         #expect(MediaSniffer.classifyByContentType(
             "https://x.com/live?id=9", contentType: "application/vnd.apple.mpegurl")?.type == .stream)
         #expect(MediaSniffer.classifyByContentType("https://x.com/live?id=9", contentType: "application/dash+xml")?.type == .stream)
+        #expect(MediaSniffer.classifyByContentType("https://x.com/hls?id=9", contentType: "audio/mpegurl")?.type == .stream)
+        #expect(MediaSniffer.classifyByContentType("https://x.com/hls?id=9", contentType: "audio/x-mpegurl")?.type == .stream)
         #expect(MediaSniffer.classifyByContentType("https://x.com/v?id=9", contentType: "video/mp4")?.type == .video)
         #expect(MediaSniffer.classifyByContentType("https://x.com/a?id=9", contentType: "audio/mp4")?.type == .audio)
         #expect(MediaSniffer.classifyByContentType("https://x.com/p?id=9", contentType: "text/html") == nil)
