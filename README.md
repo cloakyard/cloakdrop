@@ -92,7 +92,7 @@ cd Packages/DownloaderCore
 swift test
 ```
 
-**467 tests across 72 suites**, covering the core end-to-end: segmentation/reassembly, **resume across a simulated relaunch**, single-stream fallback, retry-after-drop, dynamic re-splitting, Metalink spread + mirror failover, checksum verify + sibling discovery, HLS/DASH parsing and AES-128 decryption, native FTP over a loopback server, GCRA bandwidth capping, ZIP extraction (Zip-Slip + bomb rejection), video-page recognition, and a real loopback-HTTP download.
+**471 tests across 72 suites**, covering the core end-to-end: segmentation/reassembly, **resume across a simulated relaunch**, single-stream fallback, retry-after-drop, dynamic re-splitting, chunked whole-file media grabs (throttle bypass), Metalink spread + mirror failover, checksum verify + sibling discovery, HLS/DASH parsing and AES-128 decryption, native FTP over a loopback server, GCRA bandwidth capping, ZIP extraction (Zip-Slip + bomb rejection), video-page recognition, and a real loopback-HTTP download.
 
 ## 🏗️ Project layout
 

@@ -365,6 +365,34 @@ struct MediaTransferTests {
         #expect(resume.lowerBound == 12_288)                           // …and continued, not restarted
     }
 
+    @Test("An oversized stale partial is discarded and the grab restarts clean, not promoted corrupt")
+    func oversizedPartialRestartsClean() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let data = payload(6, 40_000)
+        let url = URL(string: "https://cdn/x/oversized.mp4")!
+        let mock = MockHTTPClient()
+        mock.setResource(.init(data: data), for: url)
+        let plan = MediaPlan(format: .dash, segments: [MediaSegment(id: 0, url: url, duration: 0)])
+
+        let store = try GRDBDownloadStore.inMemory()
+        let manager = try await makeManager(store: store, mock: mock)
+        let request = DownloadRequest(url: url, suggestedFileName: "v.mp4", destinationDirectoryPath: dir.path)
+
+        // A leftover partial LARGER than the resource itself can't be a valid prefix of it.
+        let download = Download(url: url, fileName: "v.mp4", destinationDirectoryPath: dir.path, mediaPlan: plan)
+        try FileManager.default.createDirectory(atPath: download.mediaPartDirectoryPath, withIntermediateDirectories: true)
+        let partial = (download.mediaPartDirectoryPath as NSString).appendingPathComponent("seg-0.part.partial")
+        try Data(count: data.count + 5_000).write(to: URL(fileURLWithPath: partial))
+
+        let added = await manager.addMedia(request, plan: plan)
+        let done = try await waitFor(manager, added.id) { $0.status == .completed }
+
+        // Discarded and re-fetched from scratch — byte-perfect, not the oversized garbage.
+        #expect(try Data(contentsOf: URL(fileURLWithPath: done.destinationFilePath)) == data)
+    }
+
     @Test("A paired grab reports live bytes and a byte total once both segment sizes are known")
     func pairedGrabReportsByteTotals() async throws {
         let dir = try tempDir()

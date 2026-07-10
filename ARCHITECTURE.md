@@ -113,7 +113,11 @@ The concurrency core. Everything mutable is actor-isolated.
 - **Media** — `MediaResolver` fetches + parses a manifest URL into a ready `MediaPlan`, pairing an
   adaptive video rendition with its separate audio track so a "video" grab always has sound;
   `DownloadTask` grabs the video *and* audio segments over the same engine, decrypting AES-128
-  (`AES128`), then muxes and passthrough-remuxes the result into a clean container; selected
+  (`AES128`), then muxes and passthrough-remuxes the result into a clean container. A *whole-file*
+  segment (a progressive / paired video+audio grab, as YouTube serves its `adaptiveFormats`) is
+  fetched in bounded **~10 MB ranged chunks** on a range-capable server — a single large GET is
+  throttled to a crawl by some CDNs' per-connection limits (googlevideo's `n`-throttle), while ≤10 MB
+  ranges stream at full line speed; HLS/DASH's many small segments download as-is. Selected
   subtitle tracks are converted (`SubtitleConverter`, WebVTT → SRT) and written as sidecar `.srt`
   files next to the finished video. The `Remuxer`
   protocol has two backends behind a `CompositeRemuxer` (tries each in order): `AVFoundationRemuxer`
