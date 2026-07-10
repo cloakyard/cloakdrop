@@ -288,6 +288,31 @@ struct MediaTransferTests {
         #expect(resume.upperBound == Int64(data.count - 1))
     }
 
+    @Test("A large whole-file grab is fetched in multiple ~10 MB ranged chunks, not one throttleable GET")
+    func wholeFileGrabDownloadsInChunks() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        // 12 MB whole-file segment (paired-grab shape) on a range-capable server → 10 MB + 2 MB chunks.
+        // A single large GET is what YouTube's CDN throttles; ≤10 MB ranged chunks stream at full speed.
+        let data = payload(4, 12 * 1024 * 1024)
+        let url = URL(string: "https://cdn/x/big-video.mp4")!
+        let mock = MockHTTPClient()
+        mock.setResource(.init(data: data, acceptsRanges: true), for: url)
+        let plan = MediaPlan(format: .dash, segments: [MediaSegment(id: 0, url: url, duration: 0)])
+
+        let store = try GRDBDownloadStore.inMemory()
+        let manager = try await makeManager(store: store, mock: mock)
+        let request = DownloadRequest(url: url, suggestedFileName: "big.mp4", destinationDirectoryPath: dir.path)
+        let download = await manager.addMedia(request, plan: plan)
+        let done = try await waitFor(manager, download.id) { $0.status == .completed }
+
+        #expect(try Data(contentsOf: URL(fileURLWithPath: done.destinationFilePath)) == data)
+        // Two ranged stream requests (10 MB + 2 MB) — proof it chunked rather than issuing one GET.
+        #expect(mock.streamCount == 2)
+        #expect(mock.lastRequest?.byteRange?.lowerBound == Int64(10 * 1024 * 1024))
+    }
+
     @Test("A server that ignores Range restarts the segment cleanly instead of corrupting it")
     func segmentDropRestartsWithoutRangeSupport() async throws {
         let dir = try tempDir()

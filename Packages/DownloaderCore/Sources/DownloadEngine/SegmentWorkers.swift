@@ -200,6 +200,10 @@ private struct MediaSegmentFetch {
     let filePath: String
     var knownEnd: Int64?
     var expectedNotified = false
+    /// True once a probe has *confirmed the server honors ranges* — the gate for chunked downloading.
+    /// A size learned from a plain `Content-Length` (a range-ignoring 200) doesn't set this, so such a
+    /// server keeps the single-request path (which restarts cleanly) instead of a doomed chunk loop.
+    var rangeCapable = false
 
     init(segment: MediaSegment, filePath: String) {
         self.segment = segment
@@ -216,6 +220,37 @@ private struct MediaSegmentFetch {
     }
 }
 
+/// Probe a segment's size and range support (both needed to bound and chunk a whole-file grab),
+/// setting `knownEnd`/`rangeCapable`. Returns the resume offset, reset to 0 when a relaunch partial
+/// can't be ranged against so the grab restarts clean.
+private func prepareMediaSize(
+    _ fetch: inout MediaSegmentFetch, resumeFrom: Int64,
+    headers: [String: String], httpClient: any HTTPClient
+) async -> Int64 {
+    var resumeFrom = resumeFrom
+    // A relaunch partial has an unknown end — learn it with a probe, or start clean if the server
+    // can't tell us / won't range.
+    if resumeFrom > 0, fetch.knownEnd == nil {
+        if let end = await probedInclusiveEnd(url: fetch.segment.url, headers: headers, httpClient: httpClient) {
+            fetch.knownEnd = end
+            fetch.rangeCapable = true
+        } else {
+            try? FileManager.default.removeItem(atPath: fetch.partialPath)
+            resumeFrom = 0
+        }
+    }
+    // A fresh whole-file grab (a paired video/audio stream: one file, no manifest byte range, no HLS
+    // duration): probe the size up front so it can be fetched in bounded chunks and its completion
+    // verified.
+    if resumeFrom == 0, fetch.knownEnd == nil, fetch.segment.byteRange == nil, fetch.segment.duration == 0 {
+        if let end = await probedInclusiveEnd(url: fetch.segment.url, headers: headers, httpClient: httpClient) {
+            fetch.knownEnd = end
+            fetch.rangeCapable = true
+        }
+    }
+    return resumeFrom
+}
+
 /// One streaming attempt: resume from any `.partial` bytes with a ranged request (falling back to a
 /// clean restart when the server won't honor it), append arriving chunks to disk, and promote the
 /// partial to the final part file once the byte count checks out. Throws to signal "retry".
@@ -228,26 +263,20 @@ private func streamMediaSegmentToDisk(
     onBytes: @Sendable (Int) async -> Void
 ) async throws -> Int {
     let fm = FileManager.default
-    var resumeFrom = partialSize(fetch.partialPath)
+    var resumeFrom = await prepareMediaSize(&fetch, resumeFrom: partialSize(fetch.partialPath),
+                                            headers: headers, httpClient: httpClient)
 
-    // Resuming needs a bounded range. When a previous *run* left a partial (relaunch) we don't know
-    // the end yet — learn it with a probe, or start clean if the server can't tell us / won't range.
-    if resumeFrom > 0, fetch.knownEnd == nil {
-        if let end = await probedInclusiveEnd(url: fetch.segment.url, headers: headers, httpClient: httpClient) {
-            fetch.knownEnd = end
-        } else {
-            try? fm.removeItem(atPath: fetch.partialPath)
-            resumeFrom = 0
+    // Whole-file grab on a range-capable server: fetch it in bounded ~10 MB chunks (see
+    // `streamMediaChunked`). Byte-range (DASH) or undiscoverable-size segments take the path below.
+    if fetch.rangeCapable, fetch.segment.byteRange == nil, let knownEnd = fetch.knownEnd {
+        if !fetch.expectedNotified {
+            fetch.expectedNotified = true
+            await onExpectedBytes(knownEnd - fetch.base + 1)
         }
-    }
-
-    // A fresh whole-file grab (a paired video/audio stream: one file, no manifest byte range, no HLS
-    // duration): probe for the size up front so the very first GET is *bounded* (bytes=0-(total-1)).
-    // A bounded request sidesteps some CDNs' default-stream throttling — googlevideo's `n`-throttle in
-    // particular crawls an open-ended GET — and makes completion verifiable. Segments carrying their
-    // own byte range or an HLS duration keep the plain un-ranged first fetch.
-    if resumeFrom == 0, fetch.knownEnd == nil, fetch.segment.byteRange == nil, fetch.segment.duration == 0 {
-        fetch.knownEnd = await probedInclusiveEnd(url: fetch.segment.url, headers: headers, httpClient: httpClient)
+        return try await streamMediaChunked(
+            fetch: fetch, knownEnd: knownEnd, resumeFrom: resumeFrom, headers: headers,
+            httpClient: httpClient, limiters: limiters, onBytes: onBytes
+        )
     }
 
     let range = resolveMediaRange(fetch, resumeFrom: resumeFrom)
@@ -304,6 +333,69 @@ private func streamMediaSegmentToDisk(
     if let end = fetch.knownEnd, written < end - fetch.base + 1 {
         throw DownloadError.networkLost
     }
+    try? fm.removeItem(atPath: fetch.filePath)
+    try fm.moveItem(atPath: fetch.partialPath, toPath: fetch.filePath)
+    return Int(written)
+}
+
+/// yt-dlp's proven chunk size: a single large GET of a throttled CDN URL crawls; ~10 MB ranges fly.
+private let mediaChunkSize: Int64 = 10 * 1024 * 1024
+
+/// Download a whole-file media segment (known size, range-capable server) as a sequence of bounded
+/// ~10 MB ranged requests appended to `.partial` — sidestepping the per-connection throttling a single
+/// large GET triggers on YouTube-like CDNs. A dropped chunk throws so `runMediaSegment` resumes.
+private func streamMediaChunked(
+    fetch: MediaSegmentFetch,
+    knownEnd: Int64,
+    resumeFrom: Int64,
+    headers: [String: String],
+    httpClient: any HTTPClient,
+    limiters: [BandwidthLimiter],
+    onBytes: @Sendable (Int) async -> Void
+) async throws -> Int {
+    let fm = FileManager.default
+    let base = fetch.base
+    let total = knownEnd - base + 1
+
+    if resumeFrom == 0 { fm.createFile(atPath: fetch.partialPath, contents: nil) }
+    guard let handle = FileHandle(forWritingAtPath: fetch.partialPath) else {
+        throw DownloadError.fileSystem(reason: "Could not open \(fetch.partialPath) for writing.")
+    }
+    var written = resumeFrom
+    do {
+        try handle.seekToEnd()
+        while written < total {
+            try Task.checkCancellation()
+            let start = base + written
+            let end = min(start + mediaChunkSize - 1, knownEnd)
+            let request = HTTPDownloadRequest(url: fetch.segment.url, headers: headers, byteRange: start...end)
+            let (head, stream) = try await httpClient.stream(request)
+            // A range-capable server answers 206; a 200 (whole body) is only safe on a from-scratch
+            // first chunk — appending it after a resume would corrupt the file, so retry instead.
+            guard head.statusCode == 206 || (written == 0 && head.statusCode == 200) else {
+                throw DownloadError.networkLost
+            }
+            var chunkBytes = 0
+            for try await data in stream {
+                try Task.checkCancellation()
+                if data.isEmpty { continue }
+                for limiter in limiters where limiter.isLimited { await limiter.awaitAllowance(byteCount: data.count) }
+                try handle.write(contentsOf: data)
+                chunkBytes += data.count
+                written += Int64(data.count)
+                await onBytes(data.count)
+            }
+            // A throttle-close can end a chunk with nothing delivered; bail so the retry backs off
+            // rather than spinning a zero-progress loop.
+            if chunkBytes == 0 { throw DownloadError.networkLost }
+        }
+        try handle.close()
+    } catch {
+        try? handle.close()   // keep the partial — the next attempt resumes from it
+        throw error
+    }
+    try Task.checkCancellation()
+    if written < total { throw DownloadError.networkLost }   // short overall body → retry & resume
     try? fm.removeItem(atPath: fetch.filePath)
     try fm.moveItem(atPath: fetch.partialPath, toPath: fetch.filePath)
     return Int(written)
