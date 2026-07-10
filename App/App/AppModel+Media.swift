@@ -70,7 +70,10 @@ extension AppModel {
     /// capture's flattened cookie header — the in-app browser passes its whole store this way so
     /// multi-domain logins survive extraction. `forcePicker` opens the quality picker whenever
     /// there's a real choice, even with "Ask me quality" off.
-    func grabFromPage(_ capture: CapturedDownload, cookiesFile: URL? = nil, forcePicker: Bool = false) {
+    func grabFromPage(
+        _ capture: CapturedDownload, cookiesFile: URL? = nil, forcePicker: Bool = false,
+        destinationDirectoryPath: String? = nil, destinationBookmark: Data? = nil
+    ) {
         guard let extractor = mediaExtractor else {
             if let cookiesFile { try? FileManager.default.removeItem(at: cookiesFile) }
             presentMediaError(String(localized: "Video extraction isn’t available in this build."))
@@ -91,7 +94,10 @@ extension AppModel {
                     presentMediaError(Self.friendlyExtractionMessage(.noGrabbableFormats))
                     return
                 }
-                var request = capture.toRequest(destinationDirectoryPath: AppEnvironment.defaultDownloadsDirectory().path)
+                let destination = destinationDirectoryPath ?? AppEnvironment.defaultDownloadsDirectory().path
+                var request = capture.toRequest(
+                    destinationDirectoryPath: destination, destinationBookmark: destinationBookmark
+                )
                 // The extractor's per-format headers (chiefly the exact User-Agent it used) are what
                 // actually fetch the deciphered URLs — apply them over the capture's.
                 for (name, value) in media.downloadHeaders { request.requestHeaders[name] = value }
@@ -103,6 +109,34 @@ extension AppModel {
                 presentMediaError(String(localized: "Couldn’t read this video."))
             }
         }
+    }
+
+    /// Grab a *page* URL the user typed into the Add-Download sheet (a YouTube link, etc.): route it
+    /// through the page extractor with their chosen destination. Referrer/cookies they entered ride
+    /// along for gated pages. The caller only invokes this once `VideoPageDetector` has recognized the
+    /// URL and extraction is available.
+    ///
+    /// It funnels through the same `grabFromPage`/`routeStream` path as a browser grab, so the
+    /// Settings ▸ Capture toggles apply here too: "Ask which quality to download" opens the picker
+    /// (else the best tier downloads), and "Download subtitles when available" fetches the default
+    /// subtitle sidecar on the one-click path.
+    func grabPage(
+        url: URL, destinationDirectoryPath: String, destinationBookmark: Data?,
+        referrer: String?, cookies: String?
+    ) {
+        let capture = CapturedDownload(
+            url: url, extractFromPage: true,
+            referrer: referrer, cookies: cookies, source: .manualEntry
+        )
+        guard let validated = try? capture.validated() else {
+            // Shouldn't happen — the sheet only offers this for a normalized http(s) URL — but if the
+            // capture is somehow out of bounds, fall back to a plain download rather than silently drop it.
+            add(DownloadRequest(url: url, destinationDirectoryPath: destinationDirectoryPath,
+                                destinationBookmark: destinationBookmark, referrer: referrer, cookies: cookies))
+            return
+        }
+        grabFromPage(validated, destinationDirectoryPath: destinationDirectoryPath,
+                     destinationBookmark: destinationBookmark)
     }
 
     /// Auto-download the best tier, or open the picker when there's a real choice to make (multiple

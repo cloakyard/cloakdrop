@@ -31,7 +31,7 @@ Serious multi-segment download power with the look and feel of a first-party app
 | 📋 **Effortless capture** | Clipboard watching, drag & drop, a link-grabber (paste mixed links or **grab all** from a page → dedupe → pattern-expand `file[01-50].zip` → pick), scheduler, Keychain-backed HTTP/FTP auth, cookies/referrer, and system/manual proxy. |
 | 🌐 **Built-in browser** | A WebKit browser inside the app (⇧⌘B): visit any site and a live badge lists the video, audio, and files on the page (HLS/DASH manifests, direct files, `attachment` responses) — deduped down to the one thing worth grabbing and titled by the page, with ads, tracking beacons, and stream chunks filtered out (players hidden in shadow DOM still found). IDM-style, it **takes over downloads** the moment a page starts one. Streams open a quality picker so you choose the resolution; logged-in grabs carry your cookies. An optional **ad & tracker blocker** (off by default, in Settings ▸ Browser) drops ad/tracker requests and ad pop-ups on nearly every site via a compiled WebKit content-rule list — with a choice of blocklist: the built-in curated one, or an open-source list (OISD Small, StevenBlack Hosts, Peter Lowe's) downloaded on demand and updatable with one click. Plus a Share Extension and a "Send to CloakDrop" Services item for capture from other apps. |
 | 🎬 **Media grabbing** | Detects HLS (`.m3u8`) and DASH (`.mpd`) streams, lists qualities, decrypts AES-128, and pairs each video rendition with its audio track — muxed into a clean, playable file with no re-encode (AVFoundation → `.mp4`/`.m4a`; bundled ffmpeg stream-copies VP9/AV1/Opus → `.mkv`). Subtitle tracks come along as sidecar `.srt` files, and audio-only grabs extract a lossless `.m4a`. |
-| 🎥 **Site & video extraction** | Paste a YouTube page — or any of the **~1800 sites** yt-dlp knows — and CloakDrop resolves the formats and grabs them with **its own** segmented engine. yt-dlp only *reads and deciphers*; it never downloads a byte, so pause/resume, persistence, and the sandbox stay CloakDrop's. |
+| 🎥 **Site & video extraction** | Paste a YouTube link into **New Download** — or any of the **~1800 sites** yt-dlp knows — and CloakDrop recognizes the video page, resolves its formats, and grabs them with **its own** segmented engine: the best quality straight away, or a resolution picker when *Ask which quality* is on. yt-dlp only *reads and deciphers*; it never downloads a byte, so pause/resume, persistence, and the sandbox stay CloakDrop's. |
 | 🪞 **Multi-source mirrors** | Open a Metalink (`.metalink` / `.meta4`) and CloakDrop spreads segments across its mirrors, fails over the moment one dies or serves corrupt bytes, and verifies the finished file against the Metalink checksum. |
 | 🏅 **Download stats** | Local, private lifetime totals — today / this month / all-time — with a playful monthly tier badge that resets each month (Warming Up → ISP's Worst Nightmare). Just counters on your Mac; nothing leaves the device. |
 | 🏎️ **Built-in speed test** | Speedometer-style dials measure your connection's real download, upload, idle/loaded latency, and jitter — multi-connection, warm-up-aware, and strictly manual. Cloudflare by default, Ookla optional; reachable from the menu bar. |
@@ -92,7 +92,7 @@ cd Packages/DownloaderCore
 swift test
 ```
 
-**430 tests across 69 suites**, covering the core end-to-end: segmentation/reassembly, **resume across a simulated relaunch**, single-stream fallback, retry-after-drop, dynamic re-splitting, Metalink spread + mirror failover, checksum verify + sibling discovery, HLS/DASH parsing and AES-128 decryption, native FTP over a loopback server, GCRA bandwidth capping, ZIP extraction (Zip-Slip + bomb rejection), and a real loopback-HTTP download.
+**467 tests across 72 suites**, covering the core end-to-end: segmentation/reassembly, **resume across a simulated relaunch**, single-stream fallback, retry-after-drop, dynamic re-splitting, Metalink spread + mirror failover, checksum verify + sibling discovery, HLS/DASH parsing and AES-128 decryption, native FTP over a loopback server, GCRA bandwidth capping, ZIP extraction (Zip-Slip + bomb rejection), video-page recognition, and a real loopback-HTTP download.
 
 ## 🏗️ Project layout
 
@@ -104,7 +104,7 @@ cloakdrop/
 │   ├── Ambient/            #   MenuBarExtra · Dock progress · Notifications
 │   └── Shared/             #   Formatters, icons, shared views
 ├── ShareExtension/         # macOS share-sheet capture
-├── scripts/                # Opt-in helpers: fetch-ffmpeg.sh · fetch-ytdlp.sh (bundle & sign the native tools) · dmg/ (build the installer DMG)
+├── scripts/                # Opt-in helpers: fetch-ffmpeg.sh · fetch-ytdlp.sh (bundle & sign the native tools) · dmg/ (build the installer DMG) · generate_app_icon.swift · bake_about_icon.swift (icon art) · validate_localizations.py
 └── Packages/
     └── DownloaderCore/     # Headless, UI-agnostic, fully unit-tested core
         ├── DownloadModels/       # Sendable value types + HLS/DASH & Metalink parsers + stats, link-grabber, bandwidth-schedule & provenance models

@@ -42,6 +42,8 @@ same-origin ETag / completed name+size), `SignatureAssessment` + `TrustLevel` (t
 signal from checksum + code signature), the smart-rule model (`SmartRule`, `SmartRuleCondition`,
 `SmartRuleAction`, `RuleInput`) with its evaluator `SmartRuleEngine`, the link-grabber parser
 (`PageLinkExtractor` — resolve/dedupe/filter a page's href/src links; `URLBatch` — pattern expansion),
+`VideoPageDetector` (recognizes, by curated host, when a pasted URL is a video page to hand the
+extractor rather than download as a file),
 the time-of-day `BandwidthSchedule` (resolves the effective cap by clock, wraps past midnight), and
 the `ProvenanceReceipt` (the exportable verified-download record, with control-char-sanitized text
 rendering).
