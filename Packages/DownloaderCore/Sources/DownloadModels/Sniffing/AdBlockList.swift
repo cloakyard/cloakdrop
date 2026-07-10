@@ -88,19 +88,39 @@ public enum AdBlockList {
             trigger: Trigger(urlFilter: ".*", loadType: nil),
             action: Action(type: "css-display-none", selector: cosmeticSelectors.joined(separator: ", "))
         ))
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.sortedKeys]
-        let data = (try? encoder.encode(rules)) ?? Data()
-        return String(data: data, encoding: .utf8) ?? "[]"
+        return encode(rules)
     }()
 
     /// A stable identifier for the compiled list, embedding a content hash so WebKit recompiles
     /// automatically whenever the ruleset changes (no manual version bump). Computed once.
     public static let identifier: String = "cloakdrop-adblock-\(stableHash(json))"
 
-    /// The shared prefix of every identifier this type produces, so the app can evict stale
-    /// (older-version) compiled lists.
+    /// The shared prefix of every identifier this type produces — curated AND external — so the app
+    /// can evict stale (older-version) compiled lists in one prefix sweep.
     public static let identifierPrefix = "cloakdrop-adblock-"
+
+    // MARK: - External (downloaded) blocklists
+
+    /// A block-only ruleset for a downloaded domain list (`BlocklistParser` output): one anchored
+    /// host rule per domain, same subdomain-suffix semantics as the curated hosts. The parser's
+    /// charset validation guarantees each domain is inert in the `url-filter` regex — the only
+    /// metacharacter is the dot, escaped here.
+    public static func externalRulesJSON(blocking domains: [String]) -> String {
+        encode(domains.map { Rule(
+            trigger: Trigger(urlFilter: hostFilter($0), loadType: nil),
+            action: Action(type: "block", selector: nil)
+        ) })
+    }
+
+    /// Identifier prefix for compiled *external* rule lists. Shares `identifierPrefix` (eviction
+    /// sweeps both) but is disjoint from curated identifiers, whose suffix is a bare hex hash.
+    public static let externalIdentifierPrefix = "cloakdrop-adblock-ext-"
+
+    /// Content-hashed identifier for an external ruleset — same recompile-on-change contract as
+    /// `identifier`.
+    public static func externalIdentifier(forJSON json: String) -> String {
+        externalIdentifierPrefix + stableHash(json)
+    }
 
     /// Whether `host` is a blocked ad/tracker host (exact or a subdomain of one) — used to reject
     /// ad-serving popups, which the network rules can't see because a popup is a new top-level load.
@@ -113,14 +133,25 @@ public enum AdBlockList {
 
     /// Anchor a host at the scheme so only the real host (and its subdomains) match — never the host
     /// appearing later in a path or query, and never a longer host that merely ends the same way.
+    /// The trailing `[:/]` anchors the host's *end* too — an http(s) URL's host is always followed by
+    /// a `:port` or the path — so `media.net` never matches `media.netflix.com`. (A character class,
+    /// not alternation: WebKit's url-filter regex subset has no `|`.)
     private static func hostFilter(_ host: String) -> String {
-        "^https?://([^/]+\\.)?" + escapeForFilter(host)
+        "^https?://([^/]+\\.)?" + escapeForFilter(host) + "[:/]"
     }
 
     /// Escape a literal for a content-rule `url-filter` regex (dots are the only metacharacter our
     /// hosts/fragments contain).
     private static func escapeForFilter(_ literal: String) -> String {
         literal.replacingOccurrences(of: ".", with: "\\.")
+    }
+
+    /// Encode rules with sorted keys — always-valid, byte-for-byte stable JSON (identifiers hash it).
+    private static func encode(_ rules: [Rule]) -> String {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let data = (try? encoder.encode(rules)) ?? Data()
+        return String(data: data, encoding: .utf8) ?? "[]"
     }
 
     /// A launch-stable hash (djb2) — `Hasher` is per-process-seeded, so it can't key an on-disk

@@ -68,6 +68,9 @@ struct BrowserView: View {
         .onChange(of: model.browserSearchEnabled) { session.searchEnabled = model.browserSearchEnabled }
         .onChange(of: model.browserSearchEngine) { session.searchEngine = model.browserSearchEngine }
         .onChange(of: model.browserAdBlockEnabled) { session.setAdBlock(model.browserAdBlockEnabled) }
+        // Re-attach when the compiled lists change (a compile finished, the blocklist source
+        // switched, or an update landed) — setAdBlock always reflects the current lists.
+        .onChange(of: model.browserContentRulesGeneration) { session.setAdBlock(model.browserAdBlockEnabled) }
         .alert(dialogTitle, isPresented: dialogPresented, presenting: session.dialog) { dialog in
             dialogButtons(dialog)
         } message: { dialog in

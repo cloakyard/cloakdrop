@@ -141,10 +141,33 @@ final class AppModel {
     var browserAdBlockEnabled: Bool {
         didSet {
             UserDefaults.standard.set(browserAdBlockEnabled, forKey: Self.browserAdBlockKey)
-            if browserAdBlockEnabled { BrowserStore.shared.prepareAdBlock() }
+            if browserAdBlockEnabled { prepareContentBlocking() }
         }
     }
     static let browserAdBlockKey = "browserAdBlockEnabled"
+
+    /// Which blocklist the ad blocker uses: the built-in curated ruleset, or a downloadable
+    /// open-source domain list layered on top of it. Persisted in UserDefaults. Choosing a
+    /// downloadable list that has never been fetched triggers its first download — that pick (like
+    /// the Update button) is the user action the privacy contract requires; nothing fetches on a
+    /// timer or at launch.
+    var browserBlocklistSource: BlocklistSource {
+        didSet {
+            UserDefaults.standard.set(browserBlocklistSource.rawValue, forKey: Self.browserBlocklistSourceKey)
+            if oldValue != browserBlocklistSource { blocklistSourceChanged() }
+        }
+    }
+    static let browserBlocklistSourceKey = "browserBlocklistSource"
+
+    /// Metadata of the active downloaded blocklist (count + freshness), `nil` for built-in/none.
+    var blocklistInfo: BlocklistInfo?
+    /// Whether a blocklist download is in flight (drives the Update button's spinner).
+    var isUpdatingBlocklist = false
+    /// The last update failure, user-presentable; cleared by the next attempt or source switch.
+    var blocklistUpdateError: String?
+    /// Bumped whenever the set of compiled content-rule lists changes — open browser windows
+    /// observe it and re-apply their lists. Blocklist intents live in `AppModel+Browser.swift`.
+    var browserContentRulesGeneration = 0
 
     /// Whether clipboard monitoring is on. Persisted in UserDefaults.
     var clipboardMonitoringEnabled: Bool {
@@ -191,8 +214,10 @@ final class AppModel {
             .flatMap(SearchEngine.init(rawValue:)) ?? .duckDuckGo
         // Ad/tracker blocking defaults OFF (absent key → false) — opt-in.
         self.browserAdBlockEnabled = UserDefaults.standard.bool(forKey: Self.browserAdBlockKey)
+        self.browserBlocklistSource = UserDefaults.standard.string(forKey: Self.browserBlocklistSourceKey)
+            .flatMap(BlocklistSource.init(rawValue:)) ?? .builtIn
         self.launchAtLoginEnabled = loginItem.isEnabled
-        if browserAdBlockEnabled { BrowserStore.shared.prepareAdBlock() }
+        if browserAdBlockEnabled { prepareContentBlocking() }
     }
 
     /// Build the live, production-backed app model.

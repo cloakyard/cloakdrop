@@ -22,6 +22,24 @@ final class BrowserStore {
     private(set) var adBlockRuleList: WKContentRuleList?
     private var adBlockCompileTask: Task<WKContentRuleList?, Never>?
 
+    // External (downloaded) blocklist state — managed by `BrowserStore+Blocklists.swift`. Stored
+    // here because extensions can't add storage. The external list *augments* the curated one; if
+    // it's missing or fails to compile, blocking degrades to the curated ruleset, never to broken.
+    /// The compiled rule list for the user's chosen downloadable blocklist, when one is active.
+    var externalRuleList: WKContentRuleList?
+    /// The active external list's domains — the popup-rejection twin of the compiled rules.
+    var externalDomains: Set<String> = []
+    /// Metadata of the active external list (what Settings shows), `nil` when none is active.
+    var externalInfo: BlocklistInfo?
+    /// The source the app currently *wants* active. Async loads re-check it after every await so a
+    /// mid-flight source switch can never install a stale list.
+    var activeBlocklistSource: BlocklistSource = .builtIn
+
+    /// The proxy configurations currently applied to browsing — mirrored so user-initiated
+    /// blocklist fetches ride the same proxy as every other browser request (a proxy user's
+    /// update must not leak a direct connection).
+    private(set) var browsingProxyConfigurations: [Network.ProxyConfiguration] = []
+
     private init() {
         dataStore = WKWebsiteDataStore(forIdentifier: Self.storeID)
     }
@@ -65,7 +83,8 @@ final class BrowserStore {
             if list == nil {
                 list = await Self.compile(identifier, json: AdBlockList.json, in: store)
             }
-            await Self.evictStaleLists(keeping: identifier, in: store)
+            // Stale-bytecode eviction happens in `evictStaleCompiledLists()` — not here, where it
+            // would race the external list's look-up at launch and delete it pre-activation.
             return list
         }
         adBlockCompileTask = task
@@ -75,12 +94,7 @@ final class BrowserStore {
         return result
     }
 
-    /// Warm the compile in the background so the list is ready before a browser window opens.
-    func prepareAdBlock() {
-        Task { _ = await adBlockRuleList() }
-    }
-
-    private static func lookUp(_ identifier: String, in store: WKContentRuleListStore) async -> WKContentRuleList? {
+    static func lookUp(_ identifier: String, in store: WKContentRuleListStore) async -> WKContentRuleList? {
         await withCheckedContinuation { continuation in
             store.lookUpContentRuleList(forIdentifier: identifier) { list, _ in
                 continuation.resume(returning: list)
@@ -88,7 +102,7 @@ final class BrowserStore {
         }
     }
 
-    private static func compile(_ identifier: String, json: String, in store: WKContentRuleListStore) async -> WKContentRuleList? {
+    static func compile(_ identifier: String, json: String, in store: WKContentRuleListStore) async -> WKContentRuleList? {
         await withCheckedContinuation { continuation in
             store.compileContentRuleList(forIdentifier: identifier, encodedContentRuleList: json) { list, _ in
                 continuation.resume(returning: list)
@@ -96,13 +110,18 @@ final class BrowserStore {
         }
     }
 
-    /// Remove previously-compiled rule lists from older ruleset versions (their identifiers share our
-    /// prefix but differ by content hash), so the on-disk store doesn't accumulate stale bytecode.
-    private static func evictStaleLists(keeping current: String, in store: WKContentRuleListStore) async {
+    /// Remove previously-compiled rule lists this app no longer uses — older curated versions and
+    /// external lists from other sources/versions (all share our identifier prefix but differ by
+    /// content hash) — so the on-disk store doesn't accumulate stale bytecode. Call only after the
+    /// current lists are settled (compiled and installed), never concurrently with a look-up.
+    func evictStaleCompiledLists() async {
+        guard let store = WKContentRuleListStore.default() else { return }
+        var keep: Set<String> = [AdBlockList.identifier]
+        if let external = externalRuleList { keep.insert(external.identifier) }
         let identifiers: [String] = await withCheckedContinuation { continuation in
             store.getAvailableContentRuleListIdentifiers { continuation.resume(returning: $0 ?? []) }
         }
-        for identifier in identifiers where identifier != current && identifier.hasPrefix(AdBlockList.identifierPrefix) {
+        for identifier in identifiers where !keep.contains(identifier) && identifier.hasPrefix(AdBlockList.identifierPrefix) {
             await withCheckedContinuation { continuation in
                 store.removeContentRuleList(forIdentifier: identifier) { _ in continuation.resume() }
             }
@@ -116,6 +135,7 @@ final class BrowserStore {
     /// (WebKit's default when no explicit proxies are set).
     func applyProxy(_ proxy: DownloadModels.ProxyConfiguration) {
         guard proxy.mode == .manual, !proxy.host.isEmpty, let port = NWEndpoint.Port(rawValue: UInt16(clamping: proxy.port)) else {
+            browsingProxyConfigurations = []
             dataStore.proxyConfigurations = []
             return
         }
@@ -130,6 +150,7 @@ final class BrowserStore {
         if !proxy.username.isEmpty {
             configuration.applyCredential(username: proxy.username, password: proxy.password)
         }
+        browsingProxyConfigurations = [configuration]
         dataStore.proxyConfigurations = [configuration]
     }
 

@@ -388,20 +388,18 @@ final class BrowserSession: NSObject {
         shelfItems = media.candidates
     }
 
-    /// Turn ad/tracker blocking on or off for this web view. Adds the compiled content-rule list to
-    /// the user-content controller (dropping ad requests at the network layer + hiding ad slots), or
-    /// removes it. Idempotent; the compile is shared and cached, so toggling is cheap.
+    /// Turn ad/tracker blocking on or off for this web view: attach every compiled content-rule
+    /// list (curated + downloaded) or detach them all. Synchronous and idempotent — the cached
+    /// lists attach ahead of the window's first load, which starts in the same run-loop turn.
+    /// Compiles finishing later bump `AppModel.browserContentRulesGeneration`, and the view calls
+    /// this again — so a session converges on the right lists without racing any compile.
     func setAdBlock(_ enabled: Bool) {
         adBlockEnabled = enabled
         let controller = webView.configuration.userContentController
-        if enabled {
-            Task {
-                guard let list = await BrowserStore.shared.adBlockRuleList() else { return }
-                // Re-check: the user may have toggled back off while the first compile was running.
-                if adBlockEnabled { controller.add(list) }
-            }
-        } else {
-            controller.removeAllContentRuleLists()
+        controller.removeAllContentRuleLists()
+        guard enabled else { return }
+        for list in BrowserStore.shared.activeRuleLists {
+            controller.add(list)
         }
     }
 

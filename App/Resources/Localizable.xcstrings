@@ -131,6 +131,71 @@
         }
       }
     },
+    "%@ domains · updated %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‏%@ نطاق · حُدّثت %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Domains · aktualisiert %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ dominios · actualizada %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ domaines · mise à jour %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ डोमेन · अपडेट %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@件のドメイン · 更新: %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "도메인 %@개 · 업데이트: %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ domínios · atualizada %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доменов: %@ · обновлено %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 个域名 · 更新于%@"
+          }
+        }
+      }
+    },
     "%@ downloading · %@": {
       "extractionState": "manual",
       "localizations": {
@@ -192,6 +257,71 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ 正在下载 · %@"
+          }
+        }
+      }
+    },
+    "%@ is an open-source blocklist layered on top of the built-in one. It is fetched from %@ only when you choose it or press Update Now — never automatically. Blocking still happens entirely on your Mac and never affects your downloads.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‏%@ قائمة حظر مفتوحة المصدر تُضاف فوق القائمة المضمّنة. لا تُجلب من %@ إلا عندما تختارها أو تضغط «تحديث الآن» — ولا يحدث ذلك تلقائيًا أبدًا. يظل الحظر يجري بالكامل على جهاز Mac الخاص بك ولا يؤثر أبدًا في تنزيلاتك."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ist eine Open-Source-Blockierliste, die die integrierte Liste ergänzt. Sie wird nur dann von %@ geladen, wenn du sie auswählst oder auf „Jetzt aktualisieren“ klickst – nie automatisch. Die Blockierung erfolgt weiterhin vollständig auf deinem Mac und wirkt sich nie auf deine Downloads aus."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ es una lista de bloqueo de código abierto que se suma a la integrada. Solo se descarga de %@ cuando la eliges o pulsas «Actualizar ahora», nunca automáticamente. El bloqueo sigue ocurriendo por completo en tu Mac y nunca afecta a tus descargas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ est une liste de blocage open source qui s’ajoute à la liste intégrée. Elle n’est récupérée depuis %@ que lorsque vous la choisissez ou appuyez sur « Mettre à jour » — jamais automatiquement. Le blocage a toujours lieu entièrement sur votre Mac et n’affecte jamais vos téléchargements."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ एक ओपन-सोर्स ब्लॉकलिस्ट है जो अंतर्निहित सूची के ऊपर जुड़ती है। यह %@ से केवल तभी लाई जाती है जब आप इसे चुनते हैं या «अभी अपडेट करें» दबाते हैं — कभी भी अपने आप नहीं। अवरोधन अब भी पूरी तरह आपके Mac पर होता है और आपके डाउनलोड पर कभी असर नहीं डालता।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@はオープンソースのブロックリストで、内蔵リストに重ねて適用されます。取得は%@から、選択時または「今すぐ更新」を押したときのみ行われ、自動では決して行われません。ブロックは引き続きすべてMac上で行われ、ダウンロードに影響することはありません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@은(는) 내장 목록 위에 더해지는 오픈 소스 차단 목록입니다. 이 목록을 선택하거나 ‘지금 업데이트’를 누를 때에만 %@에서 가져오며, 자동으로 가져오지 않습니다. 차단은 여전히 전적으로 Mac에서 이루어지며 다운로드에는 결코 영향을 주지 않습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ é uma lista de bloqueio de código aberto aplicada sobre a lista integrada. Ela só é baixada de %@ quando você a escolhe ou toca em “Atualizar agora” — nunca automaticamente. O bloqueio continua acontecendo inteiramente no seu Mac e nunca afeta seus downloads."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ — это список блокировки с открытым исходным кодом, дополняющий встроенный. Он загружается с %@ только когда вы выбираете его или нажимаете «Обновить сейчас» — никогда автоматически. Блокировка по-прежнему выполняется целиком на вашем Mac и никогда не затрагивает загрузки."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 是叠加在内置列表之上的开源拦截列表。仅当你选择它或点按“立即更新”时才会从 %@ 获取——绝不会自动获取。拦截仍完全在你的 Mac 上进行，绝不影响你的下载。"
           }
         }
       }
@@ -3901,6 +4031,71 @@
         }
       }
     },
+    "Blocklist": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قائمة الحظر"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blockierliste"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lista de bloqueo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liste de blocage"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ब्लॉकलिस्ट"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ブロックリスト"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "차단 목록"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lista de bloqueio"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Список блокировки"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拦截列表"
+          }
+        }
+      }
+    },
     "Browser": {
       "extractionState": "manual",
       "localizations": {
@@ -4027,6 +4222,72 @@
           "stringUnit": {
             "state": "translated",
             "value": "浏览数据"
+          }
+        }
+      }
+    },
+    "Built-in (Curated)": {
+      "comment": "Blocklist choice: the app's own curated list",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مضمّنة (منسّقة)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Integriert (kuratiert)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Integrada (curada)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intégrée (sélectionnée)"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अंतर्निहित (चयनित)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内蔵（厳選）"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "내장 (엄선)"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Integrada (curada)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Встроенный (отобранный)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内置（精选）"
           }
         }
       }
@@ -8971,6 +9232,71 @@
         }
       }
     },
+    "Downloading the latest list…": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جارٍ تنزيل أحدث قائمة…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neueste Liste wird geladen …"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargando la lista más reciente…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Téléchargement de la dernière liste…"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "नवीनतम सूची डाउनलोड हो रही है…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新のリストをダウンロード中…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "최신 목록 다운로드 중…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baixando a lista mais recente…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Загрузка последней версии списка…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在下载最新列表…"
+          }
+        }
+      }
+    },
     "Downloads the sound only, saved as an audio file.": {
       "extractionState": "manual",
       "localizations": {
@@ -12741,6 +13067,71 @@
         }
       }
     },
+    "List Status": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حالة القائمة"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listenstatus"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estado de la lista"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "État de la liste"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सूची की स्थिति"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リストの状態"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "목록 상태"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status da lista"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Состояние списка"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "列表状态"
+          }
+        }
+      }
+    },
     "Look for checksum files on the server": {
       "extractionState": "manual",
       "localizations": {
@@ -15402,6 +15793,71 @@
           "stringUnit": {
             "state": "translated",
             "value": "不是有效的 %@ 摘要 — 此文件将不会被校验。"
+          }
+        }
+      }
+    },
+    "Not downloaded yet": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لم تُنزَّل بعد"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch nicht geladen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no descargada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas encore téléchargée"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी डाउनलोड नहीं हुई"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未ダウンロード"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아직 다운로드되지 않음"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ainda não baixada"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ещё не загружен"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未下载"
           }
         }
       }
@@ -24961,6 +25417,71 @@
         }
       }
     },
+    "The ad blocker's open-source blocklist, if you pick one in Browser settings — fetched only when you choose it or press Update Now, never on its own.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قائمة الحظر مفتوحة المصدر لمانع الإعلانات، إذا اخترت واحدة في إعدادات المتصفح — تُجلب فقط عندما تختارها أو تضغط «تحديث الآن»، ولا تُجلب من تلقاء نفسها أبدًا."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Open-Source-Blockierliste des Werbeblockers, falls du in den Browser-Einstellungen eine auswählst – geladen nur, wenn du sie auswählst oder auf „Jetzt aktualisieren“ klickst, nie von selbst."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La lista de bloqueo de código abierto del bloqueador de anuncios, si eliges una en los ajustes del navegador: se descarga solo cuando la eliges o pulsas «Actualizar ahora», nunca por sí sola."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La liste de blocage open source du bloqueur de publicités, si vous en choisissez une dans les réglages du navigateur — récupérée uniquement lorsque vous la choisissez ou appuyez sur « Mettre à jour », jamais d’elle-même."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "विज्ञापन अवरोधक की ओपन-सोर्स ब्लॉकलिस्ट, यदि आप ब्राउज़र सेटिंग्स में कोई चुनते हैं — केवल तभी लाई जाती है जब आप इसे चुनते हैं या «अभी अपडेट करें» दबाते हैं, कभी भी अपने आप नहीं।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "広告ブロッカーのオープンソースのブロックリスト（ブラウザ設定で選択した場合）。選択時または「今すぐ更新」を押したときのみ取得され、自動で取得されることはありません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "브라우저 설정에서 선택한 경우, 광고 차단기의 오픈 소스 차단 목록 — 목록을 선택하거나 ‘지금 업데이트’를 누를 때에만 가져오며, 절대로 스스로 가져오지 않습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A lista de bloqueio de código aberto do bloqueador de anúncios, se você escolher uma nos ajustes do navegador — baixada somente quando você a escolhe ou toca em “Atualizar agora”, nunca por conta própria."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Список блокировки с открытым исходным кодом для блокировщика рекламы, если вы выбрали его в настройках браузера, — загружается только когда вы выбираете список или нажимаете «Обновить сейчас», никогда сам по себе."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "广告拦截器的开源拦截列表（若你在浏览器设置中选择了一个）——仅当你选择它或点按“立即更新”时才会获取，绝不会自行获取。"
+          }
+        }
+      }
+    },
     "The built-in browser": {
       "extractionState": "manual",
       "localizations": {
@@ -25087,6 +25608,266 @@
           "stringUnit": {
             "state": "translated",
             "value": "你选择的下载链接，以及它们指向的重定向或镜像。"
+          }
+        }
+      }
+    },
+    "The downloaded list is unreasonably large.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "القائمة التي نُزِّلت كبيرة بشكل غير معقول."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die geladene Liste ist unverhältnismäßig groß."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La lista descargada es desproporcionadamente grande."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La liste téléchargée est démesurément volumineuse."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डाउनलोड की गई सूची असामान्य रूप से बड़ी है।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ダウンロードしたリストが異常に大きいです。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다운로드한 목록이 비정상적으로 큽니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A lista baixada é excessivamente grande."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Загруженный список неоправданно велик."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载的列表过大。"
+          }
+        }
+      }
+    },
+    "The downloaded list looks incomplete (%lld entries) — keeping the previous copy.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تبدو القائمة التي نُزِّلت غير مكتملة (%lld من الإدخالات) — سيتم الإبقاء على النسخة السابقة."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die geladene Liste scheint unvollständig zu sein (%lld Einträge) – die vorherige Kopie bleibt erhalten."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La lista descargada parece incompleta (%lld entradas); se conserva la copia anterior."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La liste téléchargée semble incomplète (%lld entrées) — la copie précédente est conservée."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डाउनलोड की गई सूची अधूरी लगती है (%lld प्रविष्टियाँ) — पिछली प्रति रखी जा रही है।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ダウンロードしたリストは不完全のようです（%lld件）。以前のコピーを保持します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다운로드한 목록이 불완전해 보입니다(항목 %lld개). 이전 사본을 유지합니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A lista baixada parece incompleta (%lld entradas) — mantendo a cópia anterior."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Загруженный список выглядит неполным (записей: %lld) — сохранена предыдущая копия."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载的列表似乎不完整（%lld 个条目）——保留之前的副本。"
+          }
+        }
+      }
+    },
+    "The list couldn’t be compiled for WebKit.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذّر تجميع القائمة لـ WebKit."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Liste konnte nicht für WebKit kompiliert werden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo compilar la lista para WebKit."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La liste n’a pas pu être compilée pour WebKit."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सूची को WebKit के लिए संकलित नहीं किया जा सका।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リストをWebKit用にコンパイルできませんでした。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "목록을 WebKit용으로 컴파일할 수 없었습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível compilar a lista para o WebKit."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось скомпилировать список для WebKit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法为 WebKit 编译该列表。"
+          }
+        }
+      }
+    },
+    "The list server answered with an error (HTTP %lld).": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أجاب خادم القائمة بخطأ ‏(HTTP %lld)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Listenserver hat mit einem Fehler geantwortet (HTTP %lld)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El servidor de la lista respondió con un error (HTTP %lld)."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le serveur de la liste a répondu par une erreur (HTTP %lld)."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सूची सर्वर ने एक त्रुटि दी (HTTP %lld)।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リストサーバーがエラーを返しました（HTTP %lld）。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "목록 서버가 오류로 응답했습니다(HTTP %lld)."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O servidor da lista respondeu com um erro (HTTP %lld)."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сервер списка ответил ошибкой (HTTP %lld)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "列表服务器返回错误（HTTP %lld）。"
           }
         }
       }
@@ -25412,6 +26193,71 @@
           "stringUnit": {
             "state": "translated",
             "value": "服务器响应时间过长。"
+          }
+        }
+      }
+    },
+    "The server’s response wasn’t a readable blocklist.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لم تكن استجابة الخادم قائمة حظر قابلة للقراءة."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Antwort des Servers war keine lesbare Blockierliste."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La respuesta del servidor no era una lista de bloqueo legible."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La réponse du serveur n’était pas une liste de blocage lisible."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सर्वर की प्रतिक्रिया पढ़ने योग्य ब्लॉकलिस्ट नहीं थी।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サーバーの応答は読み取り可能なブロックリストではありませんでした。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "서버 응답이 읽을 수 있는 차단 목록이 아니었습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A resposta do servidor não era uma lista de bloqueio legível."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ответ сервера не является читаемым списком блокировки."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器的响应不是可读取的拦截列表。"
           }
         }
       }
@@ -27232,6 +28078,71 @@
           "stringUnit": {
             "state": "translated",
             "value": "未校验"
+          }
+        }
+      }
+    },
+    "Update Now": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تحديث الآن"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt aktualisieren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualizar ahora"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mettre à jour"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी अपडेट करें"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今すぐ更新"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지금 업데이트"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atualizar agora"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обновить сейчас"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立即更新"
           }
         }
       }

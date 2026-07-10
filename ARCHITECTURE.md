@@ -209,6 +209,19 @@ stale versions by identifier hash. Popups aimed at a blocked host are rejected i
 (the network rules can't see a brand-new top-level load). Downloads never pass through the list —
 only in-browser page loads do.
 
+The blocker's coverage is selectable (Settings ▸ Browser): the built-in curated ruleset, or an
+**open-source domain blocklist** — OISD Small, StevenBlack Hosts, or Peter Lowe's — layered on top
+of it as a second compiled rule list. `BlocklistParser` (in `DownloadModels`, unit-tested) folds all
+the common list formats (plain domains, hosts files, wildcard and bare-domain ABP lines) into
+validated domains whose charset is *inert* in a `url-filter` regex — a hostile list can drop entries
+but never inject rule syntax — then prunes subdomains already covered by a listed parent and caps
+under WebKit's 150k-rules-per-list limit. `BrowserStore+Blocklists` fetches on user action only
+(picking a list or Update Now — never on a timer or at launch), over the same proxy as browsing,
+validates a per-source minimum-entry floor before replacing the previous copy, persists the
+canonical domains + metadata in Application Support, and compiles under a content-hashed identifier.
+Every step re-checks the active source after each await, and any failure leaves the previous list —
+or the curated baseline — in effect: fail-open, never broken.
+
 The other intake paths — the `cloakdrop://` URL scheme, the Share Extension, and the in-process
 Services item — funnel into the same validated `CapturedDownload` value. The Share Extension hands
 off **without any cross-process network path**: it writes the capture as JSON into a shared **App

@@ -93,7 +93,9 @@ struct PrivacySettingsView: View {
                     // swiftlint:disable:next line_length
                     "The sites you visit in the built-in browser — the pages you open, and (if address-bar search is on) the query you type when you press Return.",
                     "A proxy server, and only if you configure one in Network settings.",
-                    "A speed-test provider (Cloudflare or Ookla), and only while a test you started is running."
+                    "A speed-test provider (Cloudflare or Ookla), and only while a test you started is running.",
+                    // swiftlint:disable:next line_length
+                    "The ad blocker's open-source blocklist, if you pick one in Browser settings — fetched only when you choose it or press Update Now, never on its own."
                 ],
                 outro: """
                 That is the complete list. There are no update pings, no analytics beacons, and no \
