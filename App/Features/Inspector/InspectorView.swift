@@ -145,11 +145,16 @@ struct InspectorView: View {
                 .tint(download.status.tint)
             }
 
-            // Size / progress, in a clean baseline-aligned key–value grid — media grabs count
-            // segments (their byte total usually isn't known up front), files count bytes.
+            // Size / progress, in a clean baseline-aligned key–value grid. A real multi-segment media
+            // grab (HLS/DASH) counts segments; a whole-file grab (progressive / paired video+audio) and
+            // plain files count bytes — for those the segment count is just 1–2 whole files, meaningless.
             Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 20, verticalSpacing: 8) {
                 if let plan = download.mediaPlan {
-                    statRow("Segments", "\(download.mediaCompletedSegments) / \(plan.totalSegments)")
+                    if plan.isMultiSegment {
+                        statRow("Segments", "\(download.mediaCompletedSegments) / \(plan.totalSegments)")
+                    } else if let total = model.liveTotalBytes(download), total > 0 {
+                        statRow("Size", Format.bytes(total))
+                    }
                     if download.downloadedBytes > 0 {
                         statRow("Downloaded", Format.bytes(download.downloadedBytes))
                     }

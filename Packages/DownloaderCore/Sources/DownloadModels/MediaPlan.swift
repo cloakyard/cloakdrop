@@ -54,6 +54,15 @@ public struct MediaPlan: Sendable, Hashable, Codable {
     /// Total segments to download — video plus any separate audio — the progress denominator.
     public var totalSegments: Int { segments.count + (audioSegments?.count ?? 0) }
 
+    /// Whether this is a genuine multi-segment transfer (HLS's many timed segments, or DASH's
+    /// byte-range segments) rather than one or two *whole-file* streams (a progressive video, or a
+    /// paired video+audio grab as YouTube serves them). A whole-file part completes only at the very
+    /// end, so an "N of M segments" count is meaningless there — the UI shows byte progress instead and
+    /// hides the segment count for these.
+    public var isMultiSegment: Bool {
+        (segments + (audioSegments ?? [])).contains { $0.duration > 0 || $0.byteRange != nil }
+    }
+
     /// Total media duration in seconds (sum of the video segment durations).
     public var duration: Double { segments.reduce(0) { $0 + $1.duration } }
 

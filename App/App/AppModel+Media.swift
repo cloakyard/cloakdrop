@@ -300,9 +300,11 @@ extension AppModel {
     }
 
     /// Live "segments finished / total" for a media grab — from the progress stream while running,
-    /// falling back to the persisted record. `nil` for a normal file download.
+    /// falling back to the persisted record. `nil` for a normal file download, and also for a
+    /// whole-file media grab (a progressive or paired video+audio stream), where the count is just
+    /// 1–2 whole files that finish only at the end — meaningless as progress, so the UI shows bytes.
     func liveMediaSegments(_ download: Download) -> (completed: Int, total: Int)? {
-        guard let plan = download.mediaPlan else { return nil }
+        guard let plan = download.mediaPlan, plan.isMultiSegment else { return nil }
         if let live = progress[download.id]?.value, let completed = live.completedSegments, let total = live.totalSegments {
             return (completed, total)
         }

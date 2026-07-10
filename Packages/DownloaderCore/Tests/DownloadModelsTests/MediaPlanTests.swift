@@ -27,6 +27,31 @@ struct MediaPlanTests {
         #expect(plan.format == .hls)
     }
 
+    @Test("isMultiSegment: HLS/DASH segments yes, whole-file grabs no")
+    func multiSegmentClassification() {
+        // HLS: timed segments (duration > 0).
+        let hls = MediaPlan(format: .hls, segments: [segment(0, "https://x/0.ts"), segment(1, "https://x/1.ts")])
+        #expect(hls.isMultiSegment)
+
+        // DASH: byte-range segments (duration 0 but an explicit range).
+        let dash = MediaPlan(format: .dash, segments: [
+            MediaSegment(id: 0, url: URL(string: "https://x/v.mp4")!, duration: 0,
+                         byteRange: MediaByteRange(offset: 0, length: 1000))
+        ])
+        #expect(dash.isMultiSegment)
+
+        // Progressive / paired video+audio (YouTube): whole files, no duration, no range → not counted.
+        let paired = MediaPlan.pairedFiles(video: URL(string: "https://x/v.mp4")!,
+                                           audio: URL(string: "https://x/a.mp4")!)
+        #expect(paired.isMultiSegment == false)
+
+        // A single progressive muxed file is likewise whole-file.
+        let progressive = MediaPlan(format: .dash, segments: [
+            MediaSegment(id: 0, url: URL(string: "https://x/muxed.mp4")!, duration: 0)
+        ])
+        #expect(progressive.isMultiSegment == false)
+    }
+
     @Test("A variant is classified video/audio by codecs, not just RESOLUTION")
     func variantVideoAudioClassification() {
         // The bipbop regression: a variant that omits RESOLUTION but declares a video codec must
