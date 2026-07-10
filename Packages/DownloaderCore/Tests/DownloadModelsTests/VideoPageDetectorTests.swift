@@ -49,4 +49,12 @@ struct VideoPageDetectorTests {
         #expect(VideoPageDetector.detect(url("https://www.youtube.com/")) == nil)
         #expect(VideoPageDetector.detect(url("https://youtube.com")) == nil)
     }
+
+    @Test("A non-web scheme is never a video page")
+    func nonWebScheme() {
+        #expect(VideoPageDetector.detect(url("ftp://youtube.com/watch?v=abc")) == nil)
+        #expect(VideoPageDetector.detect(url("file:///vimeo.com/123")) == nil)
+        // http is fine, not just https.
+        #expect(VideoPageDetector.detect(url("http://www.youtube.com/watch?v=abc"))?.displayName == "YouTube")
+    }
 }

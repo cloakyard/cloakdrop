@@ -39,6 +39,9 @@ public enum VideoPageDetector {
     /// The matching site if `url` is a recognized video page, else `nil`. A bare site root
     /// (`youtube.com/`) is never a video, so it's excluded — every real video carries a path.
     public static func detect(_ url: URL) -> VideoPageSite? {
+        // A video page is fetched over the web; a non-http(s) scheme (ftp, file, …) is never one, and
+        // the extractor only speaks http(s) — so don't route it there.
+        guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else { return nil }
         guard let rawHost = url.host?.lowercased() else { return nil }
         // A video always lives at a path (`/watch`, `/<id>`), never the site root — this also stops a
         // pasted homepage from being offered as a grab.

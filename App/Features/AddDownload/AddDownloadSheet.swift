@@ -49,7 +49,10 @@ struct AddDownloadSheet: View {
     /// resolve (and extraction is available) — a YouTube link, etc. When set, the sheet offers to grab
     /// the video (best quality, or the picker when "Ask me quality" is on) instead of saving the page.
     private var detectedVideoPage: VideoPageSite? {
-        guard model.isPageExtractionAvailable, let url = resolvedURL else { return nil }
+        // Gate on the extractor's *presence* (as the browser's grab button does), not the async
+        // launch-time version probe — otherwise a URL pasted in the first moments after launch would
+        // be mis-probed as a file until the probe resolves.
+        guard model.canExtractFromPages, let url = resolvedURL else { return nil }
         return VideoPageDetector.detect(url)
     }
 
@@ -177,7 +180,10 @@ struct AddDownloadSheet: View {
                 Button("Cancel", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
                 Spacer()
-                Button(scheduleEnabled ? "Schedule" : "Add Download") { add() }
+                // A video page always grabs immediately (the extractor has no scheduled-start path),
+                // and its Options/schedule controls are hidden — so never show "Schedule" for one, even
+                // if the toggle was left on from a previous file URL in the same sheet.
+                Button(scheduleEnabled && detectedVideoPage == nil ? "Schedule" : "Add Download") { add() }
                     .keyboardShortcut(.defaultAction)
                     .disabled(!canAdd)
             }

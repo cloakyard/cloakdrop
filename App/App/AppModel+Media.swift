@@ -117,9 +117,9 @@ extension AppModel {
     /// URL and extraction is available.
     ///
     /// It funnels through the same `grabFromPage`/`routeStream` path as a browser grab, so the
-    /// Settings ▸ Capture toggles apply here too: "Ask which quality to download" opens the picker
-    /// (else the best tier downloads), and "Download subtitles when available" fetches the default
-    /// subtitle sidecar on the one-click path.
+    /// Settings ▸ Media & Capture toggles apply here too: "Ask which quality to download" opens the
+    /// picker (else the best tier downloads), and "Download subtitles when available" fetches the
+    /// default subtitle sidecar on the one-click path.
     func grabPage(
         url: URL, destinationDirectoryPath: String, destinationBookmark: Data?,
         referrer: String?, cookies: String?
@@ -129,10 +129,10 @@ extension AppModel {
             referrer: referrer, cookies: cookies, source: .manualEntry
         )
         guard let validated = try? capture.validated() else {
-            // Shouldn't happen — the sheet only offers this for a normalized http(s) URL — but if the
-            // capture is somehow out of bounds, fall back to a plain download rather than silently drop it.
-            add(DownloadRequest(url: url, destinationDirectoryPath: destinationDirectoryPath,
-                                destinationBookmark: destinationBookmark, referrer: referrer, cookies: cookies))
+            // The URL is a recognized http(s) video page, so validation only fails on out-of-bounds
+            // referrer/cookies the user typed — grabbing the page's HTML instead would be a useless
+            // surprise, so say so plainly rather than silently downloading the wrong thing.
+            presentMediaError(String(localized: "Couldn’t prepare this download — check the referrer and cookies."))
             return
         }
         grabFromPage(validated, destinationDirectoryPath: destinationDirectoryPath,
