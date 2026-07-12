@@ -1,0 +1,126 @@
+---
+import { site } from '../data/site';
+import Icon from './Icon.astro';
+---
+
+<header class="header">
+  <div class="container bar">
+    <a class="brand" href="/" aria-label={`${site.name} home`}>
+      <img
+        class="brand-mark"
+        src="/icon.png"
+        width="30"
+        height="30"
+        alt=""
+        loading="eager"
+        decoding="async"
+      />
+      <span class="brand-name">{site.name}</span>
+    </a>
+
+    <nav class="nav" aria-label="Primary">
+      <a href="#features">Features</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#suite">Suite</a>
+    </nav>
+
+    <div class="actions">
+      <a
+        class="icon-link"
+        href={site.repo}
+        aria-label="CloakDrop on GitHub"
+        rel="noopener"
+      >
+        <Icon name="github" size={20} />
+      </a>
+      <a class="btn btn--primary btn--sm" href={site.releases} rel="noopener">
+        <Icon name="download" size={18} />
+        Download
+      </a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--surface-glass);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    height: 3.75rem;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 640;
+    letter-spacing: -0.01em;
+    font-size: 1.05rem;
+  }
+
+  .brand-mark {
+    border-radius: 7px;
+  }
+
+  .nav {
+    display: flex;
+    gap: 1.6rem;
+    margin-inline: auto;
+    font-size: var(--step--1);
+    font-weight: 520;
+    color: var(--text-secondary);
+  }
+
+  .nav a {
+    transition: color 0.15s ease;
+  }
+
+  .nav a:hover {
+    color: var(--text);
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .icon-link {
+    display: inline-flex;
+    padding: 0.45rem;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    transition:
+      color 0.15s ease,
+      background 0.15s ease;
+  }
+
+  .icon-link:hover {
+    color: var(--text);
+    background: var(--bg-subtle);
+  }
+
+  .btn--sm {
+    padding: 0.55rem 1rem;
+    font-size: var(--step--1);
+  }
+
+  @media (max-width: 640px) {
+    .nav {
+      display: none;
+    }
+    .brand {
+      margin-inline-end: auto;
+    }
+  }
+</style>

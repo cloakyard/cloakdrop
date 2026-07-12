@@ -1,0 +1,81 @@
+---
+import { privacy } from '../data/site';
+import Icon from './Icon.astro';
+---
+
+<section id="privacy" class="section">
+  <div class="container">
+    <div class="band">
+      <div class="band-glow" aria-hidden="true"></div>
+      <div class="band-inner">
+        <span class="tag"><Icon name="lock" size={14} /> Privacy is the whole point</span>
+        <h2>{privacy.heading}</h2>
+        <p class="body">{privacy.body}</p>
+        <p class="points">{privacy.points.join('   ·   ')}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .band {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-xl);
+    background:
+      radial-gradient(90% 120% at 12% 0%, #211f38, transparent 55%),
+      linear-gradient(180deg, #101019, #0a0a10);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #f4f4f7;
+    box-shadow: var(--shadow-window);
+  }
+
+  .band-glow {
+    position: absolute;
+    inset: -40% -10% auto auto;
+    width: 55%;
+    height: 120%;
+    background: radial-gradient(
+      45% 45% at 80% 20%,
+      color-mix(in srgb, var(--accent-2) 55%, transparent),
+      transparent 70%
+    );
+    filter: blur(20px);
+    pointer-events: none;
+  }
+
+  .band-inner {
+    position: relative;
+    padding: clamp(2.5rem, 6vw, 5rem);
+    max-width: 62ch;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: #b7b0ff;
+  }
+
+  h2 {
+    margin-top: 1.1rem;
+    color: #fff;
+  }
+
+  .body {
+    margin-top: 1.4rem;
+    font-size: var(--step-1);
+    color: #b9b9c6;
+  }
+
+  .points {
+    margin-top: 1.9rem;
+    font-size: var(--step-0);
+    font-weight: 500;
+    color: #d8d8e4;
+  }
+</style>

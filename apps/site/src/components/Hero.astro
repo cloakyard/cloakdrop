@@ -1,0 +1,179 @@
+---
+import { site, hero, stats } from '../data/site';
+import Icon from './Icon.astro';
+---
+
+<section class="hero">
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="container hero-inner">
+    <p class="eyebrow">{site.requirement}</p>
+    <h1 class="headline">
+      The download manager that <span class="gradient-text">feels like Apple</span> made
+      it.
+    </h1>
+    <p class="lead">{hero.lead}</p>
+
+    <div class="cta">
+      <a class="btn btn--primary" href={site.releases} rel="noopener">
+        <Icon name="download" size={19} />
+        Download for macOS
+      </a>
+      <a class="btn btn--ghost" href={site.repo} rel="noopener">
+        <Icon name="github" size={19} />
+        View source
+      </a>
+    </div>
+    <p class="micro">Free &amp; open source · MIT · No account, ever</p>
+
+    <figure class="shot">
+      <div class="shot-glow" aria-hidden="true"></div>
+      <img
+        src="/hero.png"
+        width="1760"
+        height="1059"
+        alt="CloakDrop downloading an Ubuntu ISO split into 8 parallel segments, with live speed, ETA, and a per-segment progress inspector."
+        fetchpriority="high"
+        decoding="async"
+      />
+    </figure>
+
+    <dl class="stats">
+      {
+        stats.map((s) => (
+          <div class="stat">
+            <dt class="stat-value gradient-text">{s.value}</dt>
+            <dd class="stat-label">{s.label}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    padding-top: clamp(3rem, 7vw, 5.5rem);
+    padding-bottom: var(--section-y);
+    text-align: center;
+    overflow: hidden;
+  }
+
+  /* Layered aurora — soft accent blooms behind the hero. */
+  .aurora {
+    position: absolute;
+    inset: -20% -10% auto -10%;
+    height: 78vh;
+    pointer-events: none;
+    z-index: -1;
+    background:
+      radial-gradient(38% 50% at 50% -4%, var(--accent-soft), transparent 72%),
+      radial-gradient(
+        26% 40% at 80% 8%,
+        color-mix(in srgb, var(--accent-2) 16%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        24% 38% at 16% 14%,
+        color-mix(in srgb, var(--accent) 12%, transparent),
+        transparent 70%
+      );
+    filter: blur(6px);
+  }
+
+  .hero-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .headline {
+    font-size: var(--step-4);
+    max-width: 15ch;
+    margin-top: 1.5rem;
+  }
+
+  .lead {
+    max-width: 56ch;
+    margin-top: 1.6rem;
+    font-size: var(--step-1);
+    color: var(--text-secondary);
+  }
+
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    justify-content: center;
+    margin-top: 2.4rem;
+  }
+
+  .micro {
+    margin-top: 1.1rem;
+    font-size: var(--step--1);
+    color: var(--text-tertiary);
+  }
+
+  /* Real app screenshot, framed with a glow ------------------------------- */
+  .shot {
+    position: relative;
+    width: min(960px, 100%);
+    margin: clamp(3rem, 6vw, 5.5rem) auto 0;
+    border-radius: var(--radius-xl);
+    padding: 7px;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent) 26%, transparent),
+      color-mix(in srgb, var(--accent) 4%, transparent) 55%,
+      transparent
+    );
+    box-shadow: var(--shadow-window);
+  }
+
+  .shot-glow {
+    position: absolute;
+    inset: auto 8% -18% 8%;
+    height: 40%;
+    background: radial-gradient(50% 100% at 50% 100%, var(--accent-glow), transparent 70%);
+    filter: blur(30px);
+    z-index: -1;
+  }
+
+  .shot img {
+    width: 100%;
+    height: auto;
+    border-radius: calc(var(--radius-xl) - 7px);
+    border: 1px solid var(--border);
+    display: block;
+  }
+
+  /* Stats strip ----------------------------------------------------------- */
+  .stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: clamp(1.5rem, 5vw, 3.5rem);
+    margin: clamp(2.5rem, 5vw, 3.5rem) auto 0;
+    padding: 0;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+  }
+
+  .stat-value {
+    font-size: clamp(1.8rem, 1.3rem + 1.6vw, 2.6rem);
+    font-weight: 680;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .stat-label {
+    margin: 0;
+    font-size: var(--step--1);
+    color: var(--text-tertiary);
+  }
+</style>
