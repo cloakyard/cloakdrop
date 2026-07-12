@@ -9,6 +9,7 @@ description: Build, launch, and drive CloakDrop to verify a change end-to-end (G
 
 ```bash
 killall CloakDrop 2>/dev/null
+cd apps/macos                                  # the macOS app lives here (monorepo)
 GIT_CONFIG_COUNT=0 xcodegen generate           # only if project.yml / file list changed
 GIT_CONFIG_COUNT=0 xcodebuild -project CloakDrop.xcodeproj -scheme CloakDrop \
   -destination 'platform=macOS' -configuration Debug -derivedDataPath build/Verify build

@@ -63,16 +63,18 @@ CloakDrop makes **no** network requests except the ones you start: the URLs you 
 | Capture | A built-in WebKit browser (first-party media sniffing + download takeover), plus Share/Services bridged through a shared App Group inbox |
 | Build | XcodeGen (`project.yml` → `.xcodeproj`), SwiftLint |
 
-No third-party Swift dependencies beyond GRDB. Two native command-line tools — **ffmpeg** (muxing) and **yt-dlp** (page extraction) — are bundled as code-signed, sandboxed helper binaries via opt-in build scripts (`scripts/fetch-ffmpeg.sh`, `scripts/fetch-ytdlp.sh`); both only ever *read* or *transform* and add no network egress of their own.
+No third-party Swift dependencies beyond GRDB. Two native command-line tools — **ffmpeg** (muxing) and **yt-dlp** (page extraction) — are bundled as code-signed, sandboxed helper binaries via opt-in build scripts (`apps/macos/scripts/fetch-ffmpeg.sh`, `apps/macos/scripts/fetch-ytdlp.sh`); both only ever *read* or *transform* and add no network egress of their own.
 
 ## 🚀 Getting started
 
 Requires **macOS Tahoe 26+**, **Xcode 26+**, and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
 
+This repo is a **monorepo**; the native macOS app lives in `apps/macos/` (the brand site is in `apps/site/`).
+
 ```bash
 brew install xcodegen                  # one-time
 git clone https://github.com/cloakyard/cloakdrop.git
-cd cloakdrop
+cd cloakdrop/apps/macos                # the macOS app lives here
 xcodegen generate                      # generate the (git-ignored) Xcode project
 open CloakDrop.xcodeproj                # …or build from the command line:
 ```
@@ -81,14 +83,14 @@ open CloakDrop.xcodeproj                # …or build from the command line:
 xcodebuild -project CloakDrop.xcodeproj -scheme CloakDrop -destination 'platform=macOS' build
 ```
 
-The `.xcodeproj` is generated and git-ignored — regenerate it any time with `xcodegen generate`. To package a shareable installer DMG (drag-to-Applications, with an install guide), run `scripts/dmg/make-dmg.sh <path/to/CloakDrop.app>`.
+The `.xcodeproj` is generated and git-ignored — regenerate it any time with `xcodegen generate`. To package a shareable installer DMG (drag-to-Applications, with an install guide), run `scripts/dmg/make-dmg.sh <path/to/CloakDrop.app>` from `apps/macos/`.
 
 ## 🧪 Testing
 
 The engine is UI-agnostic and fully tested in isolation — no GUI required:
 
 ```bash
-cd Packages/DownloaderCore
+cd apps/macos/Packages/DownloaderCore
 swift test
 ```
 
@@ -97,22 +99,26 @@ swift test
 ## 🏗️ Project layout
 
 ```
-cloakdrop/
-├── App/                    # Thin SwiftUI app shell (CloakDrop target)
-│   ├── App/                #   @main entry, AppModel, environment
-│   ├── Features/           #   Sidebar · DownloadList · Inspector · AddDownload · Browser · Settings
-│   ├── Ambient/            #   MenuBarExtra · Dock progress · Notifications
-│   └── Shared/             #   Formatters, icons, shared views
-├── ShareExtension/         # macOS share-sheet capture
-├── scripts/                # Opt-in helpers: fetch-ffmpeg.sh · fetch-ytdlp.sh (bundle & sign the native tools) · dmg/ (build the installer DMG) · generate_app_icon.swift · bake_about_icon.swift (icon art) · validate_localizations.py
-└── Packages/
-    └── DownloaderCore/     # Headless, UI-agnostic, fully unit-tested core
-        ├── DownloadModels/       # Sendable value types + HLS/DASH & Metalink parsers + stats, link-grabber, bandwidth-schedule & provenance models
-        ├── DownloadPersistence/  # GRDB store behind a protocol
-        └── DownloadEngine/       # Actors, segmentation, HTTP + native FTP/FTPS networking, checksums, Keychain credentials, archive extraction, media, yt-dlp resolver
+cloakdrop/                      # monorepo root
+├── apps/
+│   ├── macos/                  # The native macOS app (this project)
+│   │   ├── App/                # Thin SwiftUI app shell (CloakDrop target)
+│   │   │   ├── App/            #   @main entry, AppModel, environment
+│   │   │   ├── Features/       #   Sidebar · DownloadList · Inspector · AddDownload · Browser · Settings
+│   │   │   ├── Ambient/        #   MenuBarExtra · Dock progress · Notifications
+│   │   │   └── Shared/         #   Formatters, icons, shared views
+│   │   ├── ShareExtension/     # macOS share-sheet capture
+│   │   ├── scripts/            # Opt-in helpers: fetch-ffmpeg.sh · fetch-ytdlp.sh (bundle & sign the native tools) · dmg/ (build the installer DMG) · generate_app_icon.swift · bake_about_icon.swift (icon art) · validate_localizations.py
+│   │   └── Packages/
+│   │       └── DownloaderCore/ # Headless, UI-agnostic, fully unit-tested core
+│   │           ├── DownloadModels/       # Sendable value types + HLS/DASH & Metalink parsers + stats, link-grabber, bandwidth-schedule & provenance models
+│   │           ├── DownloadPersistence/  # GRDB store behind a protocol
+│   │           └── DownloadEngine/       # Actors, segmentation, HTTP + native FTP/FTPS networking, checksums, Keychain credentials, archive extraction, media, yt-dlp resolver
+│   └── site/                   # CloakDrop brand site (Astro → Cloudflare Workers, drop.cloakyard.com)
+└── README · LICENSE · CLAUDE.md · CONTRIBUTING · SECURITY · CODE_OF_CONDUCT
 ```
 
-The brand (`CloakDrop`) lives only at the repo root and the app target; the reusable core is named for the **downloader** domain. See [ARCHITECTURE.md](ARCHITECTURE.md) for the full design.
+The brand (`CloakDrop`) lives only at the repo root and the app target; the reusable core is named for the **downloader** domain. See [ARCHITECTURE.md](apps/macos/ARCHITECTURE.md) for the full design.
 
 ## 🤝 Contributing & license
 

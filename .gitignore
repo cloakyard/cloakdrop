@@ -29,20 +29,20 @@ CloakDrop.xcodeproj/
 # Swift Package Manager
 .build/
 .swiftpm/
-Packages/*/.build/
+apps/macos/Packages/*/.build/
 Package.resolved
 
 # Xcode SPM integration caches
 *.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
 
 # Vendored ffmpeg — build artifact, produced by scripts/fetch-ffmpeg.sh (README is tracked)
-Vendor/ffmpeg/ffmpeg
-Vendor/ffmpeg/build/
+apps/macos/Vendor/ffmpeg/ffmpeg
+apps/macos/Vendor/ffmpeg/build/
 
 # Vendored yt-dlp (onedir) — build artifact, produced by scripts/fetch-ytdlp.sh
-Vendor/yt-dlp/yt-dlp
-Vendor/yt-dlp/_internal/
-Vendor/yt-dlp/build/
+apps/macos/Vendor/yt-dlp/yt-dlp
+apps/macos/Vendor/yt-dlp/_internal/
+apps/macos/Vendor/yt-dlp/build/
 
 # Accidental secrets / local config
 *.xcconfig.local
@@ -57,3 +57,13 @@ secrets.plist
 # CloakDrop runtime artifacts (should never be committed)
 *.cdpart
 *.cdparts/
+
+# Brand site (apps/site) — Astro / Node / Wrangler build artifacts & caches
+apps/site/node_modules/
+apps/site/dist/
+apps/site/.astro/
+apps/site/.wrangler/
+apps/site/.dev.vars
+npm-debug.log*
+.env
+.env.*
