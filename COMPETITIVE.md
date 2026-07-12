@@ -56,7 +56,7 @@ Legend: ✅ full · ⚠️ partial/limited · ❌ none · 🚫 deliberately out 
 | **Media** |
 | HLS/DASH grab + mux | ✅ | ⚠️ (HLS/TS only) | ⚠️ | ⚠️ |
 | Site video extraction (~1800 sites) | ✅ (yt-dlp) | ⚠️ | ❌ (YouTube removed '21) | ✅ |
-| Media transcription / subtitle generation | ❌ *(white space)* | ❌ | ❌ | ❌ |
+| Media transcription / subtitle generation | ❌ *(white space — existing subtitle tracks already download as sidecar `.srt`)* | ❌ | ❌ | ❌ |
 | Media-library enrichment (metadata/artwork/subs) | ❌ *(white space)* | ❌ | ❌ | ❌ |
 | **Post / organize** |
 | Categories / auto-sort | ✅ | ✅ | ✅ | ⚠️ |
@@ -65,7 +65,7 @@ Legend: ✅ full · ⚠️ partial/limited · ❌ none · 🚫 deliberately out 
 | Content-addressed library dedup | ❌ *(white space)* | ❌ | ❌ | ❌ |
 | Archive auto-extraction (ZIP) | ✅ | ⚠️ (zip preview) | ⚠️ (partial-zip) | ✅ |
 | Password-protected / RAR / 7z extraction | ❌ | ❌ | ❌ | ✅ |
-| Post-download actions (sleep / quit / notify / run) | ✅ | ✅ | ✅ | ✅ |
+| Post-download actions (sleep / quit / notify / run) | ✅ *(sleep via a user Shortcut)* | ✅ | ✅ | ✅ |
 | Saved credential store (Keychain) | ✅ | ⚠️ | ✅ | ✅ |
 | **Intelligence** |
 | On-device AI organize (rename / tag / categorize) | ❌ *(white space)* | ❌ | ❌ | ❌ |
@@ -221,7 +221,8 @@ cryptographic provenance card no other download manager produces.
 - TLS: cert issuer / chain summary for each host.
 - Integrity: the whole-file SHA-256, plus whether it matched a supplied/auto-discovered checksum and
   (for Metalink) whether independent mirrors agreed byte-for-byte.
-- Code signing: for `.app`/`.dmg`/`.pkg`, the notarization / Developer-ID / ad-hoc / unsigned verdict.
+- Code signing: for `.app`/`.dmg`, the notarization / Developer-ID / ad-hoc / unsigned verdict
+  (`.pkg` and other installers are recorded unassessed).
 - A single **trust verdict** rolled up from the above, shown in the inspector and exportable as a
   `.txt`/JSON receipt.
 
@@ -248,7 +249,7 @@ Each item followed the architecture rule: model in `DownloadModels` → logic in
 - [x] **Link-grabber panel** — paste/import a wall of links → dedupe / pattern-expand → pick.
 - [x] **Bounded page "grab all"** — `PageLinkExtractor`, single page only (no crawler).
 - [x] **Provenance Receipt** — per-download verified record, inspector + export.
-- [x] **Localization** — `validate_localizations.py`: 404 strings × 10 languages.
+- [x] **Localization** — `validate_localizations.py`: 456 strings × 10 languages.
 - [x] **Built-in speed test** — speedometer dials in Settings ▸ Speed Test (+ menu-bar shortcut):
   multi-connection download/upload with warm-up exclusion, idle + loaded latency (bufferbloat),
   jitter. Cloudflare default, Ookla optional; strictly user-initiated (privacy docs updated).

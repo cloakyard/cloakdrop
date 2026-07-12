@@ -27,13 +27,7 @@ struct BrowserView: View {
     var body: some View {
         ZStack(alignment: .top) {
             BrowserWebViewHost(session: session)
-            if session.isLoading {
-                ProgressView(value: min(max(session.progress, 0), 1))
-                    .progressViewStyle(.linear)
-                    .tint(.accentColor)
-                    .frame(height: 2)
-                    .padding(.horizontal, -4)
-            }
+            // Load progress lives inside the address pill (see `loadingFill`), not as a separate bar.
             if session.currentURL == nil && !session.isLoading && session.loadError == nil {
                 startPage
             }
@@ -51,6 +45,7 @@ struct BrowserView: View {
             session.sink = model
             session.searchEnabled = model.browserSearchEnabled
             session.searchEngine = model.browserSearchEngine
+            session.setAdBlock(model.browserAdBlockEnabled)
             session.onOpenWindow = { openWindow(id: BrowserScene.windowID, value: BrowserLaunch(url: $0, openedByPage: true)) }
             BrowserStore.shared.applyProxy(model.settings.resolvedProxy)
             if let initialURL {
@@ -66,6 +61,10 @@ struct BrowserView: View {
         .onChange(of: session.dialog?.id) { promptText = session.dialog?.promptDefault ?? "" }
         .onChange(of: model.browserSearchEnabled) { session.searchEnabled = model.browserSearchEnabled }
         .onChange(of: model.browserSearchEngine) { session.searchEngine = model.browserSearchEngine }
+        .onChange(of: model.browserAdBlockEnabled) { session.setAdBlock(model.browserAdBlockEnabled) }
+        // Re-attach when the compiled lists change (a compile finished, the blocklist source
+        // switched, or an update landed) — setAdBlock always reflects the current lists.
+        .onChange(of: model.browserContentRulesGeneration) { session.setAdBlock(model.browserAdBlockEnabled) }
         .alert(dialogTitle, isPresented: dialogPresented, presenting: session.dialog) { dialog in
             dialogButtons(dialog)
         } message: { dialog in
@@ -159,8 +158,45 @@ struct BrowserView: View {
         .padding(.horizontal, 9)
         .padding(.vertical, 6)
         .frame(minWidth: 280, idealWidth: 540, maxWidth: 640)
+        .background { loadingFill }
         .overlay(alignment: .trailing) { reloadControl }
     }
+
+    /// The page-load indicator, drawn *inside* the address pill: a soft accent gradient capsule that
+    /// grows from the leading edge as `estimatedProgress` climbs, then fades away when the load
+    /// finishes. It sits behind the pill's content (the URL/domain stays fully legible on top).
+    ///
+    /// Corner-radius fit: the fill is its own `Capsule` — a true half-height radius — inset a uniform
+    /// `fillInset` from the field's frame so it nests *concentrically* inside the toolbar's Liquid
+    /// Glass pill (also a capsule) with an even margin on all sides. That even inset is what makes it
+    /// sit cleanly; matching the system pill edge-to-edge isn't possible (the glass bounds aren't
+    /// exposed), and overshooting would spill colour past the pill. No separate progress bar — this
+    /// is the only load affordance.
+    private var loadingFill: some View {
+        GeometryReader { geometry in
+            Capsule()
+                .fill(
+                    LinearGradient(
+                        colors: [Color.accentColor.opacity(0.32), Color.accentColor.opacity(0.10)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(width: max(0, geometry.size.width * loadProgress))
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(Self.fillInset)
+        .opacity(session.isLoading ? 1 : 0)
+        .animation(.easeOut(duration: 0.25), value: loadProgress)
+        .animation(.easeInOut(duration: 0.3), value: session.isLoading)
+    }
+
+    /// Uniform inset of the loading fill from the field frame, so the fill's capsule nests inside the
+    /// toolbar's glass pill with an even margin.
+    private static let fillInset: CGFloat = 2.5
+
+    /// WebKit's estimated load progress, clamped to 0…1 for the fill width.
+    private var loadProgress: Double { min(max(session.progress, 0), 1) }
 
     /// What the idle (unfocused) bar shows: favicon + bare domain on a page, or a centered search
     /// prompt on the start page.
@@ -255,7 +291,7 @@ struct BrowserView: View {
         }
     }
 
-    private var shelfCount: Int { session.media.candidates.count }
+    private var shelfCount: Int { session.shelfItems.count }
 
     // MARK: - Overlays
 
@@ -384,105 +420,5 @@ private struct BrowserAuthSheet: View {
                 password = saved.password
             }
         }
-    }
-}
-
-/// A borderless, single-line address field backed directly by `NSTextField` so its **focus ring is
-/// removed** (`focusRingType = .none`). SwiftUI's plain `TextField` still paints a system focus ring
-/// whose corner radius doesn't match our rounded container; owning the AppKit view lets the *only*
-/// focus decoration be the ring `BrowserView` draws on the container, so highlight and container
-/// share one shape exactly. Focus is bridged both ways: the field reports begin/end editing, and a
-/// bumped `focusRequest` token asks it to become first responder (⌘L, clicking the idle bar).
-private struct URLTextField: NSViewRepresentable {
-    @Binding var text: String
-    var placeholder: String
-    /// Drives what's visible: the field stays first-responder-capable (alpha 1) at all times, so
-    /// hiding it via opacity — which would block `makeFirstResponder` and deadlock the idle→edit
-    /// tap — is avoided; when idle we clear the text color instead and the bar's own overlay shows
-    /// the favicon + domain.
-    var isEditing: Bool
-    var focusRequest: Int
-    var onEditingChanged: (Bool) -> Void
-    var onSubmit: () -> Void
-
-    func makeNSView(context: Context) -> FocusReportingTextField {
-        let field = FocusReportingTextField()
-        field.focusRingType = .none
-        field.isBordered = false
-        field.isBezeled = false
-        field.drawsBackground = false
-        field.backgroundColor = .clear
-        field.font = .preferredFont(forTextStyle: .callout)
-        field.lineBreakMode = .byTruncatingTail
-        field.usesSingleLineMode = true
-        field.cell?.usesSingleLineMode = true
-        field.cell?.isScrollable = true
-        field.cell?.wraps = false
-        field.allowsEditingTextAttributes = false
-        field.delegate = context.coordinator
-        field.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        field.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        // becomeFirstResponder fires reliably for programmatic focus (controlTextDidBeginEditing does
-        // not); pair it with controlTextDidEndEditing for the resign edge.
-        field.onBecomeFirstResponder = { [weak coordinator = context.coordinator] in
-            coordinator?.parent.onEditingChanged(true)
-        }
-        return field
-    }
-
-    func updateNSView(_ field: FocusReportingTextField, context: Context) {
-        context.coordinator.parent = self
-        if field.stringValue != text { field.stringValue = text }
-        // Idle: keep the field mounted and focusable but invisible (clear text, no placeholder) —
-        // the overlay shows the favicon + domain. Editing: reveal the URL.
-        field.textColor = isEditing ? .labelColor : .clear
-        field.placeholderString = isEditing ? placeholder : ""
-        // A new focus request (⌘L / idle-bar tap) makes the field first responder and selects all,
-        // matching how clicking Safari's address bar reveals and highlights the whole URL.
-        if focusRequest != context.coordinator.lastFocusRequest {
-            context.coordinator.lastFocusRequest = focusRequest
-            DispatchQueue.main.async {
-                guard let window = field.window else { return }
-                window.makeFirstResponder(field)
-                field.currentEditor()?.selectAll(nil)
-            }
-        }
-    }
-
-    func makeCoordinator() -> Coordinator { Coordinator(self) }
-
-    final class Coordinator: NSObject, NSTextFieldDelegate {
-        var parent: URLTextField
-        var lastFocusRequest = 0
-
-        init(_ parent: URLTextField) { self.parent = parent }
-
-        func controlTextDidEndEditing(_ obj: Notification) { parent.onEditingChanged(false) }
-
-        func controlTextDidChange(_ obj: Notification) {
-            guard let field = obj.object as? NSTextField else { return }
-            parent.text = field.stringValue
-        }
-
-        func control(_ control: NSControl, textView: NSTextView, doCommandBy selector: Selector) -> Bool {
-            if selector == #selector(NSResponder.insertNewline(_:)) {
-                parent.onSubmit()
-                control.window?.makeFirstResponder(nil)   // resign → idle state, like Safari after Return
-                return true
-            }
-            return false
-        }
-    }
-}
-
-/// An `NSTextField` that reports when it becomes first responder — the reliable signal for
-/// programmatic focus (`controlTextDidBeginEditing` doesn't fire for `makeFirstResponder`).
-final class FocusReportingTextField: NSTextField {
-    var onBecomeFirstResponder: (() -> Void)?
-
-    override func becomeFirstResponder() -> Bool {
-        let began = super.becomeFirstResponder()
-        if began { onBecomeFirstResponder?() }
-        return began
     }
 }

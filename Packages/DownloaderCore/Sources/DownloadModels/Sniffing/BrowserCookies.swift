@@ -9,9 +9,21 @@ public enum BrowserCookies {
     /// domain match (host cookies exactly, domain cookies by suffix), path prefix, Secure-only over
     /// https, and expiry. `nil` when nothing applies.
     public static func cookieHeader(for url: URL, from cookies: [HTTPCookie]) -> String? {
-        let applicable = cookies.filter { matches($0, url: url) }
+        var applicable = cookies.filter { matches($0, url: url) }
         guard !applicable.isEmpty else { return nil }
-        let header = HTTPCookie.requestHeaderFields(with: applicable)["Cookie"] ?? ""
+        var header = HTTPCookie.requestHeaderFields(with: applicable)["Cookie"] ?? ""
+        // An enormous jar must not overflow the capture validator's cookie cap — that would fail
+        // the whole handoff (silently, after the shelf already showed it as grabbed). Drop the
+        // least path-specific cookies until the header fits; a trimmed jar still authenticates.
+        if header.count > CapturedDownload.Limits.cookies {
+            applicable.sort { $0.path.count > $1.path.count }
+            while header.count > CapturedDownload.Limits.cookies, applicable.count > 1 {
+                applicable.removeLast()
+                header = HTTPCookie.requestHeaderFields(with: applicable)["Cookie"] ?? ""
+            }
+            // A single cookie beyond the cap is pathological — send none rather than fail intake.
+            if header.count > CapturedDownload.Limits.cookies { return nil }
+        }
         return header.isEmpty ? nil : header
     }
 

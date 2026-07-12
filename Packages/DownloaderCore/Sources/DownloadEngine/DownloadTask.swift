@@ -29,6 +29,10 @@ actor DownloadTask {
     private var speedSampler = SpeedSampler()
     private var lastEmit: ContinuousClock.Instant
     private var lastPersist: ContinuousClock.Instant
+    /// Chains the fire-and-forget snapshot saves so they hit the store in issue order, and so the
+    /// awaited `persist()` drains them — a stale mid-transfer snapshot landing after the terminal
+    /// save would mark a finished download `.downloading` and re-run it on relaunch.
+    private var pendingSave: Task<Void, Never>?
     /// Timestamp of the last forward-progress sample, for accumulating active-transfer time.
     private var lastStatSample: ContinuousClock.Instant?
     /// Live byte tallies of the *in-flight* media segments (keyed by part-file path) — the
@@ -371,8 +375,7 @@ actor DownloadTask {
         }
         if Self.seconds(from: lastPersist, to: now) >= 1.0 {
             lastPersist = now
-            let snapshot = download
-            Task { try? await store.save(snapshot) }
+            enqueueSave(download)
         }
         return download.segments[index].end
     }
@@ -540,8 +543,7 @@ actor DownloadTask {
         // possibly thousands-of-segments) `mediaPlan` every second.
         if Self.seconds(from: lastPersist, to: now) >= 5.0 {
             lastPersist = now
-            let snapshot = download
-            Task { try? await store.save(snapshot) }
+            enqueueSave(download)
         }
     }
 
@@ -592,16 +594,16 @@ actor DownloadTask {
             let audioAssembly = (partDir as NSString).appendingPathComponent("assembly-audio.\(audioExt)")
             try concatenate(initNamed: "audio-init.part", segments: audioSegs,
                             pathFor: { audioSegmentPath(partDir, $0) }, partDir: partDir, into: audioAssembly)
-            if let muxed = try? await remuxer.mux(videoPath: videoAssembly, audioPath: audioAssembly) {
+            if let muxed = try await attemptRepackage({ try await remuxer.mux(videoPath: videoAssembly, audioPath: audioAssembly) }) {
                 sourcePath = muxed.outputPath
                 container = muxed.fileExtension
-            } else if let result = try? await remuxer.remux(sourcePath: videoAssembly) {
+            } else if let result = try await attemptRepackage({ try await remuxer.remux(sourcePath: videoAssembly) }) {
                 // Muxing these codecs isn't supported (e.g. VP9/Opus without the ffmpeg backend): ship
                 // a clean video-only file rather than fail the whole grab.
                 sourcePath = result.outputPath
                 container = result.fileExtension
             }
-        } else if let result = try? await remuxer.remux(sourcePath: videoAssembly) {
+        } else if let result = try await attemptRepackage({ try await remuxer.remux(sourcePath: videoAssembly) }) {
             // Single muxed stream — repackage into a clean container when possible.
             sourcePath = result.outputPath
             container = result.fileExtension
@@ -627,6 +629,21 @@ actor DownloadTask {
         await writeSubtitleSidecars(plan.subtitles ?? [], headers: download.requestHeaders)
         download.totalBytes = fileSize(download.destinationFilePath)
         download.mediaDownloadedBytes = download.totalBytes ?? download.mediaDownloadedBytes
+    }
+
+    /// Run one repackage attempt, mapping its failures to `nil` so the caller can fall back — while
+    /// letting cancellation propagate. A pause/cancel issued during the mux must abort the finalize,
+    /// not read as "codec unsupported" and ship a wrong (e.g. audio-less) file marked completed.
+    private func attemptRepackage(_ attempt: () async throws -> RemuxResult) async throws -> RemuxResult? {
+        do {
+            return try await attempt()
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            // Some backends surface a cancelled export as their own error type; re-check the task.
+            try Task.checkCancellation()
+            return nil
+        }
     }
 
     /// The container extension for a concatenation: `mp4` for an fMP4 stream (has an init segment),
@@ -785,8 +802,17 @@ actor DownloadTask {
         emit(.downloadUpdated(download))
     }
 
+    /// Persist a throttled mid-transfer snapshot after any save already queued (fire-and-forget).
+    private func enqueueSave(_ snapshot: Download) {
+        pendingSave = Task { [store, previous = pendingSave] in
+            await previous?.value
+            try? await store.save(snapshot)
+        }
+    }
+
     private func persist() async {
-        try? await store.save(download)
+        enqueueSave(download)
+        await pendingSave?.value
     }
 
     private static func seconds(from start: ContinuousClock.Instant, to end: ContinuousClock.Instant) -> Double {

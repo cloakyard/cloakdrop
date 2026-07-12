@@ -16,6 +16,30 @@ final class BrowserStore {
 
     let dataStore: WKWebsiteDataStore
 
+    /// The compiled ad/tracker content-rule list, cached after the first compile so opening more
+    /// browser windows (or toggling the setting) is instant. `nil` until prepared or if compilation
+    /// fails — in which case browsing simply proceeds unblocked (fail-open).
+    private(set) var adBlockRuleList: WKContentRuleList?
+    private var adBlockCompileTask: Task<WKContentRuleList?, Never>?
+
+    // External (downloaded) blocklist state — managed by `BrowserStore+Blocklists.swift`. Stored
+    // here because extensions can't add storage. The external list *augments* the curated one; if
+    // it's missing or fails to compile, blocking degrades to the curated ruleset, never to broken.
+    /// The compiled rule list for the user's chosen downloadable blocklist, when one is active.
+    var externalRuleList: WKContentRuleList?
+    /// The active external list's domains — the popup-rejection twin of the compiled rules.
+    var externalDomains: Set<String> = []
+    /// Metadata of the active external list (what Settings shows), `nil` when none is active.
+    var externalInfo: BlocklistInfo?
+    /// The source the app currently *wants* active. Async loads re-check it after every await so a
+    /// mid-flight source switch can never install a stale list.
+    var activeBlocklistSource: BlocklistSource = .builtIn
+
+    /// The proxy configurations currently applied to browsing — mirrored so user-initiated
+    /// blocklist fetches ride the same proxy as every other browser request (a proxy user's
+    /// update must not leak a direct connection).
+    private(set) var browsingProxyConfigurations: [Network.ProxyConfiguration] = []
+
     private init() {
         dataStore = WKWebsiteDataStore(forIdentifier: Self.storeID)
     }
@@ -41,6 +65,69 @@ final class BrowserStore {
         return configuration
     }
 
+    // MARK: - Ad / tracker blocking
+
+    /// Compile (or reuse) the ad/tracker content-rule list. WebKit caches the compiled bytecode on
+    /// disk keyed by identifier, so this is a fast lookup after the first launch; concurrent callers
+    /// share one in-flight compile. Returns `nil` on failure so browsing degrades to unblocked
+    /// rather than broken.
+    func adBlockRuleList() async -> WKContentRuleList? {
+        if let ready = adBlockRuleList { return ready }
+        if let inFlight = adBlockCompileTask { return await inFlight.value }
+
+        let task = Task<WKContentRuleList?, Never> {
+            guard let store = WKContentRuleListStore.default() else { return nil }
+            let identifier = AdBlockList.identifier
+            // Reuse the already-compiled list when present; otherwise compile the JSON once.
+            var list = await Self.lookUp(identifier, in: store)
+            if list == nil {
+                list = await Self.compile(identifier, json: AdBlockList.json, in: store)
+            }
+            // Stale-bytecode eviction happens in `evictStaleCompiledLists()` — not here, where it
+            // would race the external list's look-up at launch and delete it pre-activation.
+            return list
+        }
+        adBlockCompileTask = task
+        let result = await task.value
+        adBlockRuleList = result
+        adBlockCompileTask = nil
+        return result
+    }
+
+    static func lookUp(_ identifier: String, in store: WKContentRuleListStore) async -> WKContentRuleList? {
+        await withCheckedContinuation { continuation in
+            store.lookUpContentRuleList(forIdentifier: identifier) { list, _ in
+                continuation.resume(returning: list)
+            }
+        }
+    }
+
+    static func compile(_ identifier: String, json: String, in store: WKContentRuleListStore) async -> WKContentRuleList? {
+        await withCheckedContinuation { continuation in
+            store.compileContentRuleList(forIdentifier: identifier, encodedContentRuleList: json) { list, _ in
+                continuation.resume(returning: list)
+            }
+        }
+    }
+
+    /// Remove previously-compiled rule lists this app no longer uses — older curated versions and
+    /// external lists from other sources/versions (all share our identifier prefix but differ by
+    /// content hash) — so the on-disk store doesn't accumulate stale bytecode. Call only after the
+    /// current lists are settled (compiled and installed), never concurrently with a look-up.
+    func evictStaleCompiledLists() async {
+        guard let store = WKContentRuleListStore.default() else { return }
+        var keep: Set<String> = [AdBlockList.identifier]
+        if let external = externalRuleList { keep.insert(external.identifier) }
+        let identifiers: [String] = await withCheckedContinuation { continuation in
+            store.getAvailableContentRuleListIdentifiers { continuation.resume(returning: $0 ?? []) }
+        }
+        for identifier in identifiers where !keep.contains(identifier) && identifier.hasPrefix(AdBlockList.identifierPrefix) {
+            await withCheckedContinuation { continuation in
+                store.removeContentRuleList(forIdentifier: identifier) { _ in continuation.resume() }
+            }
+        }
+    }
+
     // MARK: - Proxy mirror
 
     /// Mirror the engine's proxy into browsing. A manual proxy routes page traffic through the
@@ -48,6 +135,7 @@ final class BrowserStore {
     /// (WebKit's default when no explicit proxies are set).
     func applyProxy(_ proxy: DownloadModels.ProxyConfiguration) {
         guard proxy.mode == .manual, !proxy.host.isEmpty, let port = NWEndpoint.Port(rawValue: UInt16(clamping: proxy.port)) else {
+            browsingProxyConfigurations = []
             dataStore.proxyConfigurations = []
             return
         }
@@ -62,6 +150,7 @@ final class BrowserStore {
         if !proxy.username.isEmpty {
             configuration.applyCredential(username: proxy.username, password: proxy.password)
         }
+        browsingProxyConfigurations = [configuration]
         dataStore.proxyConfigurations = [configuration]
     }
 

@@ -244,7 +244,12 @@ private struct MediaThumbnailImage: View {
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-            .task(id: url) { image = NSImage(contentsOf: url) }
+            .task(id: url) {
+                // Read off the main actor — a synchronous disk read per appearing row stacks into
+                // visible hitches when fast-scrolling a media-heavy list.
+                let data = await Task.detached { try? Data(contentsOf: url) }.value
+                image = data.flatMap(NSImage.init(data:))
+            }
     }
 }
 

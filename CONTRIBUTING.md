@@ -5,14 +5,14 @@ guiding principles are non-negotiable: **truly native, minimal, fast, and privat
 Electron/web-views, no telemetry, no phone-home.
 
 By participating, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md). For the
-architecture and where things live, see [ARCHITECTURE.md](ARCHITECTURE.md); for the current
-status, see the [README](README.md#-status).
+architecture and where things live, see [ARCHITECTURE.md](ARCHITECTURE.md); for what's shipped,
+see the [README](README.md#-what-it-does).
 
 ## Prerequisites
 
 - macOS Tahoe 26+
 - Xcode 26+
-- [XcodeGen](https://github.com/yonyz/XcodeGen): `brew install xcodegen`
+- [XcodeGen](https://github.com/yonaskolb/XcodeGen): `brew install xcodegen`
 
 ## Getting started
 
@@ -69,8 +69,10 @@ Every engine change needs coverage. The bar:
 ## Privacy review
 
 Any change that makes a network request, writes outside the sandbox, or adds a dependency must
-be called out explicitly in the PR description. Network egress is only ever to user-initiated
-download URLs (and, later, the user's configured proxy). When in doubt, ask first.
+be called out explicitly in the PR description. Sanctioned egress is only ever user-initiated:
+download URLs, sites visited in the built-in browser (plus the typed address-bar search query on
+Return, when enabled), the user's configured proxy, and the user-started speed test. When in
+doubt, ask first.
 
 ## Dependencies
 

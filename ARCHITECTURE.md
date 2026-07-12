@@ -42,6 +42,8 @@ same-origin ETag / completed name+size), `SignatureAssessment` + `TrustLevel` (t
 signal from checksum + code signature), the smart-rule model (`SmartRule`, `SmartRuleCondition`,
 `SmartRuleAction`, `RuleInput`) with its evaluator `SmartRuleEngine`, the link-grabber parser
 (`PageLinkExtractor` — resolve/dedupe/filter a page's href/src links; `URLBatch` — pattern expansion),
+`VideoPageDetector` (recognizes, by curated host, when a pasted URL is a video page to hand the
+extractor rather than download as a file),
 the time-of-day `BandwidthSchedule` (resolves the effective cap by clock, wraps past midnight), and
 the `ProvenanceReceipt` (the exportable verified-download record, with control-char-sanitized text
 rendering).
@@ -81,7 +83,7 @@ The concurrency core. Everything mutable is actor-isolated.
   engine treats an offset transfer exactly like an HTTP partial. Control + data connections carry
   idle timeouts, a bounded reply buffer, and cooperative cancellation so a dead/hung server can
   never wedge a transfer.
-- **Saved credentials (`CredentialStore` → `KeychainCredentialStore`)** — per-site HTTP/FTP logins
+- **Saved credentials (`CredentialStoring` → `KeychainCredentialStore`)** — per-site HTTP/FTP logins
   and the manual-proxy password live in the **Keychain** (`kSecClassGenericPassword`, keyed on an
   opaque identifier, `…AfterFirstUnlockThisDeviceOnly`), never in the plaintext settings payload;
   the proxy password is blanked on disk and rehydrated into memory at launch.
@@ -102,7 +104,7 @@ The concurrency core. Everything mutable is actor-isolated.
   directory — the one deliberate, disclosed exception to "egress only to your download URLs".
 - **Intake seams** — `LinkInspector` turns one `HTTPClient.probe` into a `LinkPreview` (final URL
   after redirects, size, range-support, MIME, ETag, connection estimate) for the add sheet's live
-  pre-flight; `CodeSignatureInspector` (protocol → `SecCodeSignatureInspector`, Security framework,
+  pre-flight; `CodeSignatureInspecting` (protocol → `SecCodeSignatureInspector`, Security framework,
   in-process, no network) assesses a finished `.app`/`.dmg`'s code signature in `DownloadTask.finalize`.
   Smart-rule routing is applied in `DownloadManager.add` (folder / queue / speed cap / auto-start).
   After verify, `DownloadTask` assembles the **`ProvenanceReceipt`** from signals already in the
@@ -111,7 +113,13 @@ The concurrency core. Everything mutable is actor-isolated.
 - **Media** — `MediaResolver` fetches + parses a manifest URL into a ready `MediaPlan`, pairing an
   adaptive video rendition with its separate audio track so a "video" grab always has sound;
   `DownloadTask` grabs the video *and* audio segments over the same engine, decrypting AES-128
-  (`AES128`), then muxes and passthrough-remuxes the result into a clean container. The `Remuxer`
+  (`AES128`), then muxes and passthrough-remuxes the result into a clean container. A *whole-file*
+  segment (a progressive / paired video+audio grab, as YouTube serves its `adaptiveFormats`) is
+  fetched in bounded **~10 MB ranged chunks** on a range-capable server — a single large GET is
+  throttled to a crawl by some CDNs' per-connection limits (googlevideo's `n`-throttle), while ≤10 MB
+  ranges stream at full line speed; HLS/DASH's many small segments download as-is. Selected
+  subtitle tracks are converted (`SubtitleConverter`, WebVTT → SRT) and written as sidecar `.srt`
+  files next to the finished video. The `Remuxer`
   protocol has two backends behind a `CompositeRemuxer` (tries each in order): `AVFoundationRemuxer`
   first — fast, in-process, no dependency, H.264/HEVC + AAC → `.mp4`/`.m4a` — falling back to a
   bundled `FFmpegMuxer` (stream-copy via a `Process`) for the codecs AVFoundation can't carry
@@ -195,6 +203,30 @@ title** (its URL only names a manifest); the engine appends the container extens
 is known. Grabs and IDM-style download takeovers
 become `CapturedDownload`s and route through the same media/add funnels as everything else; every
 byte is still fetched by the engine, now carrying the page's referer, real user-agent, and cookies.
+
+An optional **ad/tracker blocker** (off by default; Settings ▸ Browser) rides on the same browser.
+The ruleset is pure data — `AdBlockList` (in `DownloadModels`, unit-tested) emits a WebKit
+**content-rule list** (the Safari content-blocker JSON format): a block rule per ad/tracker host
+(seeded from the sniffer's `adHostSuffixes`, broadened with trackers and pop/push-ad networks), a
+few third-party-only ad path rules, and one cosmetic `display:none` rule for ad containers. The app
+layer (`BrowserStore`) compiles it once via `WKContentRuleListStore` — WebKit enforces it in its
+networking process, so ad requests are dropped *before* egress — caches the compiled list, and evicts
+stale versions by identifier hash. Popups aimed at a blocked host are rejected in the UI delegate
+(the network rules can't see a brand-new top-level load). Downloads never pass through the list —
+only in-browser page loads do.
+
+The blocker's coverage is selectable (Settings ▸ Browser): the built-in curated ruleset, or an
+**open-source domain blocklist** — OISD Small, StevenBlack Hosts, or Peter Lowe's — layered on top
+of it as a second compiled rule list. `BlocklistParser` (in `DownloadModels`, unit-tested) folds all
+the common list formats (plain domains, hosts files, wildcard and bare-domain ABP lines) into
+validated domains whose charset is *inert* in a `url-filter` regex — a hostile list can drop entries
+but never inject rule syntax — then prunes subdomains already covered by a listed parent and caps
+under WebKit's 150k-rules-per-list limit. `BrowserStore+Blocklists` fetches on user action only
+(picking a list or Update Now — never on a timer or at launch), over the same proxy as browsing,
+validates a per-source minimum-entry floor before replacing the previous copy, persists the
+canonical domains + metadata in Application Support, and compiles under a content-hashed identifier.
+Every step re-checks the active source after each await, and any failure leaves the previous list —
+or the curated baseline — in effect: fail-open, never broken.
 
 The other intake paths — the `cloakdrop://` URL scheme, the Share Extension, and the in-process
 Services item — funnel into the same validated `CapturedDownload` value. The Share Extension hands

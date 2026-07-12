@@ -6,8 +6,6 @@ public enum DownloadError: Error, Sendable, Hashable, Codable {
     case invalidURL(String)
     /// The server responded with a non-success HTTP status.
     case httpStatus(code: Int)
-    /// The server reported a different total size than previously recorded (cannot safely resume).
-    case sizeMismatch(expected: Int64, actual: Int64)
     /// The destination location could not be written to.
     case fileSystem(reason: String)
     /// The destination disk doesn't have enough free space for the remaining bytes.
@@ -30,8 +28,6 @@ public enum DownloadError: Error, Sendable, Hashable, Codable {
             return "Not a valid download URL: \(url)"
         case .httpStatus(let code):
             return "Server returned HTTP \(code)."
-        case .sizeMismatch(let expected, let actual):
-            return "File size changed on the server (was \(expected) bytes, now \(actual)). Restart the download."
         case .fileSystem(let reason):
             return "Could not write the file: \(reason)"
         case .insufficientDiskSpace(let needed, let available):

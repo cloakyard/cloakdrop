@@ -7,16 +7,27 @@ import AppKit
 final class DockProgressController {
     private let tileView = DockTileView()
 
+    /// Last drawn (whole percent, badge count) — ambient refreshes that change nothing visible skip the redraw.
+    private var lastDrawn: (percent: Int, activeCount: Int)?
+
     func update(fraction: Double?, activeCount: Int) {
         let tile = NSApp.dockTile
-        tile.badgeLabel = activeCount > 0 ? "\(activeCount)" : nil
 
-        if let fraction {
-            tileView.fraction = fraction
-            tile.contentView = tileView
-        } else {
+        guard let fraction else {
+            lastDrawn = nil   // clearing is never gated; the next draw always goes through
+            tile.badgeLabel = activeCount > 0 ? "\(activeCount)" : nil
             tile.contentView = nil   // revert to the plain app icon
+            tile.display()
+            return
         }
+
+        let state = (percent: Int(min(1, max(0, fraction)) * 100), activeCount: activeCount)
+        if let lastDrawn, lastDrawn == state { return }
+        lastDrawn = state
+
+        tile.badgeLabel = activeCount > 0 ? "\(activeCount)" : nil
+        tileView.fraction = fraction
+        tile.contentView = tileView
         tile.display()
     }
 }

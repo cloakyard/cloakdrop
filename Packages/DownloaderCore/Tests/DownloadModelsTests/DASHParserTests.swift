@@ -60,6 +60,57 @@ struct DASHParserTests {
         #expect(audio.segments[0].url.absoluteString == "https://cdn.example.com/dash/a0/seg-1.m4s")
     }
 
+    @Test("A negative SegmentTimeline repeat fills up to the next run's explicit start time")
+    func negativeRepeatFillsToNextRun() throws {
+        let mpd = """
+        <MPD xmlns="urn:mpeg:dash:schema:mpd:2011">
+          <Period>
+            <AdaptationSet contentType="video" mimeType="video/mp4">
+              <Representation id="v" bandwidth="900000" width="640" height="360">
+                <SegmentTemplate media="seg-$Time$.m4s" startNumber="1" timescale="90000">
+                  <SegmentTimeline><S t="0" d="90000" r="-1"/><S t="9000000" d="90000"/></SegmentTimeline>
+                </SegmentTemplate>
+              </Representation>
+            </AdaptationSet>
+          </Period>
+        </MPD>
+        """
+        let stream = try parse(mpd)
+        let video = try #require(stream.variants.first)
+        // (9000000 − 0) / 90000 → 100 segments fill the gap, then the final explicit run.
+        #expect(video.segments.count == 101)
+        #expect(video.segments[0].url.absoluteString == "https://cdn.example.com/seg-0.m4s")
+        #expect(video.segments[1].url.absoluteString == "https://cdn.example.com/seg-90000.m4s")
+        #expect(video.segments[99].url.absoluteString == "https://cdn.example.com/seg-8910000.m4s")
+        #expect(video.segments[100].url.absoluteString == "https://cdn.example.com/seg-9000000.m4s")
+        #expect(video.segments.allSatisfy { $0.duration == 1.0 })
+    }
+
+    @Test("A trailing negative repeat fills to the presentation end, or keeps one segment when unknown")
+    func trailingNegativeRepeatFillsToPresentationEnd() throws {
+        func mpd(_ attributes: String) -> String {
+            """
+            <MPD\(attributes)>
+              <Period>
+                <AdaptationSet contentType="video" mimeType="video/mp4">
+                  <Representation id="v" bandwidth="900000" width="640" height="360">
+                    <SegmentTemplate media="seg-$Number$.m4s" startNumber="1" timescale="90000">
+                      <SegmentTimeline><S t="0" d="90000" r="-1"/></SegmentTimeline>
+                    </SegmentTemplate>
+                  </Representation>
+                </AdaptationSet>
+              </Period>
+            </MPD>
+            """
+        }
+        // PT100S at timescale 90000 → the run fills to 100 one-second segments.
+        let bounded = try parse(mpd(" mediaPresentationDuration=\"PT100S\""))
+        #expect(bounded.variants.first?.segments.count == 100)
+        // No next run and no period end in scope → the run keeps its single occurrence.
+        let unbounded = try parse(mpd(""))
+        #expect(unbounded.variants.first?.segments.count == 1)
+    }
+
     // MARK: SegmentTemplate + fixed duration
 
     @Test("Derives segment count from the period duration for a fixed-duration template")
@@ -177,5 +228,14 @@ struct DASHParserTests {
         #expect(DASHParser.expand("$Bandwidth$/x", repID: "", bandwidth: 128_000, number: nil, time: nil) == "128000/x")
         #expect(DASHParser.expand("t$Time$", repID: "", bandwidth: 0, number: nil, time: 96_256) == "t96256")
         #expect(DASHParser.expand("a$$b", repID: "", bandwidth: 0, number: nil, time: nil) == "a$b")
+    }
+
+    @Test("64-bit $Time$ values survive %0Nd padding without 32-bit truncation")
+    func expandsWideTimeValues() {
+        // String(format: "%010d", 3_240_000_000) reads only 32 bits of the vararg → "-1054967296".
+        #expect(DASHParser.expand("seg-$Time%010d$.m4s", repID: "", bandwidth: 0, number: nil, time: 3_240_000_000)
+            == "seg-3240000000.m4s")
+        #expect(DASHParser.expand("$Time%012d$", repID: "", bandwidth: 0, number: nil, time: 3_240_000_000)
+            == "003240000000")
     }
 }

@@ -6,7 +6,7 @@ import DownloadModels
 struct MediaShelfView: View {
     let session: BrowserSession
 
-    private var candidates: [SniffedItem] { session.media.candidates }
+    private var candidates: [SniffedItem] { session.shelfItems }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {

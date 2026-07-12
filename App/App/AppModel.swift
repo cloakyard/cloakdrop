@@ -19,6 +19,16 @@ struct DuplicateAdd: Identifiable, Equatable {
     var existingIsOnDisk: Bool { match.existing.status == .completed }
 }
 
+/// Live per-transfer metrics in a reference box, so a 10 Hz tick invalidates only the views
+/// observing *that* download — with a shared dictionary of values, every row (and the inspector)
+/// would re-render on every other download's tick, scaling UI work quadratically with concurrency.
+@MainActor
+@Observable
+final class ProgressBox {
+    var value: DownloadProgress
+    init(_ value: DownloadProgress) { self.value = value }
+}
+
 /// The single source of UI truth. Owns the `DownloadManager`, mirrors its event stream into
 /// observable state, and exposes intent-style actions the views call. `@MainActor` so all
 /// SwiftUI-facing state is touched on the main actor; the engine does the concurrent work.
@@ -27,8 +37,10 @@ struct DuplicateAdd: Identifiable, Equatable {
 final class AppModel {
     // Catalog state (status-level; mutated on discrete transitions).
     private(set) var downloads: [Download] = []
-    // Fast-moving per-download metrics (mutated ~10×/sec, kept out of the array above).
-    private(set) var progress: [UUID: DownloadProgress] = [:]
+    // Fast-moving per-download metrics (mutated ~10×/sec, kept out of the array above — and boxed,
+    // so a tick touches one box, not this dictionary; the dictionary itself changes only when a
+    // transfer starts or ends).
+    private(set) var progress: [UUID: ProgressBox] = [:]
     private(set) var queues: [DownloadQueue] = []
     private(set) var settings: EngineSettings = .default
     /// User-defined routing rules, in evaluation order. Mirrored from the engine.
@@ -44,6 +56,9 @@ final class AppModel {
     var mediaThumbnails: [UUID: URL] = [:]
     /// Downloads whose thumbnail is currently being generated, so overlapping triggers don't duplicate.
     var thumbnailsInFlight: Set<UUID> = []
+    /// Downloads whose thumbnail generation already failed this session (audio-only, unreadable) —
+    /// consulted so every row appearance doesn't retry a doomed render.
+    var thumbnailsUnavailable: Set<UUID> = []
 
     // View state.
     var selection: SidebarSelection? = .smart(.all)
@@ -64,8 +79,13 @@ final class AppModel {
     /// `AppModel+Media`). Settable within the module rather than `private(set)` so the media-intake
     /// extension can drive it.
     var pendingMediaSelection: MediaSelection?
-    /// True while a manifest/page URL is being fetched and parsed, before a grab starts.
-    var isResolvingMedia = false
+    /// True while a manifest/page URL is being fetched and parsed, before a grab starts. Counted,
+    /// not a flag: overlapping resolutions each hold a unit, so the first to finish can't clear
+    /// the shared spinner while another is still in flight.
+    var isResolvingMedia: Bool { mediaResolveWork > 0 }
+    private var mediaResolveWork = 0
+    func beginMediaResolve() { mediaResolveWork += 1 }
+    func endMediaResolve() { mediaResolveWork = max(0, mediaResolveWork - 1) }
     /// A transient, human-readable reason a media grab couldn't be prepared (protected stream, sign-in
     /// wall, unavailable video) — surfaced as an auto-dismissing toast. Set via `presentMediaError`.
     var mediaExtractionError: String?
@@ -115,6 +135,40 @@ final class AppModel {
     }
     static let browserSearchEngineKey = "browserSearchEngine"
 
+    /// Whether the built-in browser blocks ads, trackers, and ad popups (a compiled WebKit content
+    /// rule list + ad-host popup rejection). **Off by default** — the user opts in from Settings ▸
+    /// Browser. Persisted in UserDefaults.
+    var browserAdBlockEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(browserAdBlockEnabled, forKey: Self.browserAdBlockKey)
+            if browserAdBlockEnabled { prepareContentBlocking() }
+        }
+    }
+    static let browserAdBlockKey = "browserAdBlockEnabled"
+
+    /// Which blocklist the ad blocker uses: the built-in curated ruleset, or a downloadable
+    /// open-source domain list layered on top of it. Persisted in UserDefaults. Choosing a
+    /// downloadable list that has never been fetched triggers its first download — that pick (like
+    /// the Update button) is the user action the privacy contract requires; nothing fetches on a
+    /// timer or at launch.
+    var browserBlocklistSource: BlocklistSource {
+        didSet {
+            UserDefaults.standard.set(browserBlocklistSource.rawValue, forKey: Self.browserBlocklistSourceKey)
+            if oldValue != browserBlocklistSource { blocklistSourceChanged() }
+        }
+    }
+    static let browserBlocklistSourceKey = "browserBlocklistSource"
+
+    /// Metadata of the active downloaded blocklist (count + freshness), `nil` for built-in/none.
+    var blocklistInfo: BlocklistInfo?
+    /// Whether a blocklist download is in flight (drives the Update button's spinner).
+    var isUpdatingBlocklist = false
+    /// The last update failure, user-presentable; cleared by the next attempt or source switch.
+    var blocklistUpdateError: String?
+    /// Bumped whenever the set of compiled content-rule lists changes — open browser windows
+    /// observe it and re-apply their lists. Blocklist intents live in `AppModel+Browser.swift`.
+    var browserContentRulesGeneration = 0
+
     /// Whether clipboard monitoring is on. Persisted in UserDefaults.
     var clipboardMonitoringEnabled: Bool {
         didSet {
@@ -158,7 +212,12 @@ final class AppModel {
         // Default to DuckDuckGo (the most private of the offered engines).
         self.browserSearchEngine = UserDefaults.standard.string(forKey: Self.browserSearchEngineKey)
             .flatMap(SearchEngine.init(rawValue:)) ?? .duckDuckGo
+        // Ad/tracker blocking defaults OFF (absent key → false) — opt-in.
+        self.browserAdBlockEnabled = UserDefaults.standard.bool(forKey: Self.browserAdBlockKey)
+        self.browserBlocklistSource = UserDefaults.standard.string(forKey: Self.browserBlocklistSourceKey)
+            .flatMap(BlocklistSource.init(rawValue:)) ?? .builtIn
         self.launchAtLoginEnabled = loginItem.isEnabled
+        if browserAdBlockEnabled { prepareContentBlocking() }
     }
 
     /// Build the live, production-backed app model.
@@ -253,7 +312,7 @@ final class AppModel {
             progress[id] = nil
             selectedDownloadIDs.remove(id)
         case .progress(let p):
-            progress[p.id] = p
+            applyProgress(p)
         case .queuesChanged(let q):
             queues = q
         case .settingsChanged(let s):
@@ -278,6 +337,17 @@ final class AppModel {
             refreshAmbientThrottled()
         } else {
             refreshAmbient()
+        }
+    }
+
+    /// Route a tick into its download's box — or drop it when the download is gone or finished
+    /// (a tick still buffered after the terminal event would resurrect a ghost entry, permanently
+    /// inflating the menu bar's aggregate speed).
+    private func applyProgress(_ p: DownloadProgress) {
+        if let box = progress[p.id] {
+            box.value = p
+        } else if downloads.contains(where: { $0.id == p.id && !$0.status.isTerminal && $0.status != .completed }) {
+            progress[p.id] = ProgressBox(p)
         }
     }
 
@@ -349,7 +419,7 @@ final class AppModel {
     }
 
     var aggregateSpeed: Double {
-        progress.values.reduce(0) { $0 + $1.bytesPerSecond }
+        progress.values.reduce(0) { $0 + $1.value.bytesPerSecond }
     }
 
     /// Overall progress across in-flight downloads, for the Dock badge. `nil` if nothing active.
@@ -359,7 +429,7 @@ final class AppModel {
         var done: Int64 = 0
         var total: Int64 = 0
         for d in active {
-            let current = progress[d.id]?.downloadedBytes ?? d.downloadedBytes
+            let current = progress[d.id]?.value.downloadedBytes ?? d.downloadedBytes
             done += current
             total += d.totalBytes ?? current
         }
@@ -368,36 +438,36 @@ final class AppModel {
     }
 
     func liveDownloadedBytes(_ download: Download) -> Int64 {
-        progress[download.id]?.downloadedBytes ?? download.downloadedBytes
+        progress[download.id]?.value.downloadedBytes ?? download.downloadedBytes
     }
 
     /// The byte total to show — live from the engine when it has one (a media grab learns its total
     /// from the segments' response heads), else the persisted value (`nil` while a media grab's
     /// total is still unknown).
     func liveTotalBytes(_ download: Download) -> Int64? {
-        progress[download.id]?.totalBytes ?? download.totalBytes
+        progress[download.id]?.value.totalBytes ?? download.totalBytes
     }
 
     func liveSpeed(_ download: Download) -> Double {
-        progress[download.id]?.bytesPerSecond ?? 0
+        progress[download.id]?.value.bytesPerSecond ?? 0
     }
 
     /// Peak transfer rate to show in the summary — live while downloading, else the persisted value.
     func peakSpeed(_ download: Download) -> Double {
-        progress[download.id]?.peakBytesPerSecond ?? download.peakBytesPerSecond ?? 0
+        progress[download.id]?.value.peakBytesPerSecond ?? download.peakBytesPerSecond ?? 0
     }
 
     /// Average transfer rate over active time — live while downloading, else the persisted value.
     func averageSpeed(_ download: Download) -> Double {
-        progress[download.id]?.averageBytesPerSecond ?? download.averageBytesPerSecond ?? 0
+        progress[download.id]?.value.averageBytesPerSecond ?? download.averageBytesPerSecond ?? 0
     }
 
     func liveFraction(_ download: Download) -> Double? {
-        progress[download.id]?.fractionCompleted ?? download.fractionCompleted
+        progress[download.id]?.value.fractionCompleted ?? download.fractionCompleted
     }
 
     func eta(_ download: Download) -> TimeInterval? {
-        progress[download.id]?.estimatedTimeRemaining
+        progress[download.id]?.value.estimatedTimeRemaining
     }
 
     var selectedDownload: Download? {

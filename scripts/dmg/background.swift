@@ -164,8 +164,8 @@ let image = NSImage(size: NSSize(width: W, height: H), flipped: true) { _ in
     accentDeep.setStroke()
     head.stroke()
 
-    // ── Footer: Read Me.txt is placed by Finder (bottom-left); its GitHub link lives in the file ─
-    // (No GitHub chip in the art — the repo URL is in Read Me.txt.)
+    // ── Footer: Read Me.txt is placed by Finder directly under the app icon (x=200), so the left
+    // column lines up; its GitHub link lives in the file (no GitHub chip in the art). ─────────────
 
     return true
 }

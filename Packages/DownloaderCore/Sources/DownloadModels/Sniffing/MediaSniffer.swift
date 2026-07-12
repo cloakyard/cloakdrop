@@ -225,8 +225,10 @@ public enum MediaSniffer {
     // MARK: - Classification
 
     /// A media item derived from a URL alone, or `nil` if the URL isn't recognisably media/file.
-    public static func classifyByURL(_ url: String) -> SniffedItem? {
-        if isNoise(url) { return nil }
+    /// `contentLength` — when a caller knows it from response headers — rides into the noise gate,
+    /// so a sub-1 KB response can't resurrect via the URL path.
+    public static func classifyByURL(_ url: String, contentLength: Int64? = nil) -> SniffedItem? {
+        if isNoise(url, contentLength: contentLength) { return nil }
         let ext = extensionOf(url)
         if ext.isEmpty { return nil }
         if streamExtensions.contains(ext) { return SniffedItem(url: url, type: .stream) }
@@ -242,8 +244,9 @@ public enum MediaSniffer {
         guard header.range(of: #"^\s*attachment"#, options: [.regularExpression, .caseInsensitive]) != nil else {
             return nil
         }
-        // RFC 5987 `filename*=utf-8''…` wins over the plain quoted/bare `filename=`.
-        if let match = header.firstMatch(of: /(?i)filename\*\s*=\s*(?:utf-8|iso-8859-1)''([^;]+)/) {
+        // RFC 5987 `filename*=utf-8'lang'…` (the language tag is usually empty) wins over the plain
+        // quoted/bare `filename=`.
+        if let match = header.firstMatch(of: /(?i)filename\*\s*=\s*(?:utf-8|iso-8859-1)'[^']*'([^;]+)/) {
             let raw = String(match.1).trimmingCharacters(in: .whitespaces)
             return raw.removingPercentEncoding ?? raw
         }

@@ -40,6 +40,10 @@ public actor DownloadManager {
     private var handles: [UUID: Task<Void, Never>] = [:]
     private var autoPaused: Set<UUID> = []
     private var networkReachable = true
+    /// In-order persistence chains, one per download: each save runs after the previous one for the
+    /// same id, so two rapid status flips can never reach the store out of order (a stale `.queued`
+    /// landing after `.paused` would restart a paused download on relaunch).
+    private var pendingSaves: [UUID: Task<Void, Never>] = [:]
 
     private let eventContinuation: AsyncStream<EngineEvent>.Continuation
     /// Status-level engine events (add/update/remove/queues/settings/completion). Unbounded so a
@@ -236,7 +240,7 @@ public actor DownloadManager {
         }
 
         downloads[download.id] = download
-        try? await store.save(download)
+        await persistOrderedAndWait(download)
         eventContinuation.yield(.downloadAdded(download))
 
         if download.status == .queued {
@@ -252,7 +256,7 @@ public actor DownloadManager {
         // A suggested name without a media extension is a *stem* (the in-app browser passes the
         // page title for a sniffed stream, whose URL only names its manifest) — give it the plan's
         // container extension. A dot inside a title ("Ep 2.5") is not an extension.
-        let fileName: String
+        var fileName: String
         if let suggested = request.suggestedFileName {
             let ext = (suggested as NSString).pathExtension.lowercased()
             let isMediaExt = MediaSniffer.mediaExtensions.contains(ext) || MediaSniffer.segmentExtensions.contains(ext)
@@ -260,6 +264,10 @@ public actor DownloadManager {
         } else {
             fileName = Self.deriveMediaFileName(from: request.url, plan: plan)
         }
+        // Media grabs skip the app layer's duplicate confirm, so de-collide here: re-grabbing the
+        // same title must produce "name (2).ext", not silently overwrite the finished file.
+        fileName = Self.uniqueMediaFileName(fileName, inDirectory: request.destinationDirectoryPath,
+                                            takenNames: Set(downloads.values.map(\.fileName)))
         let order = (downloads.values.map(\.order).max() ?? -1) + 1
 
         var headers = request.requestHeaders
@@ -282,7 +290,7 @@ public actor DownloadManager {
         download.status = request.startImmediately ? .queued : .paused
 
         downloads[download.id] = download
-        try? await store.save(download)
+        await persistOrderedAndWait(download)
         eventContinuation.yield(.downloadAdded(download))
 
         if download.status == .queued { scheduleQueue(download.queueID) }
@@ -348,6 +356,10 @@ public actor DownloadManager {
         if deleteFile {
             try? FileManager.default.removeItem(atPath: download.destinationFilePath)
         }
+        // Drain any save still queued for this id so a straggler can't re-create the row after
+        // the delete.
+        await pendingSaves[id]?.value
+        pendingSaves[id] = nil
         try? await store.delete(id: id)
         eventContinuation.yield(.downloadRemoved(id))
     }
@@ -563,8 +575,7 @@ public actor DownloadManager {
         )
         nextRun.status = .scheduled
         downloads[nextRun.id] = nextRun
-        let snapshot = nextRun
-        Task { try? await store.save(snapshot) }
+        persistOrdered(nextRun)
         eventContinuation.yield(.downloadAdded(nextRun))
     }
 
@@ -674,9 +685,22 @@ public actor DownloadManager {
         guard var download = downloads[id] else { return }
         mutate(&download)
         downloads[id] = download
-        let snapshot = download
-        Task { try? await store.save(snapshot) }
+        persistOrdered(download)
         eventContinuation.yield(.downloadUpdated(download))
+    }
+
+    /// Persist `snapshot` after any save already queued for the same download (fire-and-forget).
+    private func persistOrdered(_ snapshot: Download) {
+        pendingSaves[snapshot.id] = Task { [store, previous = pendingSaves[snapshot.id]] in
+            await previous?.value
+            try? await store.save(snapshot)
+        }
+    }
+
+    /// Persist `snapshot` in order and wait until it has hit the store.
+    private func persistOrderedAndWait(_ snapshot: Download) async {
+        persistOrdered(snapshot)
+        await pendingSaves[snapshot.id]?.value
     }
 
 }

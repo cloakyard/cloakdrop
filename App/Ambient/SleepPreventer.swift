@@ -8,9 +8,6 @@ import Foundation
 final class SleepPreventer {
     private var token: (any NSObjectProtocol)?
 
-    /// Whether an assertion is currently held (for verification/tests).
-    var isHoldingAssertion: Bool { token != nil }
-
     /// Begin or release the assertion so it matches whether any download is active. Idempotent.
     func update(active: Bool) {
         if active {

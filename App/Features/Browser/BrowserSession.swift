@@ -149,6 +149,11 @@ final class BrowserSession: NSObject {
 
     // Sniffing.
     private(set) var media = PageMediaState()
+    /// The deduped, ranked shelf items — cached because `PageMediaState.candidates` runs the full
+    /// dedupe cascade (quadratic over up to 60 records): recomputed only when a sniff envelope or
+    /// navigation changes the state, not on every toolbar render (progress KVO, address-bar
+    /// keystrokes, favicon) that reads the badge.
+    private(set) var shelfItems: [SniffedItem] = []
 
     // Interactions awaiting the user.
     var dialog: BrowserDialog?
@@ -165,6 +170,9 @@ final class BrowserSession: NSObject {
     var searchEnabled = true
     /// Which engine an address-bar search uses (mirrors the setting).
     var searchEngine: SearchEngine = .duckDuckGo
+    /// Whether ad/tracker blocking is on (mirrors the setting). Gates the compiled content-rule list
+    /// on this web view and ad-host popup rejection in the UI delegate.
+    private(set) var adBlockEnabled = false
 
     weak var sink: (any BrowserCaptureSink)?
     /// Opens a sibling browser window (wired to `openWindow` by the view).
@@ -372,10 +380,27 @@ final class BrowserSession: NSObject {
         hasCommittedNavigation = true
         favicon = nil
         media.reset(pageURL: url?.absoluteString ?? "")
+        shelfItems = []
     }
 
     func applySniff(_ envelope: SniffEnvelope) {
         media.apply(envelope)
+        shelfItems = media.candidates
+    }
+
+    /// Turn ad/tracker blocking on or off for this web view: attach every compiled content-rule
+    /// list (curated + downloaded) or detach them all. Synchronous and idempotent — the cached
+    /// lists attach ahead of the window's first load, which starts in the same run-loop turn.
+    /// Compiles finishing later bump `AppModel.browserContentRulesGeneration`, and the view calls
+    /// this again — so a session converges on the right lists without racing any compile.
+    func setAdBlock(_ enabled: Bool) {
+        adBlockEnabled = enabled
+        let controller = webView.configuration.userContentController
+        controller.removeAllContentRuleLists()
+        guard enabled else { return }
+        for list in BrowserStore.shared.activeRuleLists {
+            controller.add(list)
+        }
     }
 
     func captureUserAgentIfNeeded() {

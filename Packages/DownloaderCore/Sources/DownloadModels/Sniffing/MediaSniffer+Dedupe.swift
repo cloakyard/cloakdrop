@@ -15,7 +15,9 @@ extension MediaSniffer {
 
     static func dirKey(_ url: String) -> String {
         let segs = pathSegments(url).dropLast()   // drop filename
-        return hostOf(url) + "/" + segs.joined(separator: "/")
+        // A root-level file keys as the bare host — no trailing slash — so the containment tests
+        // (`child.hasPrefix(dir + "/")`) hold at every depth.
+        return segs.isEmpty ? hostOf(url) : hostOf(url) + "/" + segs.joined(separator: "/")
     }
 
     /// Filename stems that mark a *multivariant* ("master") playlist rather than a per-quality

@@ -193,6 +193,22 @@
         }
     } catch (e) { /* leave attachShadow alone */ }
 
+    // Declarative shadow DOM (<template shadowrootmode>) attaches during parse and never calls
+    // attachShadow — sweep once at boot for the open roots the parser already created. (Closed
+    // declarative roots expose no handle at all; nested hosts are swept within each found root.)
+    function sweepDeclarativeRoots(scope) {
+        try {
+            var all = scope.querySelectorAll("*");
+            for (var i = 0; i < all.length && shadowRoots.length < SHADOW_MAX; i++) {
+                var root = all[i].shadowRoot;
+                if (root && shadowRoots.indexOf(root) === -1) {
+                    adoptShadowRoot(root);
+                    sweepDeclarativeRoots(root);
+                }
+            }
+        } catch (e) { /* sweep is best-effort */ }
+    }
+
     function reportElement(el) {
         try {
             var isVideo = el.tagName === "VIDEO";
@@ -363,6 +379,7 @@
 
     // ── Boot: scan whatever already exists, then watch.
     function boot() {
+        sweepDeclarativeRoots(document);
         scanMediaElements();
         watchMutations(document.documentElement || document);
         schedulePageSnapshot();

@@ -36,9 +36,11 @@ What to expect:
 
 CloakDrop is a native, sandboxed macOS app designed to minimize attack surface:
 
-- **No server, no account, no telemetry.** Nothing is uploaded and nothing phones home. The
-  only network egress is to the URLs you explicitly choose to download (and, when you configure
-  one, your proxy).
+- **No server, no account, no telemetry.** Nothing is uploaded and nothing phones home. Network
+  egress happens only on your action: the URLs you choose to download, the sites you visit in the
+  built-in browser (address-bar search, when enabled, sends the typed query to your chosen engine
+  on Return), a proxy you configure, and the strictly manual speed test (Cloudflare by default,
+  Ookla optional).
 - **Sandboxed.** The app runs under the macOS App Sandbox with the hardened runtime. It accesses
   only the folders you point it at, via security-scoped bookmarks.
 - **Local-only state.** Download history and settings are stored in a local SQLite database that

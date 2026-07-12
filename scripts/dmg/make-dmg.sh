@@ -41,11 +41,12 @@ sips -s dpiWidth 144 -s dpiHeight 144 "$STAGE/.background/background.png" >/dev/
 # Keep a version-controlled preview copy next to the source art.
 cp "$STAGE/.background/background.png" "$HERE/background.png"
 
-echo "▸ Staging app, guide, Applications alias, volume icon…"
+echo "▸ Staging app, guide, Applications alias…"
 ditto "$APP" "$STAGE/CloakDrop.app"
 cp "$HERE/ReadMe.txt" "$STAGE/Read Me.txt"
 ln -s /Applications "$STAGE/Applications"
-cp "$ICNS" "$STAGE/.VolumeIcon.icns"
+# The volume icon (.VolumeIcon.icns) is written AFTER the Finder pass, not staged here — Finder's
+# window management deletes hidden root files it doesn't manage, so a staged copy never survives.
 
 echo "▸ Creating writable DMG…"
 RW="$WORK/rw.dmg"
@@ -75,7 +76,8 @@ tell application "Finder"
     set background picture of theView to file ".background:background.png"
     set position of item "CloakDrop.app" of container window to {200, 258}
     set position of item "Applications" of container window to {560, 258}
-    set position of item "Read Me.txt" of container window to {175, 458}
+    -- Read Me.txt sits directly under the app icon (same x=200) so the left column lines up.
+    set position of item "Read Me.txt" of container window to {200, 452}
     update without registering applications
     delay 1
     close
@@ -83,8 +85,10 @@ tell application "Finder"
 end tell
 APPLESCRIPT
 
-# Flag the volume so .VolumeIcon.icns is used — set AFTER Finder finishes the window, because its
-# window management clears the custom-icon bit if it's set beforehand.
+# Write the volume icon and flag it — both AFTER Finder finishes the window, because Finder's window
+# management deletes the hidden .VolumeIcon.icns file and clears the custom-icon bit if either is set
+# beforehand.
+cp "$ICNS" "$MNT/.VolumeIcon.icns"
 SetFile -a C "$MNT" || true
 sync
 echo "▸ Detaching…"

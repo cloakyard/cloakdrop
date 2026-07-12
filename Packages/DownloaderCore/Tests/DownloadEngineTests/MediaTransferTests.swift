@@ -215,6 +215,25 @@ struct MediaTransferTests {
         // A generic "master.m3u8" name falls back to the containing path segment.
         let genericURL = URL(string: "https://cdn.example.com/myvideo/master.m3u8")!
         #expect(DownloadManager.deriveMediaFileName(from: genericURL, plan: fmp4Plan) == "myvideo.mp4")
+
+        // A percent-encoded separator in the path must not smuggle traversal into the file name:
+        // separators become "-", leaving any ".." inert text inside a single component.
+        let hostileURL = URL(string: "https://cdn.example.com/videos%2F..%2F..%2Fx/master.m3u8")!
+        #expect(DownloadManager.deriveMediaFileName(from: hostileURL, plan: fmp4Plan) == "videos-..-..-x.mp4")
+
+        // A Unified Streaming-style master (`…/asset.ism/.m3u8`) must not become a hidden dot-file:
+        // the ".m3u8" stem is as generic as "master", so the parent supplies the name.
+        let ismURL = URL(string: "https://demo.example.com/video/tears.ism/.m3u8")!
+        #expect(DownloadManager.deriveMediaFileName(from: ismURL, plan: fmp4Plan) == "tears.ism.mp4")
+    }
+
+    @Test("uniqueMediaFileName de-collides against the catalog so a re-grab can't overwrite")
+    func mediaFileNameDeCollision() {
+        let dir = FileManager.default.temporaryDirectory.path
+        #expect(DownloadManager.uniqueMediaFileName("Talk.mp4", inDirectory: dir, takenNames: []) == "Talk.mp4")
+        #expect(DownloadManager.uniqueMediaFileName("Talk.mp4", inDirectory: dir, takenNames: ["Talk.mp4"]) == "Talk (2).mp4")
+        #expect(DownloadManager.uniqueMediaFileName(
+            "Talk.mp4", inDirectory: dir, takenNames: ["Talk.mp4", "Talk (2).mp4"]) == "Talk (3).mp4")
     }
 
     @Test("addMedia treats an extensionless suggested name as a title stem and appends the plan's container")
@@ -269,6 +288,31 @@ struct MediaTransferTests {
         #expect(resume.upperBound == Int64(data.count - 1))
     }
 
+    @Test("A large whole-file grab is fetched in multiple ~10 MB ranged chunks, not one throttleable GET")
+    func wholeFileGrabDownloadsInChunks() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        // 12 MB whole-file segment (paired-grab shape) on a range-capable server → 10 MB + 2 MB chunks.
+        // A single large GET is what YouTube's CDN throttles; ≤10 MB ranged chunks stream at full speed.
+        let data = payload(4, 12 * 1024 * 1024)
+        let url = URL(string: "https://cdn/x/big-video.mp4")!
+        let mock = MockHTTPClient()
+        mock.setResource(.init(data: data, acceptsRanges: true), for: url)
+        let plan = MediaPlan(format: .dash, segments: [MediaSegment(id: 0, url: url, duration: 0)])
+
+        let store = try GRDBDownloadStore.inMemory()
+        let manager = try await makeManager(store: store, mock: mock)
+        let request = DownloadRequest(url: url, suggestedFileName: "big.mp4", destinationDirectoryPath: dir.path)
+        let download = await manager.addMedia(request, plan: plan)
+        let done = try await waitFor(manager, download.id) { $0.status == .completed }
+
+        #expect(try Data(contentsOf: URL(fileURLWithPath: done.destinationFilePath)) == data)
+        // Two ranged stream requests (10 MB + 2 MB) — proof it chunked rather than issuing one GET.
+        #expect(mock.streamCount == 2)
+        #expect(mock.lastRequest?.byteRange?.lowerBound == Int64(10 * 1024 * 1024))
+    }
+
     @Test("A server that ignores Range restarts the segment cleanly instead of corrupting it")
     func segmentDropRestartsWithoutRangeSupport() async throws {
         let dir = try tempDir()
@@ -319,6 +363,34 @@ struct MediaTransferTests {
         #expect(mock.probeCount >= 1)                                  // learned the end via probe
         let resume = try #require(mock.lastRequest?.byteRange)
         #expect(resume.lowerBound == 12_288)                           // …and continued, not restarted
+    }
+
+    @Test("An oversized stale partial is discarded and the grab restarts clean, not promoted corrupt")
+    func oversizedPartialRestartsClean() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let data = payload(6, 40_000)
+        let url = URL(string: "https://cdn/x/oversized.mp4")!
+        let mock = MockHTTPClient()
+        mock.setResource(.init(data: data), for: url)
+        let plan = MediaPlan(format: .dash, segments: [MediaSegment(id: 0, url: url, duration: 0)])
+
+        let store = try GRDBDownloadStore.inMemory()
+        let manager = try await makeManager(store: store, mock: mock)
+        let request = DownloadRequest(url: url, suggestedFileName: "v.mp4", destinationDirectoryPath: dir.path)
+
+        // A leftover partial LARGER than the resource itself can't be a valid prefix of it.
+        let download = Download(url: url, fileName: "v.mp4", destinationDirectoryPath: dir.path, mediaPlan: plan)
+        try FileManager.default.createDirectory(atPath: download.mediaPartDirectoryPath, withIntermediateDirectories: true)
+        let partial = (download.mediaPartDirectoryPath as NSString).appendingPathComponent("seg-0.part.partial")
+        try Data(count: data.count + 5_000).write(to: URL(fileURLWithPath: partial))
+
+        let added = await manager.addMedia(request, plan: plan)
+        let done = try await waitFor(manager, added.id) { $0.status == .completed }
+
+        // Discarded and re-fetched from scratch — byte-perfect, not the oversized garbage.
+        #expect(try Data(contentsOf: URL(fileURLWithPath: done.destinationFilePath)) == data)
     }
 
     @Test("A paired grab reports live bytes and a byte total once both segment sizes are known")

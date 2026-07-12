@@ -93,6 +93,15 @@ struct PageMediaStateTests {
         #expect(state.candidates.first?.type == .video)
     }
 
+    @Test func subKilobyteResponsesAreNotResurrectedByTheURLFallback() {
+        var state = PageMediaState()
+        state.apply(envelope([
+            SniffEvent(kind: .response, url: "https://cdn.example.com/blip.mp3",
+                       contentType: "audio/mpeg", contentLength: 512)
+        ]))
+        #expect(state.candidates.isEmpty, "the known sub-1 KB length must gate the URL fallback too")
+    }
+
     @Test func extensionlessPlayerSrcFallsBackToTheElementTag() {
         var state = PageMediaState()
         state.apply(envelope([

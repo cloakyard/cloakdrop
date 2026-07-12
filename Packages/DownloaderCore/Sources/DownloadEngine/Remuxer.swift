@@ -84,13 +84,17 @@ public struct CompositeRemuxer: Remuxer {
     }
 
     /// Run `operation` against each backend in order, returning the first success and remembering the
-    /// most recent error to rethrow if every backend fails.
+    /// most recent error to rethrow if every backend fails. Cancellation is never treated as a backend
+    /// failure — a cancelled grab must not fall through and start the next (heavier) backend.
     private func firstSuccess(_ operation: (any Remuxer) async throws -> RemuxResult) async throws -> RemuxResult {
         var lastError: any Error = RemuxError.unsupported
         for remuxer in remuxers {
             do {
                 return try await operation(remuxer)
+            } catch is CancellationError {
+                throw CancellationError()
             } catch {
+                try Task.checkCancellation()
                 lastError = error
             }
         }

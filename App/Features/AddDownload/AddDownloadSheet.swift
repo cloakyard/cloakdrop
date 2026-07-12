@@ -45,6 +45,17 @@ struct AddDownloadSheet: View {
     private var resolvedURL: URL? { AppModel.normalizedURL(urlString) }
     private var canAdd: Bool { resolvedURL != nil }
 
+    /// The video site this URL belongs to, when it's a recognized page the bundled extractor can
+    /// resolve (and extraction is available) — a YouTube link, etc. When set, the sheet offers to grab
+    /// the video (best quality, or the picker when "Ask me quality" is on) instead of saving the page.
+    private var detectedVideoPage: VideoPageSite? {
+        // Gate on the extractor's *presence* (as the browser's grab button does), not the async
+        // launch-time version probe — otherwise a URL pasted in the first moments after launch would
+        // be mis-probed as a file until the probe resolves.
+        guard model.canExtractFromPages, let url = resolvedURL else { return nil }
+        return VideoPageDetector.detect(url)
+    }
+
     /// Any expiry deadline baked into a pre-signed / tokened URL, read purely from the query string
     /// (no network), so an already-dead link is flagged the instant it's entered — before the user
     /// waits on a download that can only fail.
@@ -70,14 +81,18 @@ struct AddDownloadSheet: View {
                             deriveFileNameIfNeeded()
                             scheduleInspection()
                         }
-                    if isInspecting || preview != nil || previewFailed {
-                        linkPreviewRow
+                    if let site = detectedVideoPage {
+                        videoPageRow(site)
+                    } else {
+                        if isInspecting || preview != nil || previewFailed {
+                            linkPreviewRow
+                        }
+                        if linkExpiry != nil {
+                            expiryRow
+                        }
+                        TextField("Save As", text: $fileName, prompt: Text("File name"))
+                            .textFieldStyle(.roundedBorder)
                     }
-                    if linkExpiry != nil {
-                        expiryRow
-                    }
-                    TextField("Save As", text: $fileName, prompt: Text("File name"))
-                        .textFieldStyle(.roundedBorder)
                 }
 
                 Section("Destination") {
@@ -93,36 +108,44 @@ struct AddDownloadSheet: View {
                     }
                 }
 
-                Section("Options") {
-                    Stepper(value: $segmentCount, in: 1...model.settings.maxSegmentCount) {
-                        LabeledContent("Connections", value: "\(segmentCount)")
-                    }
-                    Toggle("Start immediately", isOn: $startImmediately)
-                        .disabled(scheduleEnabled)
-                    Toggle("Schedule for later", isOn: $scheduleEnabled.animation(.smooth(duration: 0.2)))
-                    if scheduleEnabled {
-                        DatePicker("Start at", selection: $scheduledDate, in: Date()...)
-                            .datePickerStyle(.compact)
-                        Picker("Repeat", selection: $recurrence) {
-                            ForEach(ScheduleRecurrence.allCases) { Text($0.localizedLabel).tag($0) }
+                // Connections, scheduling, and checksum verification apply to a file download, not a
+                // resolved video grab (the extractor plans its own segments and names from the title).
+                if detectedVideoPage == nil {
+                    Section("Options") {
+                        Stepper(value: $segmentCount, in: 1...model.settings.maxSegmentCount) {
+                            LabeledContent("Connections", value: "\(segmentCount)")
                         }
-                        if let expiry = linkExpiry, scheduledDate >= expiry.expiresAt {
-                            Label("This link expires before the scheduled start time.",
-                                  systemImage: "exclamationmark.triangle.fill")
-                                .font(.caption)
-                                .foregroundStyle(.orange)
+                        Toggle("Start immediately", isOn: $startImmediately)
+                            .disabled(scheduleEnabled)
+                        Toggle("Schedule for later", isOn: $scheduleEnabled.animation(.smooth(duration: 0.2)))
+                        if scheduleEnabled {
+                            DatePicker("Start at", selection: $scheduledDate, in: Date()...)
+                                .datePickerStyle(.compact)
+                            Picker("Repeat", selection: $recurrence) {
+                                ForEach(ScheduleRecurrence.allCases) { Text($0.localizedLabel).tag($0) }
+                            }
+                            if let expiry = linkExpiry, scheduledDate >= expiry.expiresAt {
+                                Label("This link expires before the scheduled start time.",
+                                      systemImage: "exclamationmark.triangle.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.orange)
+                            }
                         }
                     }
                 }
 
                 Section {
-                    DisclosureGroup("Authentication") {
-                        TextField("Username", text: $username)
-                            .textFieldStyle(.roundedBorder)
-                        SecureField("Password", text: $password, prompt: Text("HTTP Basic/Digest"))
-                            .textFieldStyle(.roundedBorder)
-                        Toggle("Remember for this site", isOn: $rememberCredentials)
+                    if detectedVideoPage == nil {
+                        DisclosureGroup("Authentication") {
+                            TextField("Username", text: $username)
+                                .textFieldStyle(.roundedBorder)
+                            SecureField("Password", text: $password, prompt: Text("HTTP Basic/Digest"))
+                                .textFieldStyle(.roundedBorder)
+                            Toggle("Remember for this site", isOn: $rememberCredentials)
+                        }
                     }
+                    // Referrer & cookies stay available for a video grab — a private or age-gated page
+                    // needs them handed to the extractor.
                     DisclosureGroup("Referrer & cookies") {
                         TextField("Referrer", text: $referrer, prompt: Text("https://example.com"))
                             .textFieldStyle(.roundedBorder)
@@ -130,18 +153,20 @@ struct AddDownloadSheet: View {
                             .textFieldStyle(.roundedBorder)
                             .font(.callout.monospaced())
                     }
-                    DisclosureGroup("Verify checksum") {
-                        Picker("Algorithm", selection: $checksumAlgorithm) {
-                            ForEach(ChecksumAlgorithm.allCases, id: \.self) { Text($0.displayName).tag($0) }
-                        }
-                        TextField("Expected hash", text: $checksumHex, prompt: Text("Optional hex digest"))
-                            .textFieldStyle(.roundedBorder)
-                            .font(.callout.monospaced())
-                        if checksumIsMalformed {
-                            Label("Not a valid \(checksumAlgorithm.displayName) digest — this file won’t be verified.",
-                                  systemImage: "exclamationmark.triangle.fill")
-                                .font(.caption)
-                                .foregroundStyle(.orange)
+                    if detectedVideoPage == nil {
+                        DisclosureGroup("Verify checksum") {
+                            Picker("Algorithm", selection: $checksumAlgorithm) {
+                                ForEach(ChecksumAlgorithm.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                            }
+                            TextField("Expected hash", text: $checksumHex, prompt: Text("Optional hex digest"))
+                                .textFieldStyle(.roundedBorder)
+                                .font(.callout.monospaced())
+                            if checksumIsMalformed {
+                                Label("Not a valid \(checksumAlgorithm.displayName) digest — this file won’t be verified.",
+                                      systemImage: "exclamationmark.triangle.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.orange)
+                            }
                         }
                     }
                 }
@@ -155,7 +180,10 @@ struct AddDownloadSheet: View {
                 Button("Cancel", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
                 Spacer()
-                Button(scheduleEnabled ? "Schedule" : "Add Download") { add() }
+                // A video page always grabs immediately (the extractor has no scheduled-start path),
+                // and its Options/schedule controls are hidden — so never show "Schedule" for one, even
+                // if the toggle was left on from a previous file URL in the same sheet.
+                Button(scheduleEnabled && detectedVideoPage == nil ? "Schedule" : "Add Download") { add() }
                     .keyboardShortcut(.defaultAction)
                     .disabled(!canAdd)
             }
@@ -164,6 +192,32 @@ struct AddDownloadSheet: View {
         .frame(width: 520, height: 600)
         .onAppear(perform: prefill)
         .onDisappear { inspectionTask?.cancel() }
+    }
+
+    // MARK: Video page
+
+    /// Shown in place of the file preview when the URL is a recognized video page: a play glyph, the
+    /// site name, and what will happen on Add — the best quality straight away, or the quality picker
+    /// when "Ask me quality" is on.
+    private func videoPageRow(_ site: VideoPageSite) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "play.rectangle.fill")
+                .font(.title3)
+                .foregroundStyle(.tint)
+                .frame(width: 24)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(site.displayName) video")
+                    .font(.callout)
+                Text(model.askQualityEnabled
+                     ? String(localized: "You’ll choose the quality after it’s read.")
+                     : String(localized: "The best quality will be downloaded."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+        }
+        .transition(.opacity)
     }
 
     // MARK: Link preview
@@ -275,6 +329,13 @@ struct AddDownloadSheet: View {
             lastInspectedURL = nil
             return
         }
+        // A recognized video page is resolved by the extractor on Add — probing it as a file would just
+        // show a misleading "watch.html · Not resumable" card, so skip the pre-flight for it.
+        if detectedVideoPage != nil {
+            withAnimation(.smooth(duration: 0.2)) { preview = nil; isInspecting = false; previewFailed = false }
+            lastInspectedURL = url
+            return
+        }
         guard url != lastInspectedURL else { return }   // already have (or attempted) this exact URL
         autofillSavedCredentials(for: url)
         inspectionTask = Task {
@@ -373,6 +434,19 @@ struct AddDownloadSheet: View {
 
     private func add() {
         guard let url = resolvedURL else { return }
+        // A recognized video page routes through the extractor: it resolves the real formats, then
+        // downloads the best tier or opens the quality picker (per "Ask me quality").
+        if detectedVideoPage != nil {
+            model.grabPage(
+                url: url,
+                destinationDirectoryPath: destinationURL.path,
+                destinationBookmark: destinationBookmark,
+                referrer: trimmedOrNil(referrer),
+                cookies: trimmedOrNil(cookies)
+            )
+            dismiss()
+            return
+        }
         let trimmedHex = checksumHex.trimmingCharacters(in: .whitespacesAndNewlines)
         let checksum: ChecksumExpectation? = {
             guard !trimmedHex.isEmpty else { return nil }

@@ -146,12 +146,13 @@ struct SettingsView: View {
                     set: { model.grabSubtitlesEnabled = $0 }
                 ))
             } header: {
-                Text("Capture")
+                Text("Media & Capture")
             } footer: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("""
-                    Off grabs the best quality automatically — one click. On shows a picker for videos \
-                    that offer several resolutions.
+                    Applies wherever CloakDrop grabs a video — a link you paste, the built-in browser, \
+                    or a share. Off grabs the best quality automatically — one click. On shows a picker \
+                    for videos that offer several resolutions.
                     """)
                     Text("Subtitles are saved as a matching “.srt” file next to the video.")
                 }
