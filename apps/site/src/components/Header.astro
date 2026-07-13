@@ -6,7 +6,7 @@ import Brand from './Brand.astro';
 
 <header class="header">
   <div class="container bar">
-    <Brand size={30} />
+    <Brand size={44} />
 
     <nav class="nav" aria-label="Primary">
       {nav.map((l) => <a href={l.href}>{l.label}</a>)}
@@ -34,9 +34,10 @@ import Brand from './Brand.astro';
     position: sticky;
     top: 0;
     z-index: 50;
-    background: color-mix(in srgb, var(--bg) 78%, transparent);
-    backdrop-filter: saturate(180%) blur(20px);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    /* Frosted-glass bar: translucent enough that content blurs through on scroll. */
+    background: color-mix(in srgb, var(--bg) 60%, transparent);
+    backdrop-filter: saturate(180%) blur(26px);
+    -webkit-backdrop-filter: saturate(180%) blur(26px);
     border-bottom: 1px solid var(--line);
   }
 

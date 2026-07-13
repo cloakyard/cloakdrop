@@ -51,10 +51,11 @@ apps/site/
 Edit copy in [`src/data/site.ts`](src/data/site.ts); components read from it. Brand assets
 (the `logo.svg` mark, favicons, `og.png`, `hero.webp`/`hero.png`) are the **generated** copies
 of the sources in [`/assets`](../../assets) — edit them there, not in `public/`, then rerun
-`npm run build` (or `npm run sync:assets`). The logo is a scalable SVG mark echoing the
-**glassified** (Liquid Glass) app icon; the hero is a real, transparent-background screenshot
-of the app mid-download (WebP with a PNG fallback), and `og.png` is a 1200×630 share card —
-regenerate all three to match if the app UI or icon changes.
+`npm run build` (or `npm run sync:assets`). The logo is a scalable **glassified** (Liquid Glass)
+SVG mark — the very same `cloakdrop.svg` the macOS app icon is rendered from, so web and app
+match. The hero is a real, transparent-background screenshot of the app mid-download (WebP with
+a PNG fallback), and `og.png` is a 1200×630 share card — regenerate all three to match if the
+app UI or icon changes.
 
 ## Deploy (Cloudflare)
 

@@ -1,17 +1,14 @@
 ---
 import { site } from '../data/site';
-import Brand from './Brand.astro';
 ---
 
 <footer class="footer">
   <div class="container inner">
-    <div class="left">
-      <Brand size={26} />
-      <span class="note">
-        Part of the <a href={site.suiteOrg} rel="noopener">Cloakyard</a> privacy-first
-        suite. Runs entirely on-device.
-      </span>
-    </div>
+    <p class="note">
+      <strong>CloakDrop</strong> — part of the
+      <a href={site.suiteOrg} rel="noopener">Cloakyard</a> privacy-first suite. Runs
+      entirely on-device.
+    </p>
     <p class="copy">© {new Date().getFullYear()} Sumit Sahoo · MIT License</p>
   </div>
 </footer>
@@ -30,17 +27,15 @@ import Brand from './Brand.astro';
     flex-wrap: wrap;
   }
 
-  .left {
-    display: flex;
-    align-items: center;
-    gap: 0.9rem;
-    flex-wrap: wrap;
-  }
-
   .note {
     font-size: 0.8125rem;
     color: var(--ink-4);
-    max-width: 46ch;
+    max-width: 52ch;
+  }
+
+  .note strong {
+    color: var(--ink-2);
+    font-weight: 700;
   }
 
   .note a {

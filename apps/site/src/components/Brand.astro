@@ -30,7 +30,8 @@ const { size = 30, class: className } = Astro.props;
   }
 
   .brand-mark {
-    filter: drop-shadow(0 4px 10px color-mix(in srgb, var(--accent) 45%, transparent));
+    /* Whisper of a shadow only — the mark carries its own subtle inner shadow. */
+    filter: drop-shadow(0 1px 3px rgba(15, 42, 60, 0.14));
   }
 
   .brand-name {

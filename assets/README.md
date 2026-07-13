@@ -65,9 +65,18 @@ can fan out to several destinations:
 
 ## The macOS app icon
 
-The glassy **app** icon is Xcode-managed and lives in its asset catalog —
-`apps/macos/App/Resources/Assets.xcassets/AppIcon.appiconset/` (`icon_16.png` … `icon_1024.png`).
-That's the master the raster web renditions above are exported from. It stays in the
-catalog because Xcode needs the `Contents.json`-described renditions in place to build; it
-isn't synced from here. When the app icon changes, re-export `logo/icon.png`,
-`favicon.png`, `apple-touch-icon.png`, and rebuild the `social/og.png` card to match.
+The app icon is **rendered from the same `logo/cloakdrop.svg`** — the mark is glassified in
+the SVG itself (gradient tile, frosted shield, specular sheen, rim light, depth), so the app
+and the web share one source. `apps/macos/scripts/generate_app_icon.swift` rasterises the SVG
+into the Xcode asset catalog — `AppIcon.appiconset` (`icon_16…1024.png`) and the About-page
+`AboutAppIcon.imageset` — via `rsvg-convert`:
+
+```bash
+cd apps/macos && swift scripts/generate_app_icon.swift    # needs: brew install librsvg
+```
+
+So when the mark changes: edit `logo/cloakdrop.svg`, then run **both** `node scripts/sync-assets.mjs`
+(web renditions) and `generate_app_icon.swift` (app icon), and rebuild `social/og.png` to match.
+(The app catalog isn't a `sync-assets` destination — Xcode needs the sized PNGs in place — so it
+has its own render step.) The icon is plain PNGs, not an Icon Composer `.icon`, so the SVG carries
+the glass rather than relying on the OS to composite it.

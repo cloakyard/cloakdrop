@@ -15,22 +15,29 @@ import Icon from './Icon.astro';
 
     <ul class="list">
       {
-        suite.apps.map((app) => (
-          <li>
-            <a
-              class:list={['row', app.self && 'row--self']}
-              href={app.href}
-              rel="noopener"
-            >
-              <span class="name">{app.name}</span>
-              <span class="desc">{app.desc}</span>
-              <span class="tag">
-                {app.tag}
-                <Icon name="arrow" size={17} stroke={1.8} />
-              </span>
-            </a>
-          </li>
-        ))
+        suite.apps.map((app) =>
+          app.self ? (
+            <li>
+              {/* Current app — not a link; the user is already here. */}
+              <div class="row row--self">
+                <span class="name">{app.name}</span>
+                <span class="desc">{app.desc}</span>
+                <span class="tag">{app.tag}</span>
+              </div>
+            </li>
+          ) : (
+            <li>
+              <a class="row" href={app.href} rel="noopener">
+                <span class="name">{app.name}</span>
+                <span class="desc">{app.desc}</span>
+                <span class="tag">
+                  {app.tag}
+                  <Icon name="arrow" size={17} stroke={1.8} />
+                </span>
+              </a>
+            </li>
+          )
+        )
       }
     </ul>
 
@@ -82,8 +89,12 @@ import Icon from './Icon.astro';
     border-bottom: 0;
   }
 
-  .row:hover {
+  a.row:hover {
     background: color-mix(in srgb, var(--accent) 5%, transparent);
+  }
+
+  .row--self {
+    cursor: default;
   }
 
   .name {
@@ -119,7 +130,7 @@ import Icon from './Icon.astro';
       transform 0.16s ease;
   }
 
-  .row:hover .tag :global(svg) {
+  a.row:hover .tag :global(svg) {
     color: var(--accent-ink);
     transform: translateX(3px);
   }

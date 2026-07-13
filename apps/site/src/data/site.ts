@@ -278,7 +278,8 @@ export interface SuiteApp {
   name: string;
   desc: string;
   tag: string;
-  href: string;
+  /** Omitted for the current app (CloakDrop) — that row is not a link. */
+  href?: string;
   self?: boolean;
 }
 
@@ -292,9 +293,9 @@ export const suite = {
     'doing one job well.',
   org: 'github.com/cloakyard',
   apps: [
-    { name: 'CloakDrop', desc: 'Multi-segment download manager', tag: 'THIS APP', href: site.repo, self: true },
-    { name: 'CloakPDF', desc: 'Private PDF toolkit', tag: 'CLOAKYARD', href: site.suiteOrg },
-    { name: 'CloakIMG', desc: 'Image conversion & editing', tag: 'CLOAKYARD', href: site.suiteOrg },
-    { name: 'CloakResume', desc: 'Résumé builder', tag: 'CLOAKYARD', href: site.suiteOrg },
+    { name: 'CloakDrop', desc: 'Multi-segment download manager', tag: 'THIS APP', self: true },
+    { name: 'CloakPDF', desc: 'Private PDF toolkit', tag: 'CLOAKYARD', href: 'https://pdf.cloakyard.com' },
+    { name: 'CloakIMG', desc: 'Image conversion & editing', tag: 'CLOAKYARD', href: 'https://img.cloakyard.com' },
+    { name: 'CloakResume', desc: 'Résumé builder', tag: 'CLOAKYARD', href: 'https://resume.cloakyard.com' },
   ] as SuiteApp[],
 } as const;
