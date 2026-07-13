@@ -1,0 +1,43 @@
+---
+import { site } from '../data/site';
+
+/** Logo lockup: the scalable SVG mark + wordmark. Used in the header and footer. */
+interface Props {
+  size?: number;
+  class?: string;
+}
+const { size = 30, class: className } = Astro.props;
+---
+
+<a class:list={['brand', className]} href="/" aria-label={`${site.name} home`}>
+  <img
+    class="brand-mark"
+    src="/logo.svg"
+    width={size}
+    height={size}
+    alt=""
+    loading="eager"
+    decoding="async"
+  />
+  <span class="brand-name">{site.name}</span>
+</a>
+
+<style>
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .brand-mark {
+    /* Whisper of a shadow only — the mark carries its own subtle inner shadow. */
+    filter: drop-shadow(0 1px 3px rgba(15, 42, 60, 0.14));
+  }
+
+  .brand-name {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    font-size: 1.125rem;
+  }
+</style>

@@ -1,0 +1,57 @@
+---
+import { site } from '../data/site';
+---
+
+<footer class="footer">
+  <div class="container inner">
+    <p class="note">
+      <strong>CloakDrop</strong> — part of the
+      <a href={site.suiteOrg} rel="noopener">Cloakyard</a> privacy-first suite. Runs
+      entirely on-device.
+    </p>
+    <p class="copy">© {new Date().getFullYear()} Sumit Sahoo · MIT License</p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--line);
+    padding-block: clamp(1.75rem, 3vw, 2.25rem);
+  }
+
+  .inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem 2rem;
+    flex-wrap: wrap;
+  }
+
+  .note {
+    font-size: 0.8125rem;
+    color: var(--ink-4);
+    max-width: 52ch;
+  }
+
+  .note strong {
+    color: var(--ink-2);
+    font-weight: 700;
+  }
+
+  .note a {
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+
+  .copy {
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    color: var(--ink-4);
+  }
+
+  @media (max-width: 560px) {
+    .note {
+      flex-basis: 100%;
+    }
+  }
+</style>

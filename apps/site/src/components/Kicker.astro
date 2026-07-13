@@ -1,0 +1,13 @@
+---
+/** Numbered mono section label — e.g. "01 — THE ENGINE" with a leading tick. */
+interface Props {
+  num: string;
+  label: string;
+  tone?: 'accent' | 'band';
+}
+const { num, label, tone = 'accent' } = Astro.props;
+---
+
+<p class="kicker" style={tone === 'band' ? 'color:var(--band-accent)' : undefined}>
+  {num} — {label}
+</p>

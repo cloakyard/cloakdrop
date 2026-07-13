@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://drop.cloakyard.com/sitemap-index.xml

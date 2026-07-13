@@ -1,0 +1,122 @@
+---
+import { site, hero } from '../data/site';
+import Icon from './Icon.astro';
+
+const titleLead = hero.titleLead.replace(/\n/g, ' ');
+const titleAccent = hero.titleAccent.replace(/\n/g, ' ');
+---
+
+<section class="hero">
+  <div class="container">
+    <div class="top">
+      <div class="lede">
+        <p class="kicker">{hero.kicker}</p>
+        <h1>{titleLead} <span class="accent">{titleAccent}</span></h1>
+      </div>
+
+      <div class="aside">
+        <p class="lead">{hero.lead}</p>
+        <div class="cta">
+          <a class="btn btn--primary" href={site.releases} rel="noopener">
+            <Icon name="download" size={17} stroke={2} />
+            Download for macOS
+          </a>
+          <a class="btn" href={site.repo} rel="noopener">
+            <Icon name="github" size={17} />
+            View source
+          </a>
+        </div>
+        <p class="micro">{hero.micro}</p>
+      </div>
+    </div>
+
+    <figure class="shot">
+      <figcaption class="fig">{hero.figLabel}</figcaption>
+      <picture>
+        <source srcset="/hero.webp" type="image/webp" />
+        <img
+          src="/hero.png"
+          width="2240"
+          height="1442"
+          alt={hero.shotAlt}
+          fetchpriority="high"
+          decoding="async"
+        />
+      </picture>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-top: clamp(2.5rem, 5vw, 4rem);
+    padding-bottom: clamp(2rem, 4vw, 3rem);
+  }
+
+  .top {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: end;
+  }
+
+  .lede h1 {
+    margin-top: 1.6rem;
+    max-width: 12ch;
+  }
+
+  .aside {
+    padding-bottom: 0.4rem;
+  }
+
+  .lead {
+    max-width: 42ch;
+  }
+
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+  }
+
+  .micro {
+    margin-top: 1rem;
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    color: var(--ink-4);
+  }
+
+  /* Screenshot — transparent PNG/WebP with baked-in shadow on the page bg. */
+  .shot {
+    margin-top: clamp(2.5rem, 5vw, 3.5rem);
+    position: relative;
+  }
+
+  .fig {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-4);
+    margin-bottom: 0.5rem;
+  }
+
+  .shot img {
+    width: 100%;
+    height: auto;
+  }
+
+  @media (max-width: 820px) {
+    .top {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .lede h1 {
+      max-width: 16ch;
+    }
+    .lead {
+      max-width: 52ch;
+    }
+  }
+</style>

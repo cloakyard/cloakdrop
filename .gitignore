@@ -29,20 +29,28 @@ CloakDrop.xcodeproj/
 # Swift Package Manager
 .build/
 .swiftpm/
-Packages/*/.build/
+apps/macos/Packages/*/.build/
 Package.resolved
 
 # Xcode SPM integration caches
 *.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
 
 # Vendored ffmpeg — build artifact, produced by scripts/fetch-ffmpeg.sh (README is tracked)
-Vendor/ffmpeg/ffmpeg
-Vendor/ffmpeg/build/
+apps/macos/Vendor/ffmpeg/ffmpeg
+apps/macos/Vendor/ffmpeg/build/
 
 # Vendored yt-dlp (onedir) — build artifact, produced by scripts/fetch-ytdlp.sh
-Vendor/yt-dlp/yt-dlp
-Vendor/yt-dlp/_internal/
-Vendor/yt-dlp/build/
+apps/macos/Vendor/yt-dlp/yt-dlp
+apps/macos/Vendor/yt-dlp/_internal/
+apps/macos/Vendor/yt-dlp/build/
+
+# Monorepo hygiene — the app now lives under apps/macos/. These root-anchored rules guard
+# against stray, pre-restructure leftovers at the repo ROOT only (they never affect the real
+# apps/macos/Packages source or apps/macos/Vendor binaries, which are handled above). The stale
+# root dirs themselves (Vendor/, Packages/, build/, .build-xcode/, CloakDrop.xcodeproj/) are safe
+# to delete — they are duplicates of the apps/macos/ tree.
+/Vendor/
+/Packages/
 
 # Accidental secrets / local config
 *.xcconfig.local
@@ -57,3 +65,25 @@ secrets.plist
 # CloakDrop runtime artifacts (should never be committed)
 *.cdpart
 *.cdparts/
+
+# Brand site (apps/site) — Astro / Node / Wrangler build artifacts & caches
+apps/site/node_modules/
+apps/site/dist/
+apps/site/.astro/
+apps/site/.wrangler/
+apps/site/.dev.vars
+npm-debug.log*
+.env
+.env.*
+
+# Shared brand assets copied into the site from /assets by scripts/sync-assets.mjs.
+# /assets is the single source of truth; these are generated (prebuild → sync:assets, so
+# Cloudflare regenerates them too) and must NOT be committed — that's the de-duplication.
+# Site-specific assets (fonts/, robots.txt) are NOT listed here and stay tracked.
+apps/site/public/logo.svg
+apps/site/public/icon.png
+apps/site/public/favicon.png
+apps/site/public/apple-touch-icon.png
+apps/site/public/og.png
+apps/site/public/hero.webp
+apps/site/public/hero.png

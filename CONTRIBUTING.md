@@ -5,8 +5,10 @@ guiding principles are non-negotiable: **truly native, minimal, fast, and privat
 Electron/web-views, no telemetry, no phone-home.
 
 By participating, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md). For the
-architecture and where things live, see [ARCHITECTURE.md](ARCHITECTURE.md); for what's shipped,
+architecture and where things live, see [ARCHITECTURE.md](apps/macos/ARCHITECTURE.md); for what's shipped,
 see the [README](README.md#-what-it-does).
+
+This repo is a **monorepo**: the macOS app is in `apps/macos/` and the brand site in `apps/site/`. Run the commands below from `apps/macos/`.
 
 ## Prerequisites
 
@@ -18,7 +20,7 @@ see the [README](README.md#-what-it-does).
 
 ```bash
 git clone https://github.com/cloakyard/cloakdrop.git
-cd cloakdrop
+cd cloakdrop/apps/macos
 xcodegen generate        # regenerate the (git-ignored) Xcode project from project.yml
 open CloakDrop.xcodeproj
 ```
@@ -26,7 +28,7 @@ open CloakDrop.xcodeproj
 Run the headless core tests (fast, no GUI):
 
 ```bash
-cd Packages/DownloaderCore
+cd apps/macos/Packages/DownloaderCore
 swift test
 ```
 
@@ -34,9 +36,9 @@ swift test
 
 - **Swift 6, strict concurrency (`complete`).** No data races, no `@unchecked Sendable` unless
   the invariant is documented and lock-guarded. Prefer actors and structured concurrency.
-- **The engine never imports SwiftUI.** All download logic lives in `Packages/DownloaderCore`
-  and must be unit-testable in isolation. UI-only concerns (colors, symbols, formatting) live
-  in the app target.
+- **The engine never imports SwiftUI.** All download logic lives in
+  `apps/macos/Packages/DownloaderCore` and must be unit-testable in isolation. UI-only concerns
+  (colors, symbols, formatting) live in the app target.
 - **Protocol boundaries** for networking (`HTTPClient`), storage (`DownloadStore`), and network
   monitoring (`NetworkPathMonitoring`) so each is mockable.
 - **Pure logic is pure.** Segmentation, backoff, and throttle math are I/O-free functions with
@@ -78,6 +80,6 @@ doubt, ask first.
 
 Ask before introducing any third-party Swift dependency beyond the persistence layer (GRDB).
 Two native command-line tools — **ffmpeg** (muxing) and **yt-dlp** (page extraction) — are bundled
-as code-signed, sandboxed helper binaries via opt-in build scripts (`scripts/fetch-ffmpeg.sh`,
-`scripts/fetch-ytdlp.sh`); both only *read* or *transform* and must add no network egress of their
+as code-signed, sandboxed helper binaries via opt-in build scripts (`apps/macos/scripts/fetch-ffmpeg.sh`,
+`apps/macos/scripts/fetch-ytdlp.sh`); both only *read* or *transform* and must add no network egress of their
 own. Prefer system frameworks (e.g. CryptoKit over swift-crypto).

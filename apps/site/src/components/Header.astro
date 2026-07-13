@@ -1,0 +1,103 @@
+---
+import { site, nav } from '../data/site';
+import Icon from './Icon.astro';
+import Brand from './Brand.astro';
+---
+
+<header class="header">
+  <div class="container bar">
+    <Brand size={44} />
+
+    <nav class="nav" aria-label="Primary">
+      {nav.map((l) => <a href={l.href}>{l.label}</a>)}
+    </nav>
+
+    <div class="actions">
+      <a
+        class="icon-link"
+        href={site.repo}
+        aria-label="CloakDrop on GitHub"
+        rel="noopener"
+      >
+        <Icon name="github" size={20} />
+      </a>
+      <a class="btn btn--primary btn--sm" href={site.releases} rel="noopener">
+        <Icon name="download" size={16} stroke={2} />
+        Download
+      </a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    /* Frosted-glass bar: translucent enough that content blurs through on scroll. */
+    background: color-mix(in srgb, var(--bg) 60%, transparent);
+    backdrop-filter: saturate(180%) blur(26px);
+    -webkit-backdrop-filter: saturate(180%) blur(26px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    height: 4rem;
+  }
+
+  .nav {
+    display: flex;
+    gap: 1.9rem;
+    margin-left: auto;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+
+  .nav a {
+    transition: color 0.15s ease;
+  }
+
+  .nav a:hover {
+    color: var(--accent-ink);
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .icon-link {
+    display: inline-flex;
+    padding: 0.4rem;
+    border-radius: 9px;
+    color: var(--ink-2);
+    transition:
+      color 0.15s ease,
+      background 0.15s ease;
+  }
+
+  .icon-link:hover {
+    color: var(--ink);
+    background: var(--surface-2);
+  }
+
+  @media (max-width: 860px) {
+    .nav {
+      display: none;
+    }
+    .actions {
+      margin-left: auto;
+    }
+  }
+
+  @media (max-width: 440px) {
+    .icon-link {
+      display: none;
+    }
+  }
+</style>

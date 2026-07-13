@@ -1,0 +1,172 @@
+---
+import { provenance } from '../data/site';
+import Kicker from './Kicker.astro';
+import Icon from './Icon.astro';
+---
+
+<section class="section prov">
+  <div class="container">
+    <div class="band">
+      <div class="glow" aria-hidden="true"></div>
+
+      <div class="copy">
+        <Kicker num={provenance.num} label={provenance.label} tone="band" />
+        <h2>{provenance.title}</h2>
+        <p class="body" set:html={provenance.bodyHtml} />
+      </div>
+
+      <div class="receipt" role="img" aria-label="Example provenance receipt: trusted">
+        <div class="r-head">
+          <span>PROVENANCE RECEIPT</span>
+          <Icon name="shield" size={16} />
+        </div>
+        {
+          provenance.receipt.map((r) => (
+            <div class="r-row">
+              <span class="r-k">{r.k}</span>
+              <span class="r-v">{r.v}</span>
+            </div>
+          ))
+        }
+        <div class="r-verdict">
+          <span class="r-k">{provenance.verdict.label}</span>
+          <span class="r-ok">{provenance.verdict.value}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .band {
+    position: relative;
+    overflow: hidden;
+    background: var(--band);
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius-xl);
+    padding: clamp(2.25rem, 5vw, 4rem);
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: clamp(2rem, 5vw, 3.5rem);
+    align-items: center;
+    box-shadow: var(--shadow-window);
+  }
+
+  .glow {
+    position: absolute;
+    top: -120px;
+    right: -80px;
+    width: 420px;
+    height: 420px;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--accent) 55%, transparent),
+      transparent 68%
+    );
+    filter: blur(20px);
+    pointer-events: none;
+  }
+
+  .copy {
+    position: relative;
+  }
+
+  .copy h2 {
+    color: var(--band-ink);
+    margin-top: 1.5rem;
+    font-size: var(--t-h2-band);
+    max-width: 14ch;
+  }
+
+  .body {
+    margin-top: 1.4rem;
+    color: var(--band-ink-2);
+    line-height: 1.7;
+    max-width: 52ch;
+  }
+
+  .body :global(strong) {
+    color: var(--band-ink);
+  }
+
+  .body :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+    color: #cdd6da;
+  }
+
+  /* Receipt card — a light, mono ticket, tilted a touch. --------------------- */
+  .receipt {
+    position: relative;
+    background: #f2f5f6;
+    color: #14191c;
+    border-radius: var(--radius-lg);
+    padding: 1.6rem 1.75rem;
+    font-family: var(--font-mono);
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.5);
+    transform: rotate(1.2deg);
+  }
+
+  .r-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px dashed #c3ccd0;
+    padding-bottom: 0.85rem;
+    margin-bottom: 0.85rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: #14191c;
+  }
+
+  .r-head :global(svg) {
+    color: var(--accent);
+  }
+
+  .r-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.72rem;
+    padding: 0.32rem 0;
+  }
+
+  .r-k {
+    color: #8b9599;
+  }
+
+  .r-v {
+    color: #14191c;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .r-verdict {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px dashed #c3ccd0;
+    margin-top: 0.85rem;
+    padding-top: 0.85rem;
+    font-size: 0.78rem;
+  }
+
+  .r-ok {
+    color: #0a7d3e;
+    font-weight: 700;
+  }
+
+  @media (max-width: 820px) {
+    .band {
+      grid-template-columns: 1fr;
+    }
+    .receipt {
+      max-width: 380px;
+      justify-self: start;
+      transform: rotate(0.8deg);
+    }
+    .copy h2 {
+      max-width: 18ch;
+    }
+  }
+</style>

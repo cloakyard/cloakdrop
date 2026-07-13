@@ -1,0 +1,68 @@
+---
+import { stats } from '../data/site';
+---
+
+<section class="specs-wrap">
+  <div class="container">
+    <dl class="specs">
+      {
+        stats.map((s) => (
+          <div class="cell">
+            <dt class="val" style={s.accent ? 'color:var(--accent-ink)' : undefined}>
+              {s.value}
+            </dt>
+            <dd class="lbl">{s.label}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</section>
+
+<style>
+  .specs-wrap {
+    margin-top: clamp(2rem, 4vw, 3rem);
+  }
+
+  .specs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-block: 1px solid var(--line-2);
+    margin: 0;
+  }
+
+  .cell {
+    padding: clamp(1.4rem, 3vw, 2rem) clamp(1rem, 2.5vw, 2rem);
+  }
+
+  .cell + .cell {
+    border-left: 1px solid var(--line);
+  }
+
+  .val {
+    font-size: clamp(1.9rem, 1.1rem + 2.6vw, 2.75rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .lbl {
+    margin: 0.4rem 0 0;
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    color: var(--ink-4);
+  }
+
+  @media (max-width: 640px) {
+    .specs {
+      grid-template-columns: 1fr 1fr;
+    }
+    .cell:nth-child(3) {
+      border-left: 0;
+    }
+    .cell:nth-child(n + 3) {
+      border-top: 1px solid var(--line);
+    }
+  }
+</style>

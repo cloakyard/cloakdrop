@@ -1,0 +1,15 @@
+{
+  // Cloudflare Workers — static-assets only. The Astro build outputs plain HTML/CSS
+  // to ./dist, and Workers serves it straight from the edge. No `main` worker script
+  // is needed for a purely static site; add one later only if a dynamic route is wanted.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cloakdrop-site",
+  "compatibility_date": "2026-07-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

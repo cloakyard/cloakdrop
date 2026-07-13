@@ -1,0 +1,103 @@
+---
+import { capture } from '../data/site';
+import Kicker from './Kicker.astro';
+---
+
+<section class="section capture">
+  <div class="container">
+    <Kicker num={capture.num} label={capture.label} />
+
+    <div class="head">
+      <h2>{capture.title}</h2>
+      <p class="lead">{capture.lead}</p>
+    </div>
+
+    <div class="grid">
+      {
+        capture.items.map((f) => (
+          <article class="cell">
+            <span class="n">{f.n}</span>
+            <h3>{f.title}</h3>
+            <p>{f.body}</p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: clamp(1.5rem, 4vw, 2.5rem);
+    margin-top: 1.4rem;
+    margin-bottom: clamp(2rem, 4vw, 3rem);
+  }
+
+  .head h2 {
+    max-width: 13ch;
+  }
+
+  .head .lead {
+    width: min(360px, 100%);
+    flex: none;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--line-2);
+  }
+
+  .cell {
+    padding: clamp(1.75rem, 3vw, 2.2rem) clamp(1.25rem, 2.5vw, 2rem) clamp(2rem, 4vw, 2.5rem);
+    padding-left: 0;
+  }
+
+  .cell + .cell {
+    border-left: 1px solid var(--line);
+    padding-left: clamp(1.25rem, 2.5vw, 2rem);
+  }
+
+  .n {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--accent-ink);
+    margin-bottom: 1.1rem;
+  }
+
+  .cell h3 {
+    font-size: var(--t-h3);
+  }
+
+  .cell p {
+    margin-top: 0.6rem;
+    color: var(--ink-3);
+    font-size: 0.9375rem;
+  }
+
+  @media (max-width: 860px) {
+    .head {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .head .lead {
+      width: 100%;
+    }
+    .grid {
+      grid-template-columns: 1fr;
+    }
+    .cell,
+    .cell + .cell {
+      border-left: 0;
+      padding-left: 0;
+    }
+    .cell + .cell {
+      border-top: 1px solid var(--line);
+    }
+  }
+</style>
