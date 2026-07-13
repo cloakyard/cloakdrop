@@ -30,15 +30,15 @@ func hex(_ s: String, _ a: CGFloat = 1) -> NSColor {
     return NSColor(srgbRed: CGFloat((v >> 16) & 0xff) / 255, green: CGFloat((v >> 8) & 0xff) / 255,
                    blue: CGFloat(v & 0xff) / 255, alpha: a)
 }
-// Near-white neutral canvas — the purple lives only in the accent elements (icon glow, arrow,
+// Near-white neutral canvas — the teal lives only in the accent elements (icon glow, arrow,
 // drop-zone ring), so the art reads clean rather than tinted.
 let bgTop = hex("#fdfdfe"), bgBot = hex("#f2f2f6")
 let ink        = hex("#1a1a22")   // wordmark
 let desc       = hex("#63636e")   // description
-let accent     = hex("#7a6ef6")   // arrow / ring / glow periwinkle
-let accentDeep = hex("#6a5ae0")   // arrowhead
+let accent     = hex("#3f97a3")   // arrow / ring / glow teal
+let accentDeep = hex("#2f7d88")   // arrowhead
 let dividerCol = hex("#8f8f9a")   // "DRAG TO INSTALL" — neutral, tracked caps
-let hairline   = hex("#141428")   // borders & divider lines (used at low alpha)
+let hairline   = hex("#14201f")   // borders & divider lines (used at low alpha)
 let stageFill  = hex("#ffffff")
 
 func font(_ size: CGFloat, _ weight: NSFont.Weight) -> NSFont { NSFont.systemFont(ofSize: size, weight: weight) }
@@ -79,16 +79,16 @@ let image = NSImage(size: NSSize(width: W, height: H), flipped: true) { _ in
     if let bg = NSGradient(colors: [bgTop, bgBot]) {
         bg.draw(in: NSRect(x: 0, y: 0, width: W, height: H), angle: -90)
     }
-    radialGlow(cx: W / 2, cy: -40, radius: 460, color: hex("#7a6ef6", 0.05))
+    radialGlow(cx: W / 2, cy: -40, radius: 460, color: hex("#3f97a3", 0.05))
 
     // ── Masthead: glowing app icon + wordmark + two-line pitch ──────────────────────────────────
     let hIcon: CGFloat = 62, hIconX: CGFloat = 60, hIconY: CGFloat = 40
     let hIconCenter = NSPoint(x: hIconX + hIcon / 2, y: hIconY + hIcon / 2)
-    radialGlow(cx: hIconCenter.x, cy: hIconCenter.y + 2, radius: 50, color: hex("#7868f0", 0.20))
+    radialGlow(cx: hIconCenter.x, cy: hIconCenter.y + 2, radius: 50, color: hex("#4fa3ae", 0.20))
     if let logo = NSImage(contentsOfFile: iconPath) {
         ctx.saveGraphicsState()
         let shadow = NSShadow()
-        shadow.shadowColor = hex("#20204a", 0.22)
+        shadow.shadowColor = hex("#14201f", 0.22)
         shadow.shadowBlurRadius = 12
         shadow.shadowOffset = NSSize(width: 0, height: -5)
         shadow.set()
@@ -120,7 +120,7 @@ let image = NSImage(size: NSSize(width: W, height: H), flipped: true) { _ in
     // no interior tint.
     ctx.saveGraphicsState()
     let cardShadow = NSShadow()
-    cardShadow.shadowColor = hex("#20204a", 0.10)
+    cardShadow.shadowColor = hex("#14201f", 0.10)
     cardShadow.shadowBlurRadius = 22
     cardShadow.shadowOffset = NSSize(width: 0, height: -8)
     cardShadow.set()
@@ -135,7 +135,7 @@ let image = NSImage(size: NSSize(width: W, height: H), flipped: true) { _ in
     let appSlot = NSPoint(x: 200, y: 258), appsSlot = NSPoint(x: 560, y: 258)
 
     // Soft glow grounding the real app icon.
-    radialGlow(cx: appSlot.x, cy: appSlot.y + 4, radius: 62, color: hex("#5c4adc", 0.16))
+    radialGlow(cx: appSlot.x, cy: appSlot.y + 4, radius: 62, color: hex("#276169", 0.16))
 
     // Dashed drop-zone ring framing the real Applications folder.
     let ring = NSBezierPath(ovalIn: NSRect(x: appsSlot.x - 56, y: appsSlot.y - 56, width: 112, height: 112))

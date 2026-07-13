@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The About page's hero header — the app icon, name, and version on a soft brand-purple card —
+/// The About page's hero header — the app icon, name, and version on a soft grouped-Form card —
 /// with a hidden, replayable easter egg. Tap the icon five times and the whole header fills with
 /// Matrix "digital rain"; tap anywhere on it while it's raining to switch it off and re-arm the
 /// counter. The gag is purely decorative; only the version line (whose key lives elsewhere) is

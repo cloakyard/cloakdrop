@@ -12,7 +12,7 @@ let package = Package(
         .library(name: "DownloadEngine", targets: ["DownloadEngine"])
     ],
     dependencies: [
-        .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.0.0")
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.11.1")
     ],
     targets: [
         // MARK: Models — pure value types, no dependencies.

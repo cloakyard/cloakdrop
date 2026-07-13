@@ -44,6 +44,14 @@ apps/macos/Vendor/yt-dlp/yt-dlp
 apps/macos/Vendor/yt-dlp/_internal/
 apps/macos/Vendor/yt-dlp/build/
 
+# Monorepo hygiene — the app now lives under apps/macos/. These root-anchored rules guard
+# against stray, pre-restructure leftovers at the repo ROOT only (they never affect the real
+# apps/macos/Packages source or apps/macos/Vendor binaries, which are handled above). The stale
+# root dirs themselves (Vendor/, Packages/, build/, .build-xcode/, CloakDrop.xcodeproj/) are safe
+# to delete — they are duplicates of the apps/macos/ tree.
+/Vendor/
+/Packages/
+
 # Accidental secrets / local config
 *.xcconfig.local
 secrets.plist

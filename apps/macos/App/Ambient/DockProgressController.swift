@@ -34,7 +34,7 @@ final class DockProgressController {
 
 /// Custom Dock tile content: the app icon under a dark circular HUD with a bright white
 /// progress ring and percentage. White-on-dark is used deliberately so the *filled* portion
-/// of the ring stays legible regardless of the (indigo) app icon or the user's accent color.
+/// of the ring stays legible regardless of the (sage-teal) app icon or the user's accent color.
 private final class DockTileView: NSView {
     var fraction: Double = 0
 
