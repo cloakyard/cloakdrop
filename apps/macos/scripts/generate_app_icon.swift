@@ -74,7 +74,7 @@ ctx.setShadow(offset: .zero, blur: 0, color: nil)
 // polygon (stem + head in a single subpath) so there are no internal edges — an earlier
 // two-subpath version (rect + triangle) had opposite windings, and the default nonzero fill
 // canceled their overlap into a thin unfilled "white line" across the arrow.
-let arrowColor = CGColor(red: 0.106, green: 0.176, blue: 0.353, alpha: 1.0) // deep ocean navy #1B2D5A — reads on the white droplet
+let arrowColor = CGColor(red: 0.122, green: 0.392, blue: 0.502, alpha: 1.0) // deep-ocean teal #1F6480 — a vivid brand-hue arrow (the teal analog of the original indigo arrow), not a near-black navy
 let aW = size * 0.16                 // full arrowhead width
 let aTop = size * 0.62               // top of the stem
 let aBottom = size * 0.40            // arrow tip (points down)
