@@ -129,7 +129,11 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  overflow-x: hidden;
+  /* `clip` (not `hidden`) prevents sideways overflow WITHOUT making <body> a
+     scroll container — `overflow-x: hidden` would force overflow-y to `auto`,
+     and a scroll-container ancestor stops the sticky header's backdrop-filter
+     from sampling the page, killing the frosted-glass blur. */
+  overflow-x: clip;
 }
 
 h1,
