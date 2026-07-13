@@ -31,7 +31,11 @@ public final class GRDBDownloadStore: DownloadStore {
 
     private var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("v1.createTables") { db in
+        // v1 — the complete initial schema in a single migration. The app is pre-release, so there
+        // are no databases in the wild to preserve: the whole v1 database is defined here as one
+        // rock-solid baseline. Once the app ships, evolve the schema by appending new
+        // `registerMigration("v2…")` blocks below — never edit this v1 block after release.
+        migrator.registerMigration("v1") { db in
             try db.create(table: "queue") { t in
                 t.primaryKey("id", .text)
                 t.column("name", .text).notNull()
@@ -52,19 +56,15 @@ public final class GRDBDownloadStore: DownloadStore {
                 t.primaryKey("id", .integer)
                 t.column("payload", .blob).notNull()
             }
-        }
-        migrator.registerMigration("v2.createRuleTable") { db in
             try db.create(table: "rule") { t in
                 t.primaryKey("id", .text)
                 t.column("orderIndex", .integer).notNull()
                 t.column("isEnabled", .boolean).notNull()
                 t.column("payload", .blob).notNull()
             }
-        }
-        // Lifetime download stats: one row per calendar day (key "yyyy-MM-dd", the user's local day),
-        // so today / this-month / all-time totals are all derivable by SQL sum. Accumulated once per
-        // completed download.
-        migrator.registerMigration("v3.createStatsTable") { db in
+            // Lifetime download stats: one row per calendar day (key "yyyy-MM-dd", the user's local
+            // day), so today / this-month / all-time totals are all derivable by SQL sum. Accumulated
+            // once per completed download.
             try db.create(table: "statsDaily") { t in
                 t.primaryKey("day", .text)
                 t.column("bytes", .integer).notNull().defaults(to: 0)
