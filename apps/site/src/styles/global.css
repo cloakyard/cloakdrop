@@ -4,14 +4,15 @@
  * Native-macOS foundation (SF system type, hairline borders, translucency) with a
  * modern, layered treatment: aurora hero glow, gradient-lit surfaces, a bento
  * feature grid, and an inverted premium band. Accent is CloakDrop's own AccentColor
- * (Assets.xcassets) — teal #3F97A3 light / #63B4BF dark — so web and app read as
- * one brand. Theme follows the OS via prefers-color-scheme, like a native Mac app.
+ * (Assets.xcassets) — deep-ocean #2A7B9B light / #5EB6C9 dark, echoing the app icon's
+ * turquoise→navy gradient — so web and app read as one brand. Theme follows the OS via
+ * prefers-color-scheme, like a native Mac app.
  */
 
 :root {
-  --accent: #3f97a3;
-  --accent-2: #4fa3ae;
-  --accent-hover: #357e89;
+  --accent: #2a7b9b;
+  --accent-2: #3aa6b0;
+  --accent-hover: #226880;
   --accent-contrast: #ffffff;
   --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
   --accent-glow: color-mix(in srgb, var(--accent) 40%, transparent);
@@ -54,10 +55,10 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --accent: #63b4bf;
-    --accent-2: #7cc4ce;
-    --accent-hover: #7abcc6;
-    --accent-contrast: #0e1a1a;
+    --accent: #5eb6c9;
+    --accent-2: #7fd0dc;
+    --accent-hover: #6ec6d6;
+    --accent-contrast: #0a1622;
     --accent-soft: color-mix(in srgb, var(--accent) 18%, transparent);
     --accent-glow: color-mix(in srgb, var(--accent) 50%, transparent);
 

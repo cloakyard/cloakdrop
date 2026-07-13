@@ -7,7 +7,8 @@ import AppKit
 //     sips -z $s $s /tmp/icon_1024.png --out App/Resources/Assets.xcassets/AppIcon.appiconset/icon_$s.png
 //   done
 //
-// Design: teal squircle (light→deep #3F97A3 family), a white shield/droplet, and a single downward arrow.
+// Design: a "deep ocean" squircle — bright turquoise melting through ocean-blue into deep midnight
+// navy (à la Freeform) — with a white shield/droplet and a single downward arrow.
 
 let size = 1024.0
 let rep = NSBitmapImageRep(
@@ -19,8 +20,8 @@ NSGraphicsContext.saveGraphicsState()
 NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
 let ctx = NSGraphicsContext.current!.cgContext
 
-// Rounded-square background with a sage-teal gradient (light top-left → deep bottom-right),
-// centred on the brand accent #3F97A3 and run a touch deeper toward the corner so the white droplet reads.
+// Rounded-square background with a deep-ocean gradient: bright turquoise (top-left) → ocean-blue →
+// deep midnight navy (bottom-right). The dark bottom makes the white droplet pop.
 let inset = size * 0.06
 let rect = CGRect(x: inset, y: inset, width: size - inset * 2, height: size - inset * 2)
 let corner = rect.width * 0.2237   // squircle-ish radius
@@ -29,10 +30,11 @@ ctx.addPath(bgPath)
 ctx.clip()
 
 let colors = [
-    CGColor(red: 0.310, green: 0.639, blue: 0.682, alpha: 1.0), // light teal #4FA3AE
-    CGColor(red: 0.208, green: 0.494, blue: 0.537, alpha: 1.0)  // deep teal #357E89
+    CGColor(red: 0.298, green: 0.788, blue: 0.796, alpha: 1.0), // bright turquoise #4CC9CB
+    CGColor(red: 0.165, green: 0.482, blue: 0.608, alpha: 1.0), // ocean blue #2A7B9B
+    CGColor(red: 0.094, green: 0.165, blue: 0.333, alpha: 1.0)  // deep midnight navy #182A55
 ] as CFArray
-let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors, locations: [0, 1])!
+let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors, locations: [0, 0.5, 1])!
 ctx.drawLinearGradient(gradient, start: CGPoint(x: rect.minX, y: rect.maxY), end: CGPoint(x: rect.maxX, y: rect.minY), options: [])
 
 ctx.resetClip()
@@ -72,7 +74,7 @@ ctx.setShadow(offset: .zero, blur: 0, color: nil)
 // polygon (stem + head in a single subpath) so there are no internal edges — an earlier
 // two-subpath version (rect + triangle) had opposite windings, and the default nonzero fill
 // canceled their overlap into a thin unfilled "white line" across the arrow.
-let arrowColor = CGColor(red: 0.153, green: 0.380, blue: 0.412, alpha: 1.0) // deep teal #276169 — reads on the white droplet
+let arrowColor = CGColor(red: 0.106, green: 0.176, blue: 0.353, alpha: 1.0) // deep ocean navy #1B2D5A — reads on the white droplet
 let aW = size * 0.16                 // full arrowhead width
 let aTop = size * 0.62               // top of the stem
 let aBottom = size * 0.40            // arrow tip (points down)
