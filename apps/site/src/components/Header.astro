@@ -1,27 +1,15 @@
 ---
-import { site } from '../data/site';
+import { site, nav } from '../data/site';
 import Icon from './Icon.astro';
+import Brand from './Brand.astro';
 ---
 
 <header class="header">
   <div class="container bar">
-    <a class="brand" href="/" aria-label={`${site.name} home`}>
-      <img
-        class="brand-mark"
-        src="/icon.png"
-        width="30"
-        height="30"
-        alt=""
-        loading="eager"
-        decoding="async"
-      />
-      <span class="brand-name">{site.name}</span>
-    </a>
+    <Brand size={30} />
 
     <nav class="nav" aria-label="Primary">
-      <a href="#features">Features</a>
-      <a href="#privacy">Privacy</a>
-      <a href="#suite">Suite</a>
+      {nav.map((l) => <a href={l.href}>{l.label}</a>)}
     </nav>
 
     <div class="actions">
@@ -34,7 +22,7 @@ import Icon from './Icon.astro';
         <Icon name="github" size={20} />
       </a>
       <a class="btn btn--primary btn--sm" href={site.releases} rel="noopener">
-        <Icon name="download" size={18} />
+        <Icon name="download" size={16} stroke={2} />
         Download
       </a>
     </div>
@@ -46,39 +34,26 @@ import Icon from './Icon.astro';
     position: sticky;
     top: 0;
     z-index: 50;
-    background: var(--surface-glass);
+    background: color-mix(in srgb, var(--bg) 78%, transparent);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--line);
   }
 
   .bar {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    height: 3.75rem;
-  }
-
-  .brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-weight: 640;
-    letter-spacing: -0.01em;
-    font-size: 1.05rem;
-  }
-
-  .brand-mark {
-    border-radius: 7px;
+    gap: 1.75rem;
+    height: 4rem;
   }
 
   .nav {
     display: flex;
-    gap: 1.6rem;
-    margin-inline: auto;
-    font-size: var(--step--1);
-    font-weight: 520;
-    color: var(--text-secondary);
+    gap: 1.9rem;
+    margin-left: auto;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--ink-2);
   }
 
   .nav a {
@@ -86,41 +61,42 @@ import Icon from './Icon.astro';
   }
 
   .nav a:hover {
-    color: var(--text);
+    color: var(--accent-ink);
   }
 
   .actions {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1rem;
   }
 
   .icon-link {
     display: inline-flex;
-    padding: 0.45rem;
-    border-radius: 8px;
-    color: var(--text-secondary);
+    padding: 0.4rem;
+    border-radius: 9px;
+    color: var(--ink-2);
     transition:
       color 0.15s ease,
       background 0.15s ease;
   }
 
   .icon-link:hover {
-    color: var(--text);
-    background: var(--bg-subtle);
+    color: var(--ink);
+    background: var(--surface-2);
   }
 
-  .btn--sm {
-    padding: 0.55rem 1rem;
-    font-size: var(--step--1);
-  }
-
-  @media (max-width: 640px) {
+  @media (max-width: 860px) {
     .nav {
       display: none;
     }
-    .brand {
-      margin-inline-end: auto;
+    .actions {
+      margin-left: auto;
+    }
+  }
+
+  @media (max-width: 440px) {
+    .icon-link {
+      display: none;
     }
   }
 </style>

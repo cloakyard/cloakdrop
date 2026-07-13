@@ -1,82 +1,109 @@
 /*
  * CloakDrop brand site — design system.
  *
- * Native-macOS foundation (SF system type, hairline borders, translucency) with a
- * modern, layered treatment: aurora hero glow, gradient-lit surfaces, a bento
- * feature grid, and an inverted premium band. Accent is CloakDrop's own AccentColor
- * (Assets.xcassets) — deep-ocean #2A7B9B light / #5EB6C9 dark, echoing the app icon's
- * turquoise→navy gradient — so web and app read as one brand. Theme follows the OS via
- * prefers-color-scheme, like a native Mac app.
+ * Editorial / magazine treatment: self-hosted Archivo (heavy display) + JetBrains Mono
+ * (labels & data), numbered sections, hairline rules, and generous whitespace on
+ * CloakDrop's deep-ocean accent (#2A7B9B). Fonts are self-hosted (privacy: no Google
+ * Fonts request — nothing the page loads leaves the reader's machine to a third party).
+ * Theme follows the OS via prefers-color-scheme, like a native Mac app.
  */
 
+/* Self-hosted variable fonts — one file per family covers every weight ------ */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 100 900;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('/fonts/archivo-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url('/fonts/jetbrains-mono-latin.woff2') format('woff2');
+}
+
 :root {
+  /* Deep-ocean accent — echoes the app icon's turquoise→navy gradient. */
   --accent: #2a7b9b;
-  --accent-2: #3aa6b0;
-  --accent-hover: #226880;
-  --accent-contrast: #ffffff;
-  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
-  --accent-glow: color-mix(in srgb, var(--accent) 40%, transparent);
+  --accent-strong: #1f6480;
+  --accent-soft: color-mix(in srgb, var(--accent) 11%, transparent);
+  --accent-ink: #2a7b9b; /* accent used as text on light surfaces */
 
-  --bg: #fbfbfd;
-  --bg-subtle: #f1f1f5;
+  --bg: #f2f5f6;
   --surface: #ffffff;
-  --surface-2: #f7f7fa;
-  --surface-glass: rgba(255, 255, 255, 0.72);
-  --text: #1d1d1f;
-  --text-secondary: #55555a;
-  --text-tertiary: #86868b;
-  --border: rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.14);
-  --hairline: rgba(0, 0, 0, 0.05);
+  --surface-2: #eef3f5;
+  --tint: #e7f0f3; /* icon-tile / accent wash */
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 18px 50px -18px rgba(20, 20, 45, 0.24);
-  --shadow-window: 0 40px 90px -30px rgba(20, 20, 50, 0.4);
-  --shadow-glow: 0 12px 40px -12px var(--accent-glow);
+  --ink: #14191c; /* headings */
+  --ink-2: #4c565c; /* body */
+  --ink-3: #6c767c; /* muted body */
+  --ink-4: #8b9599; /* mono labels / captions */
 
-  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
-    'Segoe UI', system-ui, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Menlo', monospace;
+  --line: #e6ebed; /* hairline */
+  --line-2: #dde4e6; /* structural rule */
 
-  --step--1: clamp(0.83rem, 0.8rem + 0.15vw, 0.9rem);
-  --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.075rem);
-  --step-1: clamp(1.18rem, 1.08rem + 0.5vw, 1.4rem);
-  --step-2: clamp(1.5rem, 1.3rem + 1vw, 2rem);
-  --step-3: clamp(2rem, 1.55rem + 2.1vw, 3.15rem);
-  --step-4: clamp(2.7rem, 1.9rem + 3.9vw, 4.75rem);
+  --band: #0c1114; /* inverted (dark) band */
+  --band-ink: #ffffff;
+  --band-ink-2: #aeb8bd;
+  --band-accent: #7fbdd1;
+  --positive: #0a7d3e;
 
-  --container: 1120px;
+  --shadow-window: 0 30px 80px -30px rgba(12, 17, 20, 0.4);
+  --shadow-card: 0 20px 50px -28px rgba(12, 17, 20, 0.35);
+  --shadow-btn: 0 12px 26px -12px color-mix(in srgb, var(--accent) 70%, transparent);
+
+  --font-sans: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
+    'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Menlo', monospace;
+
+  /* Fluid type scale */
+  --t-mono: clamp(0.72rem, 0.68rem + 0.14vw, 0.78rem);
+  --t-body: clamp(0.95rem, 0.92rem + 0.14vw, 1rem);
+  --t-lead: clamp(1rem, 0.95rem + 0.28vw, 1.125rem);
+  --t-h3: clamp(1.1rem, 0.98rem + 0.5vw, 1.3rem);
+  --t-h3-lg: clamp(1.3rem, 1.05rem + 1vw, 1.625rem);
+  --t-h2-band: clamp(1.9rem, 1.3rem + 2.5vw, 3rem);
+  --t-h2: clamp(2rem, 1.2rem + 3.4vw, 3.375rem);
+  --t-h1: clamp(2.6rem, 1.2rem + 6vw, 4.75rem);
+
+  --page-max: 1280px;
+  --gutter: clamp(1.25rem, 5vw, 3rem);
   --radius: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 26px;
-  --gutter: clamp(1.25rem, 4vw, 2.5rem);
-  --section-y: clamp(4.5rem, 9vw, 8.5rem);
+  --radius-lg: 14px;
+  --radius-xl: 22px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --accent: #5eb6c9;
-    --accent-2: #7fd0dc;
-    --accent-hover: #6ec6d6;
-    --accent-contrast: #0a1622;
-    --accent-soft: color-mix(in srgb, var(--accent) 18%, transparent);
-    --accent-glow: color-mix(in srgb, var(--accent) 50%, transparent);
+    --accent-strong: #7fd0dc;
+    --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
+    --accent-ink: #6fc4d6;
 
-    --bg: #08080b;
-    --bg-subtle: #101015;
-    --surface: #141419;
-    --surface-2: #1a1a21;
-    --surface-glass: rgba(20, 20, 26, 0.66);
-    --text: #f5f5f7;
-    --text-secondary: #b6b6bd;
-    --text-tertiary: #85858c;
-    --border: rgba(255, 255, 255, 0.1);
-    --border-strong: rgba(255, 255, 255, 0.18);
-    --hairline: rgba(255, 255, 255, 0.06);
+    --bg: #0a0e10;
+    --surface: #13191c;
+    --surface-2: #171f22;
+    --tint: #14262c;
 
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 18px 50px -18px rgba(0, 0, 0, 0.7);
-    --shadow-window: 0 40px 90px -28px rgba(0, 0, 0, 0.8);
+    --ink: #f1f6f7;
+    --ink-2: #b3bec3;
+    --ink-3: #8b969b;
+    --ink-4: #6d787d;
+
+    --line: rgba(255, 255, 255, 0.08);
+    --line-2: rgba(255, 255, 255, 0.12);
+
+    --band: #05080a;
+    --band-ink: #ffffff;
+    --band-ink-2: #9aa4a9;
+    --band-accent: #7fbdd1;
+    --positive: #35c980;
+
+    --shadow-window: 0 30px 80px -30px rgba(0, 0, 0, 0.8);
+    --shadow-card: 0 24px 60px -30px rgba(0, 0, 0, 0.75);
   }
 }
 
@@ -90,39 +117,43 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
-  scroll-padding-top: 5.5rem;
+  scroll-padding-top: 5rem;
 }
 
 body {
-  font-family: var(--font);
-  font-size: var(--step-0);
+  font-family: var(--font-sans);
+  font-size: var(--t-body);
   line-height: 1.62;
-  color: var(--text);
+  color: var(--ink-2);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  font-feature-settings: 'kern', 'liga', 'ss01';
   overflow-x: hidden;
 }
 
 h1,
 h2,
 h3 {
-  line-height: 1.06;
-  letter-spacing: -0.026em;
-  font-weight: 660;
+  color: var(--ink);
+  font-weight: 900;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
   text-wrap: balance;
 }
 
-h2 {
-  font-size: var(--step-3);
+h1 {
+  font-size: var(--t-h1);
 }
-
+h2 {
+  font-size: var(--t-h2);
+  line-height: 1;
+}
 h3 {
-  font-size: var(--step-1);
-  letter-spacing: -0.015em;
-  font-weight: 600;
+  font-size: var(--t-h3);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
 p {
@@ -134,10 +165,24 @@ a {
   text-decoration: none;
 }
 
+strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
 img,
 svg {
   display: block;
   max-width: 100%;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
 }
 
 :focus-visible {
@@ -146,78 +191,90 @@ svg {
   border-radius: 4px;
 }
 
-::selection {
-  background: color-mix(in srgb, var(--accent) 26%, transparent);
-}
-
-/* Layout helpers ---------------------------------------------------------- */
+/* Layout primitives ------------------------------------------------------- */
 
 .container {
   width: 100%;
-  max-width: var(--container);
+  max-width: var(--page-max);
   margin-inline: auto;
   padding-inline: var(--gutter);
 }
 
+/* Vertical rhythm for the numbered content sections. */
 .section {
-  padding-block: var(--section-y);
+  padding-block: clamp(2.75rem, 5.5vw, 4.5rem);
 }
 
-.gradient-text {
-  background: linear-gradient(105deg, var(--accent), var(--accent-2) 70%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+/* Full-width hairline that lines up with the container edges. */
+.rule {
+  border: 0;
+  border-top: 1px solid var(--line-2);
 }
 
-/* Plain text kicker — deliberately not a pill. */
-.eyebrow {
-  display: block;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.09em;
+/* Mono kicker: "01 — THE ENGINE" with a leading tick. Accent by default. */
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: var(--t-mono);
+  font-weight: 500;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 1rem;
+  color: var(--accent-ink);
 }
 
-.section-lead {
-  max-width: 46ch;
-  color: var(--text-secondary);
-  font-size: var(--step-1);
-  margin-top: 1rem;
+.kicker::before {
+  content: '';
+  width: 26px;
+  height: 1px;
+  background: currentColor;
+}
+
+.eyebrow {
+  color: var(--ink-4);
+  font-family: var(--font-mono);
+  font-size: var(--t-mono);
+  letter-spacing: 0.04em;
+}
+
+.lead {
+  color: var(--ink-2);
+  font-size: var(--t-lead);
+  line-height: 1.62;
+}
+
+.accent {
+  color: var(--accent-ink);
 }
 
 /* Buttons ----------------------------------------------------------------- */
 
 .btn {
-  --btn-bg: var(--surface);
-  --btn-fg: var(--text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.55rem;
   font: inherit;
-  font-size: var(--step-0);
-  font-weight: 570;
+  font-weight: 600;
+  font-size: var(--t-body);
   line-height: 1;
-  padding: 0.9rem 1.5rem;
-  border-radius: 999px;
-  border: 1px solid var(--border-strong);
-  background: var(--btn-bg);
-  color: var(--btn-fg);
+  padding: 0.85rem 1.35rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--ink);
   cursor: pointer;
+  white-space: nowrap;
   transition:
     transform 0.16s ease,
-    background 0.16s ease,
+    box-shadow 0.16s ease,
     border-color 0.16s ease,
-    box-shadow 0.16s ease;
-  white-space: nowrap;
+    background 0.16s ease;
 }
 
 .btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
 }
 
 .btn:active {
@@ -225,56 +282,23 @@ svg {
 }
 
 .btn--primary {
-  --btn-fg: var(--accent-contrast);
   border-color: transparent;
-  background: linear-gradient(180deg, var(--accent-2), var(--accent));
-  box-shadow: var(--shadow-glow);
+  background: var(--accent);
+  color: #fff;
+  box-shadow: var(--shadow-btn);
 }
 
 .btn--primary:hover {
-  box-shadow:
-    var(--shadow-glow),
-    0 8px 24px -8px var(--accent-glow);
-  filter: brightness(1.04);
+  background: color-mix(in srgb, var(--accent) 92%, #000);
 }
 
-.btn--ghost {
-  --btn-bg: color-mix(in srgb, var(--surface) 70%, transparent);
-  backdrop-filter: blur(8px);
+.btn--sm {
+  padding: 0.6rem 1rem;
+  font-size: var(--t-mono);
+  letter-spacing: 0.01em;
 }
 
-/* Card system (shared by features & suite) -------------------------------- */
-
-.surface-card {
-  position: relative;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: inset 0 1px 0 var(--hairline);
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.surface-card:hover {
-  transform: translateY(-4px);
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
-  box-shadow: var(--shadow-lg);
-}
-
-.icon-tile {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 13px;
-  color: var(--accent);
-  background: linear-gradient(160deg, var(--accent-soft), transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
-}
-
+/* Reduced motion ---------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -283,6 +307,7 @@ svg {
   *::before,
   *::after {
     animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
 }
@@ -290,10 +315,10 @@ svg {
 .skip-link {
   position: absolute;
   left: 1rem;
-  top: -3rem;
+  top: -4rem;
   z-index: 100;
   background: var(--accent);
-  color: var(--accent-contrast);
+  color: #fff;
   padding: 0.6rem 1rem;
   border-radius: 10px;
   transition: top 0.2s ease;

@@ -4,9 +4,13 @@ The marketing site for **CloakDrop**, hosted at **[drop.cloakyard.com](https://d
 
 - **Stack:** [Astro](https://astro.build) 7 — fully static output, zero client-side JS.
 - **Host:** Cloudflare **Workers static assets** (`wrangler.jsonc` → serves `dist/` from the edge).
-- **Design:** native-macOS aesthetic on CloakDrop's own accent (`#5B5BDE` / `#827EEA`); follows the OS light/dark theme via `prefers-color-scheme`.
+- **Design:** editorial / magazine layout — numbered sections, hairline rules, self-hosted **Archivo** (heavy display) + **JetBrains Mono** (labels & data) on CloakDrop's deep-ocean accent (`#2A7B9B`). Follows the OS light/dark theme via `prefers-color-scheme`. Fonts are self-hosted (no Google Fonts request) to keep the privacy story intact.
 
-Part of the CloakDrop monorepo — the macOS app lives in [`../macos`](../macos).
+Part of the CloakDrop monorepo — the macOS app lives in [`../macos`](../macos). Shared brand
+assets (logo, favicons, OG card, hero screenshot) are **not** stored here — they live in the
+repo-root [`/assets`](../../assets) folder and are copied into `public/` at build time by
+`scripts/sync-assets.mjs` (runs automatically via the `prebuild` npm hook). See
+[`/assets/README.md`](../../assets/README.md).
 
 ## Develop
 
@@ -30,20 +34,27 @@ npm run check        # astro type-check (0 errors expected)
 apps/site/
 ├── astro.config.mjs        # static config + sitemap; site = drop.cloakyard.com
 ├── wrangler.jsonc          # Cloudflare Workers static-assets (serves ./dist)
-├── public/                 # favicon, icons, og.png, hero.png (real app screenshot), robots.txt
+├── public/
+│   ├── fonts/              # self-hosted Archivo + JetBrains Mono (variable woff2) — tracked
+│   ├── robots.txt          # tracked
+│   └── logo.svg, *.png …   # brand assets — GENERATED from /assets by sync-assets (git-ignored)
 └── src/
-    ├── data/site.ts        # ← all copy, links, features, stats (single source of truth)
-    ├── layouts/BaseLayout  # <head>, SEO/OG, JSON-LD, theme-color
-    ├── components/         # Header · Hero · Features · Privacy · Suite · Footer · Icon
-    ├── pages/index.astro   # the one page
-    └── styles/global.css   # design tokens (light/dark) + shared primitives
+    ├── data/site.ts        # ← all copy, links, section content (single source of truth)
+    ├── layouts/BaseLayout  # <head>, SEO/OG, JSON-LD, theme-color, font preloads
+    ├── components/         # Header · Hero · SpecStrip · Engine · Provenance · Capture ·
+    │                       #   Details · Privacy · UnderTheHood · Suite · Footer
+    │                       #   + shared: Icon · Kicker (numbered label) · Brand (logo lockup)
+    ├── pages/index.astro   # the one page — composes the sections in order
+    └── styles/global.css   # @font-face + design tokens (light/dark) + shared primitives
 ```
 
-Edit copy in [`src/data/site.ts`](src/data/site.ts); components read from it. The hero image
-(`public/hero.png`) is a real screenshot of the app mid-download — regenerate it from the app
-if the UI changes. The favicon / touch icon / logo use the **glassified** (Liquid Glass) app
-icon as macOS Tahoe renders it, and `public/og.png` is a 1200×630 branded share card built
-from it — regenerate both from a fresh app build if the icon changes.
+Edit copy in [`src/data/site.ts`](src/data/site.ts); components read from it. Brand assets
+(the `logo.svg` mark, favicons, `og.png`, `hero.webp`/`hero.png`) are the **generated** copies
+of the sources in [`/assets`](../../assets) — edit them there, not in `public/`, then rerun
+`npm run build` (or `npm run sync:assets`). The logo is a scalable SVG mark echoing the
+**glassified** (Liquid Glass) app icon; the hero is a real, transparent-background screenshot
+of the app mid-download (WebP with a PNG fallback), and `og.png` is a 1200×630 share card —
+regenerate all three to match if the app UI or icon changes.
 
 ## Deploy (Cloudflare)
 

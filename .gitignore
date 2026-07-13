@@ -75,3 +75,15 @@ apps/site/.dev.vars
 npm-debug.log*
 .env
 .env.*
+
+# Shared brand assets copied into the site from /assets by scripts/sync-assets.mjs.
+# /assets is the single source of truth; these are generated (prebuild → sync:assets, so
+# Cloudflare regenerates them too) and must NOT be committed — that's the de-duplication.
+# Site-specific assets (fonts/, robots.txt) are NOT listed here and stay tracked.
+apps/site/public/logo.svg
+apps/site/public/icon.png
+apps/site/public/favicon.png
+apps/site/public/apple-touch-icon.png
+apps/site/public/og.png
+apps/site/public/hero.webp
+apps/site/public/hero.png

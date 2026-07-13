@@ -8,12 +8,15 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "sync:assets": "node ../../scripts/sync-assets.mjs",
+    "predev": "npm run sync:assets",
     "dev": "astro dev",
+    "prebuild": "npm run sync:assets",
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "deploy": "astro build && wrangler deploy",
-    "cf:dev": "astro build && wrangler dev"
+    "deploy": "npm run build && wrangler deploy",
+    "cf:dev": "npm run build && wrangler dev"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

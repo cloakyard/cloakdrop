@@ -1,12 +1,13 @@
 /**
- * Single source of truth for brand copy, links, and content.
+ * Single source of truth for the CloakDrop brand site — every string, link, and
+ * content row lives here; components stay presentational and read from this file.
  *
- * Copy is deliberately de-duplicated: each section owns one distinct message.
- *  - Hero      → the hook + what it does (speed, capture, resume)
- *  - Stats     → proof points at a glance
- *  - Features  → the individual capabilities
- *  - Privacy   → the egress story (the ONLY place privacy claims are spelled out)
- *  - Suite     → the Cloakyard family / shared design language
+ * The site is an editorial, magazine-style layout: numbered sections (01–07), a mono
+ * kicker on each, big Archivo display headlines, and hairline dividers throughout.
+ * Copy is deliberately de-duplicated — each section owns one distinct message.
+ *
+ * Facts verified against the app on 2026-07-13: 11 localizations and 471 tests / 72
+ * suites in DownloaderCore. Keep them in sync if the app changes.
  */
 
 export const site = {
@@ -16,95 +17,284 @@ export const site = {
   tagline: 'A fast, private, multi-segment download manager for macOS.',
   description:
     'CloakDrop is a native, sandboxed macOS download manager with IDM-class ' +
-    'multi-segment speed, force-quit-proof resume, and zero telemetry — it ' +
-    'feels like Apple made it.',
+    'multi-segment speed, force-quit-proof resume, video from ~1,800 sites, and ' +
+    'zero telemetry — it behaves like part of macOS.',
   repo: 'https://github.com/cloakyard/cloakdrop',
   releases: 'https://github.com/cloakyard/cloakdrop/releases/latest',
   suiteOrg: 'https://github.com/cloakyard',
   requirement: 'macOS Tahoe 26 · Apple silicon',
 } as const;
 
-/** Hero — the hook. Speed + capture + resume, no privacy claims (that's the band). */
+export interface NavLink {
+  label: string;
+  href: string;
+}
+
+export const nav: NavLink[] = [
+  { label: 'Features', href: '#engine' },
+  { label: 'Privacy', href: '#privacy' },
+  { label: 'Under the hood', href: '#hood' },
+  { label: 'Suite', href: '#suite' },
+];
+
+/* Hero — the hook. Speed + capture + resume + privacy, in one breath. */
 export const hero = {
+  kicker: 'macOS Tahoe 26 · Swift 6 · No Electron',
+  titleLead: 'A download\nmanager that\nbehaves like',
+  titleAccent: 'part of\nmacOS.',
   lead:
-    'Split any file into parallel segments for maximum speed, pull video and ' +
-    'files straight off any web page, and pick up exactly where you left off ' +
-    'after a crash or reboot.',
+    'Serious multi-segment speed over HTTP, HTTPS and FTP. Video from ~1,800 ' +
+    'sites. Resume that survives a reboot. And nothing ever phones home.',
+  micro: 'Free & open source · MIT · No account, ever',
+  figLabel: 'FIG.01 — CLOAKDROP.APP',
+  shotAlt:
+    'The CloakDrop app window downloading an Ubuntu 26.04 ISO across 8 parallel ' +
+    'segments, with live speed, ETA, and a per-segment progress inspector.',
 } as const;
 
 export interface Stat {
   value: string;
   label: string;
+  accent?: boolean;
 }
 
+/* Spec strip — four proof points under the hero. */
 export const stats: Stat[] = [
   { value: '8×', label: 'parallel segments' },
-  { value: '1,800+', label: 'sites supported' },
-  { value: 'Zero', label: 'telemetry' },
-  { value: 'MIT', label: 'open source' },
+  { value: '~1,800', label: 'video sites recognized' },
+  { value: '471', label: 'tests · 72 suites' },
+  { value: '0', label: 'bytes phoned home', accent: true },
 ];
 
-export interface Feature {
+export interface NumberedFeature {
+  n: string;
+  title: string;
+  body: string;
+}
+
+/* 01 — The engine. Two lead cards + a four-up grid. */
+export const engine = {
+  num: '01',
+  label: 'The engine',
+  title: 'Everything a download deserves.',
+  lead:
+    'One actor-based engine handles HTTP, HTTPS and FTP alike — segmenting, ' +
+    'resuming, and verifying every transfer the same way.',
+  /** Decorative segment fills for the multi-segment card's mini-inspector. */
+  segBars: ['92%', '84%', '76%', '70%', '62%', '54%', '48%', '40%'],
+  lead1: {
+    n: '01',
+    title: 'Multi-segment speed',
+    body:
+      'Each file splits into parallel streams over HTTP Range and reassembles ' +
+      "byte-perfectly — with automatic single-stream fallback when a server can't " +
+      'do ranges. FTP and FTPS segment the same way, natively.',
+  } as NumberedFeature,
+  lead2: {
+    n: '02',
+    title: 'Resume survives anything',
+    body:
+      'True byte-range resume outlives an app relaunch and a reboot — it never ' +
+      're-downloads a byte. When the network drops, per-segment retry with ' +
+      'exponential backoff and jitter pauses and picks up on its own.',
+  } as NumberedFeature,
+  grid: [
+    {
+      n: '03',
+      title: 'Bandwidth control',
+      body:
+        'Global and per-download speed caps — a GCRA throttle that holds the ' +
+        'aggregate honestly under many connections — plus time-of-day profiles.',
+    },
+    {
+      n: '04',
+      title: 'Queues, rules & sorting',
+      body:
+        'Per-queue concurrency, a rule-based routing engine to folders and ' +
+        'queues, duplicate detection, and auto-sorting of finished files.',
+    },
+    {
+      n: '05',
+      title: 'Multi-source mirrors',
+      body:
+        'Open a Metalink and segments spread across mirrors, failing over the ' +
+        'moment one dies or serves corrupt bytes — then verify.',
+    },
+    {
+      n: '06',
+      title: 'Post-processing',
+      body:
+        'Native ZIP auto-extraction — Zip-Slip and bomb guarded — a Gatekeeper ' +
+        'quarantine flag, plus notify, quit, or run a Shortcut.',
+    },
+  ] as NumberedFeature[],
+} as const;
+
+export interface ReceiptRow {
+  k: string;
+  v: string;
+}
+
+/* 02 — Provenance receipt (the dark, signature section). */
+export const provenance = {
+  num: '02',
+  label: 'Only in CloakDrop',
+  title: 'Every download leaves a receipt.',
+  bodyHtml:
+    'Each completed download earns a local, exportable ' +
+    '<strong>Provenance Receipt</strong> — sources, TLS details, whole-file ' +
+    'SHA-256, and checksum + code-signature verdicts in one trust record. ' +
+    'Checksums verify automatically from a hash you supply or an auto-discovered ' +
+    'sibling <code>.sha256</code>; <code>.app</code> and <code>.dmg</code> files ' +
+    'get a notarization check on top. No other download manager produces one.',
+  receipt: [
+    { k: 'FILE', v: 'ubuntu-26.04.iso' },
+    { k: 'SIZE', v: '6.52 GB' },
+    { k: 'SOURCE', v: 'releases.ubuntu.com' },
+    { k: 'TLS', v: 'TLS 1.3 ✓' },
+    { k: 'SHA-256', v: 'a1b4…9f2e ✓ MATCH' },
+    { k: 'SIGNATURE', v: 'NOTARIZED ✓' },
+  ] as ReceiptRow[],
+  verdict: { label: 'VERDICT', value: '✓ TRUSTED' },
+} as const;
+
+/* 03 — Capture. Three ways in. */
+export const capture = {
+  num: '03',
+  label: 'Capture',
+  title: 'If you can see it, you can grab it.',
+  lead:
+    'Paste, drag, share, or browse — every road leads into the same segmented ' +
+    'engine, and your logins come along.',
+  items: [
+    {
+      n: '01',
+      title: 'A browser that grabs',
+      body:
+        'A built-in WebKit browser (⇧⌘B) lists the video, audio, and files on any ' +
+        'page — ads and beacons filtered out — and takes over downloads IDM-style ' +
+        'the moment a page starts one. An optional ad & tracker blocker is a switch away.',
+    },
+    {
+      n: '02',
+      title: '~1,800 video sites',
+      body:
+        'Paste a YouTube link — or any site yt-dlp can read — and CloakDrop ' +
+        'resolves the formats and downloads with its own segmented engine. yt-dlp ' +
+        'only reads and deciphers; it never downloads a byte.',
+    },
+    {
+      n: '03',
+      title: 'From anywhere',
+      body:
+        'Clipboard watching, drag & drop, a link-grabber that pattern-expands ' +
+        'file[01-50].zip, a scheduler, a Share Extension, and a “Send to ' +
+        'CloakDrop” Services item.',
+    },
+  ] as NumberedFeature[],
+} as const;
+
+export interface DetailItem {
   icon: string;
   title: string;
   body: string;
 }
 
-/** features[0] is rendered as the large bento cell. */
-export const features: Feature[] = [
-  {
-    icon: 'bolt',
-    title: 'Multi-segment speed',
-    body: 'IDM-class downloading opens several connections per file and reassembles the pieces byte-perfect — so a single slow thread never caps your line.',
-  },
-  {
-    icon: 'resume',
-    title: 'Resume survives anything',
-    body: 'Bytes stream into a sparse part file, so a force-quit, crash, or reboot picks up at the exact byte it left off — never from zero.',
-  },
-  {
-    icon: 'globe',
-    title: 'Browser & media grabs',
-    body: 'A built-in WebKit browser surfaces the video, audio, and files on any page — HLS/DASH included — and takes over the download the moment one starts.',
-  },
-  {
-    icon: 'sparkles',
-    title: 'Truly native',
-    body: 'A sandboxed SwiftUI app with Liquid Glass chrome and SF Symbols throughout. No Electron, no web views — every pixel belongs on macOS.',
-  },
-  {
-    icon: 'tray',
-    title: 'Capture from anywhere',
-    body: 'A Share Extension, a “Send to CloakDrop” service, a clipboard watcher, Metalink multi-mirror, and checksum verification bring links in from all of macOS.',
-  },
-  {
-    icon: 'clock',
-    title: 'Queues, schedules & limits',
-    body: 'Group downloads into queues, cap bandwidth on a schedule, and let big jobs run overnight — with per-queue concurrency you control.',
-  },
-];
+/* 04 — The details. A six-cell grid of the small stuff. */
+export const details = {
+  num: '04',
+  label: 'The details',
+  title: 'Small things, done right.',
+  lead: 'The parts you only notice because they never get in your way.',
+  items: [
+    {
+      icon: 'shield',
+      title: 'Integrity & trust',
+      body: 'MD5 / SHA-1 / SHA-256 verified on completion, from your hash or a discovered sibling checksum.',
+    },
+    {
+      icon: 'film',
+      title: 'Media grabbing',
+      body: 'HLS and DASH streams, AES-128 decrypt, audio paired and muxed into a clean, playable file — no re-encode.',
+    },
+    {
+      icon: 'gauge',
+      title: 'Built-in speed test',
+      body: 'Speedometer dials for download, upload, latency, and jitter. Cloudflare or Ookla, strictly manual.',
+    },
+    {
+      icon: 'bars',
+      title: 'Download stats',
+      body: 'Private lifetime totals with a playful monthly tier badge — Warming Up all the way to ISP’s Worst Nightmare.',
+    },
+    {
+      icon: 'globe',
+      title: 'Fully localized',
+      body: 'Every UI string translated into 11 languages, from English and Spanish to Japanese, Arabic, and Hindi.',
+    },
+    {
+      icon: 'menubar',
+      title: 'Menu bar & Dock',
+      body: 'A live menu-bar extra and a Dock icon that shows overall progress at a glance, without opening the window.',
+    },
+  ] as DetailItem[],
+} as const;
 
-/** Privacy band — the one place the egress story is told in full. */
+/* 05 — Privacy. The one place the egress story is told in full. */
 export const privacy = {
-  heading: 'The only thing that leaves your Mac is the file you asked for.',
+  num: '05',
+  label: 'Privacy is the whole point',
+  title: 'The only requests it makes are the ones you start.',
   body:
-    'CloakDrop has no servers of its own. Network activity is limited to the URLs ' +
-    'you choose to download and the sites you open in the built-in browser. No ' +
-    'browsing history is kept, and a one-click wipe clears cookies and site data ' +
-    'whenever you want.',
-  points: ['No telemetry', 'No analytics', 'No accounts', 'No history', 'No phone-home'],
+    'No accounts, no analytics, no crash reporting. The built-in browser keeps ' +
+    'your logins but records no history, with a one-click wipe of all site data. ' +
+    'Downloads and settings live in a local SQLite database you can export or ' +
+    'delete — and the App Sandbox means CloakDrop only ever touches the folders ' +
+    'you point it at.',
+  points: ['No telemetry', 'No analytics', 'No accounts', 'No crash reporting', 'No phone-home'],
+} as const;
+
+/* 06 — Under the hood. The spec sheet. */
+export const hood = {
+  num: '06',
+  label: 'Under the hood',
+  title: 'Native to the bone.',
+  body:
+    'No Electron, no web views, no third-party Swift dependencies beyond GRDB. ' +
+    'Full light and dark, VoiceOver and full-keyboard access, a live menu-bar ' +
+    'extra, a Dock icon that shows progress — and every string translated into ' +
+    '11 languages.',
+  specs: [
+    { k: 'LANGUAGE', v: 'Swift 6, strict concurrency' },
+    { k: 'UI', v: 'SwiftUI · Liquid Glass' },
+    { k: 'ENGINE', v: 'Actor-based, one actor per transfer' },
+    { k: 'NETWORKING', v: 'URLSession + native FTP/FTPS' },
+    { k: 'PERSISTENCE', v: 'GRDB (SQLite) · Keychain creds' },
+    { k: 'DEPENDENCIES', v: 'None beyond GRDB' },
+  ] as ReceiptRow[],
 } as const;
 
 export interface SuiteApp {
   name: string;
-  blurb: string;
+  desc: string;
+  tag: string;
   href: string;
   self?: boolean;
 }
 
-export const suite: SuiteApp[] = [
-  { name: 'CloakDrop', blurb: 'Download manager', href: site.repo, self: true },
-  { name: 'CloakPDF', blurb: 'PDF toolkit', href: 'https://github.com/cloakyard' },
-  { name: 'CloakIMG', blurb: 'Image toolkit', href: 'https://github.com/cloakyard' },
-  { name: 'CloakResume', blurb: 'Résumé builder', href: 'https://github.com/cloakyard' },
-];
+/* 07 — The Cloakyard suite. */
+export const suite = {
+  num: '07',
+  label: 'Part of Cloakyard',
+  title: 'One suite. One design language.',
+  lead:
+    'Small, sharp Mac tools built on the same privacy-first principles, each ' +
+    'doing one job well.',
+  org: 'github.com/cloakyard',
+  apps: [
+    { name: 'CloakDrop', desc: 'Multi-segment download manager', tag: 'THIS APP', href: site.repo, self: true },
+    { name: 'CloakPDF', desc: 'Private PDF toolkit', tag: 'CLOAKYARD', href: site.suiteOrg },
+    { name: 'CloakIMG', desc: 'Image conversion & editing', tag: 'CLOAKYARD', href: site.suiteOrg },
+    { name: 'CloakResume', desc: 'Résumé builder', tag: 'CLOAKYARD', href: site.suiteOrg },
+  ] as SuiteApp[],
+} as const;

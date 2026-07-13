@@ -1,32 +1,32 @@
 ---
 import { suite, site } from '../data/site';
+import Kicker from './Kicker.astro';
 import Icon from './Icon.astro';
 ---
 
-<section id="suite" class="section">
+<section id="suite" class="section suite">
   <div class="container">
-    <header class="head">
-      <p class="eyebrow">Part of Cloakyard</p>
-      <h2>One suite. One design language.</h2>
-      <p class="section-lead">
-        CloakDrop shares its foundations with the rest of Cloakyard — small, sharp Mac
-        tools built on the same native principles, each doing one job well.
-      </p>
-    </header>
+    <Kicker num={suite.num} label={suite.label} />
 
-    <ul class="grid">
+    <div class="head">
+      <h2>{suite.title}</h2>
+      <p class="lead">{suite.lead}</p>
+    </div>
+
+    <ul class="list">
       {
-        suite.map((app) => (
+        suite.apps.map((app) => (
           <li>
             <a
-              class={`surface-card app ${app.self ? 'app--self' : ''}`}
+              class:list={['row', app.self && 'row--self']}
               href={app.href}
               rel="noopener"
             >
-              <span class="app-name">{app.name}</span>
-              <span class="app-blurb">{app.blurb}</span>
-              <span class="app-go" aria-hidden="true">
-                <Icon name="arrow" size={18} />
+              <span class="name">{app.name}</span>
+              <span class="desc">{app.desc}</span>
+              <span class="tag">
+                {app.tag}
+                <Icon name="arrow" size={17} stroke={1.8} />
               </span>
             </a>
           </li>
@@ -36,76 +36,129 @@ import Icon from './Icon.astro';
 
     <p class="org">
       Explore the whole family on
-      <a href={site.suiteOrg} rel="noopener">github.com/cloakyard</a>.
+      <a href={site.suiteOrg} rel="noopener">{suite.org}</a>.
     </p>
   </div>
 </section>
 
 <style>
   .head {
-    max-width: 58ch;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: clamp(1.5rem, 4vw, 2.5rem);
+    margin-top: 1.4rem;
+    margin-bottom: clamp(2rem, 4vw, 3rem);
   }
 
-  .grid {
+  .head h2 {
+    max-width: 12ch;
+  }
+
+  .head .lead {
+    width: min(360px, 100%);
+    flex: none;
+  }
+
+  .list {
     list-style: none;
+    margin: 0;
     padding: 0;
-    margin-top: clamp(2.5rem, 5vw, 3.5rem);
+    border-top: 1px solid var(--line-2);
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  .row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-    gap: 1rem;
-  }
-
-  .app {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    height: 100%;
-    padding: 1.4rem;
-  }
-
-  .app--self {
-    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
-    background:
-      radial-gradient(120% 120% at 100% 0%, var(--accent-soft), transparent 60%),
-      var(--surface);
-  }
-
-  .app-name {
-    display: flex;
+    grid-template-columns: 220px 1fr auto;
     align-items: center;
-    gap: 0.5rem;
-    font-weight: 630;
-    letter-spacing: -0.01em;
+    gap: 1.5rem;
+    padding: 1.5rem 0.25rem;
+    border-bottom: 1px solid var(--line);
+    transition: background 0.16s ease;
   }
 
-  .app--self .app-name {
-    color: var(--accent);
+  .list li:last-child .row {
+    border-bottom: 0;
   }
 
-  .app-blurb {
-    font-size: var(--step--1);
-    color: var(--text-secondary);
+  .row:hover {
+    background: color-mix(in srgb, var(--accent) 5%, transparent);
   }
 
-  .app-go {
-    margin-top: auto;
-    padding-top: 1rem;
-    color: var(--text-tertiary);
-    transition: color 0.18s ease;
+  .name {
+    font-size: 1.375rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ink);
   }
 
-  .app:hover .app-go {
-    color: var(--accent);
+  .row--self .name {
+    color: var(--accent-ink);
+  }
+
+  .desc {
+    color: var(--ink-3);
+    font-size: 0.9375rem;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-4);
+  }
+
+  .tag :global(svg) {
+    color: color-mix(in srgb, var(--ink-4) 70%, transparent);
+    transition:
+      color 0.16s ease,
+      transform 0.16s ease;
+  }
+
+  .row:hover .tag :global(svg) {
+    color: var(--accent-ink);
+    transform: translateX(3px);
   }
 
   .org {
-    margin-top: 2rem;
-    color: var(--text-secondary);
-    font-size: var(--step--1);
+    margin-top: 1.5rem;
+    color: var(--ink-2);
+    font-size: 0.9375rem;
   }
 
   .org a {
-    color: var(--accent);
-    font-weight: 560;
+    color: var(--accent-ink);
+    font-weight: 600;
+  }
+
+  @media (max-width: 860px) {
+    .head {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .head .lead {
+      width: 100%;
+    }
+    .row {
+      grid-template-columns: 1fr auto;
+      gap: 0.4rem 1rem;
+    }
+    .name {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .desc {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    .tag {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      align-self: center;
+    }
   }
 </style>

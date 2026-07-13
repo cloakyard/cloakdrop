@@ -1,73 +1,62 @@
 ---
 import { site } from '../data/site';
-import Icon from './Icon.astro';
+import Brand from './Brand.astro';
 ---
 
 <footer class="footer">
   <div class="container inner">
-    <a class="brand" href="/" aria-label={`${site.name} home`}>
-      <img src="/icon.png" width="26" height="26" alt="" decoding="async" />
-      <span>{site.name}</span>
-    </a>
-    <a class="gh" href={site.repo} aria-label="CloakDrop on GitHub" rel="noopener">
-      <Icon name="github" size={20} />
-    </a>
-  </div>
-
-  <div class="container base">
-    <p>
-      Part of the <a href={site.suiteOrg} rel="noopener">Cloakyard</a> privacy-first suite.
-      Runs entirely on-device.
-    </p>
-    <p>© {new Date().getFullYear()} Sumit Sahoo · MIT License</p>
+    <div class="left">
+      <Brand size={26} />
+      <span class="note">
+        Part of the <a href={site.suiteOrg} rel="noopener">Cloakyard</a> privacy-first
+        suite. Runs entirely on-device.
+      </span>
+    </div>
+    <p class="copy">© {new Date().getFullYear()} Sumit Sahoo · MIT License</p>
   </div>
 </footer>
 
 <style>
   .footer {
-    border-top: 1px solid var(--border);
-    padding-block: clamp(2.5rem, 5vw, 3.5rem);
-    background: var(--bg-subtle);
+    border-top: 1px solid var(--line);
+    padding-block: clamp(1.75rem, 3vw, 2.25rem);
   }
 
   .inner {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1.25rem;
-  }
-
-  .brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    font-weight: 630;
-  }
-
-  .brand img {
-    border-radius: 6px;
-  }
-
-  .gh {
-    color: var(--text-secondary);
-  }
-
-  .gh:hover {
-    color: var(--text);
-  }
-
-  .base {
-    display: flex;
-    justify-content: space-between;
+    gap: 1.25rem 2rem;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 1.75rem;
-    font-size: var(--step--1);
-    color: var(--text-tertiary);
   }
 
-  .base a {
-    color: var(--text-secondary);
-    font-weight: 540;
+  .left {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+  }
+
+  .note {
+    font-size: 0.8125rem;
+    color: var(--ink-4);
+    max-width: 46ch;
+  }
+
+  .note a {
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+
+  .copy {
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    color: var(--ink-4);
+  }
+
+  @media (max-width: 560px) {
+    .note {
+      flex-basis: 100%;
+    }
   }
 </style>
