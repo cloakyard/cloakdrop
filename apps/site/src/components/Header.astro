@@ -36,8 +36,11 @@ import Brand from './Brand.astro';
     z-index: 50;
     /* Frosted-glass bar: translucent enough that content blurs through on scroll. */
     background: color-mix(in srgb, var(--bg) 60%, transparent);
-    backdrop-filter: saturate(180%) blur(26px);
+    /* Prefixed first, standard last (conventional order). The minifier dedups an
+       adjacent -webkit-/standard pair keeping the LAST, so the standard property
+       must come last or Chrome/Firefox drop the blur entirely. */
     -webkit-backdrop-filter: saturate(180%) blur(26px);
+    backdrop-filter: saturate(180%) blur(26px);
     border-bottom: 1px solid var(--line);
   }
 

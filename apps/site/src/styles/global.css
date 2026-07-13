@@ -69,8 +69,11 @@
   --t-h2: clamp(2rem, 1.2rem + 3.4vw, 3.375rem);
   --t-h1: clamp(2.6rem, 1.2rem + 6vw, 4.75rem);
 
-  --page-max: 1280px;
-  --gutter: clamp(1.25rem, 5vw, 3rem);
+  /* Content column — mirrors the CloakPDF app shell (max-w-6xl → xl:88rem,
+     px-4 sm:px-6) so the sibling Cloakyard sites share one page width.
+     Widened responsively below. */
+  --page-max: 72rem; /* 1152px (Tailwind max-w-6xl) */
+  --gutter: 1rem; /* px-4 */
   --radius: 12px;
   --radius-lg: 14px;
   --radius-xl: 22px;
@@ -107,6 +110,20 @@
   }
 }
 
+/* Responsive page width — mirrors CloakPDF's `max-w-6xl xl:max-w-[88rem]` with
+   `px-4 sm:px-6` (Tailwind sm = 640px, xl = 1280px) so both Cloakyard sites
+   line up edge-to-edge. */
+@media (min-width: 640px) {
+  :root {
+    --gutter: 1.5rem; /* px-6 */
+  }
+}
+@media (min-width: 1280px) {
+  :root {
+    --page-max: 88rem; /* 1408px — CloakPDF xl:max-w-[88rem] */
+  }
+}
+
 *,
 *::before,
 *::after {
@@ -129,10 +146,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  /* `clip` (not `hidden`) prevents sideways overflow WITHOUT making <body> a
-     scroll container — `overflow-x: hidden` would force overflow-y to `auto`,
-     and a scroll-container ancestor stops the sticky header's backdrop-filter
-     from sampling the page, killing the frosted-glass blur. */
+  /* `clip` (not `hidden`) prevents sideways overflow WITHOUT turning <body> into
+     a scroll container — `overflow-x: hidden` would force overflow-y to `auto`,
+     nesting an unwanted scroll context. */
   overflow-x: clip;
 }
 
