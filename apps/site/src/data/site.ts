@@ -98,8 +98,12 @@ export const engine = {
   lead:
     'One actor-based engine handles HTTP, HTTPS and FTP alike — segmenting, ' +
     'resuming, and verifying every transfer the same way.',
-  /** Decorative segment fills for the multi-segment card's mini-inspector. */
-  segBars: ['92%', '84%', '76%', '70%', '62%', '54%', '48%', '40%'],
+  /**
+   * Decorative segment fills for the multi-segment card's mini-inspector.
+   * Deliberately unordered: real segments race independently, so a sorted
+   * staircase would misrepresent how a transfer actually looks mid-flight.
+   */
+  segBars: ['68%', '100%', '84%', '41%', '77%', '58%', '91%', '63%'],
   lead1: {
     n: '01',
     title: 'Multi-segment speed',
