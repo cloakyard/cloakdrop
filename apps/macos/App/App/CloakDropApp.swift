@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-/// CloakDrop — a native, private, multi-segment download manager for macOS Tahoe.
+/// CloakDrop — a native, private, multi-segment download manager for macOS.
 /// Part of the Cloakyard privacy-first suite. Everything runs on-device.
 @main
 struct CloakDropApp: App {

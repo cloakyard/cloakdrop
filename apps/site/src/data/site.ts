@@ -20,9 +20,32 @@ export const site = {
     'multi-segment speed, force-quit-proof resume, video from ~1,800 sites, and ' +
     'zero telemetry — it behaves like part of macOS.',
   repo: 'https://github.com/cloakyard/cloakdrop',
-  releases: 'https://github.com/cloakyard/cloakdrop/releases/latest',
   suiteOrg: 'https://github.com/cloakyard',
-  requirement: 'macOS Tahoe 26 · Apple silicon',
+  requirement: 'macOS 27 Golden Gate · Apple silicon',
+} as const;
+
+/**
+ * Download links — **stable asset URLs** on GitHub Releases, so they never need editing as
+ * versions come and go. That only holds if each upload keeps the exact asset filename below:
+ * GitHub names an asset after the file you upload, so dragging a `CloakDrop-1.0-beta.dmg`
+ * into the release form silently 404s this link. Rename the DMG before uploading.
+ *
+ *   beta   → tag `beta` (a rolling pre-release, re-uploaded in place), asset `CloakDrop-beta.dmg`
+ *   stable → tag `vX.Y` marked latest, asset `CloakDrop.dmg` — /releases/latest resolves it
+ *
+ * The CTAs point at `beta` until 1.0 is notarized; switch them to `stable` then.
+ */
+export const downloads = {
+  beta: {
+    href: 'https://github.com/cloakyard/cloakdrop/releases/download/beta/CloakDrop-beta.dmg',
+    label: 'Download the beta',
+    /** Shown next to the CTA — the betas are not notarized yet, so say so up front. */
+    note: 'Beta · Apple silicon · unnotarized — right-click ▸ Open on first launch',
+  },
+  stable: {
+    href: 'https://github.com/cloakyard/cloakdrop/releases/latest/download/CloakDrop.dmg',
+    label: 'Download for macOS',
+  },
 } as const;
 
 export interface NavLink {
@@ -39,7 +62,7 @@ export const nav: NavLink[] = [
 
 /* Hero — the hook. Speed + capture + resume + privacy, in one breath. */
 export const hero = {
-  kicker: 'macOS Tahoe 26 · Swift 6 · No Electron',
+  kicker: 'macOS 27 Golden Gate · Swift 6 · No Electron',
   titleLead: 'A download\nmanager that\nbehaves like',
   titleAccent: 'part of\nmacOS.',
   lead:

@@ -22,7 +22,8 @@ build/
 # Generated Xcode project (regenerate with `xcodegen generate`)
 CloakDrop.xcodeproj/
 
-# Packaged app / distribution output (produced by a build; never commit)
+# Packaged app / distribution output (produced by a build; never commit).
+# Installers are published as GitHub Release assets — the DMG bytes never enter git.
 *.app/
 *.dmg
 

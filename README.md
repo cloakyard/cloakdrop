@@ -6,7 +6,8 @@ Serious multi-segment download power with the look and feel of a first-party app
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
-  <img src="https://img.shields.io/badge/platform-macOS%2026%2B-lightgrey" alt="Platform: macOS 26+">
+  <img src="https://img.shields.io/badge/platform-macOS%20%C2%B7%20Apple%20silicon-lightgrey" alt="Platform: macOS · Apple silicon">
+  <img src="https://img.shields.io/badge/status-beta-2A7B9B" alt="Status: beta">
   <img src="https://img.shields.io/badge/Swift-6.0-F05138?logo=swift&logoColor=white" alt="Swift 6.0">
   <img src="https://img.shields.io/badge/SwiftUI-Liquid%20Glass-8A2BE2" alt="SwiftUI · Liquid Glass">
 </p>
@@ -14,6 +15,21 @@ Serious multi-segment download power with the look and feel of a first-party app
 > Part of the **[Cloakyard](https://github.com/cloakyard)** privacy-first suite, alongside **CloakPDF**, **CloakIMG**, and **CloakResume**.
 
 ---
+
+## 📥 Download & release timeline
+
+**[⬇️ Download the beta](https://github.com/cloakyard/cloakdrop/releases/download/beta/CloakDrop-beta.dmg)** · Apple silicon · [all releases](https://github.com/cloakyard/cloakdrop/releases)
+
+CloakDrop is in **active development**. The beta is a complete, usable app — but it is *not* notarized yet, so macOS will not open it on a double-click: **right-click the app ▸ Open** the first time, then it launches normally forever after.
+
+| | |
+|---|---|
+| 🧪 **Beta — now** | Rolling pre-release, rebuilt as features land. Unsigned by Apple's notary service; the engine and its 471 tests are the same ones the stable build will ship. |
+| 🍎 **Stable — with macOS 27 Golden Gate** | The first Developer ID-signed, **notarized** build is timed to Golden Gate's final release, not to a date of our own. |
+
+**Why wait for Golden Gate?** CloakDrop is built from the ground up for **macOS 27 Golden Gate** — its UI is Liquid Glass all the way down, and that design language is still moving through the OS betas. Shipping a notarized 1.0 against a final Golden Gate means what you install is what was tested, on the finished glass, rather than a build chasing a moving target.
+
+**Why Apple silicon only?** Golden Gate is an Apple-silicon-only release, so CloakDrop is **arm64-only** — there is no Intel or universal build, and there won't be one.
 
 ## ✨ What it does
 
@@ -53,7 +69,7 @@ CloakDrop makes **no** network requests except the ones you start: the URLs you 
 | Area | Choice |
 |---|---|
 | Language | Swift 6 with **strict concurrency** (`complete`) |
-| UI | SwiftUI (macOS Tahoe 26, Liquid Glass), dropping to AppKit only for the Dock tile & notifications |
+| UI | SwiftUI — Liquid Glass throughout, built from the ground up for **macOS 27 Golden Gate**; dropping to AppKit only for the Dock tile & notifications |
 | Engine | Actor-based — a `DownloadManager` actor driving one `DownloadTask` actor per transfer |
 | Networking | `URLSession` (HTTP Range) + a native **Network.framework FTP/FTPS** client behind one `HTTPClient` protocol seam, both driving segmentation, resume & multi-source (Metalink mirror) spread + failover |
 | Persistence | GRDB (SQLite); saved HTTP/FTP & proxy credentials in the **Keychain** |
@@ -67,7 +83,7 @@ No third-party Swift dependencies beyond GRDB. Two native command-line tools —
 
 ## 🚀 Getting started
 
-Requires **macOS Tahoe 26+**, **Xcode 26+**, and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
+Requires **macOS 26+**, **Xcode 26+**, [XcodeGen](https://github.com/yonaskolb/XcodeGen), and an **Apple silicon** Mac.
 
 This repo is a **monorepo**; the native macOS app lives in `apps/macos/` (the brand site is in `apps/site/`).
 
@@ -83,7 +99,7 @@ open CloakDrop.xcodeproj                # …or build from the command line:
 xcodebuild -project CloakDrop.xcodeproj -scheme CloakDrop -destination 'platform=macOS' build
 ```
 
-The `.xcodeproj` is generated and git-ignored — regenerate it any time with `xcodegen generate`. To package a shareable installer DMG (drag-to-Applications, with an install guide), run `scripts/dmg/make-dmg.sh <path/to/CloakDrop.app>` from `apps/macos/`.
+The `.xcodeproj` is generated and git-ignored — regenerate it any time with `xcodegen generate`. To package a shareable installer DMG (drag-to-Applications, with an install guide), run `scripts/dmg/make-dmg.sh <path/to/CloakDrop.app>` from `apps/macos/`. Released builds are published as [GitHub Release](https://github.com/cloakyard/cloakdrop/releases) assets — the DMG never lives in the repo.
 
 ## 🧪 Testing
 
@@ -115,6 +131,7 @@ cloakdrop/                      # monorepo root
 │   │           ├── DownloadPersistence/  # GRDB store behind a protocol
 │   │           └── DownloadEngine/       # Actors, segmentation, HTTP + native FTP/FTPS networking, checksums, Keychain credentials, archive extraction, media, yt-dlp resolver
 │   └── site/                   # CloakDrop brand site (Astro → Cloudflare Workers, drop.cloakyard.com)
+├── assets/                     # Shared brand assets (logo · icons · social card · screenshots)
 └── README · LICENSE · CLAUDE.md · CONTRIBUTING · SECURITY · CODE_OF_CONDUCT
 ```
 
