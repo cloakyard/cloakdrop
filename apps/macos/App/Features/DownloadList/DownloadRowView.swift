@@ -164,7 +164,7 @@ struct DownloadRowView: View {
                 model.resume(download.id)
             }
         case .completed:
-            CircleActionButton(symbol: "magnifyingglass", tint: isSelected ? .white : .gray, help: "Reveal in Finder") {
+            CircleActionButton(symbol: "magnifyingglass", tint: isSelected ? .white : .green, help: "Reveal in Finder") {
                 model.revealInFinder(download)
             }
         default:
