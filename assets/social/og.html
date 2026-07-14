@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>CloakDrop — Open Graph card</title>
+    <!--
+      Source for assets/social/og.png (1200×630). Render it with scripts/make-og.sh, which
+      screenshots this file headlessly — never hand-edit the PNG.
+
+      The layout is the site's editorial grid at card scale: a mono kicker and a rule at the
+      top, the mark + wordmark + tagline as one centred block, and a footer split across the
+      full width. Fonts, colours and tracking are lifted from apps/site/src/styles/global.css
+      so the card and the site read as one design.
+    -->
+    <style>
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 100 900;
+        src: url('../../apps/site/public/fonts/archivo-latin.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'JetBrains Mono';
+        font-style: normal;
+        font-weight: 100 800;
+        src: url('../../apps/site/public/fonts/jetbrains-mono-latin.woff2') format('woff2');
+      }
+
+      :root {
+        --accent: #2a7b9b;
+        --bg: #f2f5f6;
+        --ink: #14191c;
+        --ink-2: #4c565c;
+        --ink-3: #6c767c;
+        --line: #dde4e6;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        width: 1200px;
+        height: 630px;
+        background: var(--bg);
+        font-family: 'Archivo', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        overflow: hidden;
+      }
+
+      /* Ambient wash — the same top-left aurora the site hero sits in. */
+      .card {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding: 56px 64px;
+        display: flex;
+        flex-direction: column;
+        isolation: isolate;
+      }
+
+      .card::before,
+      .card::after {
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(70px);
+        z-index: -1;
+      }
+
+      .card::before {
+        top: -260px;
+        left: -230px;
+        width: 620px;
+        height: 480px;
+        background: rgba(95, 205, 214, 0.22);
+      }
+
+      .card::after {
+        right: -260px;
+        bottom: -280px;
+        width: 640px;
+        height: 460px;
+        background: rgba(42, 123, 155, 0.1);
+      }
+
+      /* Top row — kicker left, suite mark right, on one hairline. */
+      .top {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding-bottom: 22px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .kicker {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 15px;
+        font-weight: 500;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      .kicker::before {
+        content: '';
+        width: 30px;
+        height: 2px;
+        background: var(--accent);
+        opacity: 0.55;
+      }
+
+      .suite {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+
+      /* Middle — mark + wordmark + tagline, the tagline running the full text column. */
+      .main {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 44px;
+      }
+
+      .mark {
+        width: 168px;
+        height: 168px;
+        flex: none;
+        filter: drop-shadow(0 22px 40px rgba(12, 17, 20, 0.22));
+      }
+
+      .copy {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .wordmark {
+        font-size: 106px;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        line-height: 1;
+        color: var(--ink);
+      }
+
+      /* One line, sized to run the full text column — the card's whole width is the
+         measure. Any longer and it wraps to a short second line, stranding the right
+         third of the card empty. */
+      .tagline {
+        margin-top: 16px;
+        font-size: 34px;
+        font-weight: 500;
+        letter-spacing: -0.017em;
+        line-height: 1.3;
+        white-space: nowrap;
+        color: var(--ink-2);
+      }
+
+      .tagline em {
+        font-style: normal;
+        font-weight: 600;
+        color: var(--accent);
+      }
+
+      /* Footer — split left/right so the rule carries the full width. */
+      .bottom {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding-top: 22px;
+        border-top: 1px solid var(--line);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 15px;
+        letter-spacing: 0.04em;
+        color: var(--ink-3);
+      }
+
+      .bottom .domain {
+        font-weight: 500;
+        color: var(--ink-2);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="top">
+        <p class="kicker">macOS 27 Golden Gate · Swift 6 · No Electron</p>
+        <p class="suite">Part of Cloakyard</p>
+      </div>
+
+      <div class="main">
+        <img class="mark" src="../logo/cloakdrop.svg" alt="" />
+        <div class="copy">
+          <p class="wordmark">CloakDrop</p>
+          <p class="tagline">
+            A download manager that behaves like <em>part of macOS</em>.
+          </p>
+        </div>
+      </div>
+
+      <div class="bottom">
+        <span class="domain">drop.cloakyard.com</span>
+        <span>Free &amp; open source · MIT · No telemetry</span>
+      </div>
+    </div>
+  </body>
+</html>
