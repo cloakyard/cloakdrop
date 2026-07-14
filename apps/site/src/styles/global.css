@@ -318,6 +318,32 @@ svg {
   letter-spacing: 0.01em;
 }
 
+/* Motion keyframes -------------------------------------------------------- */
+/* Used by the hero's ambient aurora and the sheen that sweeps the screenshot.
+   Global rather than component-scoped: Astro hashes scoped class names, but a
+   keyframe referenced from JS (motion.ts sets `animation: cd-sheen …`) needs a
+   stable, unscoped name. */
+@keyframes cd-aurora {
+  0% {
+    transform: translate(-4%, -2%) scale(1);
+  }
+  50% {
+    transform: translate(5%, 3%) scale(1.12);
+  }
+  100% {
+    transform: translate(-4%, -2%) scale(1);
+  }
+}
+
+@keyframes cd-sheen {
+  0% {
+    transform: translateX(-140%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(240%) skewX(-18deg);
+  }
+}
+
 /* Reduced motion ---------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   html {
