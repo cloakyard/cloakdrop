@@ -12,7 +12,7 @@ This repo is a **monorepo**: the macOS app is in `apps/macos/` and the brand sit
 
 ## Prerequisites
 
-- macOS Tahoe 26+
+- macOS 26+ on Apple silicon (the app is arm64-only — see the release timeline in the [README](README.md#-download--release-timeline))
 - Xcode 26+
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen): `brew install xcodegen`
 

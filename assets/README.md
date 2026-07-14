@@ -13,7 +13,8 @@ assets/
 │   ├── favicon.png            # 180×180
 │   └── apple-touch-icon.png   # 512×512
 ├── social/
-│   └── og.png                 # 1200×630 Open Graph / Twitter share card
+│   ├── og.html                # source for the card — the thing you edit
+│   └── og.png                 # 1200×630 Open Graph / Twitter share card (rendered)
 └── screenshots/
     ├── hero.webp              # app hero screenshot, 2240w, transparent (primary)
     └── hero.png               # PNG fallback for the same
@@ -50,9 +51,22 @@ binaries in version control.
 1. Replace the file **here**, under `assets/…`.
 2. Run `node scripts/sync-assets.mjs` (or just `npm run build` in `apps/site`).
 
-That's it — every consumer picks it up. Renditions (extra sizes, WebP, the OG card) are
-produced once by a human and committed here; the sync step only distributes them, it never
-resizes or re-encodes.
+That's it — every consumer picks it up. Renditions (extra sizes, WebP) are produced once by
+a human and committed here; the sync step only distributes them, it never resizes or
+re-encodes.
+
+## The social card
+
+`social/og.png` is **rendered, not drawn** — edit [`social/og.html`](social/og.html) and run:
+
+```bash
+scripts/make-og.sh            # headless Chrome screenshots og.html → og.png (1200×630)
+node scripts/sync-assets.mjs  # …then distribute it
+```
+
+The card borrows its fonts, colours and tracking straight from the site's design system
+(`apps/site/src/styles/global.css`), so the two stay in step and a copy change costs a
+re-render rather than a redraw.
 
 ## Adding a consumer
 

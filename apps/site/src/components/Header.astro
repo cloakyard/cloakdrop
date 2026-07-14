@@ -1,5 +1,5 @@
 ---
-import { site, nav } from '../data/site';
+import { site, nav, downloads } from '../data/site';
 import Icon from './Icon.astro';
 import Brand from './Brand.astro';
 ---
@@ -21,9 +21,9 @@ import Brand from './Brand.astro';
       >
         <Icon name="github" size={20} />
       </a>
-      <a class="btn btn--primary btn--sm" href={site.releases} rel="noopener">
+      <a class="btn btn--primary btn--sm" href={downloads.href} rel="noopener">
         <Icon name="download" size={16} stroke={2} />
-        Download
+        Download beta
       </a>
     </div>
   </div>

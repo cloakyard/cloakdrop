@@ -20,9 +20,23 @@ export const site = {
     'multi-segment speed, force-quit-proof resume, video from ~1,800 sites, and ' +
     'zero telemetry — it behaves like part of macOS.',
   repo: 'https://github.com/cloakyard/cloakdrop',
-  releases: 'https://github.com/cloakyard/cloakdrop/releases/latest',
   suiteOrg: 'https://github.com/cloakyard',
-  requirement: 'macOS Tahoe 26 · Apple silicon',
+  requirement: 'macOS 27 Golden Gate · Apple silicon',
+} as const;
+
+/**
+ * Download CTA. Points at the Releases *index*, not a versioned asset: the link then never
+ * needs touching as builds come and go, and there's no exact-filename coupling to break — an
+ * asset URL 404s the moment an upload is named differently.
+ *
+ * /releases rather than /releases/latest on purpose: GitHub excludes pre-releases from
+ * "latest", so while the beta is the only release, /releases/latest would 404.
+ */
+export const downloads = {
+  href: 'https://github.com/cloakyard/cloakdrop/releases',
+  label: 'Download the beta',
+  /** Shown next to the CTA — the betas are not notarized yet, so say so up front. */
+  note: 'Beta · Apple silicon · unnotarized — right-click ▸ Open on first launch',
 } as const;
 
 export interface NavLink {
@@ -39,7 +53,7 @@ export const nav: NavLink[] = [
 
 /* Hero — the hook. Speed + capture + resume + privacy, in one breath. */
 export const hero = {
-  kicker: 'macOS Tahoe 26 · Swift 6 · No Electron',
+  kicker: 'macOS 27 Golden Gate · Swift 6 · No Electron',
   titleLead: 'A download\nmanager that\nbehaves like',
   titleAccent: 'part of\nmacOS.',
   lead:
@@ -98,8 +112,12 @@ export const engine = {
   lead:
     'One actor-based engine handles HTTP, HTTPS and FTP alike — segmenting, ' +
     'resuming, and verifying every transfer the same way.',
-  /** Decorative segment fills for the multi-segment card's mini-inspector. */
-  segBars: ['92%', '84%', '76%', '70%', '62%', '54%', '48%', '40%'],
+  /**
+   * Decorative segment fills for the multi-segment card's mini-inspector.
+   * Deliberately unordered: real segments race independently, so a sorted
+   * staircase would misrepresent how a transfer actually looks mid-flight.
+   */
+  segBars: ['68%', '100%', '84%', '41%', '77%', '58%', '91%', '63%'],
   lead1: {
     n: '01',
     title: 'Multi-segment speed',

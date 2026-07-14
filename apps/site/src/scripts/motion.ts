@@ -104,8 +104,10 @@ function initReveal() {
     el.style.transform = 'translateY(26px)';
     el.style.transition = 'opacity .7s ease, transform .8s cubic-bezier(.2,.8,.2,1)';
   });
-  bars.forEach((b) => {
-    b.style.transition = 'width 1s cubic-bezier(.2,.8,.2,1)';
+  bars.forEach((b, i) => {
+    // Each segment fills at its own pace, so they never land in lockstep.
+    const dur = 0.85 + ((i * 0.37) % 0.5);
+    b.style.transition = `width ${dur.toFixed(2)}s cubic-bezier(.2,.8,.2,1)`;
     b.style.width = '0%';
   });
 
