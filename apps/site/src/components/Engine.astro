@@ -3,7 +3,7 @@ import { engine } from '../data/site';
 import Kicker from './Kicker.astro';
 ---
 
-<section id="engine" class="section engine">
+<section id="engine" class="section engine" data-reveal>
   <div class="container">
     <Kicker num={engine.num} label={engine.label} />
 
@@ -23,7 +23,7 @@ import Kicker from './Kicker.astro';
           <div class="mini" aria-hidden="true">
             <div class="mini-head"><span>SEGMENTS</span><span>8</span></div>
             {engine.segBars.map((w) => (
-              <div class="mini-track"><i style={`width:${w}`}></i></div>
+              <div class="mini-track"><i style={`width:${w}`} data-segw={w}></i></div>
             ))}
           </div>
         </article>

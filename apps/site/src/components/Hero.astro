@@ -17,11 +17,11 @@ const titleAccent = hero.titleAccent.replace(/\n/g, ' ');
       <div class="aside">
         <p class="lead">{hero.lead}</p>
         <div class="cta">
-          <a class="btn btn--primary" href={site.releases} rel="noopener">
+          <a class="btn btn--primary" href={site.releases} rel="noopener" data-magnetic>
             <Icon name="download" size={17} stroke={2} />
             Download for macOS
           </a>
-          <a class="btn" href={site.repo} rel="noopener">
+          <a class="btn" href={site.repo} rel="noopener" data-magnetic>
             <Icon name="github" size={17} />
             View source
           </a>
@@ -32,17 +32,28 @@ const titleAccent = hero.titleAccent.replace(/\n/g, ' ');
 
     <figure class="shot">
       <figcaption class="fig">{hero.figLabel}</figcaption>
-      <picture>
-        <source srcset="/hero.webp" type="image/webp" />
-        <img
-          src="/hero.png"
-          width="2240"
-          height="1442"
-          alt={hero.shotAlt}
-          fetchpriority="high"
-          decoding="async"
-        />
-      </picture>
+
+      <div class="aurora" aria-hidden="true"></div>
+
+      <div class="scene">
+        <div class="tilt" data-tilt>
+          <picture>
+            <source srcset="/hero.webp" type="image/webp" />
+            <img
+              src="/hero.png"
+              width="2416"
+              height="1578"
+              alt={hero.shotAlt}
+              fetchpriority="high"
+              decoding="async"
+            />
+          </picture>
+          <div class="glare" data-glare aria-hidden="true"></div>
+          <div class="sheen-clip" aria-hidden="true">
+            <div class="sheen" data-sheen></div>
+          </div>
+        </div>
+      </div>
     </figure>
   </div>
 </section>
@@ -99,11 +110,86 @@ const titleAccent = hero.titleAccent.replace(/\n/g, ' ');
     letter-spacing: 0.04em;
     color: var(--ink-4);
     margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 3;
+  }
+
+  /* Ambient glow behind the screenshot. Sits under the image (z-index 0) and is
+     never interactive. */
+  .aurora {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    width: min(900px, 90%);
+    height: 60%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    background: radial-gradient(
+      ellipse at center,
+      color-mix(in srgb, var(--accent) 32%, transparent),
+      transparent 62%
+    );
+    filter: blur(46px);
+    animation: cd-aurora 14s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .scene {
+    position: relative;
+    z-index: 2;
+    perspective: 1700px;
+  }
+
+  .tilt {
+    position: relative;
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   .shot img {
     width: 100%;
     height: auto;
+    display: block;
+  }
+
+  /* The screenshot has a baked-in shadow and transparent margins, so the glare
+     and sheen are inset to land on the window itself rather than the padding. */
+  .glare {
+    position: absolute;
+    inset: 5% 9%;
+    border-radius: 14px;
+    pointer-events: none;
+    opacity: 0;
+    mix-blend-mode: overlay;
+    transition: opacity 0.35s ease;
+    background: radial-gradient(
+      circle at 50% 40%,
+      rgba(255, 255, 255, 0.28),
+      transparent 42%
+    );
+  }
+
+  .sheen-clip {
+    position: absolute;
+    inset: 5% 9%;
+    border-radius: 14px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .sheen {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 28%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.22),
+      transparent
+    );
+    transform: translateX(-140%) skewX(-18deg);
   }
 
   @media (max-width: 820px) {

@@ -49,20 +49,38 @@ export const hero = {
   figLabel: 'FIG.01 — CLOAKDROP.APP',
   shotAlt:
     'The CloakDrop app window downloading an Ubuntu 26.04 ISO across 8 parallel ' +
-    'segments, with live speed, ETA, and a per-segment progress inspector.',
+    'segments, with live speed, ETA, and a per-segment progress inspector, above ' +
+    'a library of five completed downloads.',
 } as const;
 
 export interface Stat {
   value: string;
   label: string;
   accent?: boolean;
+  /**
+   * Optional count-up target. `value` stays the source of truth for what renders
+   * server-side (and with JS off); these only tell motion.ts how to re-derive it
+   * frame by frame, so `countTo` + affixes must format back to exactly `value`.
+   * Omit to leave a stat static — "0 bytes phoned home" counts up from nothing
+   * to nothing, so animating it is just a flicker.
+   */
+  countTo?: number;
+  countPrefix?: string;
+  countSuffix?: string;
+  countComma?: boolean;
 }
 
 /* Spec strip — four proof points under the hero. */
 export const stats: Stat[] = [
-  { value: '8×', label: 'parallel segments' },
-  { value: '~1,800', label: 'video sites recognized' },
-  { value: '471', label: 'tests · 72 suites' },
+  { value: '8×', label: 'parallel segments', countTo: 8, countSuffix: '×' },
+  {
+    value: '~1,800',
+    label: 'video sites recognized',
+    countTo: 1800,
+    countPrefix: '~',
+    countComma: true,
+  },
+  { value: '471', label: 'tests · 72 suites', countTo: 471 },
   { value: '0', label: 'bytes phoned home', accent: true },
 ];
 
@@ -287,10 +305,10 @@ export interface SuiteApp {
 export const suite = {
   num: '07',
   label: 'Part of Cloakyard',
-  title: 'One suite. One design language.',
+  title: 'One suite. One set of principles.',
   lead:
-    'Small, sharp Mac tools built on the same privacy-first principles, each ' +
-    'doing one job well.',
+    'Small, sharp Mac tools that are private by default — each built with the ' +
+    'same attention to design and simplicity, and each doing one job well.',
   org: 'github.com/cloakyard',
   apps: [
     { name: 'CloakDrop', desc: 'Multi-segment download manager', tag: 'THIS APP', self: true },

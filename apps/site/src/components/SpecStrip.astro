@@ -2,13 +2,20 @@
 import { stats } from '../data/site';
 ---
 
-<section class="specs-wrap">
+<section class="specs-wrap" data-reveal>
   <div class="container">
     <dl class="specs">
       {
         stats.map((s) => (
           <div class="cell">
-            <dt class="val" style={s.accent ? 'color:var(--accent-ink)' : undefined}>
+            <dt
+              class="val"
+              style={s.accent ? 'color:var(--accent-ink)' : undefined}
+              data-count-to={s.countTo}
+              data-count-prefix={s.countPrefix}
+              data-count-suffix={s.countSuffix}
+              data-count-comma={s.countComma ? '' : undefined}
+            >
               {s.value}
             </dt>
             <dd class="lbl">{s.label}</dd>
