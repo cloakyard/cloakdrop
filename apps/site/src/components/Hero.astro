@@ -1,9 +1,31 @@
 ---
+import { resolve } from 'node:path';
 import { site, hero } from '../data/site';
+import { measureHero } from '../lib/heroGeometry';
 import Icon from './Icon.astro';
 
 const titleLead = hero.titleLead.replace(/\n/g, ' ');
 const titleAccent = hero.titleAccent.replace(/\n/g, ' ');
+
+// Measure the real screenshot at build time: its intrinsic size, and where the
+// window sits inside its transparent shadow margin. The glare/sheen overlays are
+// positioned from this, so retaking the screenshot can never leave them
+// misaligned.
+//
+// Measure public/hero.png rather than repo-root /assets: it is the copy that
+// actually ships (prebuild syncs it from /assets, the source of truth). Resolve
+// it from the project root — import.meta.url points into the bundled chunk at
+// build time, not at this file.
+const shot = measureHero(resolve(process.cwd(), 'public/hero.png'));
+
+// The overlays cover exactly the window, so they inherit its corner rounding.
+const winStyle = [
+  `--win-top:${shot.insetTop.toFixed(3)}%`,
+  `--win-right:${shot.insetRight.toFixed(3)}%`,
+  `--win-bottom:${shot.insetBottom.toFixed(3)}%`,
+  `--win-left:${shot.insetLeft.toFixed(3)}%`,
+  `--win-radius:${(shot.radiusRatio * 100).toFixed(3)}%`,
+].join(';');
 ---
 
 <section class="hero">
@@ -36,13 +58,13 @@ const titleAccent = hero.titleAccent.replace(/\n/g, ' ');
       <div class="aurora" aria-hidden="true"></div>
 
       <div class="scene">
-        <div class="tilt" data-tilt>
+        <div class="tilt" data-tilt style={winStyle}>
           <picture>
             <source srcset="/hero.webp" type="image/webp" />
             <img
               src="/hero.png"
-              width="2416"
-              height="1578"
+              width={shot.width}
+              height={shot.height}
               alt={hero.shotAlt}
               fetchpriority="high"
               decoding="async"
@@ -147,18 +169,29 @@ const titleAccent = hero.titleAccent.replace(/\n/g, ' ');
     transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
+  /* <picture> is inline by default, which leaves a descender gap under the image
+     and makes .tilt taller than what it wraps — enough to throw the percentage
+     insets below off. Make it hug the image exactly. */
+  .tilt picture {
+    display: block;
+    font-size: 0;
+  }
+
   .shot img {
     width: 100%;
     height: auto;
     display: block;
   }
 
-  /* The screenshot has a baked-in shadow and transparent margins, so the glare
-     and sheen are inset to land on the window itself rather than the padding. */
+  /* The screenshot is a transparent PNG with the window floating inside a margin
+     of baked-in shadow, so the glare and sheen must land on the *window*, not on
+     the whole image. These insets are measured from the PNG at build time
+     (see lib/heroGeometry.ts) — never hand-tuned, or they drift the moment the
+     screenshot is retaken and paint a rectangle offset from the window. */
   .glare {
     position: absolute;
-    inset: 5% 9%;
-    border-radius: 14px;
+    inset: var(--win-top) var(--win-right) var(--win-bottom) var(--win-left);
+    border-radius: var(--win-radius);
     pointer-events: none;
     opacity: 0;
     mix-blend-mode: overlay;
@@ -172,8 +205,8 @@ const titleAccent = hero.titleAccent.replace(/\n/g, ' ');
 
   .sheen-clip {
     position: absolute;
-    inset: 5% 9%;
-    border-radius: 14px;
+    inset: var(--win-top) var(--win-right) var(--win-bottom) var(--win-left);
+    border-radius: var(--win-radius);
     overflow: hidden;
     pointer-events: none;
   }
