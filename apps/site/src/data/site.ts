@@ -325,8 +325,8 @@ export const suite = {
   label: 'Part of Cloakyard',
   title: 'One suite. One set of principles.',
   lead:
-    'Small, sharp Mac tools that are private by default — each built with the ' +
-    'same attention to design and simplicity, and each doing one job well.',
+    'Apps that are private by default — on the web and on the Mac — each built ' +
+    'with the same attention to design, and each doing one job well.',
   org: 'github.com/cloakyard',
   apps: [
     { name: 'CloakDrop', desc: 'Multi-segment download manager', tag: 'THIS APP', self: true },
