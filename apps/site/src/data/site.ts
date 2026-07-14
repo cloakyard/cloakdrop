@@ -305,10 +305,10 @@ export interface SuiteApp {
 export const suite = {
   num: '07',
   label: 'Part of Cloakyard',
-  title: 'One suite. One design language.',
+  title: 'One suite. One set of principles.',
   lead:
-    'Small, sharp Mac tools built on the same privacy-first principles, each ' +
-    'doing one job well.',
+    'Small, sharp Mac tools that are private by default — each built with the ' +
+    'same attention to design and simplicity, and each doing one job well.',
   org: 'github.com/cloakyard',
   apps: [
     { name: 'CloakDrop', desc: 'Multi-segment download manager', tag: 'THIS APP', self: true },
