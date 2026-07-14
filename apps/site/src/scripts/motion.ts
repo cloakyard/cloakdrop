@@ -141,14 +141,23 @@ function initReveal() {
 }
 
 /* -- Magnetic buttons ------------------------------------------------------- */
+/** Max px a button leans toward the cursor, per axis, reached at its very edge. */
+const MAGNET_SHIFT = 3;
+
+// A lean, not a chase. The offset is normalised against each button's own size, so a wide
+// button doesn't travel further than a narrow one, and both axes share one cap — pulling
+// harder vertically only makes a button look loose. Keep the transition short too: the
+// further the transform lags the pointer, the more the button reads as bouncy rather than
+// responsive. It's a click target first.
 function initMagnetic() {
   document.querySelectorAll<HTMLElement>('[data-magnetic]').forEach((btn) => {
-    btn.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1)';
+    btn.style.transition = 'transform .18s cubic-bezier(.2,.8,.2,1)';
     btn.addEventListener('mousemove', (e) => {
       const r = btn.getBoundingClientRect();
-      const dx = (e.clientX - r.left - r.width / 2) * 0.16;
-      const dy = (e.clientY - r.top - r.height / 2) * 0.28;
-      btn.style.transform = `translate(${dx}px, ${dy}px)`;
+      // −1…+1 across the button, so the shift maxes out at MAGNET_SHIFT on either edge.
+      const dx = ((e.clientX - r.left) / r.width - 0.5) * 2 * MAGNET_SHIFT;
+      const dy = ((e.clientY - r.top) / r.height - 0.5) * 2 * MAGNET_SHIFT;
+      btn.style.transform = `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px)`;
     });
     btn.addEventListener('mouseleave', () => {
       btn.style.transform = 'translate(0,0)';
