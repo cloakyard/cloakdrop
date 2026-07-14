@@ -25,27 +25,18 @@ export const site = {
 } as const;
 
 /**
- * Download links — **stable asset URLs** on GitHub Releases, so they never need editing as
- * versions come and go. That only holds if each upload keeps the exact asset filename below:
- * GitHub names an asset after the file you upload, so dragging a `CloakDrop-1.0-beta.dmg`
- * into the release form silently 404s this link. Rename the DMG before uploading.
+ * Download CTA. Points at the Releases *index*, not a versioned asset: the link then never
+ * needs touching as builds come and go, and there's no exact-filename coupling to break — an
+ * asset URL 404s the moment an upload is named differently.
  *
- *   beta   → tag `beta` (a rolling pre-release, re-uploaded in place), asset `CloakDrop-beta.dmg`
- *   stable → tag `vX.Y` marked latest, asset `CloakDrop.dmg` — /releases/latest resolves it
- *
- * The CTAs point at `beta` until 1.0 is notarized; switch them to `stable` then.
+ * /releases rather than /releases/latest on purpose: GitHub excludes pre-releases from
+ * "latest", so while the beta is the only release, /releases/latest would 404.
  */
 export const downloads = {
-  beta: {
-    href: 'https://github.com/cloakyard/cloakdrop/releases/download/beta/CloakDrop-beta.dmg',
-    label: 'Download the beta',
-    /** Shown next to the CTA — the betas are not notarized yet, so say so up front. */
-    note: 'Beta · Apple silicon · unnotarized — right-click ▸ Open on first launch',
-  },
-  stable: {
-    href: 'https://github.com/cloakyard/cloakdrop/releases/latest/download/CloakDrop.dmg',
-    label: 'Download for macOS',
-  },
+  href: 'https://github.com/cloakyard/cloakdrop/releases',
+  label: 'Download the beta',
+  /** Shown next to the CTA — the betas are not notarized yet, so say so up front. */
+  note: 'Beta · Apple silicon · unnotarized — right-click ▸ Open on first launch',
 } as const;
 
 export interface NavLink {

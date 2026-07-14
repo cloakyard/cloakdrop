@@ -39,16 +39,16 @@ const winStyle = [
       <div class="aside">
         <p class="lead">{hero.lead}</p>
         <div class="cta">
-          <a class="btn btn--primary" href={downloads.beta.href} rel="noopener" data-magnetic>
+          <a class="btn btn--primary" href={downloads.href} rel="noopener" data-magnetic>
             <Icon name="download" size={17} stroke={2} />
-            {downloads.beta.label}
+            {downloads.label}
           </a>
           <a class="btn" href={site.repo} rel="noopener" data-magnetic>
             <Icon name="github" size={17} />
             View source
           </a>
         </div>
-        <p class="note">{downloads.beta.note}</p>
+        <p class="note">{downloads.note}</p>
         <p class="micro">{hero.micro}</p>
       </div>
     </div>
@@ -114,7 +114,7 @@ const winStyle = [
     margin-top: 1.75rem;
   }
 
-  /* Beta caveat — the CTA links straight at an unnotarized DMG, so it has to say so. */
+  /* Beta caveat — what you'll find on the other side of the CTA, said up front. */
   .note {
     margin-top: 0.9rem;
     font-family: var(--font-mono);

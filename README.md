@@ -18,7 +18,7 @@ Serious multi-segment download power with the look and feel of a first-party app
 
 ## 📥 Download & release timeline
 
-**[⬇️ Download the beta](https://github.com/cloakyard/cloakdrop/releases/download/beta/CloakDrop-beta.dmg)** · Apple silicon · [all releases](https://github.com/cloakyard/cloakdrop/releases)
+**[⬇️ Download the beta](https://github.com/cloakyard/cloakdrop/releases)** · Apple silicon · grab the `.dmg` from the newest release
 
 CloakDrop is in **active development**. The beta is a complete, usable app — but it is *not* notarized yet, so macOS will not open it on a double-click: **right-click the app ▸ Open** the first time, then it launches normally forever after.
 
