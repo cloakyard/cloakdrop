@@ -1,5 +1,5 @@
 ---
-import { privacy } from '../data/site';
+import { privacy, site } from '../data/site';
 import Kicker from './Kicker.astro';
 import Icon from './Icon.astro';
 ---
@@ -11,6 +11,10 @@ import Icon from './Icon.astro';
         <Kicker num={privacy.num} label={privacy.label} />
         <h2>{privacy.title}</h2>
         <p class="body">{privacy.body}</p>
+        <a
+          class="policy-link"
+          href={site.privacyPolicy}
+        >Read the privacy policy <Icon name="arrow" size={16} /></a>
       </div>
 
       <ul class="list">
@@ -50,6 +54,25 @@ import Icon from './Icon.astro';
     color: var(--ink-2);
     line-height: 1.7;
     max-width: 52ch;
+  }
+
+  .policy-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    margin-top: 1rem;
+    color: var(--accent-ink);
+    font-size: 0.88rem;
+    font-weight: 700;
+  }
+
+  .policy-link :global(svg) {
+    transition: transform 0.16s ease;
+  }
+
+  .policy-link:hover :global(svg) {
+    transform: translateX(3px);
   }
 
   .list {

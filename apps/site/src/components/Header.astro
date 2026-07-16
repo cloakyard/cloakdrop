@@ -4,29 +4,69 @@ import Icon from './Icon.astro';
 import Brand from './Brand.astro';
 ---
 
-<header class="header">
+<header class="header" data-site-header>
   <div class="container bar">
     <Brand size={44} />
 
-    <nav class="nav" aria-label="Primary">
-      {nav.map((l) => <a href={l.href}>{l.label}</a>)}
+    <nav class="nav nav--desktop" aria-label="Primary">
+      {nav.map((link) => <a href={link.href} data-nav-link>{link.label}</a>)}
     </nav>
 
     <div class="actions">
-      <a
-        class="icon-link"
-        href={site.repo}
-        aria-label="CloakDrop on GitHub"
-        rel="noopener"
+      <button
+        class="menu-toggle"
+        type="button"
+        popovertarget="mobile-nav"
+        aria-label="Open navigation"
       >
-        <Icon name="github" size={20} />
-      </a>
-      <a class="btn btn--primary btn--sm" href={downloads.href} rel="noopener">
+        <span aria-hidden="true"></span>
+      </button>
+
+      <a
+        class="btn btn--primary btn--sm header-cta"
+        href={downloads.sectionHref}
+        aria-label={downloads.label}
+      >
         <Icon name="download" size={16} stroke={2} />
-        Download beta
+        <span>{downloads.label}</span>
       </a>
     </div>
   </div>
+
+  <div id="mobile-nav" class="mobile-panel" popover>
+    <div class="mobile-head">
+      <p>Navigate</p>
+      <button
+        class="panel-close"
+        type="button"
+        popovertarget="mobile-nav"
+        popovertargetaction="hide"
+        aria-label="Close navigation"
+      >
+        <span aria-hidden="true"></span>
+      </button>
+    </div>
+    <nav aria-label="Mobile navigation">
+      {nav.map((link, index) => (
+        <a href={link.href} data-nav-link>
+          <span>{String(index + 1).padStart(2, '0')}</span>
+          {link.label}
+        </a>
+      ))}
+    </nav>
+    <div class="mobile-actions">
+      <a class="btn btn--primary" href={downloads.sectionHref}>
+        <Icon name="download" size={17} stroke={2} />
+        {downloads.label}
+      </a>
+      <a class="btn" href={site.repo} rel="noopener">
+        <Icon name="github" size={17} />
+        View source
+      </a>
+    </div>
+  </div>
+
+  <div class="scroll-progress" aria-hidden="true"><i data-scroll-progress></i></div>
 </header>
 
 <style>
@@ -34,11 +74,7 @@ import Brand from './Brand.astro';
     position: sticky;
     top: 0;
     z-index: 50;
-    /* Frosted-glass bar: translucent enough that content blurs through on scroll. */
-    background: color-mix(in srgb, var(--bg) 60%, transparent);
-    /* Prefixed first, standard last (conventional order). The minifier dedups an
-       adjacent -webkit-/standard pair keeping the LAST, so the standard property
-       must come last or Chrome/Firefox drop the blur entirely. */
+    background: color-mix(in srgb, var(--bg) 66%, transparent);
     -webkit-backdrop-filter: saturate(180%) blur(26px);
     backdrop-filter: saturate(180%) blur(26px);
     border-bottom: 1px solid var(--line);
@@ -47,13 +83,13 @@ import Brand from './Brand.astro';
   .bar {
     display: flex;
     align-items: center;
-    gap: 1.75rem;
-    height: 4rem;
+    gap: 1.5rem;
+    min-height: 4.25rem;
   }
 
   .nav {
     display: flex;
-    gap: 1.9rem;
+    gap: clamp(1.1rem, 2vw, 1.9rem);
     margin-left: auto;
     font-size: 0.875rem;
     font-weight: 600;
@@ -61,46 +97,235 @@ import Brand from './Brand.astro';
   }
 
   .nav a {
+    position: relative;
+    padding-block: 0.35rem;
     transition: color 0.15s ease;
   }
 
-  .nav a:hover {
+  .nav a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: var(--accent-ink);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.2s ease;
+  }
+
+  .nav a:hover,
+  .nav a[aria-current='true'] {
     color: var(--accent-ink);
+  }
+
+  .nav a[aria-current='true']::after {
+    transform: scaleX(1);
   }
 
   .actions {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.65rem;
   }
 
-  .icon-link {
+  .menu-toggle,
+  .panel-close {
     display: inline-flex;
-    padding: 0.4rem;
-    border-radius: 9px;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 11px;
     color: var(--ink-2);
+    background: transparent;
+    cursor: pointer;
     transition:
       color 0.15s ease,
       background 0.15s ease;
   }
 
-  .icon-link:hover {
+  .menu-toggle:hover,
+  .panel-close:hover {
     color: var(--ink);
     background: var(--surface-2);
   }
 
-  @media (max-width: 860px) {
-    .nav {
+  .header-cta {
+    min-height: 44px;
+  }
+
+  .menu-toggle {
+    display: none;
+  }
+
+  .menu-toggle span,
+  .menu-toggle span::before,
+  .panel-close span::before,
+  .panel-close span::after {
+    display: block;
+    width: 18px;
+    height: 1.5px;
+    border-radius: 2px;
+    background: currentColor;
+  }
+
+  .menu-toggle span::before {
+    content: '';
+    transform: translateY(6px);
+  }
+
+  .panel-close span {
+    position: relative;
+    width: 18px;
+    height: 18px;
+  }
+
+  .panel-close span::before,
+  .panel-close span::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+  }
+
+  .panel-close span::before {
+    transform: rotate(45deg);
+  }
+
+  .panel-close span::after {
+    transform: rotate(-45deg);
+  }
+
+  .mobile-panel {
+    inset: 4.8rem var(--gutter) auto;
+    width: auto;
+    max-width: 32rem;
+    margin-inline: auto var(--gutter);
+    padding: 1rem;
+    border: 1px solid var(--line-2);
+    border-radius: 20px;
+    color: var(--ink-2);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    box-shadow: 0 28px 80px -30px rgba(12, 17, 20, 0.5);
+    -webkit-backdrop-filter: saturate(180%) blur(30px);
+    backdrop-filter: saturate(180%) blur(30px);
+  }
+
+  .mobile-panel::backdrop {
+    background: color-mix(in srgb, var(--band) 26%, transparent);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+  }
+
+  .mobile-panel:popover-open {
+    animation: panel-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .mobile-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.2rem 0.2rem 0.7rem 0.7rem;
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+
+  .mobile-panel nav {
+    display: grid;
+    border-top: 1px solid var(--line);
+  }
+
+  .mobile-panel nav a {
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    align-items: center;
+    min-height: 3.45rem;
+    padding-inline: 0.7rem;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .mobile-panel nav a span {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent-ink);
+  }
+
+  .mobile-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+    margin-top: 1rem;
+  }
+
+  .mobile-actions .btn {
+    min-height: 48px;
+    padding-inline: 0.8rem;
+  }
+
+  .scroll-progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .scroll-progress i {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    will-change: transform;
+  }
+
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(-10px) scale(0.98);
+    }
+  }
+
+  @media (max-width: 900px) {
+    .nav--desktop {
       display: none;
     }
     .actions {
       margin-left: auto;
     }
+    .menu-toggle {
+      display: inline-flex;
+    }
   }
 
-  @media (max-width: 440px) {
-    .icon-link {
+  @media (max-width: 360px) {
+    .bar {
+      gap: 0.5rem;
+    }
+    .header-cta {
+      width: 44px;
+      padding: 0;
+    }
+    .header-cta span {
       display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-panel:popover-open {
+      animation: none;
     }
   }
 </style>

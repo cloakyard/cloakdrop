@@ -1,52 +1,65 @@
 ---
 import { stats } from '../data/site';
+import Icon from './Icon.astro';
 ---
 
-<section class="specs-wrap" data-reveal>
+<section class="specs-wrap" aria-label="Product proof" data-reveal>
   <div class="container">
-    <dl class="specs">
+    <ul class="specs">
       {
-        stats.map((s) => (
-          <div class="cell">
-            <dt
-              class="val"
-              style={s.accent ? 'color:var(--accent-ink)' : undefined}
-              data-count-to={s.countTo}
-              data-count-prefix={s.countPrefix}
-              data-count-suffix={s.countSuffix}
-              data-count-comma={s.countComma ? '' : undefined}
-            >
-              {s.value}
-            </dt>
-            <dd class="lbl">{s.label}</dd>
-          </div>
+        stats.map((stat) => (
+          <li class:list={['cell', { 'cell--accent': stat.accent }] }>
+            <a href={stat.href} rel={stat.href?.startsWith('http') ? 'noopener' : undefined}>
+              <span
+                class="val"
+                data-count-to={stat.countTo}
+                data-count-prefix={stat.countPrefix}
+                data-count-suffix={stat.countSuffix}
+                data-count-comma={stat.countComma ? '' : undefined}
+              >
+                {stat.value}
+              </span>
+              <span class="lbl">{stat.label}</span>
+              <span class="go" aria-hidden="true"><Icon name="arrow" size={15} /></span>
+            </a>
+          </li>
         ))
       }
-    </dl>
+    </ul>
   </div>
 </section>
 
 <style>
   .specs-wrap {
-    margin-top: clamp(2rem, 4vw, 3rem);
+    margin-top: clamp(1.25rem, 3vw, 2rem);
   }
 
   .specs {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
+    list-style: none;
+    padding: 0;
     border-block: 1px solid var(--line-2);
-    margin: 0;
-  }
-
-  .cell {
-    padding: clamp(1.4rem, 3vw, 2rem) clamp(1rem, 2.5vw, 2rem);
   }
 
   .cell + .cell {
     border-left: 1px solid var(--line);
   }
 
+  .cell a {
+    position: relative;
+    display: block;
+    min-height: 100%;
+    padding: clamp(1.25rem, 2.5vw, 1.75rem) clamp(1rem, 2.5vw, 2rem);
+    transition: background 0.18s ease;
+  }
+
+  .cell a:hover {
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+  }
+
   .val {
+    display: block;
     font-size: clamp(1.9rem, 1.1rem + 2.6vw, 2.75rem);
     font-weight: 900;
     letter-spacing: -0.03em;
@@ -54,11 +67,35 @@ import { stats } from '../data/site';
     color: var(--ink);
   }
 
+  .cell--accent .val {
+    color: var(--accent-ink);
+  }
+
   .lbl {
-    margin: 0.4rem 0 0;
+    display: block;
+    margin-top: 0.45rem;
+    padding-right: 1.2rem;
     font-family: var(--font-mono);
     font-size: var(--t-mono);
     color: var(--ink-4);
+  }
+
+  .go {
+    position: absolute;
+    right: 1rem;
+    bottom: 1.2rem;
+    color: var(--ink-4);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition:
+      opacity 0.18s ease,
+      transform 0.18s ease;
+  }
+
+  .cell a:hover .go,
+  .cell a:focus-visible .go {
+    opacity: 1;
+    transform: none;
   }
 
   @media (max-width: 640px) {
@@ -70,6 +107,13 @@ import { stats } from '../data/site';
     }
     .cell:nth-child(n + 3) {
       border-top: 1px solid var(--line);
+    }
+    .cell a {
+      min-height: 7.8rem;
+      padding: 1.25rem 1rem;
+    }
+    .go {
+      display: none;
     }
   }
 </style>

@@ -20,6 +20,7 @@ export const site = {
     'multi-segment speed, force-quit-proof resume, video from ~1,800 sites, and ' +
     'zero telemetry — it behaves like part of macOS.',
   repo: 'https://github.com/cloakyard/cloakdrop',
+  privacyPolicy: '/privacy/',
   suiteOrg: 'https://github.com/cloakyard',
   requirement: 'macOS 27 Golden Gate · Apple silicon',
 } as const;
@@ -34,9 +35,11 @@ export const site = {
  */
 export const downloads = {
   href: 'https://github.com/cloakyard/cloakdrop/releases',
-  label: 'Download the beta',
-  /** Shown next to the CTA — the betas are not notarized yet, so say so up front. */
-  note: 'Beta · Apple silicon · unnotarized — right-click ▸ Open on first launch',
+  sectionHref: '#download',
+  label: 'Get the beta',
+  actionLabel: 'Watch beta releases',
+  status: 'The first public beta build is not posted yet.',
+  note: 'Apple silicon · macOS 27 Golden Gate · unnotarized beta',
 } as const;
 
 export interface NavLink {
@@ -45,26 +48,76 @@ export interface NavLink {
 }
 
 export const nav: NavLink[] = [
-  { label: 'Features', href: '#engine' },
+  { label: 'Product', href: '#product' },
+  { label: 'Receipt', href: '#provenance' },
   { label: 'Privacy', href: '#privacy' },
-  { label: 'Under the hood', href: '#hood' },
-  { label: 'Suite', href: '#suite' },
+  { label: 'Download', href: '#download' },
 ];
 
 /* Hero — the hook. Speed + capture + resume + privacy, in one breath. */
 export const hero = {
-  kicker: 'macOS 27 Golden Gate · Swift 6 · No Electron',
+  kicker: 'Native macOS · Open source · Zero telemetry',
   titleLead: 'A download\nmanager that\nbehaves like',
   titleAccent: 'part of\nmacOS.',
   lead:
     'Serious multi-segment speed over HTTP, HTTPS and FTP. Video from ~1,800 ' +
     'sites. Resume that survives a reboot. And nothing ever phones home.',
-  micro: 'Free & open source · MIT · No account, ever',
+  micro: 'MIT licensed · Source available · No account, ever',
   figLabel: 'FIG.01 — CLOAKDROP.APP',
   shotAlt:
     'The CloakDrop app window downloading an Ubuntu 26.04 ISO across 8 parallel ' +
     'segments, with live speed, ETA, and a per-segment progress inspector, above ' +
     'a library of five completed downloads.',
+} as const;
+
+export interface ProductStory {
+  n: string;
+  label: string;
+  title: string;
+  body: string;
+  points: readonly string[];
+  visual: 'speed' | 'capture' | 'organize';
+}
+
+export const product = {
+  num: '01',
+  label: 'The product',
+  title: 'One clean flow, from link to trusted file.',
+  lead:
+    'CloakDrop keeps the speed, capture, and verification work in one native ' +
+    'place—without turning the experience into a control panel.',
+  stories: [
+    {
+      n: '01',
+      label: 'Download',
+      title: 'Start fast. Stay fast.',
+      body:
+        'Files split across parallel byte ranges, fall back cleanly when a server ' +
+        'cannot segment, and resume from the exact byte after a restart or reboot.',
+      points: ['Up to 8 parallel segments', 'Automatic range fallback', 'Reboot-safe resume'],
+      visual: 'speed',
+    },
+    {
+      n: '02',
+      label: 'Capture',
+      title: 'Grab it without breaking your flow.',
+      body:
+        'Paste a URL, drag a link, share from another app, or use the built-in ' +
+        'browser. Video formats and ordinary files land in the same engine.',
+      points: ['Built-in WebKit browser', '~1,800 video sites', 'Clipboard, drag & Share'],
+      visual: 'capture',
+    },
+    {
+      n: '03',
+      label: 'Organize',
+      title: 'Finish cleanly, automatically.',
+      body:
+        'Queues, routing rules, duplicate detection, speed profiles, and safe ' +
+        'post-processing take care of the work after a link is added.',
+      points: ['Rules and smart queues', 'Honest bandwidth caps', 'Safe ZIP extraction'],
+      visual: 'organize',
+    },
+  ] as readonly ProductStory[],
 } as const;
 
 export interface Stat {
@@ -82,20 +135,27 @@ export interface Stat {
   countPrefix?: string;
   countSuffix?: string;
   countComma?: boolean;
+  href?: string;
 }
 
 /* Spec strip — four proof points under the hero. */
 export const stats: Stat[] = [
-  { value: '8×', label: 'parallel segments', countTo: 8, countSuffix: '×' },
+  { value: '8×', label: 'parallel segments', countTo: 8, countSuffix: '×', href: '#product' },
   {
     value: '~1,800',
     label: 'video sites recognized',
     countTo: 1800,
     countPrefix: '~',
     countComma: true,
+    href: '#product',
   },
-  { value: '471', label: 'tests · 72 suites', countTo: 471 },
-  { value: '0', label: 'bytes phoned home', accent: true },
+  {
+    value: '471',
+    label: 'tests · 72 suites',
+    countTo: 471,
+    href: 'https://github.com/cloakyard/cloakdrop/tree/main/apps/macos/Packages/DownloaderCore/Tests',
+  },
+  { value: '0', label: 'bytes phoned home', accent: true, href: '#privacy' },
 ];
 
 export interface NumberedFeature {
@@ -238,10 +298,10 @@ export interface DetailItem {
 
 /* 04 — The details. A six-cell grid of the small stuff. */
 export const details = {
-  num: '04',
-  label: 'The details',
+  num: '03',
+  label: 'Everything else',
   title: 'Small things, done right.',
-  lead: 'The parts you only notice because they never get in your way.',
+  lead: 'Useful depth when you need it, quiet defaults when you do not.',
   items: [
     {
       icon: 'shield',
@@ -278,15 +338,15 @@ export const details = {
 
 /* 05 — Privacy. The one place the egress story is told in full. */
 export const privacy = {
-  num: '05',
+  num: '04',
   label: 'Privacy is the whole point',
-  title: 'The only requests it makes are the ones you start.',
+  title: 'Network activity stays tied to what you choose.',
   body:
     'No accounts, no analytics, no crash reporting. The built-in browser keeps ' +
     'your logins but records no history, with a one-click wipe of all site data. ' +
-    'Downloads and settings live in a local SQLite database you can export or ' +
-    'delete — and the App Sandbox means CloakDrop only ever touches the folders ' +
-    'you point it at.',
+    'Download records and settings live in a local SQLite database, with controls ' +
+    'to remove records and clear completed items. The App Sandbox limits file ' +
+    'access to its containers, Downloads, and destinations you explicitly choose.',
   points: ['No telemetry', 'No analytics', 'No accounts', 'No crash reporting', 'No phone-home'],
 } as const;
 
@@ -296,10 +356,8 @@ export const hood = {
   label: 'Under the hood',
   title: 'Native to the bone.',
   body:
-    'No Electron, no web views, no third-party Swift dependencies beyond GRDB. ' +
-    'Full light and dark, VoiceOver and full-keyboard access, a live menu-bar ' +
-    'extra, a Dock icon that shows progress — and every string translated into ' +
-    '11 languages.',
+    'The interface stays thin because the download engine is a separate, headless ' +
+    'Swift package. The same tested core owns transfers, persistence, and recovery.',
   specs: [
     { k: 'LANGUAGE', v: 'Swift 6, strict concurrency' },
     { k: 'UI', v: 'SwiftUI · Liquid Glass' },

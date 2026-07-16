@@ -56,13 +56,13 @@ CloakDrop is in **active development**. The beta is a complete, usable app — b
 
 ## 🛡️ Privacy first
 
-CloakDrop makes **no** network requests except the ones you start: the URLs you choose to download, the sites you visit in the built-in browser (address-bar search, when enabled, sends the typed query to your chosen engine — DuckDuckGo by default — only when you press Return), a proxy you configure, the built-in **speed test**, which runs only when you press Start against the provider you pick in Settings ▸ Speed Test (Cloudflare by default, Ookla optional) — never on its own — and, if you pick an open-source **ad-block list** in Settings ▸ Browser, that list's server, only when you choose the list or press Update Now, never automatically.
+CloakDrop has no telemetry, analytics beacons, update checks, or other phone-home traffic. Network activity is limited to downloads and features you initiate or configure: the URLs, redirects, and mirrors used by your transfers; optional same-origin checksum-file discovery; video-page metadata resolution through yt-dlp; pages and subresources loaded by the built-in browser; address-bar queries submitted to your selected search engine on Return; your system or manually configured proxy; speed tests you start; and open-source blocklists you explicitly select or update. Scheduled transfers and automatic resume can continue work you configured earlier.
 
 - **On-device only** — no accounts, no analytics, no crash reporting, no phone-home.
 - **A browser that forgets** — the built-in browser keeps cookies and site data so logins persist, but records **no browsing history**, and offers a one-click wipe of all site data.
-- **Your data stays yours** — download history and settings live in a local SQLite database you can export or delete at any time.
-- **Sandboxed** — App Sandbox with security-scoped bookmarks; it only ever touches the folders you point it at.
-- **Transparent** — a full privacy policy ships in-app under Settings ▸ Privacy.
+- **Your data stays yours** — download history and settings live in a local SQLite database, with controls to remove records, clear completed items, and reset statistics.
+- **Sandboxed** — App Sandbox limits access to CloakDrop's containers, the standard Downloads folder, and destinations you explicitly select.
+- **Transparent** — read the [full privacy policy](PRIVACY.md), with an in-app summary under Settings ▸ Privacy.
 
 ## 🧰 Tech stack
 
