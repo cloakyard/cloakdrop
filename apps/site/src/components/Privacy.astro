@@ -1,5 +1,5 @@
 ---
-import { privacy } from '../data/site';
+import { privacy, site } from '../data/site';
 import Kicker from './Kicker.astro';
 import Icon from './Icon.astro';
 ---
@@ -13,9 +13,8 @@ import Icon from './Icon.astro';
         <p class="body">{privacy.body}</p>
         <a
           class="policy-link"
-          href="https://github.com/cloakyard/cloakdrop#-privacy-first"
-          rel="noopener"
-        >Read the privacy promise <Icon name="arrow" size={16} /></a>
+          href={site.privacyPolicy}
+        >Read the privacy policy <Icon name="arrow" size={16} /></a>
       </div>
 
       <ul class="list">

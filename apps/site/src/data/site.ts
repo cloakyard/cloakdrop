@@ -20,6 +20,7 @@ export const site = {
     'multi-segment speed, force-quit-proof resume, video from ~1,800 sites, and ' +
     'zero telemetry — it behaves like part of macOS.',
   repo: 'https://github.com/cloakyard/cloakdrop',
+  privacyPolicy: '/privacy/',
   suiteOrg: 'https://github.com/cloakyard',
   requirement: 'macOS 27 Golden Gate · Apple silicon',
 } as const;
@@ -339,13 +340,13 @@ export const details = {
 export const privacy = {
   num: '04',
   label: 'Privacy is the whole point',
-  title: 'The only requests it makes are the ones you start.',
+  title: 'Network activity stays tied to what you choose.',
   body:
     'No accounts, no analytics, no crash reporting. The built-in browser keeps ' +
     'your logins but records no history, with a one-click wipe of all site data. ' +
-    'Downloads and settings live in a local SQLite database you can export or ' +
-    'delete — and the App Sandbox means CloakDrop only ever touches the folders ' +
-    'you point it at.',
+    'Download records and settings live in a local SQLite database, with controls ' +
+    'to remove records and clear completed items. The App Sandbox limits file ' +
+    'access to its containers, Downloads, and destinations you explicitly choose.',
   points: ['No telemetry', 'No analytics', 'No accounts', 'No crash reporting', 'No phone-home'],
 } as const;
 

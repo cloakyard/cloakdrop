@@ -1,0 +1,335 @@
+---
+import { Content as PrivacyDocument } from '../../../../PRIVACY.md';
+import Brand from '../components/Brand.astro';
+import Icon from '../components/Icon.astro';
+import { site } from '../data/site';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const title = `Privacy Policy — ${site.name}`;
+const description =
+  'How CloakDrop stores local data, when its macOS app connects to the network, and the privacy controls available to you.';
+---
+
+<BaseLayout title={title} description={description}>
+  <header class="policy-header">
+    <div class="container header-inner">
+      <Brand size={38} />
+      <a class="back-link" href="/">
+        <Icon name="arrow" size={15} />
+        Back to CloakDrop
+      </a>
+    </div>
+  </header>
+
+  <main id="main" class="policy-page">
+    <div class="container policy-grid">
+      <aside class="policy-aside" aria-label="Privacy policy overview">
+        <p class="eyebrow">App privacy · Plain language</p>
+        <p>
+          A code-audited account of what stays on your Mac and every category of
+          network activity the app can create.
+        </p>
+
+        <nav aria-label="Privacy policy contents">
+          <a href="#data-stored-on-your-mac">Local data</a>
+          <a href="#network-activity">Network activity</a>
+          <a href="#your-controls">Your controls</a>
+          <a href="#questions-and-policy-changes">Questions</a>
+        </nav>
+
+        <div class="promise" aria-label="Privacy summary">
+          <span>No accounts</span>
+          <span>No telemetry</span>
+          <span>Open source</span>
+        </div>
+      </aside>
+
+      <article class="policy-document">
+        <PrivacyDocument />
+      </article>
+    </div>
+  </main>
+
+  <footer class="policy-footer">
+    <div class="container footer-inner">
+      <p>© {new Date().getFullYear()} Sumit Sahoo · MIT License</p>
+      <p><a href={site.repo} rel="noopener">View source</a> · No telemetry · No account</p>
+    </div>
+  </footer>
+</BaseLayout>
+
+<style>
+  .policy-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    backdrop-filter: saturate(180%) blur(24px);
+  }
+
+  .header-inner,
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+  }
+
+  .header-inner {
+    min-height: 4.25rem;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 44px;
+    color: var(--ink-2);
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
+  .back-link :global(svg) {
+    color: var(--accent-ink);
+    transform: rotate(180deg);
+    transition: transform 0.16s ease;
+  }
+
+  .back-link:hover :global(svg) {
+    transform: rotate(180deg) translateX(3px);
+  }
+
+  .policy-page {
+    padding-block: clamp(3rem, 7vw, 6.5rem);
+  }
+
+  .policy-grid {
+    display: grid;
+    grid-template-columns: minmax(210px, 270px) minmax(0, 760px);
+    justify-content: center;
+    gap: clamp(3rem, 8vw, 7.5rem);
+    align-items: start;
+  }
+
+  .policy-aside {
+    position: sticky;
+    top: 7rem;
+    display: grid;
+    gap: 1.4rem;
+    color: var(--ink-3);
+    font-size: 0.9rem;
+  }
+
+  .policy-aside > p:not(.eyebrow) {
+    line-height: 1.65;
+  }
+
+  .policy-aside nav {
+    display: grid;
+    border-top: 1px solid var(--line-2);
+  }
+
+  .policy-aside nav a {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-2);
+    font-size: 0.84rem;
+    font-weight: 700;
+    transition:
+      color 0.15s ease,
+      padding-left 0.15s ease;
+  }
+
+  .policy-aside nav a:hover {
+    padding-left: 0.25rem;
+    color: var(--accent-ink);
+  }
+
+  .promise {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .promise span {
+    padding: 0.36rem 0.58rem;
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.03em;
+  }
+
+  .policy-document {
+    min-width: 0;
+    padding: clamp(1.5rem, 4vw, 3.5rem);
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+  }
+
+  .policy-document :global(h1) {
+    max-width: 12ch;
+    font-size: clamp(2.35rem, 1.5rem + 3vw, 4.25rem);
+    line-height: 0.96;
+  }
+
+  .policy-document :global(h1 + p) {
+    margin-top: 1.2rem;
+    color: var(--ink-4);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-style: normal;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .policy-document :global(h2) {
+    scroll-margin-top: 6.5rem;
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+    padding-top: clamp(2rem, 5vw, 3rem);
+    border-top: 1px solid var(--line-2);
+    font-size: clamp(1.45rem, 1.15rem + 1.25vw, 2rem);
+    line-height: 1.08;
+  }
+
+  .policy-document :global(p),
+  .policy-document :global(ul) {
+    margin-top: 1rem;
+    line-height: 1.75;
+  }
+
+  .policy-document :global(ul) {
+    display: grid;
+    gap: 0.65rem;
+    padding-left: 1.2rem;
+  }
+
+  .policy-document :global(li) {
+    padding-left: 0.25rem;
+  }
+
+  .policy-document :global(li::marker) {
+    color: var(--accent-ink);
+  }
+
+  .policy-document :global(a) {
+    color: var(--accent-ink);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent);
+    text-underline-offset: 0.2em;
+  }
+
+  .policy-document :global(code) {
+    padding: 0.12em 0.3em;
+    border-radius: 5px;
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+
+  .policy-footer {
+    border-top: 1px solid var(--line-2);
+  }
+
+  .footer-inner {
+    min-height: 5.5rem;
+    flex-wrap: wrap;
+    padding-block: 1.25rem;
+    color: var(--ink-4);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+  }
+
+  .footer-inner a {
+    color: var(--ink-2);
+  }
+
+  @media (max-width: 820px) {
+    .policy-grid {
+      grid-template-columns: minmax(0, 760px);
+      gap: 2rem;
+    }
+
+    .policy-aside {
+      position: static;
+      grid-template-columns: 1fr auto;
+      align-items: start;
+    }
+
+    .policy-aside .eyebrow,
+    .policy-aside nav {
+      grid-column: 1 / -1;
+    }
+
+    .policy-aside nav {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .policy-aside nav a {
+      justify-content: center;
+      border-right: 1px solid var(--line);
+      text-align: center;
+    }
+
+    .policy-aside nav a:last-child {
+      border-right: 0;
+    }
+
+    .policy-aside nav a:hover {
+      padding-left: 0;
+    }
+
+    .promise {
+      justify-content: flex-end;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .header-inner {
+      min-height: 4rem;
+    }
+
+    .back-link {
+      font-size: 0.78rem;
+    }
+
+    .policy-page {
+      padding-block: 2.25rem 3rem;
+    }
+
+    .policy-aside {
+      grid-template-columns: 1fr;
+    }
+
+    .policy-aside nav {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .policy-aside > p,
+    .policy-aside .promise {
+      grid-column: 1 / -1;
+    }
+
+    .promise {
+      justify-content: flex-start;
+    }
+
+    .policy-document {
+      padding: 1.35rem;
+      border-radius: 18px;
+    }
+
+    .footer-inner {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+</style>
