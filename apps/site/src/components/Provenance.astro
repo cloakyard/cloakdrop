@@ -4,7 +4,7 @@ import Kicker from './Kicker.astro';
 import Icon from './Icon.astro';
 ---
 
-<section class="section prov" data-reveal>
+<section id="provenance" class="section prov" data-reveal>
   <div class="container">
     <div class="band">
       <div class="glow" aria-hidden="true"></div>
@@ -13,6 +13,13 @@ import Icon from './Icon.astro';
         <Kicker num={provenance.num} label={provenance.label} tone="band" />
         <h2>{provenance.title}</h2>
         <p class="body" set:html={provenance.bodyHtml} />
+        <div class="proof-actions">
+          <a
+            href="https://github.com/cloakyard/cloakdrop/blob/main/apps/macos/Packages/DownloaderCore/Tests/DownloadModelsTests/ProvenanceReceiptTests.swift"
+            rel="noopener"
+          >View receipt tests <Icon name="arrow" size={15} /></a>
+          <a href="#privacy">See the privacy model <Icon name="arrow" size={15} /></a>
+        </div>
       </div>
 
       <div class="receipt" role="img" aria-label="Example provenance receipt: trusted">
@@ -93,6 +100,32 @@ import Icon from './Icon.astro';
     font-family: var(--font-mono);
     font-size: 0.86em;
     color: #cdd6da;
+  }
+
+  .proof-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem 1.25rem;
+    margin-top: 1.35rem;
+  }
+
+  .proof-actions a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 44px;
+    color: var(--band-ink);
+    font-size: 0.84rem;
+    font-weight: 600;
+  }
+
+  .proof-actions :global(svg) {
+    color: var(--band-accent);
+    transition: transform 0.16s ease;
+  }
+
+  .proof-actions a:hover :global(svg) {
+    transform: translateX(3px);
   }
 
   /* Receipt card — a light, mono ticket, tilted a touch. --------------------- */

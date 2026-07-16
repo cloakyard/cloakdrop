@@ -30,7 +30,7 @@
   --accent: #2a7b9b;
   --accent-strong: #1f6480;
   --accent-soft: color-mix(in srgb, var(--accent) 11%, transparent);
-  --accent-ink: #2a7b9b; /* accent used as text on light surfaces */
+  --accent-ink: #1f6480; /* higher-contrast accent used as text */
 
   --bg: #f2f5f6;
   --surface: #ffffff;
@@ -39,8 +39,8 @@
 
   --ink: #14191c; /* headings */
   --ink-2: #4c565c; /* body */
-  --ink-3: #6c767c; /* muted body */
-  --ink-4: #8b9599; /* mono labels / captions */
+  --ink-3: #5e686d; /* muted body */
+  --ink-4: #59656a; /* mono labels / captions */
 
   --line: #e6ebed; /* hairline */
   --line-2: #dde4e6; /* structural rule */
@@ -93,8 +93,8 @@
 
     --ink: #f1f6f7;
     --ink-2: #b3bec3;
-    --ink-3: #8b969b;
-    --ink-4: #6d787d;
+    --ink-3: #9aa6ab;
+    --ink-4: #829096;
 
     --line: rgba(255, 255, 255, 0.08);
     --line-2: rgba(255, 255, 255, 0.12);
@@ -135,6 +135,10 @@ html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
   scroll-padding-top: 5rem;
+}
+
+[id] {
+  scroll-margin-top: 5rem;
 }
 
 body {
@@ -286,6 +290,7 @@ svg {
   color: var(--ink);
   cursor: pointer;
   white-space: nowrap;
+  min-height: 44px;
   transition:
     transform 0.16s ease,
     box-shadow 0.16s ease,
@@ -325,13 +330,13 @@ svg {
    stable, unscoped name. */
 @keyframes cd-aurora {
   0% {
-    transform: translate(-4%, -2%) scale(1);
+    transform: translate(-50%, -50%) translate(-2%, -1%) scale(1);
   }
   50% {
-    transform: translate(5%, 3%) scale(1.12);
+    transform: translate(-50%, -50%) translate(2%, 1%) scale(1.08);
   }
   100% {
-    transform: translate(-4%, -2%) scale(1);
+    transform: translate(-50%, -50%) translate(-2%, -1%) scale(1);
   }
 }
 

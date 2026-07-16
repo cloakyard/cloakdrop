@@ -18,7 +18,7 @@ function initTilt() {
   if (!tilt || !scene) return;
 
   const glare = document.querySelector<HTMLElement>('[data-glare]');
-  const MAX = 6.5;
+  const MAX = 4;
   let raf = 0;
   let rx = 0;
   let ry = 0;
@@ -165,7 +165,100 @@ function initMagnetic() {
   });
 }
 
+/* -- Product workflow tabs ------------------------------------------------- */
+function initProductTabs() {
+  const root = document.querySelector<HTMLElement>('[data-product-experience]');
+  if (!root) return;
+
+  const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-story-tab]'));
+  const panels = Array.from(root.querySelectorAll<HTMLElement>('[data-story-panel]'));
+  if (!tabs.length || !panels.length) return;
+
+  const activate = (tab: HTMLButtonElement, moveFocus = false) => {
+    const key = tab.dataset.storyTab;
+    tabs.forEach((candidate) => {
+      const selected = candidate === tab;
+      candidate.setAttribute('aria-selected', selected ? 'true' : 'false');
+      candidate.tabIndex = selected ? 0 : -1;
+    });
+    panels.forEach((panel) => {
+      panel.hidden = panel.dataset.storyPanel !== key;
+    });
+    if (moveFocus) tab.focus();
+  };
+
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => activate(tab));
+    tab.addEventListener('keydown', (event) => {
+      let next = index;
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = (index + 1) % tabs.length;
+      else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = (index - 1 + tabs.length) % tabs.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = tabs.length - 1;
+      else return;
+      event.preventDefault();
+      activate(tabs[next]!, true);
+    });
+  });
+}
+
+/* -- Navigation state + useful scroll progress ----------------------------- */
+function initNavigation() {
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-nav-link]'));
+  const progress = document.querySelector<HTMLElement>('[data-scroll-progress]');
+  const sections = Array.from(
+    new Set(
+      links
+        .map((link) => link.hash)
+        .filter(Boolean)
+        .map((hash) => document.querySelector<HTMLElement>(hash))
+        .filter((section): section is HTMLElement => Boolean(section))
+    )
+  );
+
+  const setActive = (id: string) => {
+    links.forEach((link) => {
+      if (link.hash === `#${id}`) link.setAttribute('aria-current', 'true');
+      else link.removeAttribute('aria-current');
+    });
+  };
+
+  let frame = 0;
+  const update = () => {
+    frame = 0;
+    if (progress) {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const ratio = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      progress.style.transform = `scaleX(${ratio.toFixed(4)})`;
+    };
+
+    const marker = window.scrollY + Math.min(window.innerHeight * 0.3, 180);
+    const current = sections.filter((section) => section.offsetTop <= marker).at(-1);
+    if (current) setActive(current.id);
+    else links.forEach((link) => link.removeAttribute('aria-current'));
+  };
+  const onScroll = () => {
+    if (!frame) frame = requestAnimationFrame(update);
+  };
+  update();
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+}
+
+/* -- Mobile popover handoff ------------------------------------------------ */
+function initMobileNavigation() {
+  const panel = document.querySelector<HTMLElement>('#mobile-nav');
+  if (!panel) return;
+  panel.querySelectorAll<HTMLAnchorElement>('a').forEach((link) => {
+    link.addEventListener('click', () => panel.hidePopover?.());
+  });
+}
+
 /* -- Boot ------------------------------------------------------------------- */
+initProductTabs();
+initNavigation();
+initMobileNavigation();
+
 if (!reduce) {
   // Reveal/count-up are scroll-driven, so they run on touch too; the rest is cursor-only.
   initReveal();

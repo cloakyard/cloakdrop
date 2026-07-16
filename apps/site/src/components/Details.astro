@@ -96,6 +96,28 @@ import Icon from './Icon.astro';
 
   @media (max-width: 520px) {
     .grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .cell {
+      padding: 1.15rem;
+    }
+    .tile {
+      width: 34px;
+      height: 34px;
+      margin-bottom: 0.85rem;
+    }
+    .cell h3 {
+      font-size: 0.96rem;
+      line-height: 1.12;
+    }
+    .cell p {
+      font-size: 0.78rem;
+      line-height: 1.5;
+    }
+  }
+
+  @media (max-width: 350px) {
+    .grid {
       grid-template-columns: 1fr;
     }
   }

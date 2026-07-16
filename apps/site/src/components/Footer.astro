@@ -1,57 +1,132 @@
 ---
-import { site } from '../data/site';
+import { site, suite, downloads } from '../data/site';
+import Brand from './Brand.astro';
+import Icon from './Icon.astro';
 ---
 
 <footer class="footer">
-  <div class="container inner">
-    <p class="note">
-      <strong>CloakDrop</strong> — part of the
-      <a href={site.suiteOrg} rel="noopener">Cloakyard</a> privacy-first suite. Runs
-      entirely on-device.
-    </p>
-    <p class="copy">© {new Date().getFullYear()} Sumit Sahoo · MIT License</p>
+  <div class="container top">
+    <div class="about">
+      <Brand size={34} />
+      <p>A native, privacy-first download manager. Runs entirely on your Mac.</p>
+    </div>
+
+    <nav aria-label="Cloakyard apps">
+      <p>Cloakyard</p>
+      {
+        suite.apps.filter((app) => !app.self).map((app) => (
+          <a href={app.href} rel="noopener">{app.name}<Icon name="arrow" size={14} /></a>
+        ))
+      }
+    </nav>
+
+    <div class="footer-cta">
+      <p>Public beta</p>
+      <a href={downloads.sectionHref}>{downloads.label}<Icon name="arrow" size={15} /></a>
+    </div>
+  </div>
+
+  <div class="container bottom">
+    <p>© {new Date().getFullYear()} Sumit Sahoo · MIT License</p>
+    <p><a href={site.repo} rel="noopener">Source</a> · No telemetry · No account</p>
   </div>
 </footer>
 
 <style>
   .footer {
-    border-top: 1px solid var(--line);
-    padding-block: clamp(1.75rem, 3vw, 2.25rem);
+    margin-top: clamp(1rem, 3vw, 2rem);
+    border-top: 1px solid var(--line-2);
   }
 
-  .inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.25rem 2rem;
-    flex-wrap: wrap;
+  .top {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) auto auto;
+    gap: clamp(2rem, 6vw, 6rem);
+    padding-block: clamp(2.5rem, 5vw, 4rem);
   }
 
-  .note {
-    font-size: 0.8125rem;
+  .about p {
+    max-width: 38ch;
+    margin-top: 0.9rem;
+    color: var(--ink-3);
+    font-size: 0.88rem;
+  }
+
+  nav,
+  .footer-cta {
+    display: grid;
+    align-content: start;
+    gap: 0.55rem;
+  }
+
+  nav > p,
+  .footer-cta > p {
+    margin-bottom: 0.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     color: var(--ink-4);
-    max-width: 52ch;
   }
 
-  .note strong {
+  nav a,
+  .footer-cta a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 32px;
     color: var(--ink-2);
-    font-weight: 700;
-  }
-
-  .note a {
-    color: var(--ink-2);
+    font-size: 0.86rem;
     font-weight: 600;
   }
 
-  .copy {
+  nav a :global(svg),
+  .footer-cta a :global(svg) {
+    color: var(--accent-ink);
+    transition: transform 0.16s ease;
+  }
+
+  nav a:hover :global(svg),
+  .footer-cta a:hover :global(svg) {
+    transform: translateX(3px);
+  }
+
+  .bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    flex-wrap: wrap;
+    padding-block: 1.25rem 1.8rem;
+    border-top: 1px solid var(--line);
     font-family: var(--font-mono);
     font-size: var(--t-mono);
     color: var(--ink-4);
   }
 
-  @media (max-width: 560px) {
-    .note {
-      flex-basis: 100%;
+  .bottom a {
+    color: var(--ink-2);
+  }
+
+  @media (max-width: 700px) {
+    .top {
+      grid-template-columns: 1fr 1fr;
+    }
+    .about {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .top {
+      grid-template-columns: 1fr;
+    }
+    .about {
+      grid-column: auto;
+    }
+    .bottom {
+      align-items: flex-start;
+      flex-direction: column;
     }
   }
 </style>

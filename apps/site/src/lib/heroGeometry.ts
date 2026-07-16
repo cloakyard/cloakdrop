@@ -1,12 +1,10 @@
 /**
  * Build-time geometry of the hero screenshot.
  *
- * The screenshot is a transparent PNG with the app window floating inside a
- * margin of baked-in shadow. The hero's glare and sheen overlays have to sit on
- * the *window*, not on the whole image — so they need to know where the window
- * actually is. Hardcoding those insets means they silently drift the moment the
- * screenshot is retaken, which shows up as an overlay rectangle offset from the
- * window. So measure them from the file instead.
+ * The hero's glare and sheen overlays have to sit on the app window itself.
+ * Measuring the current PNG keeps those overlays aligned with its rounded
+ * corners and also remains safe if a future capture includes transparent edge
+ * padding.
  *
  * This runs at build time only (Astro frontmatter, static output) — nothing here
  * reaches the browser.
@@ -28,7 +26,7 @@ export interface HeroGeometry {
   radiusRatio: number;
 }
 
-/** Alpha above this is the window itself; the baked shadow stays well below it. */
+/** Alpha above this is treated as the window surface. */
 const OPAQUE = 200;
 
 function paeth(a: number, b: number, c: number): number {
