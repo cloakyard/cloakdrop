@@ -1,11 +1,9 @@
 /*
  * CloakDrop brand site — design system.
  *
- * Editorial / magazine treatment: self-hosted Archivo (heavy display) + JetBrains Mono
- * (labels & data), numbered sections, hairline rules, and generous whitespace on
- * CloakDrop's deep-ocean accent (#2A7B9B). Fonts are self-hosted (privacy: no Google
- * Fonts request — nothing the page loads leaves the reader's machine to a third party).
- * Theme follows the OS via prefers-color-scheme, like a native Mac app.
+ * Precision editorial treatment: one expressive sans, one data face, broad breathing
+ * room and an adaptive N→1 transfer motif derived from the product itself. Fonts remain
+ * self-hosted, and the palette follows the OS without outsourcing a single request.
  */
 
 /* Self-hosted variable fonts — one file per family covers every weight ------ */
@@ -26,54 +24,53 @@
 }
 
 :root {
-  /* Deep-ocean accent — echoes the app icon's turquoise→navy gradient. */
-  --accent: #2a7b9b;
-  --accent-strong: #1f6480;
-  --accent-soft: color-mix(in srgb, var(--accent) 11%, transparent);
-  --accent-ink: #1f6480; /* higher-contrast accent used as text */
+  --accent: #287f9b;
+  --accent-strong: #175e76;
+  --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent);
+  --accent-ink: #17647d;
 
-  --bg: #f2f5f6;
-  --surface: #ffffff;
-  --surface-2: #eef3f5;
-  --tint: #e7f0f3; /* icon-tile / accent wash */
+  --bg: #f3f5f4;
+  --surface: #fbfcfc;
+  --surface-2: #edf1f1;
+  --tint: #e4eef0;
 
-  --ink: #14191c; /* headings */
-  --ink-2: #4c565c; /* body */
-  --ink-3: #5e686d; /* muted body */
-  --ink-4: #59656a; /* mono labels / captions */
+  --ink: #0a1114;
+  --ink-2: #3e4a50;
+  --ink-3: #5b676c;
+  --ink-4: #637075;
 
-  --line: #e6ebed; /* hairline */
-  --line-2: #dde4e6; /* structural rule */
+  --line: #e2e7e7;
+  --line-2: #d5dddd;
 
-  --band: #0c1114; /* inverted (dark) band */
+  --band: #071014;
   --band-ink: #ffffff;
   --band-ink-2: #aeb8bd;
   --band-accent: #7fbdd1;
-  --positive: #0a7d3e;
+  --positive: #14814b;
 
-  --shadow-window: 0 30px 80px -30px rgba(12, 17, 20, 0.4);
-  --shadow-card: 0 20px 50px -28px rgba(12, 17, 20, 0.35);
-  --shadow-btn: 0 12px 26px -12px color-mix(in srgb, var(--accent) 70%, transparent);
+  --shadow-window: 0 42px 110px -48px rgba(5, 18, 24, 0.5);
+  --shadow-card: 0 24px 70px -46px rgba(5, 18, 24, 0.32);
+  --shadow-btn: 0 14px 32px -18px color-mix(in srgb, var(--accent) 68%, transparent);
 
   --font-sans: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
     'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Menlo', monospace;
 
   /* Fluid type scale */
-  --t-mono: clamp(0.72rem, 0.68rem + 0.14vw, 0.78rem);
-  --t-body: clamp(0.95rem, 0.92rem + 0.14vw, 1rem);
-  --t-lead: clamp(1rem, 0.95rem + 0.28vw, 1.125rem);
-  --t-h3: clamp(1.1rem, 0.98rem + 0.5vw, 1.3rem);
-  --t-h3-lg: clamp(1.3rem, 1.05rem + 1vw, 1.625rem);
-  --t-h2-band: clamp(1.9rem, 1.3rem + 2.5vw, 3rem);
-  --t-h2: clamp(2rem, 1.2rem + 3.4vw, 3.375rem);
-  --t-h1: clamp(2.6rem, 1.2rem + 6vw, 4.75rem);
+  --t-mono: clamp(0.68rem, 0.65rem + 0.12vw, 0.75rem);
+  --t-body: clamp(0.96rem, 0.93rem + 0.12vw, 1.02rem);
+  --t-lead: clamp(1.04rem, 0.98rem + 0.3vw, 1.2rem);
+  --t-h3: clamp(1.12rem, 1rem + 0.5vw, 1.38rem);
+  --t-h3-lg: clamp(1.4rem, 1.1rem + 1.1vw, 1.9rem);
+  --t-h2-band: clamp(2.2rem, 1.35rem + 3.4vw, 4.25rem);
+  --t-h2: clamp(2.45rem, 1.35rem + 4.5vw, 5.2rem);
+  --t-h1: clamp(3.25rem, 1.2rem + 8.1vw, 7.7rem);
 
   /* Content column — mirrors the CloakPDF app shell (max-w-6xl → xl:88rem,
      px-4 sm:px-6) so the sibling Cloakyard sites share one page width.
      Widened responsively below. */
-  --page-max: 72rem; /* 1152px (Tailwind max-w-6xl) */
-  --gutter: 1rem; /* px-4 */
+  --page-max: 76rem;
+  --gutter: 1.15rem;
   --radius: 12px;
   --radius-lg: 14px;
   --radius-xl: 22px;
@@ -86,10 +83,10 @@
     --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
     --accent-ink: #6fc4d6;
 
-    --bg: #0a0e10;
-    --surface: #13191c;
-    --surface-2: #171f22;
-    --tint: #14262c;
+    --bg: #0a0f11;
+    --surface: #11181b;
+    --surface-2: #162024;
+    --tint: #13262d;
 
     --ink: #f1f6f7;
     --ink-2: #b3bec3;
@@ -115,12 +112,13 @@
    line up edge-to-edge. */
 @media (min-width: 640px) {
   :root {
-    --gutter: 1.5rem; /* px-6 */
+    --gutter: 2rem;
   }
 }
 @media (min-width: 1280px) {
   :root {
-    --page-max: 88rem; /* 1408px — CloakPDF xl:max-w-[88rem] */
+    --page-max: 88rem;
+    --gutter: 2.5rem;
   }
 }
 
@@ -144,7 +142,7 @@ html {
 body {
   font-family: var(--font-sans);
   font-size: var(--t-body);
-  line-height: 1.62;
+  line-height: 1.64;
   color: var(--ink-2);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
@@ -160,8 +158,8 @@ h1,
 h2,
 h3 {
   color: var(--ink);
-  font-weight: 900;
-  letter-spacing: -0.035em;
+  font-weight: 770;
+  letter-spacing: -0.045em;
   line-height: 0.98;
   text-wrap: balance;
 }
@@ -175,8 +173,8 @@ h2 {
 }
 h3 {
   font-size: var(--t-h3);
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-weight: 720;
+  letter-spacing: -0.025em;
   line-height: 1.15;
 }
 
@@ -226,7 +224,7 @@ svg {
 
 /* Vertical rhythm for the numbered content sections. */
 .section {
-  padding-block: clamp(2.75rem, 5.5vw, 4.5rem);
+  padding-block: clamp(4rem, 6vw, 6.25rem);
 }
 
 /* Full-width hairline that lines up with the container edges. */
@@ -242,8 +240,8 @@ svg {
   gap: 0.9rem;
   font-family: var(--font-mono);
   font-size: var(--t-mono);
-  font-weight: 500;
-  letter-spacing: 0.06em;
+  font-weight: 560;
+  letter-spacing: 0.075em;
   text-transform: uppercase;
   color: var(--accent-ink);
 }
@@ -265,7 +263,7 @@ svg {
 .lead {
   color: var(--ink-2);
   font-size: var(--t-lead);
-  line-height: 1.62;
+  line-height: 1.68;
 }
 
 .accent {
@@ -280,7 +278,7 @@ svg {
   justify-content: center;
   gap: 0.55rem;
   font: inherit;
-  font-weight: 600;
+  font-weight: 650;
   font-size: var(--t-body);
   line-height: 1;
   padding: 0.85rem 1.35rem;
@@ -291,11 +289,7 @@ svg {
   cursor: pointer;
   white-space: nowrap;
   min-height: 44px;
-  transition:
-    transform 0.16s ease,
-    box-shadow 0.16s ease,
-    border-color 0.16s ease,
-    background 0.16s ease;
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
 }
 
 .btn:hover {
@@ -321,32 +315,6 @@ svg {
   padding: 0.6rem 1rem;
   font-size: var(--t-mono);
   letter-spacing: 0.01em;
-}
-
-/* Motion keyframes -------------------------------------------------------- */
-/* Used by the hero's ambient aurora and the sheen that sweeps the screenshot.
-   Global rather than component-scoped: Astro hashes scoped class names, but a
-   keyframe referenced from JS (motion.ts sets `animation: cd-sheen …`) needs a
-   stable, unscoped name. */
-@keyframes cd-aurora {
-  0% {
-    transform: translate(-50%, -50%) translate(-2%, -1%) scale(1);
-  }
-  50% {
-    transform: translate(-50%, -50%) translate(2%, 1%) scale(1.08);
-  }
-  100% {
-    transform: translate(-50%, -50%) translate(-2%, -1%) scale(1);
-  }
-}
-
-@keyframes cd-sheen {
-  0% {
-    transform: translateX(-140%) skewX(-18deg);
-  }
-  100% {
-    transform: translateX(240%) skewX(-18deg);
-  }
 }
 
 /* Reduced motion ---------------------------------------------------------- */

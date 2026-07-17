@@ -2,94 +2,185 @@
 import { provenance } from '../data/site';
 import Kicker from './Kicker.astro';
 import Icon from './Icon.astro';
+
+// Abstract rails visualize parallel range data; the product count is configurable.
+const streams = Array.from({ length: 6 }, (_, index) => index + 1);
 ---
 
 <section id="provenance" class="section prov" data-reveal>
   <div class="container">
-    <div class="band">
-      <div class="glow" aria-hidden="true"></div>
+    <div class="chamber">
+      <div class="chamber-grid" aria-hidden="true"></div>
 
-      <div class="copy">
-        <Kicker num={provenance.num} label={provenance.label} tone="band" />
-        <h2>{provenance.title}</h2>
-        <p class="body" set:html={provenance.bodyHtml} />
-        <div class="proof-actions">
-          <a
-            href="https://github.com/cloakyard/cloakdrop/blob/main/apps/macos/Packages/DownloaderCore/Tests/DownloadModelsTests/ProvenanceReceiptTests.swift"
-            rel="noopener"
-          >View receipt tests <Icon name="arrow" size={15} /></a>
-          <a href="#privacy">See the privacy model <Icon name="arrow" size={15} /></a>
-        </div>
+      <div class="chamber-head">
+        <span>VERIFICATION CHAMBER</span>
+        <span class="chamber-state"><i></i> LOCAL · AFTER COMPLETION</span>
       </div>
 
-      <div class="receipt" role="img" aria-label="Example provenance receipt: trusted">
-        <div class="r-head">
-          <span>PROVENANCE RECEIPT</span>
-          <Icon name="shield" size={16} />
+      <div class="intro">
+        <div class="copy">
+          <Kicker num={provenance.num} label={provenance.label} tone="band" />
+          <h2>{provenance.title}</h2>
         </div>
-        {
-          provenance.receipt.map((r) => (
-            <div class="r-row">
-              <span class="r-k">{r.k}</span>
-              <span class="r-v">{r.v}</span>
+        <p class="body" set:html={provenance.bodyHtml} />
+      </div>
+
+      <figure class="verification" aria-labelledby="verification-caption">
+        <figcaption id="verification-caption" class="sr-only">
+          Parallel range data converges into one local provenance receipt.
+        </figcaption>
+
+        <div class="flow-labels" aria-hidden="true">
+          <span>PARALLEL RANGE DATA</span>
+          <span>01 TRUST RECORD</span>
+        </div>
+
+        <div class="verification-flow">
+          <div class="streams" aria-hidden="true">
+            <div class="stream-bank">
+              {
+                streams.map((stream, index) => (
+                  <div class="stream" style={`--delay: ${index * 0.14}s`}>
+                    <span class="stream-index">{String(stream).padStart(2, '0')}</span>
+                    <span class="stream-track"><i></i></span>
+                  </div>
+                ))
+              }
+              <span class="collector"></span>
             </div>
-          ))
-        }
-        <div class="r-verdict">
-          <span class="r-k">{provenance.verdict.label}</span>
-          <span class="r-ok">{provenance.verdict.value}</span>
+          </div>
+
+          <div class="merge-bridge" aria-hidden="true">
+            <span class="bridge-line"></span>
+            <span class="merge-node"></span>
+          </div>
+
+          <div class="receipt" role="group" aria-labelledby="receipt-title">
+            <div class="receipt-cut receipt-cut--left" aria-hidden="true"></div>
+            <div class="receipt-cut receipt-cut--right" aria-hidden="true"></div>
+
+            <div class="r-head">
+              <span id="receipt-title">PROVENANCE RECEIPT</span>
+              <span class="local-mark"><Icon name="shield" size={16} /> LOCAL</span>
+            </div>
+            <dl>
+              {
+                provenance.receipt.map((row) => (
+                  <div class="r-row">
+                    <dt class="r-k">{row.k}</dt>
+                    <dd class="r-v">{row.v}</dd>
+                  </div>
+                ))
+              }
+            </dl>
+            <div class="r-verdict">
+              <span class="r-k">{provenance.verdict.label}</span>
+              <span class="r-ok">{provenance.verdict.value}</span>
+            </div>
+          </div>
         </div>
+      </figure>
+
+      <div class="proof-actions">
+        <a
+          href="https://github.com/cloakyard/cloakdrop/blob/main/apps/macos/Packages/DownloaderCore/Tests/DownloadModelsTests/ProvenanceReceiptTests.swift"
+          rel="noopener"
+        >View receipt tests <Icon name="arrow" size={15} /></a>
+        <a href="#privacy">See the privacy model <Icon name="arrow" size={15} /></a>
       </div>
     </div>
   </div>
 </section>
 
 <style>
-  .band {
+  .chamber {
+    --carbon-line: rgba(255, 255, 255, 0.09);
+    --carbon-line-strong: rgba(255, 255, 255, 0.15);
     position: relative;
+    isolation: isolate;
     overflow: hidden;
-    background: var(--band);
-    border: 1px solid var(--line-2);
+    color: var(--band-ink);
+    background:
+      radial-gradient(circle at 78% 58%, rgba(42, 123, 155, 0.18), transparent 33%),
+      linear-gradient(145deg, #11181b 0%, #080c0e 57%, #0b1114 100%);
+    border: 1px solid rgba(255, 255, 255, 0.13);
     border-radius: var(--radius-xl);
-    padding: clamp(2.25rem, 5vw, 4rem);
-    display: grid;
-    grid-template-columns: 1fr 380px;
-    gap: clamp(2rem, 5vw, 3.5rem);
-    align-items: center;
-    box-shadow: var(--shadow-window);
+    padding: clamp(1.5rem, 4.4vw, 4rem);
+    box-shadow:
+      0 40px 100px -44px rgba(0, 0, 0, 0.9),
+      inset 0 1px rgba(255, 255, 255, 0.05);
   }
 
-  .glow {
+  .chamber-grid {
     position: absolute;
-    top: -120px;
-    right: -80px;
-    width: 420px;
-    height: 420px;
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--accent) 55%, transparent),
-      transparent 68%
-    );
-    filter: blur(20px);
-    pointer-events: none;
+    z-index: -1;
+    inset: 0;
+    opacity: 0.28;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 34px 34px;
+    mask-image: linear-gradient(to bottom, black, transparent 88%);
   }
 
-  .copy {
-    position: relative;
+  .chamber-head,
+  .flow-labels {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    color: #7f8b90;
+  }
+
+  .chamber-head {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--carbon-line);
+  }
+
+  .chamber-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    text-align: right;
+  }
+
+  .chamber-state i {
+    width: 5px;
+    height: 5px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--band-accent);
+    box-shadow: 0 0 12px rgba(127, 189, 209, 0.7);
+  }
+
+  .intro {
+    display: grid;
+    grid-template-columns: minmax(0, 0.86fr) minmax(22rem, 0.72fr);
+    align-items: end;
+    gap: clamp(2rem, 6vw, 6.5rem);
+    padding-block: clamp(2.5rem, 5.5vw, 5rem);
+  }
+
+  .copy,
+  .body {
+    min-width: 0;
   }
 
   .copy h2 {
+    max-width: 12ch;
+    margin-top: 1.4rem;
     color: var(--band-ink);
-    margin-top: 1.5rem;
-    font-size: var(--t-h2-band);
-    max-width: 14ch;
+    font-size: clamp(2.2rem, 4.5vw, 4.8rem);
+    line-height: 0.94;
   }
 
   .body {
-    margin-top: 1.4rem;
     color: var(--band-ink-2);
-    line-height: 1.7;
-    max-width: 52ch;
+    line-height: 1.72;
+    max-width: 54ch;
   }
 
   .body :global(strong) {
@@ -97,16 +188,242 @@ import Icon from './Icon.astro';
   }
 
   .body :global(code) {
+    color: #d8e1e4;
     font-family: var(--font-mono);
     font-size: 0.86em;
-    color: #cdd6da;
+  }
+
+  .verification {
+    margin: 0;
+    padding: clamp(1rem, 2vw, 1.5rem);
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid var(--carbon-line);
+    border-radius: calc(var(--radius-lg) + 2px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .flow-labels {
+    padding: 0.1rem 0.25rem 0.85rem;
+    border-bottom: 1px solid var(--carbon-line);
+  }
+
+  .verification-flow {
+    display: grid;
+    grid-template-columns: minmax(10rem, 1fr) clamp(2.25rem, 4vw, 4.5rem) minmax(18.5rem, 23rem);
+    align-items: center;
+    padding-top: clamp(1.25rem, 2.5vw, 2rem);
+  }
+
+  .streams {
+    min-width: 0;
+  }
+
+  .stream-bank {
+    position: relative;
+    display: grid;
+    gap: 0.72rem;
+    padding-block: 0.15rem;
+  }
+
+  .stream {
+    display: grid;
+    grid-template-columns: 1.5rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+  }
+
+  .stream-index {
+    color: #6f7b80;
+    font: 500 0.58rem/1 var(--font-mono);
+    letter-spacing: 0.06em;
+  }
+
+  .stream-track {
+    position: relative;
+    display: block;
+    height: 1px;
+    overflow: hidden;
+    background: rgba(127, 189, 209, 0.38);
+  }
+
+  .stream-track::before {
+    content: '';
+    position: absolute;
+    inset: -2px 0;
+    background: linear-gradient(90deg, transparent, rgba(127, 189, 209, 0.74));
+  }
+
+  .stream-track i {
+    position: absolute;
+    top: -1px;
+    left: 0;
+    width: 18%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #b9e5ef, transparent);
+    filter: drop-shadow(0 0 4px rgba(127, 189, 209, 0.9));
+    animation: stream-travel 3.4s cubic-bezier(0.45, 0, 0.55, 1) var(--delay) infinite;
+  }
+
+  .collector {
+    position: absolute;
+    top: 0.25rem;
+    right: -1px;
+    bottom: 0.25rem;
+    width: 1px;
+    background: linear-gradient(transparent, var(--band-accent) 15% 85%, transparent);
+    box-shadow: 0 0 10px rgba(127, 189, 209, 0.28);
+  }
+
+  .merge-bridge {
+    position: relative;
+    align-self: stretch;
+    display: grid;
+    place-items: center;
+  }
+
+  .bridge-line {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, var(--band-accent), rgba(127, 189, 209, 0.36));
+  }
+
+  .merge-node {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    border: 1px solid #b9e5ef;
+    border-radius: 50%;
+    background: #0b1114;
+    box-shadow: 0 0 14px rgba(127, 189, 209, 0.68);
+  }
+
+  .receipt {
+    position: relative;
+    min-width: 0;
+    background: #f3f6f7;
+    color: #14191c;
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: 10px;
+    padding: clamp(1.15rem, 2.4vw, 1.7rem);
+    font-family: var(--font-mono);
+    box-shadow:
+      0 32px 70px -22px rgba(0, 0, 0, 0.72),
+      inset 0 0 0 1px rgba(20, 25, 28, 0.035);
+  }
+
+  .receipt-cut {
+    position: absolute;
+    top: 50%;
+    width: 10px;
+    height: 20px;
+    margin-top: -10px;
+    background: #0a0f11;
+  }
+
+  .receipt-cut--left {
+    left: -1px;
+    border-radius: 0 10px 10px 0;
+  }
+
+  .receipt-cut--right {
+    right: -1px;
+    border-radius: 10px 0 0 10px;
+  }
+
+  .r-head,
+  .r-row,
+  .r-verdict {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .r-head {
+    align-items: center;
+    padding-bottom: 0.9rem;
+    margin-bottom: 0.7rem;
+    border-bottom: 1px dashed #bec8cc;
+    color: #14191c;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .local-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #256e89;
+    font-size: 0.58rem;
+  }
+
+  .local-mark :global(svg) {
+    flex: none;
+  }
+
+  .receipt dl {
+    margin: 0;
+  }
+
+  .r-row {
+    padding: 0.34rem 0;
+    font-size: 0.68rem;
+  }
+
+  .r-k {
+    flex: none;
+    color: #7a858a;
+  }
+
+  .r-v {
+    min-width: 0;
+    margin: 0;
+    color: #14191c;
+    font-weight: 650;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  .r-verdict {
+    align-items: center;
+    margin-top: 0.8rem;
+    padding-top: 0.9rem;
+    border-top: 1px dashed #bec8cc;
+    font-size: 0.74rem;
+  }
+
+  .r-ok {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.26rem 0.48rem;
+    color: #08743a;
+    background: #e5f3eb;
+    border: 1px solid #b9ddc8;
+    border-radius: 999px;
+    font-weight: 800;
+    letter-spacing: 0.025em;
   }
 
   .proof-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.65rem 1.25rem;
-    margin-top: 1.35rem;
+    gap: 0.5rem 1.5rem;
+    margin-top: 1.15rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--carbon-line);
   }
 
   .proof-actions a {
@@ -114,8 +431,8 @@ import Icon from './Icon.astro';
     align-items: center;
     gap: 0.45rem;
     min-height: 44px;
-    color: var(--band-ink);
-    font-size: 0.84rem;
+    color: #c8d1d5;
+    font-size: 0.82rem;
     font-weight: 600;
   }
 
@@ -124,82 +441,169 @@ import Icon from './Icon.astro';
     transition: transform 0.16s ease;
   }
 
+  .proof-actions a:hover {
+    color: #fff;
+  }
+
   .proof-actions a:hover :global(svg) {
     transform: translateX(3px);
   }
 
-  /* Receipt card — a light, mono ticket, tilted a touch. --------------------- */
-  .receipt {
-    position: relative;
-    background: #f2f5f6;
-    color: #14191c;
-    border-radius: var(--radius-lg);
-    padding: 1.6rem 1.75rem;
-    font-family: var(--font-mono);
-    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.5);
-    transform: rotate(1.2deg);
+  @keyframes stream-travel {
+    0% {
+      transform: translateX(-110%);
+      opacity: 0;
+    }
+    14%,
+    76% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(650%);
+      opacity: 0;
+    }
   }
 
-  .r-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px dashed #c3ccd0;
-    padding-bottom: 0.85rem;
-    margin-bottom: 0.85rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    color: #14191c;
-  }
-
-  .r-head :global(svg) {
-    color: var(--accent);
-  }
-
-  .r-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    font-size: 0.72rem;
-    padding: 0.32rem 0;
-  }
-
-  .r-k {
-    color: #8b9599;
-  }
-
-  .r-v {
-    color: #14191c;
-    font-weight: 600;
-    text-align: right;
-  }
-
-  .r-verdict {
-    display: flex;
-    justify-content: space-between;
-    border-top: 1px dashed #c3ccd0;
-    margin-top: 0.85rem;
-    padding-top: 0.85rem;
-    font-size: 0.78rem;
-  }
-
-  .r-ok {
-    color: #0a7d3e;
-    font-weight: 700;
-  }
-
-  @media (max-width: 820px) {
-    .band {
+  @media (max-width: 960px) {
+    .intro {
       grid-template-columns: 1fr;
+      align-items: start;
+      gap: 1.5rem;
     }
-    .receipt {
-      max-width: 380px;
-      justify-self: start;
-      transform: rotate(0.8deg);
-    }
+
     .copy h2 {
-      max-width: 18ch;
+      max-width: 15ch;
+    }
+
+    .body {
+      max-width: 65ch;
+    }
+
+    .verification-flow {
+      grid-template-columns: minmax(8rem, 1fr) clamp(1.75rem, 5vw, 3.5rem) minmax(17.5rem, 21rem);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .verification-flow {
+      grid-template-columns: 1fr;
+      padding-top: 1rem;
+    }
+
+    .stream-bank {
+      gap: 0.58rem;
+    }
+
+    .merge-bridge {
+      position: relative;
+      width: 100%;
+      height: 2.75rem;
+    }
+
+    .merge-bridge::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 50%;
+      height: 50%;
+      border-right: 1px solid var(--band-accent);
+      border-bottom: 1px solid var(--band-accent);
+      border-bottom-right-radius: 9px;
+    }
+
+    .bridge-line {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 1px;
+      height: 50%;
+      background: linear-gradient(var(--band-accent), rgba(127, 189, 209, 0.36));
+    }
+
+    .merge-node {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .receipt {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 430px) {
+    .chamber {
+      padding: 1.25rem;
+      border-radius: 18px;
+    }
+
+    .chamber-head {
+      align-items: flex-start;
+      font-size: 0.57rem;
+      letter-spacing: 0.075em;
+    }
+
+    .chamber-state {
+      max-width: 11ch;
+    }
+
+    .intro {
+      padding-block: 2.25rem;
+    }
+
+    .copy h2 {
+      margin-top: 1.1rem;
+      font-size: clamp(2.15rem, 12vw, 3rem);
+    }
+
+    .verification {
+      padding: 0.85rem;
+    }
+
+    .flow-labels {
+      font-size: 0.56rem;
+      letter-spacing: 0.07em;
+    }
+
+    .stream {
+      grid-template-columns: 1.3rem minmax(0, 1fr);
+      gap: 0.45rem;
+    }
+
+    .receipt {
+      padding: 1rem;
+    }
+
+    .r-head {
+      gap: 0.5rem;
+      font-size: 0.62rem;
+    }
+
+    .local-mark {
+      font-size: 0.52rem;
+    }
+
+    .r-row {
+      gap: 0.65rem;
+      font-size: 0.63rem;
+    }
+
+    .proof-actions {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stream-track i {
+      display: none;
+      animation: none;
+    }
+
+    .proof-actions :global(svg) {
+      transition: none;
     }
   }
 </style>

@@ -37,11 +37,6 @@ const description =
           <a href="#questions-and-policy-changes">Questions</a>
         </nav>
 
-        <div class="promise" aria-label="Privacy summary">
-          <span>No accounts</span>
-          <span>No telemetry</span>
-          <span>Open source</span>
-        </div>
       </aside>
 
       <article class="policy-document">
@@ -53,7 +48,7 @@ const description =
   <footer class="policy-footer">
     <div class="container footer-inner">
       <p>© {new Date().getFullYear()} Sumit Sahoo · MIT License</p>
-      <p><a href={site.repo} rel="noopener">View source</a> · No telemetry · No account</p>
+      <p><a href={site.repo} rel="noopener">View source</a></p>
     </div>
   </footer>
 </BaseLayout>
@@ -103,12 +98,12 @@ const description =
   }
 
   .policy-page {
-    padding-block: clamp(3rem, 7vw, 6.5rem);
+    padding-block: clamp(4rem, 9vw, 8rem);
   }
 
   .policy-grid {
     display: grid;
-    grid-template-columns: minmax(210px, 270px) minmax(0, 760px);
+    grid-template-columns: minmax(210px, 250px) minmax(0, 820px);
     justify-content: center;
     gap: clamp(3rem, 8vw, 7.5rem);
     align-items: start;
@@ -133,7 +128,7 @@ const description =
   }
 
   .policy-aside nav a {
-    min-height: 42px;
+    min-height: 44px;
     display: flex;
     align-items: center;
     border-bottom: 1px solid var(--line);
@@ -150,36 +145,18 @@ const description =
     color: var(--accent-ink);
   }
 
-  .promise {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-  }
-
-  .promise span {
-    padding: 0.36rem 0.58rem;
-    border: 1px solid var(--line-2);
-    border-radius: 999px;
-    background: var(--surface);
-    color: var(--ink-3);
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.03em;
-  }
-
   .policy-document {
     min-width: 0;
-    padding: clamp(1.5rem, 4vw, 3.5rem);
-    border: 1px solid var(--line-2);
-    border-radius: var(--radius-xl);
-    background: var(--surface);
-    box-shadow: var(--shadow-card);
+    padding-top: clamp(1.5rem, 3vw, 2.5rem);
+    border-top: 1px solid var(--line-2);
   }
 
   .policy-document :global(h1) {
     max-width: 12ch;
-    font-size: clamp(2.35rem, 1.5rem + 3vw, 4.25rem);
-    line-height: 0.96;
+    font-size: clamp(3rem, 1.35rem + 5.5vw, 6rem);
+    font-weight: 760;
+    letter-spacing: -0.055em;
+    line-height: 0.92;
   }
 
   .policy-document :global(h1 + p) {
@@ -288,9 +265,6 @@ const description =
       padding-left: 0;
     }
 
-    .promise {
-      justify-content: flex-end;
-    }
   }
 
   @media (max-width: 560px) {
@@ -314,23 +288,23 @@ const description =
       grid-template-columns: 1fr 1fr;
     }
 
-    .policy-aside > p,
-    .policy-aside .promise {
+    .policy-aside > p {
       grid-column: 1 / -1;
     }
 
-    .promise {
-      justify-content: flex-start;
-    }
-
     .policy-document {
-      padding: 1.35rem;
-      border-radius: 18px;
+      padding-top: 1.4rem;
     }
 
     .footer-inner {
       align-items: flex-start;
       flex-direction: column;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .header-inner :global(.brand-name) {
+      display: none;
     }
   }
 </style>
