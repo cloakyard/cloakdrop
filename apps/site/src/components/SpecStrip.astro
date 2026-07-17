@@ -1,26 +1,22 @@
 ---
 import { stats } from '../data/site';
-import Icon from './Icon.astro';
 ---
 
 <section class="specs-wrap" aria-label="Product proof" data-reveal>
-  <div class="container">
+  <div class="container ledger">
+    <div class="ledger-key" aria-hidden="true">
+      <span>System proof</span>
+      <b>04 signals</b>
+    </div>
+
     <ul class="specs">
       {
-        stats.map((stat) => (
+        stats.map((stat, index) => (
           <li class:list={['cell', { 'cell--accent': stat.accent }] }>
             <a href={stat.href} rel={stat.href?.startsWith('http') ? 'noopener' : undefined}>
-              <span
-                class="val"
-                data-count-to={stat.countTo}
-                data-count-prefix={stat.countPrefix}
-                data-count-suffix={stat.countSuffix}
-                data-count-comma={stat.countComma ? '' : undefined}
-              >
-                {stat.value}
-              </span>
+              <span class="index">{String(index + 1).padStart(2, '0')}</span>
+              <span class="val">{stat.value}</span>
               <span class="lbl">{stat.label}</span>
-              <span class="go" aria-hidden="true"><Icon name="arrow" size={15} /></span>
             </a>
           </li>
         ))
@@ -31,15 +27,41 @@ import Icon from './Icon.astro';
 
 <style>
   .specs-wrap {
-    margin-top: clamp(1.25rem, 3vw, 2rem);
+    border-block: 1px solid var(--line-2);
+  }
+
+  .ledger {
+    display: grid;
+    grid-template-columns: minmax(9rem, 0.65fr) minmax(0, 5fr);
+  }
+
+  .ledger-key {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 1.35rem clamp(1rem, 2.5vw, 2rem) 1.35rem 0;
+    border-right: 1px solid var(--line-2);
+    color: var(--ink-4);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.045em;
+    line-height: 1.35;
+    text-transform: uppercase;
+  }
+
+  .ledger-key b {
+    color: var(--ink-3);
+    font-size: inherit;
+    font-weight: 600;
   }
 
   .specs {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    list-style: none;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    min-width: 0;
     padding: 0;
-    border-block: 1px solid var(--line-2);
+    list-style: none;
   }
 
   .cell + .cell {
@@ -47,73 +69,138 @@ import Icon from './Icon.astro';
   }
 
   .cell a {
-    position: relative;
-    display: block;
-    min-height: 100%;
-    padding: clamp(1.25rem, 2.5vw, 1.75rem) clamp(1rem, 2.5vw, 2rem);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-content: space-between;
+    min-height: 8.25rem;
+    padding: 1.25rem clamp(0.9rem, 2vw, 1.65rem);
     transition: background 0.18s ease;
   }
 
   .cell a:hover {
-    background: color-mix(in srgb, var(--accent) 6%, transparent);
+    background: color-mix(in srgb, var(--accent) 4.5%, transparent);
+  }
+
+  .index {
+    grid-column: 2;
+    grid-row: 1;
+    color: var(--ink-4);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
   }
 
   .val {
-    display: block;
-    font-size: clamp(1.9rem, 1.1rem + 2.6vw, 2.75rem);
-    font-weight: 900;
-    letter-spacing: -0.03em;
-    line-height: 1;
+    grid-column: 1;
+    grid-row: 1;
     color: var(--ink);
+    font-size: clamp(2rem, 1.45rem + 1.5vw, 2.8rem);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.045em;
+    line-height: 0.95;
   }
 
   .cell--accent .val {
-    color: var(--accent-ink);
+    color: var(--positive);
   }
 
   .lbl {
-    display: block;
-    margin-top: 0.45rem;
-    padding-right: 1.2rem;
+    grid-column: 1 / -1;
+    align-self: end;
+    width: fit-content;
+    color: var(--ink-4);
     font-family: var(--font-mono);
     font-size: var(--t-mono);
-    color: var(--ink-4);
-  }
-
-  .go {
-    position: absolute;
-    right: 1rem;
-    bottom: 1.2rem;
-    color: var(--ink-4);
-    opacity: 0;
-    transform: translateX(-4px);
+    line-height: 1.4;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 0.25em;
     transition:
-      opacity 0.18s ease,
-      transform 0.18s ease;
+      color 0.18s ease,
+      text-decoration-color 0.18s ease;
   }
 
-  .cell a:hover .go,
-  .cell a:focus-visible .go {
-    opacity: 1;
-    transform: none;
+  .cell a:hover .lbl,
+  .cell a:focus-visible .lbl {
+    color: var(--ink-2);
+    text-decoration-color: var(--line-2);
+  }
+
+  @media (max-width: 900px) {
+    .ledger {
+      grid-template-columns: 1fr;
+    }
+
+    .ledger-key {
+      flex-direction: row;
+      gap: 1rem;
+      padding: 0.85rem 0;
+      border-right: 0;
+      border-bottom: 1px solid var(--line-2);
+    }
+
+    .cell:first-child a {
+      padding-left: 0;
+    }
+
+    .cell:last-child a {
+      padding-right: 0;
+    }
   }
 
   @media (max-width: 640px) {
     .specs {
       grid-template-columns: 1fr 1fr;
     }
+
     .cell:nth-child(3) {
       border-left: 0;
     }
+
     .cell:nth-child(n + 3) {
       border-top: 1px solid var(--line);
     }
-    .cell a {
-      min-height: 7.8rem;
-      padding: 1.25rem 1rem;
+
+    .cell:first-child a,
+    .cell:nth-child(3) a {
+      padding-left: 0;
     }
-    .go {
-      display: none;
+
+    .cell:nth-child(2) a,
+    .cell:last-child a {
+      padding-right: 0;
+    }
+
+    .cell a {
+      min-height: 7.7rem;
+      padding-block: 1.15rem;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .cell a {
+      min-height: 7.35rem;
+      padding-inline: 0.7rem;
+    }
+
+    .cell:first-child a,
+    .cell:nth-child(3) a {
+      padding-left: 0;
+    }
+
+    .cell:nth-child(2) a,
+    .cell:last-child a {
+      padding-right: 0;
+    }
+
+    .val {
+      font-size: 1.85rem;
+    }
+
+    .lbl {
+      font-size: 0.67rem;
     }
   }
 </style>

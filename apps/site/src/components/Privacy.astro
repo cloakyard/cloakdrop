@@ -6,54 +6,132 @@ import Icon from './Icon.astro';
 
 <section id="privacy" class="section privacy" data-reveal>
   <div class="container">
-    <div class="card">
+    <div class="privacy-frame">
       <div class="copy">
         <Kicker num={privacy.num} label={privacy.label} />
         <h2>{privacy.title}</h2>
         <p class="body">{privacy.body}</p>
-        <a
-          class="policy-link"
-          href={site.privacyPolicy}
-        >Read the privacy policy <Icon name="arrow" size={16} /></a>
+        <a class="policy-link" href={site.privacyPolicy}>
+          Read the privacy policy <Icon name="arrow" size={16} />
+        </a>
       </div>
 
-      <ul class="list">
-        {
-          privacy.points.map((p) => (
-            <li>
-              <Icon name="check" size={16} stroke={2.4} />
-              <span>{p}</span>
-            </li>
-          ))
-        }
-      </ul>
+      <figure class="boundary" aria-labelledby="boundary-title boundary-caption">
+        <div class="boundary-head">
+          <span id="boundary-title">NETWORK BOUNDARY</span>
+          <span class="boundary-state"><i></i> FEATURE SCOPED</span>
+        </div>
+
+        <div class="route-map" role="group" aria-label="Permitted data path">
+          <div class="route-node route-node--input">
+            <span class="node-tag">01 / INPUT</span>
+            <strong>Initiated or configured</strong>
+            <small>Transfer, browser, checksum, speed test</small>
+          </div>
+
+          <div class="connector connector--in" aria-hidden="true">
+            <span class="connector-dot"></span>
+          </div>
+
+          <div class="route-node route-node--app">
+            <span class="app-mark"><Icon name="shield" size={17} /></span>
+            <span class="node-tag">02 / SANDBOXED</span>
+            <strong>CloakDrop</strong>
+            <small>Request stays tied to a product feature</small>
+          </div>
+
+          <div class="connector connector--out" aria-hidden="true">
+            <span class="connector-dot"></span>
+          </div>
+
+          <div class="destinations">
+            <div class="route-node route-node--destination">
+              <span class="node-tag">03A / FILE</span>
+              <strong>Chosen file</strong>
+              <code>/selected-destination</code>
+            </div>
+            <div class="route-node route-node--destination">
+              <span class="node-tag">03B / LOCAL</span>
+              <strong>Local app storage</strong>
+              <code>SQLite · WebKit · Keychain</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="absent">
+          <div class="absent-head">
+            <span>ROUTES THAT DO NOT EXIST</span>
+            <span aria-hidden="true">OUTBOUND / ∅</span>
+          </div>
+          <ul aria-label="Absent network routes">
+            {
+              privacy.points.map((point) => (
+                <li>
+                  <span class="blocked-mark" aria-hidden="true">×</span>
+                  <span>{point}</span>
+                  <span class="dead-route" aria-hidden="true"></span>
+                  <span class="absent-status">NO ROUTE</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <figcaption id="boundary-caption" class="sr-only">
+          Network activity is limited to transfers and features the user initiates or
+          configures. App data stays on the Mac, while telemetry, account, automatic crash
+          upload, and update-ping routes are absent.
+        </figcaption>
+      </figure>
     </div>
   </div>
 </section>
 
 <style>
-  .card {
-    background: var(--surface);
+  .privacy-frame {
+    position: relative;
+    overflow: clip;
+    display: grid;
+    grid-template-columns: minmax(18rem, 0.72fr) minmax(32rem, 1.28fr);
+    align-items: start;
+    gap: clamp(2.5rem, 6vw, 6.5rem);
+    padding: clamp(2rem, 4.8vw, 4.25rem);
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--surface) 92%, transparent), var(--surface)),
+      var(--surface);
     border: 1px solid var(--line-2);
     border-radius: var(--radius-xl);
-    padding: clamp(2.25rem, 5vw, 4rem);
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: clamp(2rem, 5vw, 3.5rem);
     box-shadow: var(--shadow-card);
   }
 
+  .privacy-frame::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: clamp(2rem, 4.8vw, 4.25rem);
+    width: 5rem;
+    height: 3px;
+    background: var(--accent);
+  }
+
+  .copy {
+    position: sticky;
+    top: 7rem;
+    min-width: 0;
+  }
+
   .copy h2 {
+    max-width: 13ch;
     margin-top: 1.5rem;
     font-size: var(--t-h2-band);
-    max-width: 18ch;
+    line-height: 0.98;
   }
 
   .body {
+    max-width: 52ch;
     margin-top: 1.4rem;
     color: var(--ink-2);
-    line-height: 1.7;
-    max-width: 52ch;
+    line-height: 1.72;
   }
 
   .policy-link {
@@ -61,7 +139,7 @@ import Icon from './Icon.astro';
     align-items: center;
     gap: 0.5rem;
     min-height: 44px;
-    margin-top: 1rem;
+    margin-top: 1.05rem;
     color: var(--accent-ink);
     font-size: 0.88rem;
     font-weight: 700;
@@ -75,49 +153,483 @@ import Icon from './Icon.astro';
     transform: translateX(3px);
   }
 
-  .list {
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .boundary {
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    background:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px),
+      var(--surface-2);
+    background-size: 28px 28px;
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius-lg);
+  }
+
+  .boundary-head,
+  .absent-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.09em;
+    color: var(--ink-4);
+  }
+
+  .boundary-head {
+    min-height: 2.8rem;
+    padding: 0.7rem 1rem;
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  .boundary-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .boundary-state i {
+    width: 5px;
+    height: 5px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 9px color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+
+  .route-map {
+    display: grid;
+    grid-template-columns: minmax(8.2rem, 1fr) clamp(1.5rem, 3vw, 2.75rem) minmax(8.5rem, 1fr) clamp(1.5rem, 3vw, 2.75rem) minmax(8.2rem, 1fr);
+    align-items: center;
+    padding: clamp(1.25rem, 3vw, 2rem);
+  }
+
+  .route-node {
+    position: relative;
+    min-width: 0;
+    padding: 0.95rem;
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    border: 1px solid var(--line-2);
+    border-radius: 9px;
+    box-shadow: 0 10px 28px -24px rgba(12, 17, 20, 0.5);
+  }
+
+  .route-node--app {
+    padding-top: 2.7rem;
+    border-color: color-mix(in srgb, var(--accent) 42%, var(--line-2));
+    box-shadow:
+      0 12px 30px -24px color-mix(in srgb, var(--accent) 60%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--accent) 7%, transparent);
+  }
+
+  .route-node--destination + .route-node--destination {
+    margin-top: 0.6rem;
+  }
+
+  .destinations {
+    position: relative;
+    min-width: 0;
+    padding-left: 0.75rem;
+  }
+
+  .destinations::before {
+    content: '';
+    position: absolute;
+    top: 25%;
+    bottom: 25%;
+    left: 0;
+    width: 1px;
+    background: color-mix(in srgb, var(--accent) 58%, var(--line-2));
+  }
+
+  .route-node--destination::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -0.75rem;
+    width: 0.75rem;
+    height: 1px;
+    background: color-mix(in srgb, var(--accent) 58%, var(--line-2));
+  }
+
+  .app-mark {
+    position: absolute;
+    top: 0.8rem;
+    left: 0.9rem;
+    display: grid;
+    place-items: center;
+    width: 1.45rem;
+    height: 1.45rem;
+    color: var(--accent-ink);
+    background: var(--accent-soft);
+    border-radius: 5px;
+  }
+
+  .node-tag {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--accent-ink);
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+  }
+
+  .route-node strong,
+  .route-node small,
+  .route-node code {
+    display: block;
+    min-width: 0;
+  }
+
+  .route-node strong {
+    color: var(--ink);
+    font-size: 0.88rem;
+    line-height: 1.2;
+  }
+
+  .route-node small,
+  .route-node code {
+    margin-top: 0.3rem;
+    color: var(--ink-3);
+    font-size: 0.66rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .route-node code {
+    font-family: var(--font-mono);
+  }
+
+  .connector {
+    position: relative;
+    height: 1px;
+    background: color-mix(in srgb, var(--accent) 58%, var(--line-2));
+  }
+
+  .connector::before {
+    content: '';
+    position: absolute;
+    inset: -4px 0;
+    background: linear-gradient(90deg, transparent, var(--accent-soft), transparent);
+  }
+
+  .connector-dot {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 62%, transparent);
+    transform: translateY(-50%);
+    animation: route-pulse 2.8s ease-in-out infinite;
+  }
+
+  .connector--out .connector-dot {
+    animation-delay: 0.45s;
+  }
+
+  .absent {
+    margin: 0 clamp(1.25rem, 3vw, 2rem) clamp(1.25rem, 3vw, 2rem);
+    overflow: hidden;
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    border: 1px solid var(--line-2);
+    border-radius: 9px;
+  }
+
+  .absent-head {
+    padding: 0.7rem 0.9rem;
+    background: color-mix(in srgb, var(--surface-2) 72%, transparent);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .absent ul {
     list-style: none;
     padding: 0;
     margin: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    border-left: 1px solid var(--line);
-    padding-left: clamp(1.5rem, 3vw, 2.5rem);
   }
 
-  .list li {
-    display: flex;
+  .absent li {
+    display: grid;
+    grid-template-columns: 0.8rem minmax(max-content, auto) minmax(1rem, 1fr) max-content;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.7rem 0;
+    gap: 0.6rem;
+    min-width: 0;
+    padding: 0.58rem 0.9rem;
     border-bottom: 1px solid var(--line);
+    color: var(--ink-3);
     font-family: var(--font-mono);
-    font-size: 0.84rem;
-    color: var(--ink-2);
+    font-size: 0.65rem;
   }
 
-  .list li:last-child {
+  .absent li:last-child {
     border-bottom: 0;
   }
 
-  .list :global(svg) {
-    color: var(--accent-ink);
-    flex: none;
+  .blocked-mark {
+    display: grid;
+    place-items: center;
+    width: 0.8rem;
+    height: 0.8rem;
+    color: var(--ink-4);
+    border: 1px solid var(--line-2);
+    border-radius: 50%;
+    font: 600 0.64rem/1 var(--font-mono);
   }
 
-  @media (max-width: 820px) {
-    .card {
+  .dead-route {
+    height: 1px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--line-2) 0 4px,
+      transparent 4px 8px
+    );
+  }
+
+  .absent-status {
+    color: var(--ink-4);
+    font-size: 0.57rem;
+    letter-spacing: 0.06em;
+  }
+
+  @keyframes route-pulse {
+    0% {
+      left: 0;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+    }
+    20%,
+    75% {
+      opacity: 1;
+    }
+    80%,
+    100% {
+      left: 100%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+    }
+  }
+
+  @media (max-width: 1080px) {
+    .privacy-frame {
+      grid-template-columns: minmax(17rem, 0.7fr) minmax(28rem, 1.3fr);
+      gap: 2.5rem;
+    }
+
+    .route-map {
       grid-template-columns: 1fr;
+      justify-items: stretch;
     }
-    .list {
-      border-left: 0;
-      border-top: 1px solid var(--line);
+
+    .route-node {
+      width: min(100%, 22rem);
+      justify-self: center;
+    }
+
+    .connector {
+      width: 1px;
+      height: 1.75rem;
+      justify-self: center;
+      background: color-mix(in srgb, var(--accent) 58%, var(--line-2));
+    }
+
+    .connector::before {
+      inset: 0 -4px;
+      background: linear-gradient(transparent, var(--accent-soft), transparent);
+    }
+
+    .connector-dot {
+      top: 0;
+      left: 50%;
+      right: auto;
+      transform: translate(-50%, -50%);
+      animation: route-pulse-vertical 2.8s ease-in-out infinite;
+    }
+
+    .destinations {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+      padding-top: 1rem;
       padding-left: 0;
-      padding-top: 0.5rem;
     }
+
+    .destinations::before {
+      top: 0;
+      right: 25%;
+      bottom: auto;
+      left: 25%;
+      width: auto;
+      height: 1px;
+    }
+
+    .destinations::after {
+      content: '';
+      position: absolute;
+      top: -1.75rem;
+      left: 50%;
+      width: 1px;
+      height: 1.75rem;
+      background: color-mix(in srgb, var(--accent) 58%, var(--line-2));
+    }
+
+    .route-node--destination::before {
+      top: -1rem;
+      left: 50%;
+      width: 1px;
+      height: 1rem;
+    }
+
+    .route-node--destination {
+      width: 100%;
+    }
+
+    .route-node--destination + .route-node--destination {
+      margin-top: 0;
+    }
+  }
+
+  @keyframes route-pulse-vertical {
+    0% {
+      top: 0;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+    }
+    20%,
+    75% {
+      opacity: 1;
+    }
+    80%,
+    100% {
+      top: 100%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+    }
+  }
+
+  @media (max-width: 960px) {
+    .privacy-frame {
+      grid-template-columns: 1fr;
+      gap: 2.25rem;
+    }
+
+    .copy {
+      position: static;
+    }
+
     .copy h2 {
-      max-width: none;
+      max-width: 17ch;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .privacy-frame {
+      padding: 1.25rem;
+      border-radius: 18px;
+    }
+
+    .privacy-frame::before {
+      left: 1.25rem;
+      width: 3.5rem;
+    }
+
+    .copy h2 {
+      margin-top: 1.1rem;
+      font-size: clamp(2rem, 10vw, 2.8rem);
+    }
+
+    .boundary-head,
+    .absent-head {
+      font-size: 0.56rem;
+      letter-spacing: 0.065em;
+    }
+
+    .route-map {
+      padding: 1rem;
+    }
+
+    .destinations {
+      grid-template-columns: 1fr;
+      padding-top: 0;
+      padding-left: 1rem;
+    }
+
+    .destinations::before {
+      top: 25%;
+      right: auto;
+      bottom: 25%;
+      left: 0;
+      width: 1px;
+      height: auto;
+    }
+
+    .destinations::after {
+      display: none;
+    }
+
+    .route-node--destination::before {
+      top: 50%;
+      left: -1rem;
+      width: 1rem;
+      height: 1px;
+    }
+
+    .route-node {
+      width: 100%;
+    }
+
+    .route-node--destination + .route-node--destination {
+      margin-top: 0;
+    }
+
+    .absent {
+      margin: 0 1rem 1rem;
+    }
+
+    .absent-head span:last-child {
+      display: none;
+    }
+
+    .absent li {
+      grid-template-columns: 0.8rem minmax(0, 1fr) max-content;
+      gap: 0.5rem;
+      padding-inline: 0.75rem;
+    }
+
+    .dead-route {
+      display: none;
+    }
+
+    .absent-status {
+      font-size: 0.52rem;
+    }
+
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .connector-dot {
+      animation: none;
+    }
+
+    .policy-link :global(svg) {
+      transition: none;
     }
   }
 </style>

@@ -1,29 +1,19 @@
 ---
 import { resolve } from 'node:path';
-import { site, hero, downloads } from '../data/site';
+import { hero, downloads } from '../data/site';
 import { measureHero } from '../lib/heroGeometry';
 import Icon from './Icon.astro';
 
 const titleLead = hero.titleLead.replace(/\n/g, ' ');
 const titleAccent = hero.titleAccent.replace(/\n/g, ' ');
 
-// Measure the real screenshot at build time so its intrinsic dimensions and
-// window geometry always stay in sync with the source asset. This also keeps
-// the glare/sheen aligned if the screenshot is retaken or gains edge padding.
-//
-// Measure public/hero.png rather than repo-root /assets: it is the copy that
-// actually ships (prebuild syncs it from /assets, the source of truth). Resolve
-// it from the project root — import.meta.url points into the bundled chunk at
-// build time, not at this file.
+// Measure the shipped image so its intrinsic dimensions always match the source
+// asset, even when a new product capture replaces it.
 const shot = measureHero(resolve(process.cwd(), 'public/hero.png'));
 
-// The overlays cover exactly the visible frame, so they inherit its rounding.
-const winStyle = [
-  `--win-top:${shot.insetTop.toFixed(3)}%`,
-  `--win-right:${shot.insetRight.toFixed(3)}%`,
-  `--win-bottom:${shot.insetBottom.toFixed(3)}%`,
-  `--win-left:${shot.insetLeft.toFixed(3)}%`,
-].join(';');
+// This product capture uses the default eight-range plan as an example. The
+// number itself is configurable and the engine may plan fewer ranges.
+const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
 ---
 
 <section class="hero">
@@ -31,53 +21,93 @@ const winStyle = [
     <div class="top">
       <div class="lede">
         <p class="kicker">{hero.kicker}</p>
-        <h1>{titleLead} <span class="accent">{titleAccent}</span></h1>
+        <h1>
+          <span>{titleLead}</span>
+          <span class="accent">{titleAccent}</span>
+        </h1>
       </div>
 
       <div class="aside">
         <p class="lead">{hero.lead}</p>
         <div class="cta">
-          <a class="btn btn--primary" href={downloads.sectionHref} data-magnetic>
+          <a class="btn btn--primary" href={downloads.sectionHref}>
             <Icon name="download" size={17} stroke={2} />
             {downloads.label}
           </a>
-          <a class="btn" href="#product" data-magnetic>
+          <a class="btn" href="#product">
             See it work
             <Icon name="arrow" size={17} />
           </a>
         </div>
-        <p class="note">{downloads.note}</p>
-        <p class="micro">
-          {hero.micro} · <a href={site.repo} rel="noopener">View source</a>
-        </p>
+        <div class="availability">
+          <p>{downloads.note}</p>
+          <p>{hero.micro}</p>
+        </div>
       </div>
     </div>
 
     <figure class="shot">
-      <figcaption class="fig">{hero.figLabel}</figcaption>
+      <figcaption class="fig">
+        <span>{hero.figLabel}</span>
+        <span class="fig-status"><i aria-hidden="true"></i> Example · 8 ranges planned</span>
+      </figcaption>
 
-      <div class="aurora" aria-hidden="true"></div>
+      <div class="instrument">
+        <div
+          class="range-map"
+          role="img"
+          aria-label="An example transfer planned into eight byte ranges that converge into one local file"
+        >
+          <div class="map-head" aria-hidden="true">
+            <span>Adaptive range map</span>
+            <b>N→1</b>
+          </div>
 
-      <div class="scene">
-        <div class="tilt" data-tilt style={winStyle}>
-          <div class="window-surface">
-            <picture>
-              <source srcset="/hero.webp" type="image/webp" />
-              <img
-                src="/hero.png"
-                width={shot.width}
-                height={shot.height}
-                alt={hero.shotAlt}
-                fetchpriority="high"
-                decoding="async"
-              />
-            </picture>
-            <div class="glare" data-glare aria-hidden="true"></div>
-            <div class="sheen-clip" aria-hidden="true">
-              <div class="sheen" data-sheen></div>
-            </div>
+          <div class="source" aria-hidden="true">
+            <span>Remote object</span>
+            <strong>6.52 GB</strong>
+          </div>
+
+          <ol aria-hidden="true">
+            {segmentProgress.map((progress, index) => (
+              <li>
+                <span class="range-index">{String(index + 1).padStart(2, '0')}</span>
+                <span class="track">
+                  <i style={`--progress: ${progress}%`}></i>
+                </span>
+              </li>
+            ))}
+          </ol>
+
+          <div class="merge" aria-hidden="true">
+            <span class="merge-count">N</span>
+            <i></i>
+            <span class="output">
+              <b>01</b>
+              <small>Local file</small>
+            </span>
           </div>
         </div>
+
+        <div class="app-window">
+          <picture>
+            <source srcset="/hero.webp" type="image/webp" />
+            <img
+              src="/hero.png"
+              width={shot.width}
+              height={shot.height}
+              alt={hero.shotAlt}
+              fetchpriority="high"
+              decoding="async"
+            />
+          </picture>
+        </div>
+      </div>
+
+      <div class="instrument-foot" aria-hidden="true">
+        <span>ubuntu-26.04-desktop-amd64.iso</span>
+        <span>Configured example · 8 planned ranges</span>
+        <span>52% · 75.5 MB/s</span>
       </div>
     </figure>
   </div>
@@ -85,241 +115,463 @@ const winStyle = [
 
 <style>
   .hero {
-    padding-top: clamp(2.5rem, 5vw, 4rem);
-    padding-bottom: clamp(2rem, 4vw, 3rem);
+    padding-top: clamp(3.5rem, 7vw, 6.5rem);
+    padding-bottom: clamp(2.5rem, 5vw, 4.5rem);
   }
 
   .top {
     display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
-    gap: clamp(1.5rem, 4vw, 3rem);
-    align-items: center;
+    grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.36fr);
+    gap: clamp(2.5rem, 6vw, 6.5rem);
+    align-items: end;
   }
 
   .lede h1 {
-    margin-top: 1.6rem;
-    max-width: 12ch;
+    margin-top: clamp(1.5rem, 3vw, 2.75rem);
+    max-width: 11.5ch;
+    font-size: clamp(4rem, 7.4vw, 7.25rem);
+    font-weight: 850;
+    letter-spacing: -0.065em;
+    line-height: 0.88;
+    text-wrap: balance;
+  }
+
+  .lede h1 > span {
+    display: block;
+  }
+
+  .lede h1 .accent {
+    margin-top: 0.06em;
   }
 
   .aside {
-    padding-top: 2rem;
+    display: grid;
+    align-content: end;
+    padding-top: 1.15rem;
+    padding-bottom: 0.4rem;
+    border-top: 1px solid var(--line-2);
   }
 
   .lead {
-    max-width: 42ch;
+    max-width: 39ch;
   }
 
   .cta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-top: 1.75rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.7rem;
+    width: min(100%, 20rem);
+    margin-top: 1.65rem;
   }
 
-  /* Beta caveat — what you'll find on the other side of the CTA, said up front. */
-  .note {
+  .cta .btn {
+    width: 100%;
+  }
+
+  .availability {
+    display: grid;
+    gap: 0.25rem;
     margin-top: 0.9rem;
+    color: var(--ink-4);
     font-family: var(--font-mono);
-    font-size: var(--t-mono);
+    font-size: 0.6875rem;
+    line-height: 1.55;
+  }
+
+  .availability p:last-child {
     color: var(--ink-3);
   }
 
-  .micro {
-    margin-top: 0.35rem;
-    font-family: var(--font-mono);
-    font-size: var(--t-mono);
-    color: var(--ink-4);
-  }
-
-  .micro a {
-    color: var(--ink-2);
-    text-decoration: underline;
-    text-decoration-color: var(--line-2);
-    text-underline-offset: 0.2em;
-  }
-
-  /* The source stays shadow-free. Radius and depth are independent CSS controls. */
   .shot {
-    --window-radius: clamp(11px, 3.05vw, 39px);
-    --window-shadow-y: clamp(14px, 1.8vw, 23px);
-    --window-shadow-blur: clamp(15px, 2vw, 25px);
-    --window-shadow-color: rgba(18, 31, 38, 0.18);
-    margin-top: clamp(2.5rem, 5vw, 3.5rem);
-    max-width: 72rem;
-    margin-inline: auto;
-    position: relative;
+    margin-top: clamp(3.25rem, 7vw, 6.5rem);
   }
 
   .fig {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    color: var(--ink-4);
     font-family: var(--font-mono);
     font-size: 0.6875rem;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+  }
+
+  .fig-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .fig-status i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--positive);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--positive) 14%, transparent);
+  }
+
+  .instrument {
+    display: grid;
+    grid-template-columns: minmax(11.5rem, 0.21fr) minmax(0, 1fr);
+    overflow: hidden;
+    border: 1px solid var(--line-2);
+    border-radius: clamp(18px, 2vw, 26px);
+    background: var(--surface);
+    box-shadow: 0 30px 80px -46px rgba(12, 17, 20, 0.5);
+  }
+
+  .range-map {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: clamp(1rem, 2vw, 1.6rem);
+    border-right: 1px solid var(--line-2);
+    background: color-mix(in srgb, var(--surface-2) 72%, var(--surface));
     color: var(--ink-4);
-    margin-bottom: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+  }
+
+  .map-head,
+  .source,
+  .merge {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .map-head {
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .map-head b {
+    color: var(--accent-ink);
+    font-size: 0.75rem;
+  }
+
+  .source {
+    padding-top: 1rem;
+  }
+
+  .source strong {
+    color: var(--ink-3);
+    font-size: inherit;
+    font-weight: 600;
+  }
+
+  .range-map ol {
+    display: grid;
+    align-content: center;
+    flex: 1;
+    gap: clamp(0.45rem, 1vw, 0.8rem);
+    min-height: 12rem;
+    padding: 1.15rem 0;
+    list-style: none;
+  }
+
+  .range-map li {
+    display: grid;
+    grid-template-columns: 1.45rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .range-index {
+    color: var(--ink-4);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .track {
     position: relative;
-    z-index: 3;
-  }
-
-  /* Ambient glow behind the screenshot. Sits under the image (z-index 0) and is
-     never interactive. */
-  .aurora {
-    position: absolute;
-    left: 50%;
-    top: 52%;
-    width: min(900px, 90%);
-    height: 60%;
-    transform: translate(-50%, -50%);
-    z-index: 0;
-    background: radial-gradient(
-      ellipse at center,
-      color-mix(in srgb, var(--accent) 32%, transparent),
-      transparent 62%
-    );
-    filter: blur(46px);
-    animation: cd-aurora 14s ease-in-out infinite;
-    pointer-events: none;
-  }
-
-  .scene {
-    position: relative;
-    z-index: 2;
-    perspective: 1700px;
-    overflow: visible;
-  }
-
-  .tilt {
-    position: relative;
-    isolation: isolate;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    transform-style: preserve-3d;
-    will-change: transform;
-    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-
-  /* The screenshot's capture fringe is normalized in the source asset, so its
-     native alpha edge can remain completely unclipped. */
-  .window-surface {
-    position: relative;
-    overflow: visible;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    transform: translateZ(0);
-  }
-
-  /* <picture> is inline by default, which leaves a descender gap under the image
-     and makes .tilt taller than what it wraps — enough to throw the percentage
-     insets below off. Make it hug the image exactly. */
-  .tilt picture {
     display: block;
-    font-size: 0;
-    filter: drop-shadow(
-      0 var(--window-shadow-y) var(--window-shadow-blur) var(--window-shadow-color)
-    );
+    height: 2px;
+    background: var(--line-2);
   }
 
-  .shot img {
+  .track i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--progress);
+    background: var(--accent);
+  }
+
+  .track i::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -2px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent-ink);
+    transform: translateY(-50%);
+  }
+
+  .merge {
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .merge-count {
+    color: var(--accent-ink);
+    font-weight: 700;
+  }
+
+  .merge > i {
+    position: relative;
+    flex: 1;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .merge > i::before,
+  .merge > i::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 3px;
+    height: 3px;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    background: var(--surface-2);
+    transform: translateY(-50%);
+  }
+
+  .merge > i::before {
+    left: 0;
+  }
+
+  .merge > i::after {
+    right: 0;
+  }
+
+  .output {
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .output b {
+    display: grid;
+    place-items: center;
+    width: 1.45rem;
+    height: 1.45rem;
+    border-radius: 6px;
+    color: #fff;
+    background: var(--accent);
+    font-size: 0.625rem;
+  }
+
+  .output small {
+    color: var(--ink-3);
+    font: inherit;
+    white-space: nowrap;
+  }
+
+  .app-window {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    padding: clamp(0.85rem, 2.2vw, 2rem);
+    background: var(--surface-2);
+  }
+
+  .app-window picture {
+    display: block;
+    width: 100%;
+    font-size: 0;
+    filter: drop-shadow(0 16px 24px rgba(18, 31, 38, 0.14));
+  }
+
+  .app-window img {
+    display: block;
     width: 100%;
     height: auto;
-    display: block;
   }
 
-  /* These bounds are measured from the PNG at build time (see
-     lib/heroGeometry.ts), keeping the overlays aligned with the rounded window
-     even when the screenshot is replaced. */
-  .glare {
-    position: absolute;
-    inset: var(--win-top) var(--win-right) var(--win-bottom) var(--win-left);
-    border-radius: var(--window-radius);
-    pointer-events: none;
-    opacity: 0;
-    mix-blend-mode: overlay;
-    transition: opacity 0.35s ease;
-    background: radial-gradient(
-      circle at 50% 40%,
-      rgba(255, 255, 255, 0.28),
-      transparent 42%
-    );
+  .instrument-foot {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: clamp(1rem, 3vw, 3rem);
+    padding: 0.75rem 0.15rem 0;
+    color: var(--ink-4);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.035em;
+    line-height: 1.5;
+    text-transform: uppercase;
   }
 
-  .sheen-clip {
-    position: absolute;
-    inset: var(--win-top) var(--win-right) var(--win-bottom) var(--win-left);
-    border-radius: var(--window-radius);
+  .instrument-foot span:first-child {
     overflow: hidden;
-    pointer-events: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .sheen {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 28%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.22),
-      transparent
-    );
-    transform: translateX(-140%) skewX(-18deg);
-  }
-
-  @media (max-width: 820px) {
-    .shot {
-      --window-shadow-y: 10px;
-      --window-shadow-blur: 14px;
-      --window-shadow-color: rgba(18, 31, 38, 0.14);
-    }
+  @media (max-width: 960px) {
     .top {
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-      align-items: start;
+      grid-template-columns: minmax(0, 1fr) minmax(15rem, 0.42fr);
+      gap: 3rem;
     }
-    .aside {
-      padding-top: 0;
-    }
+
     .lede h1 {
-      max-width: 16ch;
+      font-size: clamp(3.8rem, 8vw, 5.5rem);
     }
-    .lead {
-      max-width: 52ch;
+
+    .instrument {
+      grid-template-columns: 1fr;
     }
-    .scene {
-      perspective: 1200px;
+
+    .range-map {
+      border-right: 0;
+      border-bottom: 1px solid var(--line-2);
     }
-    .glare,
-    .sheen-clip {
+
+    .range-map ol {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.85rem;
+      min-height: 0;
+      padding-block: 1.2rem;
+    }
+
+    .range-map li {
+      grid-template-columns: 1fr;
+      gap: 0.35rem;
+    }
+
+    .instrument-foot span:nth-child(2) {
       display: none;
     }
   }
 
-  @media (max-width: 560px) {
+  @media (max-width: 700px) {
     .hero {
-      padding-top: 2.4rem;
+      padding-top: 3rem;
     }
+
+    .top {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+      align-items: start;
+    }
+
+    .lede h1 {
+      max-width: 10.5ch;
+      font-size: clamp(3.55rem, 16vw, 5.25rem);
+    }
+
+    .aside {
+      max-width: 35rem;
+      padding-bottom: 0;
+    }
+
     .cta {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      width: min(100%, 32rem);
     }
+
     .cta .btn {
-      min-height: 48px;
-      padding-inline: 0.85rem;
+      min-width: 0;
     }
-    .note,
-    .micro {
-      line-height: 1.65;
+
+    .signature {
+      max-width: 18rem;
     }
+
     .shot {
-      margin-top: 2rem;
+      margin-top: 3.25rem;
+    }
+
+    .fig-status {
+      display: none;
+    }
+
+    .instrument-foot {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero {
+      padding-top: 2.6rem;
+      padding-bottom: 2.75rem;
+    }
+
+    .lede h1 {
+      margin-top: 1.65rem;
+      max-width: 9.8ch;
+      font-size: clamp(3.35rem, 16.5vw, 4.6rem);
+      letter-spacing: -0.06em;
+      line-height: 0.89;
+    }
+
+    .top {
+      gap: 2.15rem;
+    }
+
+    .cta {
+      grid-template-columns: 1fr 1fr;
+      width: 100%;
+    }
+
+    .cta .btn {
+      min-width: 0;
+      min-height: 48px;
+      padding-inline: 0.75rem;
+    }
+
+    .shot {
+      margin-top: 2.75rem;
+    }
+
+    .range-map {
+      padding: 0.9rem;
+    }
+
+    .range-map ol {
+      gap: 0.7rem 0.6rem;
+    }
+
+    .source {
+      padding-top: 0.8rem;
+    }
+
+    .output small {
+      display: none;
+    }
+
+    .app-window {
+      padding: 0.55rem;
+    }
+
+    .app-window picture {
+      filter: drop-shadow(0 8px 13px rgba(18, 31, 38, 0.13));
+    }
+
+    .instrument-foot {
+      display: none;
     }
   }
 
   @media (max-width: 350px) {
+    .lede h1 {
+      font-size: 3.15rem;
+    }
+
     .cta {
       grid-template-columns: 1fr;
     }
+
     .cta .btn {
-      justify-self: start;
+      justify-self: stretch;
     }
   }
 </style>

@@ -1,18 +1,28 @@
 ---
-import { site, nav, downloads } from '../data/site';
+import { site, nav } from '../data/site';
 import Icon from './Icon.astro';
 import Brand from './Brand.astro';
 ---
 
 <header class="header" data-site-header>
   <div class="container bar">
-    <Brand size={44} />
+    <Brand size={40} />
 
     <nav class="nav nav--desktop" aria-label="Primary">
       {nav.map((link) => <a href={link.href} data-nav-link>{link.label}</a>)}
     </nav>
 
     <div class="actions">
+      <a
+        class="source-link"
+        href={site.repo}
+        rel="noopener"
+        aria-label="View CloakDrop source on GitHub"
+      >
+        <Icon name="github" size={16} />
+        <span>Source</span>
+      </a>
+
       <button
         class="menu-toggle"
         type="button"
@@ -21,15 +31,6 @@ import Brand from './Brand.astro';
       >
         <span aria-hidden="true"></span>
       </button>
-
-      <a
-        class="btn btn--sm header-cta"
-        href={downloads.sectionHref}
-        aria-label={downloads.label}
-      >
-        <Icon name="download" size={16} stroke={2} />
-        <span>{downloads.label}</span>
-      </a>
     </div>
   </div>
 
@@ -54,16 +55,7 @@ import Brand from './Brand.astro';
         </a>
       ))}
     </nav>
-    <div class="mobile-actions">
-      <a class="btn btn--primary" href={downloads.sectionHref}>
-        <Icon name="download" size={17} stroke={2} />
-        {downloads.label}
-      </a>
-      <a class="btn" href={site.repo} rel="noopener">
-        <Icon name="github" size={17} />
-        View source
-      </a>
-    </div>
+    <p class="mobile-foot">Native macOS · MIT licensed</p>
   </div>
 
   <div class="scroll-progress" aria-hidden="true"><i data-scroll-progress></i></div>
@@ -74,60 +66,91 @@ import Brand from './Brand.astro';
     position: sticky;
     top: 0;
     z-index: 50;
-    background: color-mix(in srgb, var(--bg) 66%, transparent);
-    -webkit-backdrop-filter: saturate(180%) blur(26px);
-    backdrop-filter: saturate(180%) blur(26px);
+    background: color-mix(in srgb, var(--bg) 84%, transparent);
+    -webkit-backdrop-filter: saturate(150%) blur(18px);
+    backdrop-filter: saturate(150%) blur(18px);
     border-bottom: 1px solid var(--line);
   }
 
   .bar {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    min-height: 4.25rem;
+    gap: clamp(1rem, 2.5vw, 2.5rem);
+    min-height: 4.5rem;
   }
 
   .nav {
     display: flex;
-    gap: clamp(1.1rem, 2vw, 1.9rem);
+    align-items: center;
+    gap: clamp(1rem, 2vw, 1.75rem);
     margin-left: auto;
-    font-size: 0.875rem;
+    color: var(--ink-3);
+    font-size: 0.8125rem;
     font-weight: 600;
-    color: var(--ink-2);
   }
 
   .nav a {
     position: relative;
-    padding-block: 0.35rem;
-    transition: color 0.15s ease;
+    padding-block: 0.45rem;
+    transition: color 0.18s ease;
   }
 
   .nav a::after {
     content: '';
     position: absolute;
-    left: 0;
-    right: 0;
+    left: 50%;
     bottom: 0;
-    height: 1px;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
     background: var(--accent-ink);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.2s ease;
+    opacity: 0;
+    transform: translate(-50%, 3px);
+    transition:
+      opacity 0.18s ease,
+      transform 0.18s ease;
   }
 
   .nav a:hover,
   .nav a[aria-current='true'] {
-    color: var(--accent-ink);
+    color: var(--ink);
   }
 
   .nav a[aria-current='true']::after {
-    transform: scaleX(1);
+    opacity: 1;
+    transform: translate(-50%, 0);
   }
 
   .actions {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
+    gap: 0.35rem;
+  }
+
+  .source-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-height: 36px;
+    padding-inline: 0.75rem;
+    border: 1px solid var(--line-2);
+    border-radius: 9px;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+    transition:
+      border-color 0.18s ease,
+      color 0.18s ease,
+      background 0.18s ease;
+  }
+
+  .source-link:hover {
+    border-color: color-mix(in srgb, var(--ink-4) 38%, var(--line-2));
+    color: var(--ink);
+    background: var(--surface-2);
   }
 
   .menu-toggle,
@@ -139,7 +162,7 @@ import Brand from './Brand.astro';
     height: 44px;
     padding: 0;
     border: 0;
-    border-radius: 11px;
+    border-radius: 10px;
     color: var(--ink-2);
     background: transparent;
     cursor: pointer;
@@ -150,20 +173,6 @@ import Brand from './Brand.astro';
 
   .menu-toggle:hover,
   .panel-close:hover {
-    color: var(--ink);
-    background: var(--surface-2);
-  }
-
-  .header-cta {
-    min-height: 44px;
-    border-color: var(--line-2);
-    color: var(--ink-2);
-    background: transparent;
-    box-shadow: none;
-  }
-
-  .header-cta:hover {
-    border-color: color-mix(in srgb, var(--ink-4) 42%, var(--line-2));
     color: var(--ink);
     background: var(--surface-2);
   }
@@ -210,22 +219,22 @@ import Brand from './Brand.astro';
   }
 
   .mobile-panel {
-    inset: 4.8rem var(--gutter) auto;
-    width: auto;
-    max-width: 32rem;
-    margin-inline: auto var(--gutter);
-    padding: 1rem;
+    inset: 5rem var(--gutter) auto auto;
+    width: min(30rem, calc(100vw - (var(--gutter) * 2)));
+    max-width: 30rem;
+    margin: 0;
+    padding: 0.9rem;
     border: 1px solid var(--line-2);
-    border-radius: 20px;
+    border-radius: 18px;
     color: var(--ink-2);
-    background: color-mix(in srgb, var(--surface) 92%, transparent);
-    box-shadow: 0 28px 80px -30px rgba(12, 17, 20, 0.5);
-    -webkit-backdrop-filter: saturate(180%) blur(30px);
-    backdrop-filter: saturate(180%) blur(30px);
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    box-shadow: 0 28px 80px -30px rgba(12, 17, 20, 0.48);
+    -webkit-backdrop-filter: saturate(170%) blur(28px);
+    backdrop-filter: saturate(170%) blur(28px);
   }
 
   .mobile-panel::backdrop {
-    background: color-mix(in srgb, var(--band) 26%, transparent);
+    background: color-mix(in srgb, var(--band) 24%, transparent);
     -webkit-backdrop-filter: blur(3px);
     backdrop-filter: blur(3px);
   }
@@ -238,7 +247,7 @@ import Brand from './Brand.astro';
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.2rem 0.2rem 0.7rem 0.7rem;
+    padding: 0.15rem 0.15rem 0.65rem 0.65rem;
     font-family: var(--font-mono);
     font-size: var(--t-mono);
     letter-spacing: 0.06em;
@@ -255,38 +264,35 @@ import Brand from './Brand.astro';
     display: grid;
     grid-template-columns: 2rem 1fr;
     align-items: center;
-    min-height: 3.45rem;
-    padding-inline: 0.7rem;
+    min-height: 3.5rem;
+    padding-inline: 0.65rem;
     border-bottom: 1px solid var(--line);
     color: var(--ink);
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 700;
   }
 
   .mobile-panel nav a span {
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: 0.6875rem;
     color: var(--accent-ink);
   }
 
-  .mobile-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.65rem;
-    margin-top: 1rem;
-  }
-
-  .mobile-actions .btn {
-    min-height: 48px;
-    padding-inline: 0.8rem;
+  .mobile-foot {
+    padding: 0.85rem 0.65rem 0.15rem;
+    color: var(--ink-4);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
   }
 
   .scroll-progress {
     position: absolute;
-    left: 0;
     right: 0;
     bottom: -1px;
-    height: 2px;
+    left: 0;
+    height: 1px;
     overflow: hidden;
     pointer-events: none;
   }
@@ -304,7 +310,7 @@ import Brand from './Brand.astro';
   @keyframes panel-in {
     from {
       opacity: 0;
-      transform: translateY(-10px) scale(0.98);
+      transform: translateY(-8px) scale(0.985);
     }
   }
 
@@ -312,24 +318,39 @@ import Brand from './Brand.astro';
     .nav--desktop {
       display: none;
     }
+
     .actions {
       margin-left: auto;
     }
+
+    .source-link {
+      min-height: 44px;
+      border-radius: 10px;
+    }
+
     .menu-toggle {
       display: inline-flex;
     }
   }
 
-  @media (max-width: 360px) {
+  @media (max-width: 520px) {
     .bar {
-      gap: 0.5rem;
+      gap: 0.35rem;
+      min-height: 4.25rem;
     }
-    .header-cta {
+
+    .source-link {
       width: 44px;
+      min-height: 44px;
       padding: 0;
     }
-    .header-cta span {
+
+    .source-link span {
       display: none;
+    }
+
+    .mobile-panel {
+      top: 4.7rem;
     }
   }
 

@@ -6,8 +6,8 @@
  * kicker on each, big Archivo display headlines, and hairline dividers throughout.
  * Copy is deliberately de-duplicated — each section owns one distinct message.
  *
- * Facts verified against the app on 2026-07-13: 11 localizations and 471 tests / 72
- * suites in DownloaderCore. Keep them in sync if the app changes.
+ * Product claims are verified against the macOS app source. Keep this file in sync
+ * with the engine and Settings UI rather than promoting illustrative UI values.
  */
 
 export const site = {
@@ -17,12 +17,12 @@ export const site = {
   tagline: 'A fast, private, multi-segment download manager for macOS.',
   description:
     'CloakDrop is a native, sandboxed macOS download manager with IDM-class ' +
-    'multi-segment speed, force-quit-proof resume, video from ~1,800 sites, and ' +
-    'zero telemetry — it behaves like part of macOS.',
+    'adaptive multi-segment transfers, relaunch-safe resume, integrated video ' +
+    'capture, and zero telemetry — it behaves like part of macOS.',
   repo: 'https://github.com/cloakyard/cloakdrop',
   privacyPolicy: '/privacy/',
   suiteOrg: 'https://github.com/cloakyard',
-  requirement: 'macOS 27 Golden Gate · Apple silicon',
+  requirement: 'macOS 26 or later · Apple silicon',
 } as const;
 
 /**
@@ -37,9 +37,9 @@ export const downloads = {
   href: 'https://github.com/cloakyard/cloakdrop/releases',
   sectionHref: '#download',
   label: 'Get the beta',
-  actionLabel: 'Watch beta releases',
-  status: 'The first public beta build is not posted yet.',
-  note: 'Apple silicon · macOS 27 Golden Gate · unnotarized beta',
+  actionLabel: 'Open GitHub Releases',
+  status: 'CloakDrop is in active development.',
+  note: 'Apple silicon · macOS 26 or later',
 } as const;
 
 export interface NavLink {
@@ -57,17 +57,17 @@ export const nav: NavLink[] = [
 /* Hero — the hook. Keep it to the product promise; proof and privacy live below. */
 export const hero = {
   kicker: 'Native macOS · Open source',
-  titleLead: 'A download\nmanager that\nbehaves like',
-  titleAccent: 'part of\nmacOS.',
+  titleLead: 'Built to resume.',
+  titleAccent: 'Finished with proof.',
   lead:
-    'Serious multi-segment speed over HTTP, HTTPS and FTP, plus video capture. ' +
-    'Resume that survives a reboot.',
+    'A native transfer engine that adapts parallel ranges to the file and source, ' +
+    'recovers saved progress after relaunch, and verifies the result locally.',
   micro: 'MIT licensed · No account, ever',
-  figLabel: 'FIG.01 — CLOAKDROP.APP',
+  figLabel: 'LIVE APP · ADAPTIVE RANGE TRANSFER',
   shotAlt:
-    'The CloakDrop app window downloading an Ubuntu 26.04 ISO across 8 parallel ' +
-    'segments, with live speed, ETA, and a per-segment progress inspector, above ' +
-    'a library of five completed downloads.',
+    'The CloakDrop app window showing an Ubuntu ISO transfer planned across eight ' +
+    'ranges for this example, with live speed, ETA, and per-range progress above ' +
+    'a library of completed downloads.',
 } as const;
 
 export interface ProductStory {
@@ -81,40 +81,40 @@ export interface ProductStory {
 
 export const product = {
   num: '01',
-  label: 'The product',
-  title: 'One clean flow, from link to trusted file.',
+  label: 'The transfer',
+  title: 'From link to finished file, without the busywork.',
   lead:
-    'CloakDrop keeps the speed, capture, and verification work in one native ' +
-    'place—without turning the experience into a control panel.',
+    'Three focused stages cover the whole job. Each one stays quiet until it has ' +
+    'something useful to do.',
   stories: [
     {
       n: '01',
-      label: 'Download',
-      title: 'Start fast. Stay fast.',
+      label: 'Transfer',
+      title: 'Adaptive lanes. Saved-offset recovery.',
       body:
-        'Files split across parallel byte ranges, fall back cleanly when a server ' +
-        'cannot segment, and resume from the exact byte after a restart or reboot.',
-      points: ['Up to 8 parallel segments', 'Automatic range fallback', 'Reboot-safe resume'],
+        'Eligible files split across a configurable number of byte ranges. The plan ' +
+        'adapts to file size and range support, then restores saved offsets after relaunch.',
+      points: ['Configurable range plan', 'Single-stream fallback', 'Relaunch-safe resume'],
       visual: 'speed',
     },
     {
       n: '02',
       label: 'Capture',
-      title: 'Grab it without breaking your flow.',
+      title: 'Bring links in from anywhere.',
       body:
         'Paste a URL, drag a link, share from another app, or use the built-in ' +
         'browser. Video formats and ordinary files land in the same engine.',
-      points: ['Built-in WebKit browser', '~1,800 video sites', 'Clipboard, drag & Share'],
+      points: ['Built-in WebKit browser', 'Bundled video resolver', 'Clipboard, drag & Share'],
       visual: 'capture',
     },
     {
       n: '03',
-      label: 'Organize',
-      title: 'Finish cleanly, automatically.',
+      label: 'Finish',
+      title: 'Let the finish take care of itself.',
       body:
-        'Queues, routing rules, duplicate detection, speed profiles, and safe ' +
+        'The Main Queue, routing rules, duplicate detection, speed profiles, and guarded ' +
         'post-processing take care of the work after a link is added.',
-      points: ['Rules and smart queues', 'Honest bandwidth caps', 'Safe ZIP extraction'],
+      points: ['First-match routing rules', 'Aggregate bandwidth caps', 'Guarded ZIP extraction'],
       visual: 'organize',
     },
   ] as readonly ProductStory[],
@@ -128,8 +128,7 @@ export interface Stat {
    * Optional count-up target. `value` stays the source of truth for what renders
    * server-side (and with JS off); these only tell motion.ts how to re-derive it
    * frame by frame, so `countTo` + affixes must format back to exactly `value`.
-   * Omit to leave a stat static — "0 bytes phoned home" counts up from nothing
-   * to nothing, so animating it is just a flicker.
+   * Omit to leave a stat static — a zero-value telemetry fact should not flicker.
    */
   countTo?: number;
   countPrefix?: string;
@@ -140,22 +139,19 @@ export interface Stat {
 
 /* Spec strip — four proof points under the hero. */
 export const stats: Stat[] = [
-  { value: '8×', label: 'parallel segments', countTo: 8, countSuffix: '×', href: '#product' },
+  { value: '1–32', label: 'maximum setting range', href: '#product' },
   {
-    value: '~1,800',
-    label: 'video sites recognized',
-    countTo: 1800,
-    countPrefix: '~',
-    countComma: true,
+    value: '4',
+    label: 'HTTP · HTTPS · FTP · FTPS',
+    countTo: 4,
     href: '#product',
   },
   {
-    value: '471',
-    label: 'tests · 72 suites',
-    countTo: 471,
-    href: 'https://github.com/cloakyard/cloakdrop/tree/main/apps/macos/Packages/DownloaderCore/Tests',
+    value: 'Local',
+    label: 'verification & receipts',
+    href: '#provenance',
   },
-  { value: '0', label: 'bytes phoned home', accent: true, href: '#privacy' },
+  { value: '0', label: 'telemetry endpoints', accent: true, href: '#privacy' },
 ];
 
 export interface NumberedFeature {
@@ -171,7 +167,7 @@ export const engine = {
   title: 'Everything a download deserves.',
   lead:
     'One actor-based engine handles HTTP, HTTPS and FTP alike — segmenting, ' +
-    'resuming, and verifying every transfer the same way.',
+    'resuming supported ranges, and keeping transfer state local.',
   /**
    * Decorative segment fills for the multi-segment card's mini-inspector.
    * Deliberately unordered: real segments race independently, so a sorted
@@ -188,11 +184,11 @@ export const engine = {
   } as NumberedFeature,
   lead2: {
     n: '02',
-    title: 'Resume survives anything',
+    title: 'Resume from saved offsets',
     body:
-      'True byte-range resume outlives an app relaunch and a reboot — it never ' +
-      're-downloads a byte. When the network drops, per-segment retry with ' +
-      'exponential backoff and jitter pauses and picks up on its own.',
+      'Saved byte-range progress survives an app relaunch and reboot. When the ' +
+      'remote object and local part data still match, each range continues from ' +
+      'its recorded offset.',
   } as NumberedFeature,
   grid: [
     {
@@ -234,50 +230,49 @@ export interface ReceiptRow {
 /* 02 — Provenance receipt (the dark, signature section). */
 export const provenance = {
   num: '02',
-  label: 'Only in CloakDrop',
-  title: 'Every download leaves a receipt.',
+  label: 'Local verification',
+  title: 'A local record of what arrived.',
   bodyHtml:
-    'Each completed download earns a local, exportable ' +
-    '<strong>Provenance Receipt</strong> — sources, TLS details, whole-file ' +
-    'SHA-256, and checksum + code-signature verdicts in one trust record. ' +
-    'Checksums verify automatically from a hash you supply or an auto-discovered ' +
-    'sibling <code>.sha256</code>; <code>.app</code> and <code>.dmg</code> files ' +
-    'get a notarization check on top. No other download manager produces one.',
+    'When enabled, a completed file download can generate an exportable ' +
+    '<strong>Provenance Receipt</strong> — source, transport security, whole-file ' +
+    'SHA-256, and any available checksum or code-signature result. Checksum ' +
+    'discovery stays same-origin; <code>.app</code> and <code>.dmg</code> files ' +
+    'can also receive an offline signature assessment.',
   receipt: [
-    { k: 'FILE', v: 'ubuntu-26.04.iso' },
-    { k: 'SIZE', v: '6.52 GB' },
-    { k: 'SOURCE', v: 'releases.ubuntu.com' },
-    { k: 'TLS', v: 'TLS 1.3 ✓' },
-    { k: 'SHA-256', v: 'a1b4…9f2e ✓ MATCH' },
-    { k: 'SIGNATURE', v: 'NOTARIZED ✓' },
+    { k: 'FILE', v: 'CloakDrop-1.0.dmg' },
+    { k: 'SIZE', v: '44,875,776 bytes' },
+    { k: 'SOURCE', v: 'github.com/cloakyard' },
+    { k: 'TRANSPORT', v: 'ENCRYPTED (TLS)' },
+    { k: 'SHA-256', v: 'a1b4…9f2e' },
+    { k: 'SIGNATURE', v: 'VALID' },
   ] as ReceiptRow[],
-  verdict: { label: 'VERDICT', value: '✓ TRUSTED' },
+  verdict: { label: 'TRUST', value: '✓ VERIFIED' },
 } as const;
 
 /* 03 — Capture. Three ways in. */
 export const capture = {
   num: '03',
   label: 'Capture',
-  title: 'If you can see it, you can grab it.',
+  title: 'Bring a link in the way that fits.',
   lead:
-    'Paste, drag, share, or browse — every road leads into the same segmented ' +
-    'engine, and your logins come along.',
+    'Paste, drag, share, or browse. Browser-originated grabs can carry the ' +
+    'cookies and referrer needed for signed-in downloads.',
   items: [
     {
       n: '01',
       title: 'A browser that grabs',
       body:
-        'A built-in WebKit browser (⇧⌘B) lists the video, audio, and files on any ' +
-        'page — ads and beacons filtered out — and takes over downloads IDM-style ' +
-        'the moment a page starts one. An optional ad & tracker blocker is a switch away.',
+        'A built-in WebKit browser (⇧⌘B) surfaces grabbable media and files as they ' +
+        'appear. Explicit downloads and attachments can hand off to CloakDrop; an ' +
+        'optional ad and tracker blocker is available separately.',
     },
     {
       n: '02',
-      title: '~1,800 video sites',
+      title: 'Video pages, resolved locally',
       body:
-        'Paste a YouTube link — or any site yt-dlp can read — and CloakDrop ' +
-        'resolves the formats and downloads with its own segmented engine. yt-dlp ' +
-        'only reads and deciphers; it never downloads a byte.',
+        'Submit a supported video-page URL and the bundled yt-dlp helper resolves ' +
+        'metadata and media URLs. It does not transfer the selected media payload; ' +
+        "CloakDrop's engine does.",
     },
     {
       n: '03',
@@ -294,44 +289,39 @@ export interface DetailItem {
   icon: string;
   title: string;
   body: string;
+  meta: readonly string[];
 }
 
-/* 04 — The details. A six-cell grid of the small stuff. */
+/* 03 — Native details. Compact polish that belongs nowhere else on the page. */
 export const details = {
   num: '03',
-  label: 'Everything else',
-  title: 'Small things, done right.',
-  lead: 'Useful depth when you need it, quiet defaults when you do not.',
+  label: 'Native control deck',
+  title: 'Serious tools, already inside.',
+  lead: 'Routing, diagnosis, local statistics, and ambient controls—without a companion utility or account.',
   items: [
     {
-      icon: 'shield',
-      title: 'Integrity & trust',
-      body: 'MD5 / SHA-1 / SHA-256 verified on completion, from your hash or a discovered sibling checksum.',
-    },
-    {
-      icon: 'film',
-      title: 'Media grabbing',
-      body: 'HLS and DASH streams, AES-128 decrypt, audio paired and muxed into a clean, playable file — no re-encode.',
+      icon: 'network',
+      title: 'Proxy routing',
+      body: 'Route HTTP-based traffic through the macOS system proxy, connect directly, or configure a manual HTTP, HTTPS, or SOCKS5 endpoint.',
+      meta: ['System', 'Direct', 'Manual'],
     },
     {
       icon: 'gauge',
       title: 'Built-in speed test',
-      body: 'Speedometer dials for download, upload, latency, and jitter. Cloudflare or Ookla, strictly manual.',
+      body: 'Run Cloudflare or Ookla only when you choose. Measure download, upload, idle and loaded latency, and jitter.',
+      meta: ['Download', 'Upload', 'Latency'],
     },
     {
       icon: 'bars',
-      title: 'Download stats',
-      body: 'Private lifetime totals with a playful monthly tier badge — Warming Up all the way to ISP’s Worst Nightmare.',
-    },
-    {
-      icon: 'globe',
-      title: 'Fully localized',
-      body: 'Every UI string translated into 11 languages, from English and Spanish to Japanese, Arabic, and Hindi.',
+      title: 'Local download stats',
+      body: 'See today, this month, and all-time totals with a monthly rank. Everything is resettable and stored on this Mac.',
+      meta: ['Today', 'Month', 'All time'],
     },
     {
       icon: 'menubar',
       title: 'Menu bar & Dock',
-      body: 'A live menu-bar extra and a Dock icon that shows overall progress at a glance, without opening the window.',
+      body: 'See aggregate speed and progress, inspect active work, and pause or resume without bringing the main window forward.',
+      meta: ['Live speed', 'Progress', 'Controls'],
     },
   ] as DetailItem[],
 } as const;
@@ -339,22 +329,21 @@ export const details = {
 /* 05 — Privacy. The one place the egress story is told in full. */
 export const privacy = {
   num: '04',
-  label: 'Privacy is the whole point',
-  title: 'Network activity stays tied to what you choose.',
+  label: 'The network boundary',
+  title: 'No telemetry. A defined network boundary.',
   body:
-    'The built-in browser keeps your logins but records no history, with a ' +
-    'one-click wipe of all site data. ' +
-    'Download records and settings live in a local SQLite database, with controls ' +
-    'to remove records and clear completed items. The App Sandbox limits file ' +
-    'access to its containers, Downloads, and destinations you explicitly choose.',
-  points: ['No telemetry', 'No analytics', 'No accounts', 'No crash reporting', 'No phone-home'],
+    'CloakDrop has no accounts, analytics, telemetry, automatic crash uploads, or ' +
+    'update pings. Network activity is limited to transfers and features you start ' +
+    'or configure. App state stays in local storage, browser data stays in WebKit, ' +
+    'and remembered secrets use Keychain.',
+  points: ['Telemetry endpoints', 'Accounts', 'Automatic crash uploads', 'Update pings'],
 } as const;
 
 /* 06 — Under the hood. The spec sheet. */
 export const hood = {
   num: '06',
   label: 'Under the hood',
-  title: 'Native to the bone.',
+  title: 'A native core, kept deliberately small.',
   body:
     'The interface stays thin because the download engine is a separate, headless ' +
     'Swift package. The same tested core owns transfers, persistence, and recovery.',
@@ -362,9 +351,7 @@ export const hood = {
     { k: 'LANGUAGE', v: 'Swift 6, strict concurrency' },
     { k: 'UI', v: 'SwiftUI · Liquid Glass' },
     { k: 'ENGINE', v: 'Actor-based, one actor per transfer' },
-    { k: 'NETWORKING', v: 'URLSession + native FTP/FTPS' },
-    { k: 'PERSISTENCE', v: 'GRDB (SQLite) · Keychain creds' },
-    { k: 'DEPENDENCIES', v: 'None beyond GRDB' },
+    { k: 'STORAGE', v: 'Local SQLite · Keychain credentials' },
   ] as ReceiptRow[],
 } as const;
 
