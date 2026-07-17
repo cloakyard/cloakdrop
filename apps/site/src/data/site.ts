@@ -54,15 +54,15 @@ export const nav: NavLink[] = [
   { label: 'Download', href: '#download' },
 ];
 
-/* Hero — the hook. Speed + capture + resume + privacy, in one breath. */
+/* Hero — the hook. Keep it to the product promise; proof and privacy live below. */
 export const hero = {
-  kicker: 'Native macOS · Open source · Zero telemetry',
+  kicker: 'Native macOS · Open source',
   titleLead: 'A download\nmanager that\nbehaves like',
   titleAccent: 'part of\nmacOS.',
   lead:
-    'Serious multi-segment speed over HTTP, HTTPS and FTP. Video from ~1,800 ' +
-    'sites. Resume that survives a reboot. And nothing ever phones home.',
-  micro: 'MIT licensed · Source available · No account, ever',
+    'Serious multi-segment speed over HTTP, HTTPS and FTP, plus video capture. ' +
+    'Resume that survives a reboot.',
+  micro: 'MIT licensed · No account, ever',
   figLabel: 'FIG.01 — CLOAKDROP.APP',
   shotAlt:
     'The CloakDrop app window downloading an Ubuntu 26.04 ISO across 8 parallel ' +
@@ -342,8 +342,8 @@ export const privacy = {
   label: 'Privacy is the whole point',
   title: 'Network activity stays tied to what you choose.',
   body:
-    'No accounts, no analytics, no crash reporting. The built-in browser keeps ' +
-    'your logins but records no history, with a one-click wipe of all site data. ' +
+    'The built-in browser keeps your logins but records no history, with a ' +
+    'one-click wipe of all site data. ' +
     'Download records and settings live in a local SQLite database, with controls ' +
     'to remove records and clear completed items. The App Sandbox limits file ' +
     'access to its containers, Downloads, and destinations you explicitly choose.',
