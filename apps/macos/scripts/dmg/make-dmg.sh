@@ -43,7 +43,8 @@ cp "$STAGE/.background/background.png" "$HERE/background.png"
 
 echo "▸ Staging app, guide, Applications alias…"
 ditto "$APP" "$STAGE/CloakDrop.app"
-cp "$HERE/ReadMe.txt" "$STAGE/Read Me.txt"
+cp "$HERE/ReadMe.txt" "$STAGE/Install Guide.txt"
+SetFile -a E "$STAGE/Install Guide.txt" || true
 ln -s /Applications "$STAGE/Applications"
 # The volume icon (.VolumeIcon.icns) is written AFTER the Finder pass, not staged here — Finder's
 # window management deletes hidden root files it doesn't manage, so a staged copy never survives.
@@ -59,6 +60,13 @@ DEV="$(hdiutil attach -readwrite -noverify -noautoopen "$RW" | grep -E '^/dev/' 
 MNT="/Volumes/$VOLNAME"
 sleep 1
 
+# Mark support resources invisible without assigning them icon coordinates. Finder includes even
+# invisible off-canvas coordinates in its scrollable extent, so hidden files must remain unplaced.
+SetFile -a V "$MNT/.background" || true
+if [[ -d "$MNT/.fseventsd" ]]; then
+  SetFile -a V "$MNT/.fseventsd" || true
+fi
+
 echo "▸ Laying out the window…"
 osascript <<APPLESCRIPT
 tell application "Finder"
@@ -71,13 +79,13 @@ tell application "Finder"
     set the bounds of container window to {240, 110, 1000, 712}
     set theView to the icon view options of container window
     set arrangement of theView to not arranged
-    set icon size of theView to 104
+    set icon size of theView to 96
     set text size of theView to 12
+    set shows icon preview of theView to false
     set background picture of theView to file ".background:background.png"
-    set position of item "CloakDrop.app" of container window to {200, 258}
-    set position of item "Applications" of container window to {560, 258}
-    -- Read Me.txt sits directly under the app icon (same x=200) so the left column lines up.
-    set position of item "Read Me.txt" of container window to {200, 452}
+    set position of item "CloakDrop.app" of container window to {204, 282}
+    set position of item "Applications" of container window to {556, 282}
+    set position of item "Install Guide.txt" of container window to {380, 483}
     update without registering applications
     delay 1
     close
@@ -85,10 +93,14 @@ tell application "Finder"
 end tell
 APPLESCRIPT
 
-# Write the volume icon and flag it — both AFTER Finder finishes the window, because Finder's window
-# management deletes the hidden .VolumeIcon.icns file and clears the custom-icon bit if either is set
-# beforehand.
+# Write and hide the volume icon after Finder's layout pass. Adding it earlier can make Finder remove
+# the file or clear the custom-volume-icon bit while it updates the window.
 cp "$ICNS" "$MNT/.VolumeIcon.icns"
+SetFile -a V "$MNT/.background" || true
+if [[ -d "$MNT/.fseventsd" ]]; then
+  SetFile -a V "$MNT/.fseventsd" || true
+fi
+SetFile -a V "$MNT/.VolumeIcon.icns" || true
 SetFile -a C "$MNT" || true
 sync
 echo "▸ Detaching…"
