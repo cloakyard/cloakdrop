@@ -563,6 +563,7 @@ const segmentLabels = ['01', '02', '03', '04', '05', '06', '07', '08'];
     }
     .diagram {
       min-height: 390px;
+      padding: 0.75rem;
     }
     .diagram--speed,
     .diagram--capture {
@@ -570,16 +571,70 @@ const segmentLabels = ['01', '02', '03', '04', '05', '06', '07', '08'];
     }
     .diagram--speed .arrow,
     .diagram--capture > .arrow {
-      transform: rotate(90deg);
+      font-size: 0;
+      line-height: 1;
+      transform: none;
+    }
+    .diagram--speed .arrow::before,
+    .diagram--capture > .arrow::before {
+      content: '↓';
+      font-size: 1.2rem;
+      line-height: 1;
     }
     .diagram--capture .converge {
+      display: grid;
+      justify-content: center;
+      place-items: center;
       min-height: 32px;
-      transform: rotate(90deg);
+      transform: none;
+    }
+    .diagram--capture .converge i {
+      position: absolute;
+      inset-block: 0;
+      left: 50%;
+      width: 1px;
+      height: 100%;
+      transform: translateX(-50%);
+    }
+    .diagram--capture .converge b {
+      margin-left: 0;
+      padding-block: 0.1rem;
+      font-size: 0;
+      transform: none;
+    }
+    .diagram--capture .converge b::before {
+      content: '↓';
+      font-size: 1.2rem;
     }
     .node,
     .range-bank,
     .input-stack {
       min-height: 82px;
+    }
+    .diagram--capture .input-stack {
+      gap: 0.3rem;
+      padding: 0.75rem;
+    }
+    .diagram--capture .input-stack span {
+      padding: 0.3rem 0.5rem;
+    }
+    .diagram--speed .node,
+    .diagram--speed .range-bank {
+      min-height: 0;
+      padding: 0.75rem;
+    }
+    .diagram--speed .range-bank {
+      gap: 0.25rem;
+      padding-block: 0.35rem;
+    }
+    .diagram--speed .range-bank > div {
+      margin-top: 0;
+    }
+    .diagram--speed .node {
+      padding-block: 0.6rem;
+    }
+    .diagram--organize .node {
+      padding: 0.85rem;
     }
     .outcomes {
       grid-template-columns: 1fr;

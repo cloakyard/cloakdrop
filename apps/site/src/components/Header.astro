@@ -23,7 +23,7 @@ import Brand from './Brand.astro';
       </button>
 
       <a
-        class="btn btn--primary btn--sm header-cta"
+        class="btn btn--sm header-cta"
         href={downloads.sectionHref}
         aria-label={downloads.label}
       >
@@ -156,6 +156,16 @@ import Brand from './Brand.astro';
 
   .header-cta {
     min-height: 44px;
+    border-color: var(--line-2);
+    color: var(--ink-2);
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .header-cta:hover {
+    border-color: color-mix(in srgb, var(--ink-4) 42%, var(--line-2));
+    color: var(--ink);
+    background: var(--surface-2);
   }
 
   .menu-toggle {
