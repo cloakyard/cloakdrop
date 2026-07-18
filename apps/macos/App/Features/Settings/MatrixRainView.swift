@@ -13,7 +13,7 @@ struct AboutHeaderView: View {
     @State private var matrixMode = false
 
     private static let cornerRadius: CGFloat = 8   // matches the grouped-Form section radius
-    /// Phosphor green used for the title/version while the rain is on.
+    /// Phosphor green used for the title/version while the rain is on; the product suffix stays tinted.
     private static let phosphor = Color(red: 0.62, green: 1.0, blue: 0.62)
 
     // Rendered as a single grouped-Form row (see SettingsView.about), so the Section supplies the grey
@@ -49,12 +49,12 @@ struct AboutHeaderView: View {
                 .accessibilityAddTraits(.isButton)
 
             VStack(spacing: 3) {
-                Text(verbatim: "CloakDrop")
+                Text(wordmark)
                     .font(matrixMode
                           ? .title2.weight(.semibold).monospaced()
                           : .title2.weight(.semibold))
-                    .foregroundStyle(matrixMode ? Self.phosphor : .primary)
                     .shadow(color: .green.opacity(matrixMode ? 0.8 : 0), radius: 8)
+                    .accessibilityLabel(Text(verbatim: "CloakDrop"))
                 Text("Version \(version)")
                     .font(.callout)
                     .monospacedDigit()
@@ -65,6 +65,18 @@ struct AboutHeaderView: View {
                     .padding(.top, 3)
             }
         }
+    }
+
+    /// One attributed string keeps the visual lockup and VoiceOver name together while tinting
+    /// only the product suffix.
+    private var wordmark: AttributedString {
+        var lead = AttributedString("Cloak")
+        lead.foregroundColor = matrixMode ? Self.phosphor : Color.primary
+
+        var suffix = AttributedString("Drop")
+        suffix.foregroundColor = .accentColor
+        lead.append(suffix)
+        return lead
     }
 
     // A pre-glassed copy of the app icon (baked by scripts/bake_about_icon.swift from how macOS

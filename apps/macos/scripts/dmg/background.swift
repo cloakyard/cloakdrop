@@ -104,7 +104,17 @@ let image = NSImage(size: NSSize(width: W, height: H), flipped: true) { _ in
         logo.draw(in: headerIconRect)
         context.restoreGraphicsState()
     }
-    drawLeft("CloakDrop", font(24, .bold), ink, x: 106, y: 42, kern: -0.55)
+    let wordmarkText = "CloakDrop"
+    let wordmark = NSMutableAttributedString(
+        string: wordmarkText,
+        attributes: [.font: font(24, .bold), .foregroundColor: ink, .kern: -0.55]
+    )
+    wordmark.addAttribute(
+        .foregroundColor,
+        value: ocean,
+        range: (wordmarkText as NSString).range(of: "Drop")
+    )
+    wordmark.draw(at: NSPoint(x: 106, y: 42 - wordmark.size().height / 2))
     drawLeft("BUILT TO RESUME · FINISHED WITH PROOF", monoFont(9.2, .medium), muted,
              x: 107, y: 68, kern: 0.78)
 

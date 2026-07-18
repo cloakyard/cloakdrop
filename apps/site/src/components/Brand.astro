@@ -7,6 +7,9 @@ interface Props {
   class?: string;
 }
 const { size = 30, class: className } = Astro.props;
+const wordmark = site.name.match(/^(.+?[a-z])([A-Z].*)$/);
+const nameLead = wordmark?.[1] ?? site.name;
+const nameAccent = wordmark?.[2] ?? '';
 ---
 
 <a class:list={['brand', className]} href="/" aria-label={`${site.name} home`}>
@@ -19,7 +22,7 @@ const { size = 30, class: className } = Astro.props;
     loading="eager"
     decoding="async"
   />
-  <span class="brand-name">{site.name}</span>
+  <span class="brand-name">{nameLead}<span class="brand-accent">{nameAccent}</span></span>
 </a>
 
 <style>
@@ -39,5 +42,9 @@ const { size = 30, class: className } = Astro.props;
     letter-spacing: -0.02em;
     color: var(--ink);
     font-size: 1.125rem;
+  }
+
+  .brand-accent {
+    color: var(--accent-ink);
   }
 </style>
