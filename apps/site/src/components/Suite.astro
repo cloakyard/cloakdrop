@@ -2,6 +2,15 @@
 import { suite, site } from '../data/site';
 import Kicker from './Kicker.astro';
 import Icon from './Icon.astro';
+
+const suiteApps = suite.apps.map((app) => {
+  const wordmark = app.name.match(/^(.+?[a-z])([A-Z].*)$/);
+  return {
+    ...app,
+    nameLead: wordmark?.[1] ?? app.name,
+    nameAccent: wordmark?.[2] ?? '',
+  };
+});
 ---
 
 <section id="suite" class="section suite" data-reveal>
@@ -15,12 +24,12 @@ import Icon from './Icon.astro';
 
     <ul class="list">
       {
-        suite.apps.map((app) =>
+        suiteApps.map((app) =>
           app.self ? (
             <li>
               {/* Current app — not a link; the user is already here. */}
               <div class="row row--self">
-                <span class="name">{app.name}</span>
+                <span class="name">{app.nameLead}<span class="name-accent">{app.nameAccent}</span></span>
                 <span class="desc">{app.desc}</span>
                 <span class="tag">{app.tag}</span>
               </div>
@@ -104,7 +113,7 @@ import Icon from './Icon.astro';
     color: var(--ink);
   }
 
-  .row--self .name {
+  .row--self .name-accent {
     color: var(--accent-ink);
   }
 

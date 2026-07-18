@@ -4,13 +4,12 @@
     <meta charset="utf-8" />
     <title>CloakDrop — Open Graph card</title>
     <!--
-      Source for assets/social/og.png (1200×630). Render it with scripts/make-og.sh, which
-      screenshots this file headlessly — never hand-edit the PNG.
+      Deterministic source for assets/social/og.png (1200×630). Render with
+      scripts/make-og.sh; never hand-edit the PNG.
 
-      The layout is the site's editorial grid at card scale: a mono kicker and a rule at the
-      top, the mark + wordmark + tagline as one centred block, and a footer split across the
-      full width. Fonts, colours and tracking are lifted from apps/site/src/styles/global.css
-      so the card and the site read as one design.
+      The fixed canvas deliberately mirrors the shipped card: brand at upper left,
+      a two-line editorial promise, the real app capture at upper right, and an
+      adaptive N→1 range diagram across the lower third.
     -->
     <style>
       @font-face {
@@ -19,198 +18,286 @@
         font-weight: 100 900;
         src: url('../../apps/site/public/fonts/archivo-latin.woff2') format('woff2');
       }
-      @font-face {
-        font-family: 'JetBrains Mono';
-        font-style: normal;
-        font-weight: 100 800;
-        src: url('../../apps/site/public/fonts/jetbrains-mono-latin.woff2') format('woff2');
-      }
 
       :root {
-        --accent: #2a7b9b;
-        --bg: #f2f5f6;
-        --ink: #14191c;
-        --ink-2: #4c565c;
-        --ink-3: #6c767c;
-        --line: #dde4e6;
+        --accent: #2A7B9B;
+        --paper: #fbf9f5;
+        --ink: #16191a;
       }
 
-      * {
-        margin: 0;
-        padding: 0;
+      *,
+      *::before,
+      *::after {
         box-sizing: border-box;
+        margin: 0;
       }
 
+      html,
       body {
         width: 1200px;
         height: 630px;
-        background: var(--bg);
-        font-family: 'Archivo', sans-serif;
-        -webkit-font-smoothing: antialiased;
         overflow: hidden;
       }
 
-      /* Ambient wash — the same top-left aurora the site hero sits in. */
+      body {
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 8% 8%, rgba(255, 255, 255, 0.88), transparent 33%),
+          radial-gradient(circle at 89% 83%, rgba(218, 231, 233, 0.2), transparent 30%),
+          var(--paper);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: geometricPrecision;
+      }
+
       .card {
         position: relative;
         width: 100%;
         height: 100%;
-        padding: 56px 64px;
-        display: flex;
-        flex-direction: column;
         isolation: isolate;
       }
 
-      .card::before,
-      .card::after {
-        content: '';
+      /* A restrained paper grain keeps the warm field from reading as flat fill. */
+      .grain {
         position: absolute;
-        border-radius: 50%;
-        filter: blur(70px);
         z-index: -1;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.055;
+        pointer-events: none;
       }
 
-      .card::before {
-        top: -260px;
-        left: -230px;
-        width: 620px;
-        height: 480px;
-        background: rgba(95, 205, 214, 0.22);
-      }
-
-      .card::after {
-        right: -260px;
-        bottom: -280px;
-        width: 640px;
-        height: 460px;
-        background: rgba(42, 123, 155, 0.1);
-      }
-
-      /* Top row — kicker left, suite mark right, on one hairline. */
-      .top {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        padding-bottom: 22px;
-        border-bottom: 1px solid var(--line);
-      }
-
-      .kicker {
+      .brand {
+        position: absolute;
+        top: 64px;
+        left: 44px;
         display: flex;
         align-items: center;
-        gap: 14px;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 15px;
-        font-weight: 500;
-        letter-spacing: 0.13em;
-        text-transform: uppercase;
-        color: var(--accent);
+        height: 128px;
       }
 
-      .kicker::before {
-        content: '';
-        width: 30px;
-        height: 2px;
-        background: var(--accent);
-        opacity: 0.55;
-      }
-
-      .suite {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 13px;
-        font-weight: 500;
-        letter-spacing: 0.13em;
-        text-transform: uppercase;
-        color: var(--ink-3);
-      }
-
-      /* Middle — mark + wordmark + tagline, the tagline running the full text column. */
-      .main {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        gap: 44px;
-      }
-
-      .mark {
-        width: 168px;
-        height: 168px;
+      .brand-mark {
+        width: 130px;
+        height: 130px;
         flex: none;
-        filter: drop-shadow(0 22px 40px rgba(12, 17, 20, 0.22));
-      }
-
-      .copy {
-        flex: 1;
-        min-width: 0;
       }
 
       .wordmark {
-        font-size: 106px;
-        font-weight: 800;
-        letter-spacing: -0.035em;
+        margin-left: 13px;
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 57px;
+        font-weight: 700;
+        letter-spacing: -0.045em;
         line-height: 1;
-        color: var(--ink);
-      }
-
-      /* One line, sized to run the full text column — the card's whole width is the
-         measure. Any longer and it wraps to a short second line, stranding the right
-         third of the card empty. */
-      .tagline {
-        margin-top: 16px;
-        font-size: 34px;
-        font-weight: 500;
-        letter-spacing: -0.017em;
-        line-height: 1.3;
         white-space: nowrap;
-        color: var(--ink-2);
+        transform: translateY(-3px) scaleX(0.97);
+        transform-origin: left center;
       }
 
-      .tagline em {
-        font-style: normal;
-        font-weight: 600;
+      .wordmark .drop {
         color: var(--accent);
       }
 
-      /* Footer — split left/right so the rule carries the full width. */
-      .bottom {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        padding-top: 22px;
-        border-top: 1px solid var(--line);
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 15px;
-        letter-spacing: 0.04em;
-        color: var(--ink-3);
+      .headline {
+        position: absolute;
+        top: 203px;
+        left: 53px;
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 65px;
+        font-weight: 700;
+        letter-spacing: -0.035em;
+        line-height: 1.11;
       }
 
-      .bottom .domain {
-        font-weight: 500;
-        color: var(--ink-2);
+      .headline span {
+        display: block;
+        width: max-content;
+        white-space: nowrap;
+        transform-origin: left center;
+      }
+
+      .headline span:first-child {
+        transform: scaleX(1.075);
+      }
+
+      .headline span:last-child {
+        transform: scaleX(0.86);
+      }
+
+      .descriptor,
+      .domain,
+      .merge-label {
+        font-family: 'Archivo', -apple-system, BlinkMacSystemFont, sans-serif;
+        color: var(--accent);
+      }
+
+      .descriptor {
+        position: absolute;
+        top: 361px;
+        left: 57px;
+        font-size: 22px;
+        font-weight: 460;
+        letter-spacing: -0.016em;
+      }
+
+      .product-shot {
+        position: absolute;
+        z-index: -1;
+        top: 40px;
+        right: 22px;
+        width: 624px;
+        filter: drop-shadow(0 17px 18px rgba(23, 34, 38, 0.16));
+      }
+
+      .product-shot img {
+        display: block;
+        width: 100%;
+        height: 422px;
+      }
+
+      .transfer {
+        position: absolute;
+        top: 444px;
+        left: 51px;
+        width: 914px;
+        height: 137px;
+      }
+
+      .transfer-rail {
+        fill: none;
+        stroke: var(--accent);
+        stroke-width: 1.15;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .transfer-rail--soft {
+        stroke-dasharray: 1.5 2.5;
+        opacity: 0.78;
+      }
+
+      .source-dot {
+        fill: var(--paper);
+        stroke: var(--accent);
+        stroke-width: 1.2;
+      }
+
+      .file-outline {
+        fill: rgba(255, 255, 255, 0.28);
+        stroke: var(--accent);
+        stroke-width: 1.8;
+        stroke-linejoin: round;
+      }
+
+      .merge-label {
+        position: absolute;
+        top: 83px;
+        left: 836px;
+        font-size: 23px;
+        font-weight: 470;
+        letter-spacing: 0.025em;
+        white-space: nowrap;
+      }
+
+      .domain {
+        position: absolute;
+        left: 51px;
+        bottom: 20px;
+        font-size: 16px;
+        font-weight: 520;
+        letter-spacing: -0.012em;
       }
     </style>
   </head>
   <body>
-    <div class="card">
-      <div class="top">
-        <p class="kicker">macOS 26 or later · Swift 6 · No Electron</p>
-        <p class="suite">Part of Cloakyard</p>
+    <main class="card" aria-label="CloakDrop social preview">
+      <svg class="grain" aria-hidden="true">
+        <filter id="paper-grain" x="0" y="0" width="100%" height="100%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.82"
+            numOctaves="3"
+            seed="24"
+            stitchTiles="stitch"
+          />
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 0.32  0 0 0 0 0.35  0 0 0 0 0.36  0 0 0 .16 0"
+          />
+        </filter>
+        <rect width="1200" height="630" filter="url(#paper-grain)" />
+      </svg>
+
+      <header class="brand">
+        <img class="brand-mark" src="../logo/cloakdrop.svg" alt="" />
+        <p class="wordmark"><span>Cloak</span><span class="drop">Drop</span></p>
+      </header>
+
+      <h1 class="headline">
+        <span>Built to resume.</span>
+        <span>Finished with proof.</span>
+      </h1>
+      <p class="descriptor">Native macOS · Open source</p>
+
+      <figure class="product-shot" aria-label="CloakDrop app window">
+        <img src="../screenshots/hero.png" alt="" />
+      </figure>
+
+      <div class="transfer" aria-hidden="true">
+        <svg viewBox="0 0 914 137" width="914" height="137">
+          <defs>
+            <marker
+              id="arrowhead"
+              viewBox="0 0 8 8"
+              refX="7"
+              refY="4"
+              markerWidth="8"
+              markerHeight="8"
+              orient="auto"
+            >
+              <path d="M 0 0 L 8 4 L 0 8 Z" fill="#2A7B9B" />
+            </marker>
+          </defs>
+
+          <g>
+            <path class="transfer-rail" d="M 5 10 H 235 M 429 10 C 465 10 449 89 692 89" />
+            <path class="transfer-rail" d="M 5 29 H 267 M 429 29 C 465 29 469 89 692 89" />
+            <path class="transfer-rail" d="M 5 48 H 218 M 429 48 C 465 48 489 89 692 89" />
+            <path class="transfer-rail" d="M 5 67 H 283 M 429 67 C 465 67 510 89 692 89" />
+            <path class="transfer-rail" d="M 5 86 H 246 M 429 86 C 465 86 510 89 692 89" />
+            <path class="transfer-rail" d="M 5 105 H 290 M 429 105 C 465 105 489 89 692 89" />
+            <path class="transfer-rail" d="M 5 124 H 232 M 429 124 C 465 124 469 89 692 89" />
+
+            <path class="transfer-rail transfer-rail--soft" d="M 235 10 H 429" />
+            <path class="transfer-rail transfer-rail--soft" d="M 267 29 H 429" />
+            <path class="transfer-rail transfer-rail--soft" d="M 218 48 H 429" />
+            <path class="transfer-rail transfer-rail--soft" d="M 283 67 H 429" />
+            <path class="transfer-rail transfer-rail--soft" d="M 246 86 H 429" />
+            <path class="transfer-rail transfer-rail--soft" d="M 290 105 H 429" />
+            <path class="transfer-rail transfer-rail--soft" d="M 232 124 H 429" />
+
+            <circle class="source-dot" cx="5" cy="10" r="2.6" />
+            <circle class="source-dot" cx="5" cy="29" r="2.6" />
+            <circle class="source-dot" cx="5" cy="48" r="2.6" />
+            <circle class="source-dot" cx="5" cy="67" r="2.6" />
+            <circle class="source-dot" cx="5" cy="86" r="2.6" />
+            <circle class="source-dot" cx="5" cy="105" r="2.6" />
+            <circle class="source-dot" cx="5" cy="124" r="2.6" />
+
+            <path
+              class="transfer-rail"
+              d="M 620 89 H 692"
+              marker-end="url(#arrowhead)"
+            />
+
+            <path class="file-outline" d="M 714 56 H 758 L 779 77 V 131 H 714 Z" />
+            <path class="file-outline" d="M 758 56 V 77 H 779" />
+          </g>
+        </svg>
+        <p class="merge-label">N → 1</p>
       </div>
 
-      <div class="main">
-        <img class="mark" src="../logo/cloakdrop.svg" alt="" />
-        <div class="copy">
-          <p class="wordmark">CloakDrop</p>
-          <p class="tagline">
-            Built to resume. <em>Finished with proof.</em>
-          </p>
-        </div>
-      </div>
-
-      <div class="bottom">
-        <span class="domain">drop.cloakyard.com</span>
-        <span>Free &amp; open source · MIT · No telemetry</span>
-      </div>
-    </div>
+      <p class="domain">drop.cloakyard.com</p>
+    </main>
   </body>
 </html>

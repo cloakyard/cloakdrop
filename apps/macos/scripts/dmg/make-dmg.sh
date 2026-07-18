@@ -24,6 +24,19 @@ fi
 ICON="$REPO/App/Resources/Assets.xcassets/AboutAppIcon.imageset/about_icon_512.png"
 ICNS="$APP/Contents/Resources/AppIcon.icns"
 
+if [[ ! -f "$ICON" ]]; then
+  echo "missing DMG masthead icon: $ICON" >&2
+  exit 1
+fi
+if [[ ! -f "$ICNS" ]]; then
+  echo "missing app volume icon: $ICNS" >&2
+  exit 1
+fi
+if ! command -v SetFile >/dev/null 2>&1; then
+  echo "SetFile is required (install the Xcode command-line tools)" >&2
+  exit 1
+fi
+
 WORK="$(mktemp -d)"
 STAGE="$WORK/stage"
 mkdir -p "$STAGE/.background"
@@ -44,7 +57,8 @@ cp "$STAGE/.background/background.png" "$HERE/background.png"
 echo "▸ Staging app, guide, Applications alias…"
 ditto "$APP" "$STAGE/CloakDrop.app"
 cp "$HERE/ReadMe.txt" "$STAGE/Install Guide.txt"
-SetFile -a E "$STAGE/Install Guide.txt" || true
+swift "$HERE/guide-icon.swift" "$STAGE/Install Guide.txt"
+SetFile -a E "$STAGE/Install Guide.txt"
 ln -s /Applications "$STAGE/Applications"
 # The volume icon (.VolumeIcon.icns) is written AFTER the Finder pass, not staged here — Finder's
 # window management deletes hidden root files it doesn't manage, so a staged copy never survives.
@@ -62,7 +76,7 @@ sleep 1
 
 # Mark support resources invisible without assigning them icon coordinates. Finder includes even
 # invisible off-canvas coordinates in its scrollable extent, so hidden files must remain unplaced.
-SetFile -a V "$MNT/.background" || true
+SetFile -a V "$MNT/.background"
 if [[ -d "$MNT/.fseventsd" ]]; then
   SetFile -a V "$MNT/.fseventsd" || true
 fi
@@ -85,7 +99,7 @@ tell application "Finder"
     set background picture of theView to file ".background:background.png"
     set position of item "CloakDrop.app" of container window to {204, 282}
     set position of item "Applications" of container window to {556, 282}
-    set position of item "Install Guide.txt" of container window to {380, 483}
+    set position of item "Install Guide.txt" of container window to {380, 464}
     update without registering applications
     delay 1
     close
@@ -96,12 +110,12 @@ APPLESCRIPT
 # Write and hide the volume icon after Finder's layout pass. Adding it earlier can make Finder remove
 # the file or clear the custom-volume-icon bit while it updates the window.
 cp "$ICNS" "$MNT/.VolumeIcon.icns"
-SetFile -a V "$MNT/.background" || true
+SetFile -a V "$MNT/.background"
 if [[ -d "$MNT/.fseventsd" ]]; then
   SetFile -a V "$MNT/.fseventsd" || true
 fi
-SetFile -a V "$MNT/.VolumeIcon.icns" || true
-SetFile -a C "$MNT" || true
+SetFile -a V "$MNT/.VolumeIcon.icns"
+SetFile -a C "$MNT"
 sync
 echo "▸ Detaching…"
 hdiutil detach "$DEV" -quiet
