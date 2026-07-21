@@ -16,8 +16,10 @@ assets/
 │   ├── og.html                # source for the card — the thing you edit
 │   └── og.png                 # 1200×630 Open Graph / Twitter share card (rendered)
 └── screenshots/
-    ├── hero.webp              # app hero screenshot, 2240w, transparent (primary)
-    └── hero.png               # PNG fallback for the same
+    ├── hero.webp              # tightly cropped app hero for the website (primary)
+    ├── hero.png               # PNG fallback for the same
+    ├── hero-readme.webp       # README rendition with transparent edge safety
+    └── hero-readme.png        # PNG fallback for the README rendition
 ```
 
 ## How it's consumed
@@ -45,6 +47,10 @@ node scripts/sync-assets.mjs
 The generated copies (e.g. `apps/site/public/logo.svg`, `…/hero.webp`) are **git-ignored** —
 this folder is the only committed home for them. That's the whole point: no duplicated
 binaries in version control.
+
+The root README references the `hero-readme` pair directly. Those renditions add a small
+transparent inset around the tightly cropped app capture so GitHub's image renderer cannot
+clip the window's antialiased rounded corners.
 
 ## Updating an asset
 

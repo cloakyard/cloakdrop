@@ -14,8 +14,8 @@ Serious multi-segment download power with the look and feel of a first-party app
 
 <p align="center">
   <picture>
-    <source srcset="assets/screenshots/hero.webp" type="image/webp">
-    <img src="assets/screenshots/hero.png" alt="CloakDrop on macOS — a multi-segment download in progress, with the sidebar library, download list, and a live segment inspector showing per-connection progress." width="900">
+    <source srcset="assets/screenshots/hero-readme.webp" type="image/webp">
+    <img src="assets/screenshots/hero-readme.png" alt="CloakDrop on macOS — a multi-segment download in progress, with the sidebar library, download list, and a live segment inspector showing per-connection progress." width="900">
   </picture>
 </p>
 
