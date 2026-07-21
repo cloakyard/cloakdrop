@@ -66,11 +66,10 @@
   --t-h2: clamp(2.45rem, 1.35rem + 4.5vw, 5.2rem);
   --t-h1: clamp(3.25rem, 1.2rem + 8.1vw, 7.7rem);
 
-  /* Content column — mirrors the CloakPDF app shell (max-w-6xl → xl:88rem,
-     px-4 sm:px-6) so the sibling Cloakyard sites share one page width.
-     Widened responsively below. */
-  --page-max: 76rem;
-  --gutter: 1.15rem;
+  /* Content column — matches CloakPDF's site-frame exactly: an 88rem cap with
+     1rem page margins on phones and 1.5rem from the sm breakpoint upward. */
+  --page-max: 88rem;
+  --gutter: 1rem;
   --radius: 12px;
   --radius-lg: 14px;
   --radius-xl: 22px;
@@ -107,18 +106,10 @@
   }
 }
 
-/* Responsive page width — mirrors CloakPDF's `max-w-6xl xl:max-w-[88rem]` with
-   `px-4 sm:px-6` (Tailwind sm = 640px, xl = 1280px) so both Cloakyard sites
-   line up edge-to-edge. */
+/* CloakPDF switches its site-frame margin from 1rem to 1.5rem at 640px. */
 @media (min-width: 640px) {
   :root {
-    --gutter: 2rem;
-  }
-}
-@media (min-width: 1280px) {
-  :root {
-    --page-max: 88rem;
-    --gutter: 2.5rem;
+    --gutter: 1.5rem;
   }
 }
 
@@ -216,10 +207,8 @@ svg {
 /* Layout primitives ------------------------------------------------------- */
 
 .container {
-  width: 100%;
-  max-width: var(--page-max);
+  width: min(calc(100% - (2 * var(--gutter))), var(--page-max));
   margin-inline: auto;
-  padding-inline: var(--gutter);
 }
 
 /* Vertical rhythm for the numbered content sections. */
