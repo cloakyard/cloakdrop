@@ -12,6 +12,13 @@ Serious multi-segment download power with the look and feel of a first-party app
   <img src="https://img.shields.io/badge/SwiftUI-Liquid%20Glass-8A2BE2" alt="SwiftUI · Liquid Glass">
 </p>
 
+<p align="center">
+  <picture>
+    <source srcset="assets/screenshots/hero.webp" type="image/webp">
+    <img src="assets/screenshots/hero.png" alt="CloakDrop on macOS — a multi-segment download in progress, with the sidebar library, download list, and a live segment inspector showing per-connection progress." width="900">
+  </picture>
+</p>
+
 > Part of the **[Cloakyard](https://github.com/cloakyard)** privacy-first suite, alongside **CloakPDF**, **CloakIMG**, and **CloakResume**.
 
 ---
