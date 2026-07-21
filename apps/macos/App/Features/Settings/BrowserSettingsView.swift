@@ -60,18 +60,26 @@ struct BrowserSettingsView: View {
 
             Section {
                 LabeledContent {
-                    Button(role: .destructive) {
-                        confirmClear = true
-                    } label: {
-                        if isClearing {
-                            ProgressView().controlSize(.small)
-                        } else if didClear {
-                            Label("Cleared", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
-                        } else {
-                            Text("Clear Browsing Data…")
+                    // The confirmation lives next to the button, not inside it (green content in a
+                    // destructive button reads as a contradiction), and fades after a few seconds.
+                    HStack(spacing: 10) {
+                        if didClear {
+                            Label("Cleared", systemImage: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                                .transition(.opacity)
                         }
+                        Button(role: .destructive) {
+                            confirmClear = true
+                        } label: {
+                            if isClearing {
+                                ProgressView().controlSize(.small)
+                            } else {
+                                Text("Clear Browsing Data…")
+                            }
+                        }
+                        .disabled(isClearing)
                     }
-                    .disabled(isClearing)
+                    .animation(.default, value: didClear)
                 } label: {
                     Label("Cookies & Site Data", systemImage: "trash")
                 }
@@ -152,6 +160,9 @@ struct BrowserSettingsView: View {
             await BrowserStore.shared.clearBrowsingData()
             isClearing = false
             didClear = true
+            // Let the confirmation land, then fade it — it's a moment, not a permanent state.
+            try? await Task.sleep(for: .seconds(4))
+            didClear = false
         }
     }
 }

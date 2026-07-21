@@ -8,11 +8,18 @@ import SwiftUI
 /// inspector's "No Selection" titles aligned on the same line, with any message/button flowing below
 /// without shifting the title.
 struct EmptyStateView<Extra: View>: View {
-    let title: LocalizedStringKey
+    let title: Text
     let systemImage: String
     @ViewBuilder var extra: () -> Extra
 
     init(_ title: LocalizedStringKey, systemImage: String, @ViewBuilder extra: @escaping () -> Extra) {
+        self.title = Text(title)
+        self.systemImage = systemImage
+        self.extra = extra
+    }
+
+    /// For titles that arrive as runtime strings (an error message, a server-provided name).
+    init(_ title: Text, systemImage: String, @ViewBuilder extra: @escaping () -> Extra) {
         self.title = title
         self.systemImage = systemImage
         self.extra = extra
@@ -30,7 +37,7 @@ struct EmptyStateView<Extra: View>: View {
                         .font(.system(size: 44, weight: .regular))
                         .symbolRenderingMode(.hierarchical)
                         .foregroundStyle(.secondary)
-                    Text(title)
+                    title
                         .font(.title2.weight(.semibold))
                         .foregroundStyle(.secondary)
                 }

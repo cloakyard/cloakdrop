@@ -6,10 +6,22 @@ import DownloadModels
 /// chrome, content stays legible.
 struct DownloadRowView: View {
     @Environment(AppModel.self) private var model
+    /// SwiftUI raises this for emphasized selection on some list styles — honor it when present.
+    @Environment(\.backgroundProminence) private var backgroundProminence
+    /// The list container's focus-derived emphasis signal (see `selectionEmphasis`) — the reliable
+    /// one for `.inset` lists on macOS, where `backgroundProminence` stays `.standard`.
+    @Environment(\.selectionEmphasis) private var selectionEmphasis
     let download: Download
 
     private var fraction: Double? { model.liveFraction(download) }
     private var isSelected: Bool { model.selectedDownloadIDs.contains(download.id) }
+    /// White-content styling applies only on the accent-colored *emphasized* highlight. Selection
+    /// alone isn't enough: an unfocused list draws the gray unemphasized highlight, where forced
+    /// white washes out — and without this check, tinted content on the accent highlight would
+    /// paint accent-on-accent (an active download's bar and pause button would disappear).
+    private var onAccent: Bool {
+        isSelected && (backgroundProminence == .increased || selectionEmphasis)
+    }
 
     /// A compact quality/format badge for a media grab — "1080p", "2160p", "HLS", … `nil` for file
     /// downloads. Labels by the streaming convention (`qualityHeight`), so a portrait/Shorts grab
@@ -61,10 +73,10 @@ struct DownloadRowView: View {
                     if let badge = mediaBadge {
                         Text(badge)
                             .font(.caption2.weight(.semibold))
-                            .foregroundStyle(isSelected ? Color.white : Color.secondary)
+                            .foregroundStyle(onAccent ? Color.white : Color.secondary)
                             .padding(.horizontal, 5)
                             .padding(.vertical, 1)
-                            .background(isSelected ? AnyShapeStyle(Color.white.opacity(0.25)) : AnyShapeStyle(.quaternary), in: Capsule())
+                            .background(onAccent ? AnyShapeStyle(Color.white.opacity(0.25)) : AnyShapeStyle(.quaternary), in: Capsule())
                     }
                 }
 
@@ -105,8 +117,8 @@ struct DownloadRowView: View {
                 // a leading identity icon sized for this three-line row, per Apple's list metrics.
                 .font(.system(size: 30, weight: .regular))
                 .symbolRenderingMode(.hierarchical)
-                // Monochrome and legible: primary normally, white on the selection highlight.
-                .foregroundStyle(isSelected ? Color.white : Color.primary)
+                // Monochrome and legible: primary normally, white on the emphasized highlight.
+                .foregroundStyle(onAccent ? Color.white : Color.primary)
         }
     }
 
@@ -125,46 +137,34 @@ struct DownloadRowView: View {
                 .controlSize(.small)
                 .frame(height: 4)
         } else {
-            thinBar(fraction: fraction ?? 0, tint: download.status.tint)
+            // On the emphasized highlight the bar goes white so it stays visible on the accent.
+            CapsuleProgressBar(
+                fraction: fraction ?? 0,
+                tint: onAccent ? .white : download.status.tint,
+                track: onAccent ? AnyShapeStyle(Color.white.opacity(0.3)) : AnyShapeStyle(.quaternary),
+                isActive: download.status == .downloading
+            )
         }
-    }
-
-    /// A thin, capsule progress bar — consistent height and look across states, unlike the
-    /// default linear `ProgressView` whose intrinsic height varies. On a selected row it goes
-    /// white so it stays visible on the accent highlight.
-    private func thinBar(fraction: Double, tint: Color) -> some View {
-        let trackStyle: AnyShapeStyle = isSelected
-            ? AnyShapeStyle(Color.white.opacity(0.3))
-            : AnyShapeStyle(.quaternary)
-        let fillColor: Color = isSelected ? .white : tint
-        return GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                Capsule().fill(trackStyle)
-                Capsule().fill(fillColor)
-                    .frame(width: max(0, geo.size.width * min(1, max(0, fraction))))
-            }
-        }
-        .frame(height: 4)
     }
 
     @ViewBuilder
     private var quickAction: some View {
-        // On the selection highlight, force white so the control stays visible.
+        // On the emphasized selection highlight, force white so the control stays visible.
         switch download.status {
         case .downloading, .queued:
-            CircleActionButton(symbol: "pause.fill", tint: isSelected ? .white : .accentColor, help: "Pause") {
+            CircleActionButton(symbol: "pause.fill", tint: onAccent ? .white : .accentColor, help: "Pause") {
                 model.pause(download.id)
             }
         case .paused:
-            CircleActionButton(symbol: "play.fill", tint: isSelected ? .white : .accentColor, help: "Resume") {
+            CircleActionButton(symbol: "play.fill", tint: onAccent ? .white : .accentColor, help: "Resume") {
                 model.resume(download.id)
             }
         case .failed:
-            CircleActionButton(symbol: "arrow.clockwise", tint: isSelected ? .white : .orange, help: "Retry") {
+            CircleActionButton(symbol: "arrow.clockwise", tint: onAccent ? .white : .orange, help: "Retry") {
                 model.resume(download.id)
             }
         case .completed:
-            CircleActionButton(symbol: "magnifyingglass", tint: isSelected ? .white : .green, help: "Reveal in Finder") {
+            CircleActionButton(symbol: "folder", tint: onAccent ? .white : .green, help: "Reveal in Finder") {
                 model.revealInFinder(download)
             }
         default:
@@ -173,8 +173,9 @@ struct DownloadRowView: View {
     }
 
     /// The status line plus the checksum result. "Verified" reads plainly; a "Checksum mismatch"
-    /// is tinted red so a failed integrity check stands out in the list (the download still
-    /// completed, so the rest of the line keeps its normal secondary color).
+    /// is tinted red so a failed integrity check stands out in the list. On the emphasized accent
+    /// highlight the red would sit at poor contrast, so the text goes white there — the row's red
+    /// trust triangle still carries the warning.
     private var statusSubtitle: Text {
         let base = Text(detailLine)
         guard download.status == .completed else { return base }
@@ -182,7 +183,8 @@ struct DownloadRowView: View {
             return base + Text(verbatim: " · ") + Text("Verified")
         }
         if download.checksumVerified == false {
-            return base + Text(verbatim: " · ") + Text("Checksum mismatch").foregroundStyle(.red)
+            let mismatch = Text("Checksum mismatch")
+            return base + Text(verbatim: " · ") + (onAccent ? mismatch.foregroundStyle(.white) : mismatch.foregroundStyle(.red))
         }
         return base
     }
@@ -231,7 +233,7 @@ private struct MediaThumbnailImage: View {
     @State private var image: NSImage?
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 6, style: .continuous)
+        RoundedRectangle(cornerRadius: Design.inlineRadius, style: .continuous)
             .fill(.quaternary)
             .overlay {
                 if let image {
@@ -243,7 +245,7 @@ private struct MediaThumbnailImage: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: Design.inlineRadius, style: .continuous))
             .task(id: url) {
                 // Read off the main actor — a synchronous disk read per appearing row stacks into
                 // visible hitches when fast-scrolling a media-heavy list.

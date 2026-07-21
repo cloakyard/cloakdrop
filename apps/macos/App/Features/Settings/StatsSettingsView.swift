@@ -22,7 +22,10 @@ struct StatsSettingsView: View {
                             .foregroundStyle(.tint)
                             .symbolRenderingMode(.hierarchical)
                     }
-                    Text("THIS MONTH’S RANK")
+                    // Uppercased in layout, not in the source string — translators shouldn't have
+                    // to reproduce the styling (and some scripts have no uppercase at all).
+                    Text("This Month’s Rank")
+                        .textCase(.uppercase)
                         .font(.caption2).fontWeight(.semibold)
                         .foregroundStyle(.secondary)
                     Text(LocalizedStringKey(badge.title)).font(.title2).fontWeight(.bold)

@@ -29,34 +29,24 @@ struct RootView: View {
         .sheet(item: $model.pendingMediaSelection) { selection in
             MediaPickerSheet(selection: selection)
         }
-        // Brief, non-blocking indicator while a manifest/page URL is being fetched and parsed.
+        // One bottom toast slot: the "reading video" indicator, or the extraction error (which is
+        // already localized by `friendlyExtractionMessage`). A single slot means the two can never
+        // stack on top of each other; the error takes precedence when both would show.
         .overlay(alignment: .bottom) {
-            if model.isResolvingMedia {
-                Label("Reading video…", systemImage: "antenna.radiowaves.left.and.right")
-                    .font(.callout)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
-                    .background(.regularMaterial, in: Capsule())
-                    .shadow(radius: 8, y: 2)
-                    .padding(.bottom, 24)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            if let error = model.mediaExtractionError {
+                toast {
+                    Label {
+                        Text(error)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                    }
+                }
+            } else if model.isResolvingMedia {
+                toast { Label("Reading video…", systemImage: "sparkles.tv") }
             }
         }
         .animation(.default, value: model.isResolvingMedia)
-        // Auto-dismissing toast when a media grab couldn't be prepared (protected / unavailable /
-        // needs sign-in). The message is already localized by `friendlyExtractionMessage`.
-        .overlay(alignment: .bottom) {
-            if let error = model.mediaExtractionError {
-                Label(error, systemImage: "exclamationmark.triangle.fill")
-                    .font(.callout)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
-                    .background(.regularMaterial, in: Capsule())
-                    .shadow(radius: 8, y: 2)
-                    .padding(.bottom, 24)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-        }
         .animation(.default, value: model.mediaExtractionError)
         // A download for the same URL already exists — confirm before adding a duplicate. Fires for
         // every intake path (sheet, batch, drop, clipboard, browser/`cloakdrop://` capture). The
@@ -81,5 +71,19 @@ struct RootView: View {
                 Text("“\(duplicate.existingFileName)” — same name and size — is already in your downloads. Download it again?")
             }
         }
+    }
+
+    /// The floating status capsule above the list. A hairline separator stroke keeps its edge
+    /// defined in dark mode, where the shadow alone all but disappears.
+    private func toast(@ViewBuilder content: () -> some View) -> some View {
+        content()
+            .font(.callout)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(.regularMaterial, in: Capsule())
+            .overlay(Capsule().strokeBorder(.separator.opacity(0.6)))
+            .shadow(radius: 8, y: 2)
+            .padding(.bottom, 24)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 }

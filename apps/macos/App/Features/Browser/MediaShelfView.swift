@@ -48,7 +48,7 @@ struct MediaShelfView: View {
 
     private var emptyState: some View {
         VStack(spacing: 8) {
-            Image(systemName: "antenna.radiowaves.left.and.right")
+            Image(systemName: "play.slash")
                 .font(.title2)
                 .foregroundStyle(.tertiary)
             Text("No media detected on this page yet")
@@ -116,14 +116,23 @@ private struct ShelfRow: View {
                 Image(systemName: handedOff ? "checkmark.circle.fill" : "arrow.down.circle.fill")
                     .font(.title3)
                     .foregroundStyle(handedOff ? Color.green : Color.accentColor)
+                    // A comfortable click target — the bare glyph alone is ~18 pt.
+                    .frame(width: 26, height: 26)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .help(item.type == .stream ? String(localized: "Grab this stream — you’ll pick the quality")
-                                       : String(localized: "Download with CloakDrop"))
+            .help(grabHelp)
+            // `.help` is only a tooltip — VoiceOver needs an explicit name.
+            .accessibilityLabel(Text(grabHelp))
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
-        .background(.quaternary.opacity(0.25), in: RoundedRectangle(cornerRadius: 8))
+        .background(Design.cardFill, in: RoundedRectangle(cornerRadius: Design.inlineRadius))
+    }
+
+    private var grabHelp: String {
+        item.type == .stream ? String(localized: "Grab this stream — you’ll pick the quality")
+                             : String(localized: "Download with CloakDrop")
     }
 
     private var symbol: String {

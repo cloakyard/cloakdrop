@@ -59,7 +59,7 @@ struct PrivacySettingsView: View {
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 12))
+        .background(Design.cardFill, in: RoundedRectangle(cornerRadius: Design.cardRadius))
     }
 
     private func guarantee(_ text: LocalizedStringKey) -> some View {

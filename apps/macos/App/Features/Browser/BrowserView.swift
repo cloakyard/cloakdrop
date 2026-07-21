@@ -247,11 +247,14 @@ struct BrowserView: View {
                 Image(systemName: session.isLoading ? "xmark" : "arrow.clockwise")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                    .padding(.trailing, 9)
+                    // A comfortable click target (the bare glyph alone is ~14 pt).
+                    .frame(width: 24, height: 24)
                     .contentShape(Rectangle())
+                    .padding(.trailing, 3)
             }
             .buttonStyle(.plain)
             .help(session.isLoading ? String(localized: "Stop loading") : String(localized: "Reload this page"))
+            .accessibilityLabel(session.isLoading ? Text("Stop loading") : Text("Reload this page"))
         }
     }
 
@@ -282,7 +285,9 @@ struct BrowserView: View {
             if shelfCount > 0 {
                 Text(shelfCount, format: .number)
                     .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(.white)
+                    // The system's "text on accent" color — stays legible even with a light user
+                    // accent (yellow, graphite), where forced white would wash out.
+                    .foregroundStyle(Color(nsColor: .alternateSelectedControlTextColor))
                     .padding(.horizontal, 3)
                     .padding(.vertical, 0.5)
                     .background(.tint, in: Capsule())
@@ -295,31 +300,20 @@ struct BrowserView: View {
 
     // MARK: - Overlays
 
+    // Both full-pane states go through the shared `EmptyStateView`, so the browser speaks with the
+    // same empty-state voice (and title line height) as the main window's panes.
     private var startPage: some View {
-        VStack(spacing: 14) {
-            Image(systemName: "globe")
-                .font(.system(size: 44, weight: .light))
-                .foregroundStyle(.tertiary)
-            Text("Search or enter a website address")
-                .font(.title3)
-                .foregroundStyle(.secondary)
+        EmptyStateView("Search or enter a website address", systemImage: "globe") {
             Text("Media and file downloads you start here are captured by CloakDrop automatically.")
                 .font(.callout)
                 .foregroundStyle(.tertiary)
-                .multilineTextAlignment(.center)
                 .frame(maxWidth: 380)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.background)
     }
 
     private func loadErrorOverlay(_ error: BrowserLoadError) -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: "wifi.exclamationmark")
-                .font(.system(size: 40, weight: .light))
-                .foregroundStyle(.secondary)
-            Text(error.message)
-                .font(.title3.weight(.medium))
+        EmptyStateView(Text(error.message), systemImage: "wifi.exclamationmark") {
             if let host = error.failingURL?.host() {
                 Text(host)
                     .font(.callout.monospaced())
@@ -327,8 +321,8 @@ struct BrowserView: View {
             }
             Button("Try Again") { session.retryAfterError() }
                 .keyboardShortcut(.defaultAction)
+                .padding(.top, 4)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.background)
     }
 
@@ -382,37 +376,33 @@ private struct BrowserAuthSheet: View {
     @State private var remember = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Label(request.isProxy ? String(localized: "The proxy requires a password.")
-                                  : String(localized: "This site requires a password."),
-                  systemImage: "lock.shield")
-                .font(.headline)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(request.host)
-                    .font(.callout.monospaced())
-                if let realm = request.realm, !realm.isEmpty {
-                    Text(realm)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+        VStack(spacing: 0) {
+            // The same header band as every other sheet, with the host (and realm) as context.
+            SheetHeader(
+                title: request.isProxy ? "The proxy requires a password." : "This site requires a password.",
+                systemImage: "lock.shield",
+                subtitle: realmSubtitle
+            )
+            VStack(alignment: .leading, spacing: 14) {
+                Form {
+                    TextField("User Name", text: $username)
+                    SecureField("Password", text: $password)
+                    Toggle("Remember in my Keychain", isOn: $remember)
+                }
+                HStack {
+                    Spacer()
+                    Button("Cancel", role: .cancel) { request.cancel() }
+                        .keyboardShortcut(.cancelAction)
+                    Button("Sign In") {
+                        if remember { sink.rememberSiteCredentials(host: request.host, username: username, password: password) }
+                        request.finish(username: username, password: password)
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(username.isEmpty)
                 }
             }
-            Form {
-                TextField("User Name", text: $username)
-                SecureField("Password", text: $password)
-                Toggle("Remember in my Keychain", isOn: $remember)
-            }
-            HStack {
-                Spacer()
-                Button("Cancel", role: .cancel) { request.cancel() }
-                Button("Sign In") {
-                    if remember { sink.rememberSiteCredentials(host: request.host, username: username, password: password) }
-                    request.finish(username: username, password: password)
-                }
-                .keyboardShortcut(.defaultAction)
-                .disabled(username.isEmpty)
-            }
+            .padding(20)
         }
-        .padding(20)
         .frame(width: 380)
         .onAppear {
             if let saved = sink.siteCredentials(forHost: request.host) {
@@ -420,5 +410,13 @@ private struct BrowserAuthSheet: View {
                 password = saved.password
             }
         }
+    }
+
+    /// "host" or "host — realm", the context line under the header title.
+    private var realmSubtitle: Text {
+        if let realm = request.realm, !realm.isEmpty {
+            return Text(verbatim: "\(request.host) — \(realm)")
+        }
+        return Text(verbatim: request.host)
     }
 }

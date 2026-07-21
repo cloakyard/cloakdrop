@@ -236,7 +236,8 @@ struct RuleEditorView: View {
                 }
             }
             .labelsHidden()
-            .frame(width: 170)
+            // Size to the longest label so no locale's condition names get clipped.
+            .fixedSize()
 
             switch condition.wrappedValue.kind {
             case .category:

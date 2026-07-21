@@ -6,6 +6,11 @@ import DownloadModels
 struct DownloadListView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openWindow) private var openWindow
+    /// Window key/active state — selection loses its accent emphasis when the window resigns.
+    @Environment(\.controlActiveState) private var controlActiveState
+    /// Whether the list itself owns keyboard focus; with an inactive window or focus elsewhere
+    /// (search field, inspector), macOS draws the gray unemphasized highlight instead.
+    @FocusState private var listFocused: Bool
 
     /// The downloads awaiting "delete the file(s) from disk too?" confirmation (one or many,
     /// depending on the selection the row menu acted on).
@@ -89,6 +94,8 @@ struct DownloadListView: View {
                     model.dismissDetectedClipboardURL()
                 } label: {
                     Image(systemName: "xmark")
+                        .frame(width: 22, height: 22)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.borderless)
                 .help("Dismiss")
@@ -97,7 +104,7 @@ struct DownloadListView: View {
             .accessibilityElement(children: .contain)
             .padding(10)
             .background(.regularMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .clipShape(RoundedRectangle(cornerRadius: Design.cardRadius))
             .padding(.horizontal, 10)
             .padding(.top, 6)
             .transition(.move(edge: .top).combined(with: .opacity))
@@ -114,13 +121,23 @@ struct DownloadListView: View {
             }
         }
         .listStyle(.inset)
+        .focused($listFocused)
+        // Tell the rows whether selection is drawn emphasized (accent) or unemphasized (gray),
+        // mirroring AppKit's backgroundStyle: focused list in an active window.
+        .environment(\.selectionEmphasis, listFocused && controlActiveState != .inactive)
         .onDeleteCommand { model.removeSelected(deleteFile: false) }
     }
 
     @ViewBuilder
     private var emptyState: some View {
+        // All three states render through EmptyStateView so the title stays on the same line as the
+        // inspector's "No Selection" (ContentUnavailableView self-centers and would break that).
         if !model.searchText.trimmingCharacters(in: .whitespaces).isEmpty {
-            ContentUnavailableView.search(text: model.searchText)
+            EmptyStateView("No Results", systemImage: "magnifyingglass") {
+                Text("No downloads match “\(model.searchText)”.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
         } else if model.downloads.isEmpty {
             EmptyStateView("No Downloads", systemImage: "arrow.down.circle") {
                 Text("Add a URL to start downloading. CloakDrop splits files into parallel streams for speed.")
@@ -195,6 +212,7 @@ struct DownloadListView: View {
             } label: {
                 Label("Sort", systemImage: "arrow.up.arrow.down")
             }
+            .help("Sort the list")
         }
     }
 
