@@ -2,14 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta name="color-scheme" content="light" />
     <title>CloakDrop — Open Graph card</title>
     <!--
       Deterministic source for assets/social/og.png (1200×630). Render with
       scripts/make-og.sh; never hand-edit the PNG.
 
-      The fixed canvas deliberately mirrors the shipped card: brand at upper left,
-      a two-line editorial promise, the real app capture at upper right, and an
-      adaptive N→1 range diagram across the lower third.
+      This fixed canvas is a compact version of the website hero: the same
+      Archivo/JetBrains Mono type system, editorial ledger rules, cool-gray
+      surface palette, oversized two-tone promise, and range-map instrument.
     -->
     <style>
       @font-face {
@@ -19,10 +20,28 @@
         src: url('../../apps/site/public/fonts/archivo-latin.woff2') format('woff2');
       }
 
+      @font-face {
+        font-family: 'JetBrains Mono';
+        font-style: normal;
+        font-weight: 100 800;
+        src: url('../../apps/site/public/fonts/jetbrains-mono-latin.woff2') format('woff2');
+      }
+
       :root {
-        --accent: #2A7B9B;
-        --paper: #fbf9f5;
-        --ink: #16191a;
+        --accent: #287f9b;
+        --accent-ink: #17647d;
+        --bg: #f3f5f4;
+        --surface: #fbfcfc;
+        --surface-2: #edf1f1;
+        --ink: #0a1114;
+        --ink-2: #3e4a50;
+        --ink-3: #5b676c;
+        --ink-4: #637075;
+        --line: #e2e7e7;
+        --line-2: #d5dddd;
+        --positive: #14814b;
+        --sans: 'Archivo', -apple-system, BlinkMacSystemFont, sans-serif;
+        --mono: 'JetBrains Mono', ui-monospace, monospace;
       }
 
       *,
@@ -40,13 +59,11 @@
       }
 
       body {
-        color: var(--ink);
-        background:
-          radial-gradient(circle at 8% 8%, rgba(255, 255, 255, 0.88), transparent 33%),
-          radial-gradient(circle at 89% 83%, rgba(218, 231, 233, 0.2), transparent 30%),
-          var(--paper);
+        color: var(--ink-2);
+        background: var(--bg);
+        font-family: var(--sans);
         -webkit-font-smoothing: antialiased;
-        text-rendering: geometricPrecision;
+        text-rendering: optimizeLegibility;
       }
 
       .card {
@@ -56,248 +73,367 @@
         isolation: isolate;
       }
 
-      /* A restrained paper grain keeps the warm field from reading as flat fill. */
-      .grain {
-        position: absolute;
-        z-index: -1;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0.055;
-        pointer-events: none;
+      .site-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 72px;
+        padding: 0 48px;
+        border-bottom: 1px solid var(--line);
       }
 
       .brand {
-        position: absolute;
-        top: 64px;
-        left: 44px;
         display: flex;
         align-items: center;
-        height: 128px;
+        gap: 11px;
       }
 
       .brand-mark {
-        width: 130px;
-        height: 130px;
-        flex: none;
+        width: 40px;
+        height: 40px;
+        filter: drop-shadow(0 2px 4px rgba(15, 42, 60, 0.16));
       }
 
-      .wordmark {
-        margin-left: 13px;
-        font-family: 'Times New Roman', Times, serif;
-        font-size: 57px;
-        font-weight: 700;
-        letter-spacing: -0.045em;
-        line-height: 1;
-        white-space: nowrap;
-        transform: translateY(-3px) scaleX(0.97);
-        transform-origin: left center;
+      .brand-name {
+        color: var(--ink);
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: -0.025em;
       }
 
-      .wordmark .drop {
-        color: var(--accent);
-      }
-
-      .headline {
-        position: absolute;
-        top: 203px;
-        left: 53px;
-        font-family: 'Times New Roman', Times, serif;
-        font-size: 65px;
-        font-weight: 700;
-        letter-spacing: -0.035em;
-        line-height: 1.11;
-      }
-
-      .headline span {
-        display: block;
-        width: max-content;
-        white-space: nowrap;
-        transform-origin: left center;
-      }
-
-      .headline span:first-child {
-        transform: scaleX(1.075);
-      }
-
-      .headline span:last-child {
-        transform: scaleX(0.86);
-      }
-
-      .descriptor,
-      .domain,
-      .merge-label {
-        font-family: 'Archivo', -apple-system, BlinkMacSystemFont, sans-serif;
-        color: var(--accent);
-      }
-
-      .descriptor {
-        position: absolute;
-        top: 361px;
-        left: 57px;
-        font-size: 22px;
-        font-weight: 460;
-        letter-spacing: -0.016em;
-      }
-
-      .product-shot {
-        position: absolute;
-        z-index: -1;
-        top: 40px;
-        right: 22px;
-        width: 624px;
-        filter: drop-shadow(0 17px 18px rgba(23, 34, 38, 0.16));
-      }
-
-      .product-shot img {
-        display: block;
-        width: 100%;
-        height: 422px;
-      }
-
-      .transfer {
-        position: absolute;
-        top: 444px;
-        left: 51px;
-        width: 914px;
-        height: 137px;
-      }
-
-      .transfer-rail {
-        fill: none;
-        stroke: var(--accent);
-        stroke-width: 1.15;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-      }
-
-      .transfer-rail--soft {
-        stroke-dasharray: 1.5 2.5;
-        opacity: 0.78;
-      }
-
-      .source-dot {
-        fill: var(--paper);
-        stroke: var(--accent);
-        stroke-width: 1.2;
-      }
-
-      .file-outline {
-        fill: rgba(255, 255, 255, 0.28);
-        stroke: var(--accent);
-        stroke-width: 1.8;
-        stroke-linejoin: round;
-      }
-
-      .merge-label {
-        position: absolute;
-        top: 83px;
-        left: 836px;
-        font-size: 23px;
-        font-weight: 470;
-        letter-spacing: 0.025em;
-        white-space: nowrap;
+      .brand-name span {
+        color: var(--accent-ink);
       }
 
       .domain {
-        position: absolute;
-        left: 51px;
-        bottom: 20px;
-        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        color: var(--ink-4);
+        font-family: var(--mono);
+        font-size: 11px;
         font-weight: 520;
-        letter-spacing: -0.012em;
+        letter-spacing: 0.055em;
+        text-transform: uppercase;
+      }
+
+      .domain::before {
+        width: 32px;
+        height: 1px;
+        background: var(--line-2);
+        content: '';
+      }
+
+      .hero-copy {
+        position: absolute;
+        top: 111px;
+        left: 48px;
+      }
+
+      .kicker {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        color: var(--accent-ink);
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.085em;
+        text-transform: uppercase;
+      }
+
+      .kicker::before {
+        width: 27px;
+        height: 1px;
+        background: currentColor;
+        content: '';
+      }
+
+      h1 {
+        margin-top: 24px;
+        color: var(--ink);
+        font-size: 72px;
+        font-weight: 850;
+        letter-spacing: -0.064em;
+        line-height: 0.9;
+      }
+
+      h1 span {
+        display: block;
+        white-space: nowrap;
+      }
+
+      h1 .accent {
+        margin-top: 7px;
+        color: var(--accent-ink);
+      }
+
+      .summary {
+        position: absolute;
+        top: 121px;
+        right: 48px;
+        width: 270px;
+        padding-top: 19px;
+        border-top: 1px solid var(--line-2);
+      }
+
+      .summary-copy {
+        color: var(--ink-2);
+        font-size: 17px;
+        font-weight: 430;
+        line-height: 1.5;
+      }
+
+      .proof {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 18px;
+        list-style: none;
+        padding: 0;
+      }
+
+      .proof li {
+        display: inline-flex;
+        align-items: center;
+        min-height: 27px;
+        padding: 0 9px;
+        border: 1px solid var(--line-2);
+        border-radius: 8px;
+        color: var(--ink-4);
+        background: rgba(251, 252, 252, 0.78);
+        font-family: var(--mono);
+        font-size: 8px;
+        font-weight: 570;
+        letter-spacing: 0.045em;
+        text-transform: uppercase;
+      }
+
+      .instrument-label {
+        position: absolute;
+        top: 343px;
+        left: 48px;
+        right: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--ink-4);
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .instrument-label .status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .instrument-label .status::before {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--positive);
+        box-shadow: 0 0 0 3px rgba(20, 129, 75, 0.1);
+        content: '';
+      }
+
+      .instrument {
+        position: absolute;
+        top: 366px;
+        left: 48px;
+        width: 1104px;
+        height: 236px;
+        display: grid;
+        grid-template-columns: 208px 1fr;
+        overflow: hidden;
+        border: 1px solid var(--line-2);
+        border-radius: 22px;
+        background: var(--surface);
+        box-shadow: 0 28px 72px -46px rgba(12, 17, 20, 0.5);
+      }
+
+      .range-map {
+        display: flex;
+        flex-direction: column;
+        padding: 18px 20px 15px;
+        border-right: 1px solid var(--line-2);
+        color: var(--ink-4);
+        background: color-mix(in srgb, var(--surface-2) 72%, var(--surface));
+        font-family: var(--mono);
+        font-size: 8px;
+        letter-spacing: 0.055em;
+        text-transform: uppercase;
+      }
+
+      .map-head,
+      .source,
+      .merge {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .map-head {
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--line-2);
+      }
+
+      .map-head b {
+        color: var(--accent-ink);
+        font-size: 10px;
+        font-weight: 650;
+      }
+
+      .source {
+        padding-top: 12px;
+      }
+
+      .source strong {
+        color: var(--ink-3);
+        font-weight: 650;
+      }
+
+      .ranges {
+        display: grid;
+        gap: 7px;
+        margin: 17px 0 14px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .ranges li {
+        display: grid;
+        grid-template-columns: 18px 1fr;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .track {
+        position: relative;
+        height: 1px;
+        overflow: visible;
+        background: #cbd4d5;
+      }
+
+      .track i {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: var(--progress);
+        background: var(--accent);
+      }
+
+      .track i::after {
+        position: absolute;
+        top: 50%;
+        right: -2px;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--accent-ink);
+        transform: translateY(-50%);
+        content: '';
+      }
+
+      .merge {
+        margin-top: auto;
+        padding-top: 11px;
+        border-top: 1px solid var(--line-2);
+      }
+
+      .merge b {
+        color: var(--accent-ink);
+        font-size: 10px;
+      }
+
+      .app-stage {
+        position: relative;
+        overflow: hidden;
+        background:
+          linear-gradient(90deg, rgba(237, 241, 241, 0.7), rgba(251, 252, 252, 0.12) 24%),
+          var(--surface);
+      }
+
+      .app-stage img {
+        position: absolute;
+        top: 20px;
+        left: 24px;
+        width: 850px;
+        max-width: none;
+        filter: drop-shadow(0 18px 26px rgba(14, 26, 31, 0.16));
+      }
+
+      .app-stage::after {
+        position: absolute;
+        z-index: 2;
+        inset: auto 0 0;
+        height: 38px;
+        background: linear-gradient(transparent, var(--surface));
+        pointer-events: none;
+        content: '';
       }
     </style>
   </head>
   <body>
     <main class="card" aria-label="CloakDrop social preview">
-      <svg class="grain" aria-hidden="true">
-        <filter id="paper-grain" x="0" y="0" width="100%" height="100%">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.82"
-            numOctaves="3"
-            seed="24"
-            stitchTiles="stitch"
-          />
-          <feColorMatrix
-            type="matrix"
-            values="0 0 0 0 0.32  0 0 0 0 0.35  0 0 0 0 0.36  0 0 0 .16 0"
-          />
-        </filter>
-        <rect width="1200" height="630" filter="url(#paper-grain)" />
-      </svg>
-
-      <header class="brand">
-        <img class="brand-mark" src="../logo/cloakdrop.svg" alt="" />
-        <p class="wordmark"><span>Cloak</span><span class="drop">Drop</span></p>
+      <header class="site-header">
+        <div class="brand">
+          <img class="brand-mark" src="../logo/cloakdrop.svg" alt="" />
+          <p class="brand-name">Cloak<span>Drop</span></p>
+        </div>
+        <p class="domain">drop.cloakyard.com</p>
       </header>
 
-      <h1 class="headline">
-        <span>Built to resume.</span>
-        <span>Finished with proof.</span>
-      </h1>
-      <p class="descriptor">Native macOS · Open source</p>
+      <section class="hero-copy">
+        <p class="kicker">Native macOS · Open source</p>
+        <h1>
+          <span>Built to resume.</span>
+          <span class="accent">Finished with proof.</span>
+        </h1>
+      </section>
 
-      <figure class="product-shot" aria-label="CloakDrop app window">
-        <img src="../screenshots/hero.png" alt="" />
-      </figure>
+      <aside class="summary">
+        <p class="summary-copy">
+          Adaptive parallel ranges. Relaunch-safe resume. Local verification.
+        </p>
+        <ul class="proof">
+          <li>Apple silicon</li>
+          <li>Zero telemetry</li>
+        </ul>
+      </aside>
 
-      <div class="transfer" aria-hidden="true">
-        <svg viewBox="0 0 914 137" width="914" height="137">
-          <defs>
-            <marker
-              id="arrowhead"
-              viewBox="0 0 8 8"
-              refX="7"
-              refY="4"
-              markerWidth="8"
-              markerHeight="8"
-              orient="auto"
-            >
-              <path d="M 0 0 L 8 4 L 0 8 Z" fill="#2A7B9B" />
-            </marker>
-          </defs>
-
-          <g>
-            <path class="transfer-rail" d="M 5 10 H 235 M 429 10 C 465 10 449 89 692 89" />
-            <path class="transfer-rail" d="M 5 29 H 267 M 429 29 C 465 29 469 89 692 89" />
-            <path class="transfer-rail" d="M 5 48 H 218 M 429 48 C 465 48 489 89 692 89" />
-            <path class="transfer-rail" d="M 5 67 H 283 M 429 67 C 465 67 510 89 692 89" />
-            <path class="transfer-rail" d="M 5 86 H 246 M 429 86 C 465 86 510 89 692 89" />
-            <path class="transfer-rail" d="M 5 105 H 290 M 429 105 C 465 105 489 89 692 89" />
-            <path class="transfer-rail" d="M 5 124 H 232 M 429 124 C 465 124 469 89 692 89" />
-
-            <path class="transfer-rail transfer-rail--soft" d="M 235 10 H 429" />
-            <path class="transfer-rail transfer-rail--soft" d="M 267 29 H 429" />
-            <path class="transfer-rail transfer-rail--soft" d="M 218 48 H 429" />
-            <path class="transfer-rail transfer-rail--soft" d="M 283 67 H 429" />
-            <path class="transfer-rail transfer-rail--soft" d="M 246 86 H 429" />
-            <path class="transfer-rail transfer-rail--soft" d="M 290 105 H 429" />
-            <path class="transfer-rail transfer-rail--soft" d="M 232 124 H 429" />
-
-            <circle class="source-dot" cx="5" cy="10" r="2.6" />
-            <circle class="source-dot" cx="5" cy="29" r="2.6" />
-            <circle class="source-dot" cx="5" cy="48" r="2.6" />
-            <circle class="source-dot" cx="5" cy="67" r="2.6" />
-            <circle class="source-dot" cx="5" cy="86" r="2.6" />
-            <circle class="source-dot" cx="5" cy="105" r="2.6" />
-            <circle class="source-dot" cx="5" cy="124" r="2.6" />
-
-            <path
-              class="transfer-rail"
-              d="M 620 89 H 692"
-              marker-end="url(#arrowhead)"
-            />
-
-            <path class="file-outline" d="M 714 56 H 758 L 779 77 V 131 H 714 Z" />
-            <path class="file-outline" d="M 758 56 V 77 H 779" />
-          </g>
-        </svg>
-        <p class="merge-label">N → 1</p>
+      <div class="instrument-label" aria-hidden="true">
+        <span>Live app · Adaptive range transfer</span>
+        <span class="status">Example · 8 ranges planned</span>
       </div>
 
-      <p class="domain">drop.cloakyard.com</p>
+      <figure class="instrument" aria-label="CloakDrop app with an eight-range transfer map">
+        <div class="range-map" aria-hidden="true">
+          <div class="map-head">
+            <span>Adaptive range map</span>
+            <b>N→1</b>
+          </div>
+          <div class="source">
+            <span>Remote object</span>
+            <strong>6.52 GB</strong>
+          </div>
+          <ol class="ranges">
+            <li><span>01</span><span class="track"><i style="--progress: 51%"></i></span></li>
+            <li><span>02</span><span class="track"><i style="--progress: 68%"></i></span></li>
+            <li><span>03</span><span class="track"><i style="--progress: 79%"></i></span></li>
+            <li><span>04</span><span class="track"><i style="--progress: 63%"></i></span></li>
+            <li><span>05</span><span class="track"><i style="--progress: 47%"></i></span></li>
+            <li><span>06</span><span class="track"><i style="--progress: 72%"></i></span></li>
+            <li><span>07</span><span class="track"><i style="--progress: 70%"></i></span></li>
+            <li><span>08</span><span class="track"><i style="--progress: 49%"></i></span></li>
+          </ol>
+          <div class="merge"><span>Planned ranges</span><b>08 → 01</b></div>
+        </div>
+        <div class="app-stage">
+          <img src="../screenshots/hero.png" alt="" />
+        </div>
+      </figure>
     </main>
   </body>
 </html>
