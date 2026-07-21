@@ -355,13 +355,24 @@
           var(--surface);
       }
 
-      .app-stage img {
+      .app-window {
         position: absolute;
         top: 20px;
         left: 24px;
         width: 850px;
+        height: 526px;
+        overflow: hidden;
+        border-radius: 16px;
+        background: var(--surface);
+        box-shadow: 0 18px 26px rgba(14, 26, 31, 0.16);
+      }
+
+      .app-window img {
+        position: absolute;
+        top: -1px;
+        left: -1px;
+        width: 852px;
         max-width: none;
-        filter: drop-shadow(0 18px 26px rgba(14, 26, 31, 0.16));
       }
 
       .app-stage::after {
@@ -431,7 +442,9 @@
           <div class="merge"><span>Planned ranges</span><b>08 → 01</b></div>
         </div>
         <div class="app-stage">
-          <img src="../screenshots/hero.png" alt="" />
+          <div class="app-window">
+            <img src="../screenshots/hero.png" alt="" />
+          </div>
         </div>
       </figure>
     </main>

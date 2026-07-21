@@ -387,14 +387,20 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
   .app-window picture {
     display: block;
     width: 100%;
+    overflow: hidden;
+    border-radius: 1.65% / 2.68%;
+    background: var(--surface);
     font-size: 0;
-    filter: drop-shadow(0 16px 24px rgba(18, 31, 38, 0.14));
+    box-shadow: 0 16px 24px rgba(18, 31, 38, 0.14);
   }
 
   .app-window img {
     display: block;
-    width: 100%;
+    width: calc(100% + 2px);
+    max-width: none;
     height: auto;
+    margin-bottom: -1px;
+    transform: translate(-1px, -1px);
   }
 
   .instrument-foot {
@@ -553,7 +559,7 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
     }
 
     .app-window picture {
-      filter: drop-shadow(0 8px 13px rgba(18, 31, 38, 0.13));
+      box-shadow: 0 8px 13px rgba(18, 31, 38, 0.13);
     }
 
     .instrument-foot {
