@@ -137,12 +137,15 @@ struct DownloadRowView: View {
                 .controlSize(.small)
                 .frame(height: 4)
         } else {
-            // On the emphasized highlight the bar goes white so it stays visible on the accent.
+            // On the emphasized highlight the bar goes white so it stays visible on the accent; the
+            // activity sweep then flips to a translucent dark band (a white sweep would vanish on
+            // the white fill).
             CapsuleProgressBar(
                 fraction: fraction ?? 0,
                 tint: onAccent ? .white : download.status.tint,
                 track: onAccent ? AnyShapeStyle(Color.white.opacity(0.3)) : AnyShapeStyle(.quaternary),
-                isActive: download.status == .downloading
+                isActive: download.status == .downloading,
+                sweep: onAccent ? .black.opacity(0.22) : .white.opacity(0.35)
             )
         }
     }

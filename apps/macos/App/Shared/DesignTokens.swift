@@ -42,6 +42,10 @@ struct CapsuleProgressBar: View {
     /// as *working*, not stalled — even between progress ticks. Off for paused/static bars, and
     /// suppressed entirely under Reduce Motion.
     var isActive = false
+    /// The moving highlight's peak color (alpha baked in). White reads on a colored fill; when the
+    /// fill itself is white — the emphasized selected row — a white sweep would vanish, so callers
+    /// pass a translucent dark tint there instead.
+    var sweep: Color = .white.opacity(0.35)
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -53,7 +57,7 @@ struct CapsuleProgressBar: View {
                 Capsule().fill(tint)
                     .overlay {
                         if isActive && !reduceMotion {
-                            ActivitySweep()
+                            ActivitySweep(peak: sweep)
                         }
                     }
                     .clipShape(Capsule())
@@ -66,25 +70,35 @@ struct CapsuleProgressBar: View {
     }
 }
 
-/// The soft highlight band that drifts along an active bar's fill. Core Animation drives the
-/// repeat, so it costs no per-frame SwiftUI work.
+/// The soft highlight band that drifts along an active bar's fill. Driven by `TimelineView` so the
+/// offset is a pure function of time — reliable where an `onAppear`-triggered `repeatForever`
+/// implicit animation can silently fail to start.
 private struct ActivitySweep: View {
-    @State private var sweeping = false
+    let peak: Color
+
+    /// Seconds for one traversal, plus a short pause between passes.
+    private let travelDuration = 1.3
+    private let pause = 0.5
 
     var body: some View {
         GeometryReader { geo in
-            let band = max(28, geo.size.width * 0.3)
-            LinearGradient(
-                colors: [.white.opacity(0), .white.opacity(0.3), .white.opacity(0)],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-            .frame(width: band)
-            .offset(x: sweeping ? geo.size.width : -band)
-            .animation(.linear(duration: 1.8).delay(0.6).repeatForever(autoreverses: false), value: sweeping)
+            let band = max(34, geo.size.width * 0.4)
+            let span = geo.size.width + band                // fully off-screen at both ends
+            let period = travelDuration + pause
+            TimelineView(.animation) { timeline in
+                let t = timeline.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: period)
+                // Advance only during the travel window; rest off-screen-left during the pause.
+                let progress = min(1, max(0, t / travelDuration))
+                LinearGradient(
+                    colors: [peak.opacity(0), peak, peak.opacity(0)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(width: band)
+                .offset(x: -band + progress * span)
+            }
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
-        .onAppear { sweeping = true }
     }
 }
