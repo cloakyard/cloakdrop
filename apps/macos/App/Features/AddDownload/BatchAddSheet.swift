@@ -67,7 +67,7 @@ struct BatchAddSheet: View {
                 TextEditor(text: $text)
                     .font(.callout.monospaced())
                     .frame(minHeight: 90)
-                    .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(.separator))
+                    .overlay(RoundedRectangle(cornerRadius: Design.inlineRadius).strokeBorder(.separator))
                     .onChange(of: text) { _, newValue in reparse(newValue) }
 
                 if !links.isEmpty {

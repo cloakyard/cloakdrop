@@ -13,7 +13,8 @@ struct AboutHeaderView: View {
     @State private var matrixMode = false
 
     private static let cornerRadius: CGFloat = 8   // matches the grouped-Form section radius
-    /// Phosphor green used for the title/version while the rain is on; the product suffix stays tinted.
+    /// Phosphor green used for the whole wordmark, version, and credit while the rain is on — the
+    /// product suffix drops its accent tint so the lockup reads as one uniform color over the rain.
     private static let phosphor = Color(red: 0.62, green: 1.0, blue: 0.62)
 
     // Rendered as a single grouped-Form row (see SettingsView.about), so the Section supplies the grey
@@ -67,14 +68,15 @@ struct AboutHeaderView: View {
         }
     }
 
-    /// One attributed string keeps the visual lockup and VoiceOver name together while tinting
-    /// only the product suffix.
+    /// One attributed string keeps the visual lockup and VoiceOver name together. Normally "Cloak"
+    /// is primary and "Drop" is accent-tinted; while the rain is on, the whole wordmark goes phosphor
+    /// green so it reads as one color over the digital rain.
     private var wordmark: AttributedString {
         var lead = AttributedString("Cloak")
         lead.foregroundColor = matrixMode ? Self.phosphor : Color.primary
 
         var suffix = AttributedString("Drop")
-        suffix.foregroundColor = .accentColor
+        suffix.foregroundColor = matrixMode ? Self.phosphor : .accentColor
         lead.append(suffix)
         return lead
     }

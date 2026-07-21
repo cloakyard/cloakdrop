@@ -73,29 +73,19 @@ struct MediaPickerSheet: View {
         }
     }
 
+    /// The shared sheet chrome, with the host as subtitle and the stream format as the accessory.
     private var header: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "play.rectangle.on.rectangle")
-                .font(.system(size: 26))
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(.tint)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Choose Quality")
-                    .font(.headline)
-                Text(selection.request.url.host() ?? selection.request.url.absoluteString)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-            }
-            Spacer()
+        SheetHeader(
+            title: "Choose Quality",
+            systemImage: "play.rectangle.on.rectangle",
+            subtitle: Text(selection.request.url.host() ?? selection.request.url.absoluteString)
+        ) {
             Text(selection.stream.format == .hls ? "HLS" : "DASH")
                 .font(.caption2.weight(.semibold))
                 .padding(.horizontal, 7)
                 .padding(.vertical, 3)
                 .background(.quaternary, in: Capsule())
         }
-        .padding(16)
     }
 
     /// Video vs. audio-only. Only shown when the stream exposes a separate audio track to extract.

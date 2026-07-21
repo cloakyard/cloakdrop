@@ -23,7 +23,7 @@ struct MenuBarContent: View {
                 Button {
                     showMainWindow()
                 } label: {
-                    Text("\(download.fileName) — \(Format.percent(model.liveFraction(download)))")
+                    Text("\(Self.menuTitle(download.fileName)) — \(Format.percent(model.liveFraction(download)))")
                 }
             }
         }
@@ -44,6 +44,14 @@ struct MenuBarContent: View {
         }
         Button("Report a Bug…") { NSWorkspace.shared.open(BugReport.issueURL) }
         Button("Quit CloakDrop") { NSApp.terminate(nil) }
+    }
+
+    /// Middle-truncate a file name for a menu item — menus size to their widest row, so one long
+    /// name would stretch the whole dropdown across the screen.
+    private static func menuTitle(_ name: String, limit: Int = 40) -> String {
+        guard name.count > limit else { return name }
+        let keep = (limit - 1) / 2
+        return "\(name.prefix(keep))…\(name.suffix(keep))"
     }
 
     /// Bring the app forward and reopen/raise the main window — works even if the user closed

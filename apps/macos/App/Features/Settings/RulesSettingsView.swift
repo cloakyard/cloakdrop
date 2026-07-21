@@ -76,27 +76,34 @@ private struct RuleRow: View {
             .controlSize(.small)
             .accessibilityLabel(Text(rule.name))
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(rule.name)
-                    .fontWeight(.medium)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    .foregroundStyle(rule.isEnabled ? .primary : .secondary)
-                Text(RuleSummary.text(for: rule, queues: model.queues))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-            }
+            // A real button (not a tap gesture), so editing is reachable by keyboard and exposed
+            // to VoiceOver as an action — the chevron promises navigation, the button delivers it.
+            Button(action: onEdit) {
+                HStack(spacing: 10) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(rule.name)
+                            .fontWeight(.medium)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .foregroundStyle(rule.isEnabled ? .primary : .secondary)
+                        Text(RuleSummary.text(for: rule, queues: model.queues))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
 
-            Spacer(minLength: 8)
-            Image(systemName: "chevron.right")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.tertiary)
+                    Spacer(minLength: 8)
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help("Edit this rule")
         }
         .padding(.vertical, 2)
-        .contentShape(Rectangle())
-        .onTapGesture { onEdit() }
         .contextMenu {
             Button("Edit") { onEdit() }
             Button("Delete", role: .destructive) { model.deleteRule(rule.id) }

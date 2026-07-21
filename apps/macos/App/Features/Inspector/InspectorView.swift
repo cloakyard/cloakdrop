@@ -104,7 +104,7 @@ struct InspectorView: View {
             if let plan = download.mediaPlan {
                 chip(Text(verbatim: plan.format.rawValue.uppercased()), "film")
                 if let resolution = plan.resolution {
-                    chip(Text(verbatim: "\(resolution.qualityHeight)p"), "4k.tv")
+                    chip(Text(verbatim: "\(resolution.qualityHeight)p"), "display")
                 }
             } else if download.segments.count > 1 {
                 chip(Text("\(download.segments.count) connections"), "cable.connector")
@@ -124,7 +124,7 @@ struct InspectorView: View {
         .foregroundStyle(.secondary)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(.quaternary.opacity(0.5), in: Capsule())
+        .background(Design.cardFill, in: Capsule())
         .accessibilityElement(children: .combine)
     }
 
@@ -133,7 +133,10 @@ struct InspectorView: View {
     private func overview(_ download: Download) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             if let fraction = model.liveFraction(download), download.status != .completed {
-                ProgressView(value: fraction) {
+                // The same capsule bar as the list rows (not a linear `ProgressView`, whose platform
+                // rendering can override the tint with the window accent) — one progress language
+                // everywhere, always in the status color.
+                VStack(alignment: .leading, spacing: 5) {
                     HStack {
                         Text(Format.percent(fraction))
                         Spacer()
@@ -141,8 +144,14 @@ struct InspectorView: View {
                     }
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    CapsuleProgressBar(
+                        fraction: fraction,
+                        tint: download.status.tint,
+                        height: 5,
+                        isActive: download.status == .downloading
+                    )
                 }
-                .tint(download.status.tint)
+                .accessibilityElement(children: .combine)
             }
 
             // Size / progress, in a clean baseline-aligned key–value grid. A real multi-segment media
@@ -207,7 +216,7 @@ struct InspectorView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
-        .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 10))
+        .background(Design.cardFill, in: RoundedRectangle(cornerRadius: Design.cardRadius))
     }
 
     // MARK: Segments (multi-connection transfers)
@@ -222,8 +231,7 @@ struct InspectorView: View {
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
                         .frame(width: 28, alignment: .leading)
-                    ProgressView(value: fraction)
-                        .tint(download.status.tint)
+                    CapsuleProgressBar(fraction: fraction, tint: download.status.tint)
                     Text(Format.bytes(segment.length))
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
@@ -332,7 +340,7 @@ struct InspectorView: View {
             }
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 12))
+            .background(Design.cardFill, in: RoundedRectangle(cornerRadius: Design.cardRadius))
         }
     }
 
@@ -354,7 +362,7 @@ struct InspectorView: View {
             }
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 12))
+            .background(Design.cardFill, in: RoundedRectangle(cornerRadius: Design.cardRadius))
         }
     }
 

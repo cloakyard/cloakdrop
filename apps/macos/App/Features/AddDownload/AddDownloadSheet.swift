@@ -259,7 +259,7 @@ struct AddDownloadSheet: View {
             }
             .transition(.opacity)
         } else if previewFailed {
-            Label("Couldn’t preview this link — you can still add it.", systemImage: "wifi.exclamationmark")
+            Label("Couldn’t preview this link — you can still add it.", systemImage: "questionmark.circle")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .transition(.opacity)
@@ -307,8 +307,8 @@ struct AddDownloadSheet: View {
             Spacer(minLength: 0)
         }
         .padding(10)
-        .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
-        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(tint.opacity(0.28)))
+        .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: Design.inlineRadius))
+        .overlay(RoundedRectangle(cornerRadius: Design.inlineRadius).strokeBorder(tint.opacity(0.28)))
     }
 
     /// "1.4 GB · Resumable · 8 connections" — only the parts we actually know, joined by dots.

@@ -30,7 +30,7 @@ struct SettingsView: View {
                 .tabItem { Label("Browser", systemImage: "globe") }
                 .tag(SettingsTab.browser)
             StatsSettingsView()
-                .tabItem { Label("Stats", systemImage: "medal.fill") }
+                .tabItem { Label("Stats", systemImage: "medal") }
                 .tag(SettingsTab.stats)
             PrivacySettingsView()
                 .tabItem { Label("Privacy", systemImage: "lock.shield") }
