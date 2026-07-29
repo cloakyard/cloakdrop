@@ -131,7 +131,7 @@ cloakdrop/                      # monorepo root
 │   │   │   ├── Ambient/        #   MenuBarExtra · Dock progress · Notifications
 │   │   │   └── Shared/         #   Formatters, icons, shared views
 │   │   ├── ShareExtension/     # macOS share-sheet capture
-│   │   ├── scripts/            # Opt-in helpers: fetch-ffmpeg.sh · fetch-ytdlp.sh (bundle & sign the native tools) · dmg/ (build the installer DMG) · generate_app_icon.swift (renders the app + About icon from /assets/logo/cloakdrop.svg) · validate_localizations.py
+│   │   ├── scripts/            # Opt-in helpers: fetch-ffmpeg.sh · fetch-ytdlp.sh (bundle & sign the native tools) · dmg/ (build the installer DMG) · generate_app_icon.swift (exports flattened fallbacks from the native Icon Composer document) · validate_localizations.py
 │   │   └── Packages/
 │   │       └── DownloaderCore/ # Headless, UI-agnostic, fully unit-tested core
 │   │           ├── DownloadModels/       # Sendable value types + HLS/DASH & Metalink parsers + stats, link-grabber, bandwidth-schedule & provenance models

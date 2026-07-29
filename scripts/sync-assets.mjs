@@ -21,7 +21,8 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 /** source (relative to /assets) → one or more destinations (relative to repo root). */
 const MANIFEST = [
-  { from: 'logo/cloakdrop.svg', to: ['apps/site/public/logo.svg'] },
+  { from: 'logo/cloakdrop-mark.svg', to: ['apps/site/public/cloakdrop-mark.svg'] },
+  { from: 'logo/favicon.svg', to: ['apps/site/public/icons/favicon.svg'] },
   { from: 'logo/icon.png', to: ['apps/site/public/icon.png'] },
   { from: 'logo/favicon.png', to: ['apps/site/public/favicon.png'] },
   { from: 'logo/apple-touch-icon.png', to: ['apps/site/public/apple-touch-icon.png'] },

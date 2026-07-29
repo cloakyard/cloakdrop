@@ -15,7 +15,7 @@ const nameAccent = wordmark?.[2] ?? '';
 <a class:list={['brand', className]} href="/" aria-label={`${site.name} home`}>
   <img
     class="brand-mark"
-    src="/logo.svg"
+    src="/cloakdrop-mark.svg"
     width={size}
     height={size}
     alt=""
@@ -33,7 +33,8 @@ const nameAccent = wordmark?.[2] ?? '';
   }
 
   .brand-mark {
-    /* Whisper of a shadow only — the mark carries its own subtle inner shadow. */
+    border-radius: 50%;
+    /* Whisper of a shadow only — the mark carries its own shared family lighting. */
     filter: drop-shadow(0 1px 3px rgba(15, 42, 60, 0.14));
   }
 

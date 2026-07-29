@@ -1,0 +1,38 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="cloakdrop-mark-title" data-logo-spec="cloakyard-mark-v1" data-glyph-keyline="42">
+  <title id="cloakdrop-mark-title">CloakDrop</title>
+  <defs>
+    <linearGradient id="cloakdrop-fill" x1="11" y1="6" x2="51" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5FCDD6"/>
+      <stop offset="0.45" stop-color="#338DAB"/>
+      <stop offset="1" stop-color="#19385F"/>
+    </linearGradient>
+    <radialGradient id="cloakdrop-light" cx="0" cy="0" r="1" gradientTransform="translate(20 13) rotate(48) scale(35)">
+      <stop stop-color="white" stop-opacity="0.42"/>
+      <stop offset="0.58" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cloakdrop-shield" x1="32" y1="15.8" x2="32" y2="49.3" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DCEAF0"/>
+    </linearGradient>
+    <linearGradient id="cloakdrop-arrow" x1="32" y1="22.4" x2="32" y2="42.4" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#23809F"/>
+      <stop offset="1" stop-color="#124A67"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="32" cy="32" r="30" fill="url(#cloakdrop-fill)"/>
+  <circle cx="32" cy="32" r="29.25" fill="url(#cloakdrop-light)" stroke="white" stroke-opacity="0.28" stroke-width="1.5"/>
+
+  <!-- The filled drop-shield and arrow paths are identical to the native Icon Composer layers. -->
+  <path
+    fill="url(#cloakdrop-shield)"
+    stroke="white"
+    stroke-opacity="0.55"
+    stroke-width="0.3"
+    d="M32 15.8c4.1 1.7 8.6 2 13.3 3.4 5 1.5 6.9 3.9 6.9 9.9 0 8.4-6.2 15.4-12.5 18.4-4.9 2.4-10.5 2.4-15.4 0-6.3-3-12.5-10-12.5-18.4 0-6 1.9-8.4 6.9-9.9 4.7-1.4 9.2-1.7 13.3-3.4Z"
+  />
+  <path
+    fill="url(#cloakdrop-arrow)"
+    d="M30.2 24.2a1.8 1.8 0 0 1 3.6 0v9.3h3.1c1.4 0 2.1 1.7 1.1 2.7l-4.7 4.9a1.8 1.8 0 0 1-2.6 0L26 36.2c-1-1-.3-2.7 1.1-2.7h3.1v-9.3Z"
+  />
+</svg>
