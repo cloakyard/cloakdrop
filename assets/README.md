@@ -8,10 +8,13 @@ consumer at build time** rather than committed twice.
 ```
 assets/
 ├── logo/
-│   ├── cloakdrop.svg          # scalable vector mark (gradient squircle + shield + arrow)
-│   ├── icon.png               # app icon, 256×256 (web rendition)
-│   ├── favicon.png            # 180×180
-│   └── apple-touch-icon.png   # 512×512
+│   ├── cloakdrop.svg          # legacy flattened launcher artwork
+│   ├── cloakdrop-mark.svg     # canonical 64×64 circular web mark
+│   ├── favicon.svg            # circular mark with a favicon-specific title
+│   ├── macos-layers/          # editable 1024×1024 sources imported by Icon Composer
+│   ├── icon.png               # circular web mark, 256×256
+│   ├── favicon.png            # circular web mark, 180×180
+│   └── apple-touch-icon.png   # circular web mark, 512×512
 ├── social/
 │   ├── og.html                # source for the card — the thing you edit
 │   └── og.png                 # 1200×630 Open Graph / Twitter share card (rendered)
@@ -44,7 +47,7 @@ here. You can also run it by hand from anywhere in the repo:
 node scripts/sync-assets.mjs
 ```
 
-The generated copies (e.g. `apps/site/public/logo.svg`, `…/hero.webp`) are **git-ignored** —
+The generated copies (e.g. `apps/site/public/cloakdrop-mark.svg`, `…/hero.webp`) are **git-ignored** —
 this folder is the only committed home for them. That's the whole point: no duplicated
 binaries in version control.
 
@@ -82,23 +85,29 @@ Add an entry to `MANIFEST` in `scripts/sync-assets.mjs`. `to` is an array, so on
 can fan out to several destinations:
 
 ```js
-{ from: 'logo/cloakdrop.svg', to: ['apps/site/public/logo.svg', 'apps/other/assets/logo.svg'] }
+{ from: 'logo/cloakdrop-mark.svg', to: ['apps/site/public/cloakdrop-mark.svg'] }
 ```
 
-## The macOS app icon
+## Web mark and macOS app icon
 
-The app icon is **rendered from the same `logo/cloakdrop.svg`** — the mark is glassified in
-the SVG itself (gradient tile, frosted shield, specular sheen, rim light, depth), so the app
-and the web share one source. `apps/macos/scripts/generate_app_icon.swift` rasterises the SVG
-into the Xcode asset catalog — `AppIcon.appiconset` (`icon_16…1024.png`) and the About-page
-`AboutAppIcon.imageset` — via `rsvg-convert`:
+The website uses `logo/cloakdrop-mark.svg`, a circular `64 × 64` Cloakyard
+family mark. Its filled drop-shield and download arrow use the exact same paths
+as the macOS foreground layers; only the outer container differs. The web mark
+keeps the family circle, while macOS supplies its native launcher mask.
+
+The macOS launcher source of truth is
+`apps/macos/App/Resources/AppIcon.icon`, a native Icon Composer document. Its
+background, drop-shield, and arrow come from `logo/macos-layers/`; Xcode applies the
+platform mask and compiles the layered Liquid Glass material for Default, Dark,
+and Mono appearances. `apps/macos/scripts/generate_app_icon.swift` uses Icon
+Composer's `ictool` to export the flattened `AboutAppIcon.imageset` copies and
+keep the conventional `AppIcon.appiconset` PNG fallbacks visually aligned:
 
 ```bash
-cd apps/macos && swift scripts/generate_app_icon.swift    # needs: brew install librsvg
+cd apps/macos && swift scripts/generate_app_icon.swift    # needs Xcode 26.4+
 ```
 
-So when the mark changes: edit `logo/cloakdrop.svg`, then run **both** `node scripts/sync-assets.mjs`
-(web renditions) and `generate_app_icon.swift` (app icon), and rebuild `social/og.png` to match.
-(The app catalog isn't a `sync-assets` destination — Xcode needs the sized PNGs in place — so it
-has its own render step.) The icon is plain PNGs, not an Icon Composer `.icon`, so the SVG carries
-the glass rather than relying on the OS to composite it.
+When the shared pictogram changes, update the identical paths in
+`logo/cloakdrop-mark.svg`, `logo/favicon.svg`, `logo/macos-layers/`, and
+`AppIcon.icon`, then refresh the generated web and About artwork. Keep the web
+mark circular and let Icon Composer retain the native macOS shape.

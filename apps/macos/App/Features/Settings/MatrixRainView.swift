@@ -81,10 +81,9 @@ struct AboutHeaderView: View {
         return lead
     }
 
-    // A pre-glassed copy of the app icon (baked by scripts/bake_about_icon.swift from how macOS
-    // composites it for the Dock), not `NSApp.applicationIconImage` — which lags a rebuilt icon via
-    // the OS icon cache. SwiftUI's `Image` won't apply Tahoe's Liquid Glass to the flat AppIcon, so
-    // the glass is baked into this asset to match how the icon actually looks in the Dock.
+    // A deterministic Default-rendition export from AppIcon.icon, not
+    // `NSApp.applicationIconImage` — which can lag a rebuilt icon through the OS icon cache.
+    // Keeping a flattened copy here also makes the About header match the layered launcher.
     private var icon: some View {
         Image("AboutAppIcon").resizable().interpolation(.high)
     }

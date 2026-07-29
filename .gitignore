@@ -81,7 +81,8 @@ npm-debug.log*
 # /assets is the single source of truth; these are generated (prebuild → sync:assets, so
 # Cloudflare regenerates them too) and must NOT be committed — that's the de-duplication.
 # Site-specific assets (fonts/, robots.txt) are NOT listed here and stay tracked.
-apps/site/public/logo.svg
+apps/site/public/cloakdrop-mark.svg
+apps/site/public/icons/favicon.svg
 apps/site/public/icon.png
 apps/site/public/favicon.png
 apps/site/public/apple-touch-icon.png

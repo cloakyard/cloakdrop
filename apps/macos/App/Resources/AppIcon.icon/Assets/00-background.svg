@@ -1,0 +1,11 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>CloakDrop macOS icon background</title>
+  <defs>
+    <linearGradient id="cloakdrop-macos-background" x1="128" y1="80" x2="904" y2="944" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#70D7DF"/>
+      <stop offset="0.48" stop-color="#338DAB"/>
+      <stop offset="1" stop-color="#19385F"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#cloakdrop-macos-background)"/>
+</svg>
