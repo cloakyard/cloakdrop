@@ -121,7 +121,20 @@ extension BrowserSession: WKNavigationDelegate {
         if nsError.code == NSURLErrorCancelled { return }
         if nsError.domain == "WebKitErrorDomain" && nsError.code == 102 { return }
         let failingURL = (nsError.userInfo[NSURLErrorFailingURLErrorKey] as? URL) ?? currentURL
-        presentLoadError(Self.friendlyLoadMessage(nsError), failingURL: failingURL)
+        presentLoadError(
+            Self.friendlyLoadMessage(nsError),
+            failingURL: failingURL,
+            isOffline: Self.isOfflineError(nsError)
+        )
+    }
+
+    static func isOfflineError(_ error: NSError) -> Bool {
+        guard error.domain == NSURLErrorDomain else { return false }
+        return [
+            NSURLErrorNotConnectedToInternet,
+            NSURLErrorNetworkConnectionLost,
+            NSURLErrorDataNotAllowed
+        ].contains(error.code)
     }
 
     static func friendlyLoadMessage(_ error: NSError) -> String {
@@ -205,8 +218,8 @@ extension BrowserSession: WKUIDelegate {
     }
 
     func webView(
-        _ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin,
-        initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType
+        _ webView: WKWebView, decideMediaCapturePermissionsFor origin: WKSecurityOrigin,
+        initiatedBy frame: WKFrameInfo, type: WKMediaCaptureType
     ) async -> WKPermissionDecision {
         .deny   // a download manager's browser has no business with camera or microphone
     }
