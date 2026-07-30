@@ -28,11 +28,16 @@ struct BrowserView: View {
         ZStack(alignment: .top) {
             BrowserWebViewHost(session: session)
             // Load progress lives inside the address pill (see `loadingFill`), not as a separate bar.
-            if session.currentURL == nil && !session.isLoading && session.loadError == nil {
-                startPage
-            }
-            if let error = session.loadError {
-                loadErrorOverlay(error)
+            if session.isRunnerPresented {
+                BrowserOfflineView(
+                    message: String(localized: "Take a break with Cloak Runner."),
+                    host: nil,
+                    symbolName: "gamecontroller.fill",
+                    actionTitle: String(localized: "Back to Browsing"),
+                    onRetry: { session.dismissRunner() }
+                )
+            } else {
+                browserStateOverlay
             }
         }
         .background(BrowserWindowConfigurator())
@@ -85,7 +90,7 @@ struct BrowserView: View {
             } label: {
                 Label("Back", systemImage: "chevron.left")
             }
-            .disabled(!session.canGoBack)
+            .disabled(!session.canGoBack && !session.isRunnerPresented)
             .help("Show the previous page")
 
             Button {
@@ -202,7 +207,15 @@ struct BrowserView: View {
     /// prompt on the start page.
     @ViewBuilder
     private var idleAddressContent: some View {
-        if let url = displayedURL {
+        if session.isRunnerPresented {
+            HStack(spacing: 6) {
+                Image(systemName: "gamecontroller.fill")
+                    .foregroundStyle(.secondary)
+                Text(BrowserSession.runnerAddress)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+            }
+        } else if let url = displayedURL {
             HStack(spacing: 6) {
                 siteGlyph
                     .help(session.isSecure ? String(localized: "Secure connection")
@@ -240,7 +253,7 @@ struct BrowserView: View {
     /// clickable. Hidden while editing, matching Safari.
     @ViewBuilder
     private var reloadControl: some View {
-        if !isEditingURL, session.currentURL != nil {
+        if !isEditingURL, session.currentURL != nil, !session.isRunnerPresented {
             Button {
                 session.reloadOrStop()
             } label: {
@@ -268,7 +281,10 @@ struct BrowserView: View {
     /// Keep the attempted address visible in that state so the toolbar and error card tell the same
     /// story, and so ⌘L lets the user correct the address rather than editing `about:blank`.
     private var displayedURL: URL? {
-        session.loadError?.failingURL ?? session.currentURL
+        if session.isRunnerPresented {
+            return URL(string: BrowserSession.runnerAddress)
+        }
+        return session.loadError?.failingURL ?? session.currentURL
     }
 
     /// Safari-style bare host: drop a leading `www.`, and fall back to the full string for URLs
@@ -309,6 +325,16 @@ struct BrowserView: View {
 
     // Both full-pane states go through the shared `EmptyStateView`, so the browser speaks with the
     // same empty-state voice (and title line height) as the main window's panes.
+    @ViewBuilder
+    private var browserStateOverlay: some View {
+        if session.currentURL == nil && !session.isLoading && session.loadError == nil {
+            startPage
+        }
+        if let error = session.loadError {
+            loadErrorOverlay(error)
+        }
+    }
+
     private var startPage: some View {
         EmptyStateView("Search or enter a website address", systemImage: "globe") {
             Text("Media and file downloads you start here are captured by CloakDrop automatically.")
