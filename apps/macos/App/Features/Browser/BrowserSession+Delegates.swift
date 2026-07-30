@@ -205,8 +205,8 @@ extension BrowserSession: WKUIDelegate {
     }
 
     func webView(
-        _ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin,
-        initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType
+        _ webView: WKWebView, decideMediaCapturePermissionsFor origin: WKSecurityOrigin,
+        initiatedBy frame: WKFrameInfo, type: WKMediaCaptureType
     ) async -> WKPermissionDecision {
         .deny   // a download manager's browser has no business with camera or microphone
     }

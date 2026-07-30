@@ -202,7 +202,7 @@ struct BrowserView: View {
     /// prompt on the start page.
     @ViewBuilder
     private var idleAddressContent: some View {
-        if let url = session.currentURL {
+        if let url = displayedURL {
             HStack(spacing: 6) {
                 siteGlyph
                     .help(session.isSecure ? String(localized: "Secure connection")
@@ -259,9 +259,16 @@ struct BrowserView: View {
     }
 
     private func beginEditingURL() {
-        if let url = session.currentURL { session.urlText = url.absoluteString }
+        if let url = displayedURL { session.urlText = url.absoluteString }
         isEditingURL = true          // reveal the editable field at once; the field confirms/ends focus
         focusRequestToken += 1
+    }
+
+    /// A provisional navigation can fail before WebKit replaces its initial `about:blank` URL.
+    /// Keep the attempted address visible in that state so the toolbar and error card tell the same
+    /// story, and so ⌘L lets the user correct the address rather than editing `about:blank`.
+    private var displayedURL: URL? {
+        session.loadError?.failingURL ?? session.currentURL
     }
 
     /// Safari-style bare host: drop a leading `www.`, and fall back to the full string for URLs

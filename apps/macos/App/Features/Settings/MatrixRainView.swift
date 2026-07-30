@@ -40,21 +40,19 @@ struct AboutHeaderView: View {
 
     private var content: some View {
         VStack(spacing: 12) {
-            icon
-                .frame(width: 84, height: 84)
-                .scaleEffect(matrixMode ? 1.05 : 1)
-                .shadow(color: .green.opacity(matrixMode ? 0.7 : 0), radius: 14)
-                .contentShape(.rect)
-                .onTapGesture { registerTap() }
-                .accessibilityLabel(Text(verbatim: "CloakDrop"))
-                .accessibilityAddTraits(.isButton)
+            Button(action: registerTap) {
+                icon
+                    .frame(width: 84, height: 84)
+                    .scaleEffect(matrixMode ? 1.05 : 1)
+                    .shadow(color: .green.opacity(matrixMode ? 0.7 : 0), radius: 14)
+                    .contentShape(.rect)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text(verbatim: "CloakDrop"))
 
             VStack(spacing: 3) {
                 Text(wordmark)
-                    .font(matrixMode
-                          ? .title2.weight(.semibold).monospaced()
-                          : .title2.weight(.semibold))
-                    .shadow(color: .green.opacity(matrixMode ? 0.8 : 0), radius: 8)
+                    .font(.title2.weight(.semibold))
                     .accessibilityLabel(Text(verbatim: "CloakDrop"))
                 Text("Version \(version)")
                     .font(.callout)
