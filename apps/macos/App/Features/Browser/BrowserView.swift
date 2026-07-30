@@ -319,18 +319,27 @@ struct BrowserView: View {
         .background(.background)
     }
 
+    @ViewBuilder
     private func loadErrorOverlay(_ error: BrowserLoadError) -> some View {
-        EmptyStateView(Text(error.message), systemImage: "wifi.exclamationmark") {
-            if let host = error.failingURL?.host() {
-                Text(host)
-                    .font(.callout.monospaced())
-                    .foregroundStyle(.secondary)
+        if error.isOffline {
+            BrowserOfflineView(
+                message: error.message,
+                host: error.failingURL?.host(),
+                onRetry: { session.retryAfterError() }
+            )
+        } else {
+            EmptyStateView(Text(error.message), systemImage: "wifi.exclamationmark") {
+                if let host = error.failingURL?.host() {
+                    Text(host)
+                        .font(.callout.monospaced())
+                        .foregroundStyle(.secondary)
+                }
+                Button("Try Again") { session.retryAfterError() }
+                    .keyboardShortcut(.defaultAction)
+                    .padding(.top, 4)
             }
-            Button("Try Again") { session.retryAfterError() }
-                .keyboardShortcut(.defaultAction)
-                .padding(.top, 4)
+            .background(.background)
         }
-        .background(.background)
     }
 
     // MARK: - JS dialogs

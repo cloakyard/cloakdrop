@@ -123,6 +123,7 @@ final class BrowserAuthRequest: Identifiable {
 struct BrowserLoadError {
     var message: String
     var failingURL: URL?
+    var isOffline = false
 }
 
 /// One browser window's state and behavior: owns the `WKWebView`, mirrors its observable state
@@ -462,13 +463,11 @@ final class BrowserSession: NSObject {
         return true
     }
 
-    func presentLoadError(_ message: String, failingURL: URL?) {
-        loadError = BrowserLoadError(message: message, failingURL: failingURL)
+    func presentLoadError(_ message: String, failingURL: URL?, isOffline: Bool = false) {
+        loadError = BrowserLoadError(message: message, failingURL: failingURL, isOffline: isOffline)
     }
 
-    func clearLoadError() {
-        loadError = nil
-    }
+    func clearLoadError() { loadError = nil }
 
     /// Resolve everything pending and detach from WebKit — called when the window goes away.
     /// (Un-called WebKit completion handlers are a hang/assert; never leave them dangling.)
