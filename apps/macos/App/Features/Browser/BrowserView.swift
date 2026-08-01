@@ -29,13 +29,7 @@ struct BrowserView: View {
             BrowserWebViewHost(session: session)
             // Load progress lives inside the address pill (see `loadingFill`), not as a separate bar.
             if session.isRunnerPresented {
-                BrowserOfflineView(
-                    message: String(localized: "Take a break with Cloak Runner."),
-                    host: nil,
-                    symbolName: "gamecontroller.fill",
-                    actionTitle: String(localized: "Back to Browsing"),
-                    onRetry: { session.dismissRunner() }
-                )
+                BrowserRunnerView()
             } else {
                 browserStateOverlay
             }
