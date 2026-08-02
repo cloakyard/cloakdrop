@@ -85,34 +85,22 @@ struct BrowserRunnerView: View {
 }
 
 /// A responsive Chrome-dino-style runner with a CloakDrop character. Space, ↑, or a click starts
-/// the run and jumps; obstacles speed up gradually. Only the integer high score is persisted.
+/// the run; the same controls jump while running. Obstacles speed up gradually. Only the integer
+/// high score is persisted.
 private struct OfflineRunnerView: View {
-    private enum Phase {
-        case ready
-        case running
-        case gameOver
-    }
-
-    private struct Obstacle: Identifiable {
-        let id = UUID()
-        var x: CGFloat
-        var variant: RunnerObstacleVariant
-        var hasPassedPlayer = false
-    }
-
     let trackHeight: CGFloat
 
     @AppStorage("browser.offlineRunner.highScore") private var highScore = 0
     @AppStorage("browser.offlineRunner.isMuted") private var isMuted = false
     @Environment(\.colorScheme) private var colorScheme
 
-    @State private var phase: Phase = .ready
+    @State private var phase: RunnerPhase = .ready
     @State private var score = 0.0
     @State private var finalScore = 0
     @State private var isNewBest = false
     @State private var playerHeight: CGFloat = 0
     @State private var playerVelocity: CGFloat = 0
-    @State private var obstacles: [Obstacle] = []
+    @State private var obstacles: [RunnerObstacle] = []
     @State private var obstacleCursor = 0
     @State private var nextGap: CGFloat = 280
     @State private var trackWidth: CGFloat = 520
@@ -154,8 +142,6 @@ private struct OfflineRunnerView: View {
                 runnerTrack(size: geometry.size)
                     .onAppear { updateTrackMetrics(for: geometry.size) }
                     .onChange(of: geometry.size) { _, size in updateTrackMetrics(for: size) }
-                    .contentShape(.rect)
-                    .onTapGesture { jumpOrStart() }
             }
             .frame(height: trackHeight)
 
@@ -199,19 +185,36 @@ private struct OfflineRunnerView: View {
     private var instruction: String {
         switch phase {
         case .ready:
-            String(localized: "Press Space, ↑, or click to start")
+            String(localized: "The trail starts when you do.")
         case .running:
             String(localized: "Space, ↑, or click to jump")
         case .gameOver:
             if isNewBest {
-                String(localized: "New best! Press Space to run again")
+                String(localized: "A new record — go again when you're ready.")
             } else {
-                String(localized: "Press Space to run again")
+                String(localized: "The trail is ready when you are.")
             }
         }
     }
 
+    @ViewBuilder
     private func runnerTrack(size: CGSize) -> some View {
+        if phase == .running {
+            runnerScene(size: size)
+                .contentShape(.rect)
+                .onTapGesture { jumpOrStart() }
+        } else {
+            Button(action: jumpOrStart) {
+                runnerScene(size: size)
+                    .contentShape(.rect)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(phase == .ready ? Text("Start Run") : Text("Run Again"))
+            .accessibilityHint("You can also press Space or the Up Arrow key")
+        }
+    }
+
+    private func runnerScene(size: CGSize) -> some View {
         let scale = sceneScale(for: size)
         let groundY = floor(size.height - 28 * scale)
         let groundDepth = size.height - groundY
@@ -219,22 +222,7 @@ private struct OfflineRunnerView: View {
         let isNight = colorScheme == .dark
 
         return ZStack {
-            LinearGradient(
-                colors: isNight
-                    ? [
-                        Color(red: 0.035, green: 0.075, blue: 0.16),
-                        Color(red: 0.07, green: 0.12, blue: 0.20),
-                        Color(red: 0.10, green: 0.16, blue: 0.19)
-                    ]
-                    : [
-                        Color.accentColor.opacity(0.10),
-                        Color.cyan.opacity(0.045),
-                        Color.green.opacity(0.055)
-                    ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .accessibilityHidden(true)
+            RunnerPixelSky(isNight: isNight)
 
             decorativeSky(in: size, scale: scale)
 
@@ -285,18 +273,13 @@ private struct OfflineRunnerView: View {
                 .accessibilityHidden(true)
 
             if phase != .running {
-                VStack(spacing: 3) {
-                    Text(phase == .ready ? "Ready?" : "Run over")
-                        .font(scale > 1.05 ? .title3.weight(.semibold) : .headline)
-                    if phase == .gameOver {
-                        Text("Score \(finalScore)")
-                            .font((scale > 1.05 ? Font.callout : Font.caption).monospacedDigit())
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .padding(.horizontal, 16 * min(scale, 1.25))
-                .padding(.vertical, 9 * min(scale, 1.25))
-                .background(.regularMaterial, in: Capsule())
+                RunnerPhasePanel(
+                    state: phase == .ready
+                        ? .ready(bestScore: highScore)
+                        : .finished(score: finalScore, bestScore: highScore, isNewBest: isNewBest),
+                    availableSize: size,
+                    isNight: isNight
+                )
                 .allowsHitTesting(false)
             }
         }
@@ -305,6 +288,7 @@ private struct OfflineRunnerView: View {
 
     private func decorativeSky(in size: CGSize, scale: CGFloat) -> some View {
         let isNight = colorScheme == .dark
+        let groundY = size.height - 28 * scale
 
         return ZStack {
             if isNight {
@@ -312,48 +296,42 @@ private struct OfflineRunnerView: View {
                     .frame(width: size.width, height: max(1, size.height * 0.64))
                     .position(x: size.width / 2, y: size.height * 0.30)
 
-                Image(systemName: "moon.fill")
-                    .font(.system(size: 48 * scale, weight: .medium))
-                    .foregroundStyle(Color(red: 0.89, green: 0.91, blue: 0.72).opacity(0.90))
-                    .shadow(color: .white.opacity(0.20), radius: 10 * scale)
-                    .position(x: size.width * 0.70, y: 50 * scale)
-            } else {
-                Image(systemName: "sun.max.fill")
-                    .font(.system(size: 48 * scale, weight: .medium))
-                    .foregroundStyle(Color.orange.opacity(0.54))
-                    .position(x: size.width * 0.70, y: 50 * scale)
             }
 
-            Image(systemName: "cloud.fill")
-                .font(.system(size: 54 * scale))
-                .foregroundStyle((isNight ? Color.white : Color.blue).opacity(isNight ? 0.10 : 0.18))
-                .scaleEffect(x: 1.15, y: 0.90)
+            RunnerPixelCelestialBody(isNight: isNight)
+                .frame(width: 76 * scale, height: 76 * scale)
+                .position(x: size.width * 0.70, y: 54 * scale)
+
+            RunnerPixelCloud(
+                isNight: isNight,
+                tint: Color(red: 0.49, green: 0.70, blue: 0.84),
+                variant: 0
+            )
+                .frame(width: 116 * scale, height: 52 * scale)
                 .position(x: size.width * 0.18, y: 58 * scale)
-            Image(systemName: "cloud.fill")
-                .font(.system(size: 38 * scale))
-                .foregroundStyle((isNight ? Color.white : Color.accentColor).opacity(isNight ? 0.08 : 0.16))
-                .scaleEffect(x: 1.20, y: 0.86)
+            RunnerPixelCloud(
+                isNight: isNight,
+                tint: Color(red: 0.47, green: 0.68, blue: 0.73),
+                variant: 1
+            )
+                .frame(width: 88 * scale, height: 40 * scale)
                 .position(x: size.width * 0.48, y: 92 * scale)
-            Image(systemName: "cloud.fill")
-                .font(.system(size: 46 * scale))
-                .foregroundStyle((isNight ? Color.white : Color.blue).opacity(isNight ? 0.09 : 0.13))
-                .scaleEffect(x: 1.10, y: 0.92)
+            RunnerPixelCloud(
+                isNight: isNight,
+                tint: Color(red: 0.55, green: 0.74, blue: 0.86),
+                variant: 2
+            )
+                .frame(width: 102 * scale, height: 46 * scale)
                 .position(x: size.width * 0.86, y: 68 * scale)
 
             flyingBirds(in: size, scale: scale, isNight: isNight)
 
-            Image(systemName: "mountain.2.fill")
-                .font(.system(size: 104 * scale, weight: .regular))
-                .foregroundStyle((isNight ? Color.indigo : Color.green).opacity(isNight ? 0.22 : 0.075))
-                .position(x: size.width * 0.22, y: size.height - 52 * scale)
-            Image(systemName: "mountain.2.fill")
-                .font(.system(size: 142 * scale, weight: .regular))
-                .foregroundStyle((isNight ? Color.blue : Color.accentColor).opacity(isNight ? 0.15 : 0.07))
-                .position(x: size.width * 0.54, y: size.height - 65 * scale)
-            Image(systemName: "mountain.2.fill")
-                .font(.system(size: 92 * scale, weight: .regular))
-                .foregroundStyle((isNight ? Color.indigo : Color.green).opacity(isNight ? 0.18 : 0.065))
-                .position(x: size.width * 0.84, y: size.height - 48 * scale)
+            RunnerPixelMountains(isNight: isNight, layer: .distant, variant: 1)
+                .frame(width: size.width, height: 110 * scale)
+                .position(x: size.width / 2, y: groundY - 55 * scale)
+            RunnerPixelMountains(isNight: isNight, layer: .near, variant: 2)
+                .frame(width: size.width * 0.92, height: 156 * scale)
+                .position(x: size.width / 2, y: groundY - 78 * scale)
         }
         .accessibilityHidden(true)
     }
@@ -414,7 +392,7 @@ private struct OfflineRunnerView: View {
         playerVelocity = 0
         obstacleCursor = Int.random(in: 0..<RunnerObstacleVariant.spawnOrder.count)
         let firstTree = RunnerObstacleVariant.roundTree
-        obstacles = [Obstacle(
+        obstacles = [RunnerObstacle(
             x: max(trackWidth, 360) + 54 * trackScale,
             variant: firstTree
         )]
@@ -463,7 +441,7 @@ private struct OfflineRunnerView: View {
                 variant = RunnerObstacleVariant.spawnOrder[obstacleCursor % RunnerObstacleVariant.spawnOrder.count]
                 obstacleCursor += 1
             }
-            obstacles.append(Obstacle(
+            obstacles.append(RunnerObstacle(
                 x: trackWidth + 48 * trackScale,
                 variant: variant
             ))
@@ -475,7 +453,7 @@ private struct OfflineRunnerView: View {
         }
     }
 
-    private func collides(with obstacle: Obstacle) -> Bool {
+    private func collides(with obstacle: RunnerObstacle) -> Bool {
         let playerX = 96 * trackScale
         // The sprite's cape trails left of its body. Keep the hitbox on the torso so landing after
         // a tree has passed cannot punish the player for a few decorative cloak pixels.
