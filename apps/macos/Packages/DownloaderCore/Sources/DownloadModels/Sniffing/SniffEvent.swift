@@ -40,8 +40,8 @@ public struct SniffEvent: Sendable {
         /// event (the stream carries encrypted init data). Deliberately NOT the
         /// `requestMediaKeySystemAccess` capability probe, which players run on clear content too.
         case drm
-        /// A page snapshot: URL, title, and every player's kind/on-screen area (for the
-        /// primary-player pick). Sent by the top frame only, repeated as the page changes.
+        /// A frame snapshot: URL, title, and every player's kind/on-screen area (for the
+        /// primary-player/frame pick). Every frame sends it; only top-frame metadata is trusted.
         case page
         /// The page navigated in place (history API, URL change sans fragment) — reset state.
         case navigated
@@ -56,6 +56,9 @@ public struct SniffEvent: Sendable {
     public var contentDisposition: String?
     public var tag: String?
     public var duration: Double?
+    /// Visible element area reported with a media src; helps choose the main post/player when one
+    /// frame contains several videos (quoted posts, hover previews, or inline promos).
+    public var area: Double?
     public var blob: Bool?
     public var mime: String?
     public var keySystem: String?
@@ -72,6 +75,7 @@ public struct SniffEvent: Sendable {
         contentDisposition: String? = nil,
         tag: String? = nil,
         duration: Double? = nil,
+        area: Double? = nil,
         blob: Bool? = nil,
         mime: String? = nil,
         keySystem: String? = nil,
@@ -87,6 +91,7 @@ public struct SniffEvent: Sendable {
         self.contentDisposition = contentDisposition
         self.tag = tag
         self.duration = duration
+        self.area = area
         self.blob = blob
         self.mime = mime
         self.keySystem = keySystem

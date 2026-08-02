@@ -242,11 +242,18 @@ extension BrowserSession: WKScriptMessageHandler {
 extension BrowserSession: WKDownloadDelegate {
     func download(_ download: WKDownload, decideDestinationUsing response: URLResponse, suggestedFilename: String) async -> URL? {
         if let url = response.url ?? download.originalRequest?.url {
+            let length = response.expectedContentLength > 0 ? response.expectedContentLength : nil
+            // Length alone is not a reason to reject an explicit download: a tiny .zip/.pdf can be
+            // perfectly legitimate. Host/route/chunk noise still blocks forced ad downloads here;
+            // the response length remains available to the media classifier below.
+            guard !MediaSniffer.isNoise(url.absoluteString) else {
+                return nil   // an ad creative/ping that tried to force a browser download
+            }
             let http = response as? HTTPURLResponse
             let classified = MediaSniffer.classifyByContentType(
                 url.absoluteString,
                 contentType: response.mimeType,
-                contentLength: response.expectedContentLength > 0 ? response.expectedContentLength : nil,
+                contentLength: length,
                 contentDisposition: http?.value(forHTTPHeaderField: "Content-Disposition")
             )
             // A downloaded manifest routes as a stream (quality picker); everything else is a file.

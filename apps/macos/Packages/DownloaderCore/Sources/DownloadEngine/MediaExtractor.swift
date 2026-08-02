@@ -62,6 +62,26 @@ public struct ExtractedMedia: Sendable, Hashable {
     /// manifest sub-protocol or DASH-segment stream).
     public var directFormats: [ExtractedFormat] { formats.filter(\.isDirectFile) }
 
+    /// One adaptive manifest to hand back to the app's own HLS/DASH resolver when an extractor has
+    /// no direct-file formats. yt-dlp often expands a master into several per-quality playlists;
+    /// choosing the highest known resolution/bitrate keeps the page grab a single deterministic
+    /// item. A master with no dimensions remains the fallback when it is the only manifest.
+    public var preferredManifestFormat: ExtractedFormat? {
+        let manifests = formats.filter { format in
+            guard format.url.scheme == "http" || format.url.scheme == "https" else { return false }
+            let proto = (format.proto ?? "").lowercased()
+            return proto == "m3u8" || proto == "m3u8_native"
+                || ["m3u8", "m3u", "mpd"].contains(format.url.pathExtension.lowercased())
+        }
+        return manifests.max { lhs, rhs in
+            let left = (lhs.height ?? 0, lhs.width ?? 0, lhs.tbr ?? 0)
+            let right = (rhs.height ?? 0, rhs.width ?? 0, rhs.tbr ?? 0)
+            if left.0 != right.0 { return left.0 < right.0 }
+            if left.1 != right.1 { return left.1 < right.1 }
+            return left.2 < right.2
+        }
+    }
+
     /// The single header set to apply to the download. yt-dlp reports per-format headers, but for a
     /// given extraction every format shares the same `User-Agent` (and `Cookie`, when needed), and the
     /// engine applies one header set per download — so the best video/progressive format's headers are
@@ -69,7 +89,7 @@ public struct ExtractedMedia: Sendable, Hashable {
     public var downloadHeaders: [String: String] {
         let ranked = directFormats.filter { $0.isVideoOnly || $0.isProgressive }
             .sorted { ($0.height ?? 0) > ($1.height ?? 0) }
-        return (ranked.first ?? directFormats.first)?.httpHeaders ?? [:]
+        return (ranked.first ?? directFormats.first ?? preferredManifestFormat)?.httpHeaders ?? [:]
     }
 }
 

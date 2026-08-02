@@ -109,14 +109,36 @@ public extension ExtractedMedia {
         guard let urlString = jsonString(raw["url"]), let url = URL(string: urlString) else { return nil }
         let ext = jsonString(raw["ext"]) ?? (url.pathExtension.isEmpty ? "bin" : url.pathExtension)
         let formatID = jsonString(raw["format_id"]) ?? jsonString(raw["format"]) ?? url.lastPathComponent
+        let proto = jsonString(raw["protocol"])
+        let width = jsonInt(raw["width"])
+        let height = jsonInt(raw["height"])
+        var vcodec = jsonString(raw["vcodec"])
+        var acodec = jsonString(raw["acodec"])
+
+        // Several extractors (Vimeo, Flickr, Imgur, LinkedIn, Snapchat, TED, …) know that a direct
+        // MP4/WebM is a video but omit both codec fields. Treat a direct HTTP(S) URL whose declared
+        // container is unambiguously video as an opaque progressive file: the engine downloads it
+        // unchanged, so it does not need the actual codec names. A resolution is intentionally not
+        // required — some single-file extractors report neither dimensions nor codecs. Never infer
+        // this for manifests or audio/image/document extensions; those need their own evidence.
+        let directProtocols: Set<String> = ["", "http", "https"]
+        let muxedVideoExtensions: Set<String> = [
+            "mp4", "m4v", "mov", "webm", "mkv", "avi", "flv", "mpeg", "mpg", "3gp", "ogv"
+        ]
+        if vcodec == nil, acodec == nil,
+           directProtocols.contains((proto ?? "").lowercased()),
+           muxedVideoExtensions.contains(ext.lowercased()) {
+            vcodec = "unknown"
+            acodec = "unknown"
+        }
         return ExtractedFormat(
             formatID: formatID, url: url, ext: ext,
-            vcodec: jsonString(raw["vcodec"]), acodec: jsonString(raw["acodec"]),
-            width: jsonInt(raw["width"]), height: jsonInt(raw["height"]), fps: jsonDouble(raw["fps"]),
+            vcodec: vcodec, acodec: acodec,
+            width: width, height: height, fps: jsonDouble(raw["fps"]),
             tbr: jsonDouble(raw["tbr"]), abr: jsonDouble(raw["abr"]),
             filesize: jsonInt64(raw["filesize"]) ?? jsonInt64(raw["filesize_approx"]),
             language: jsonString(raw["language"]),
-            proto: jsonString(raw["protocol"]), httpHeaders: jsonHeaders(raw["http_headers"])
+            proto: proto, httpHeaders: jsonHeaders(raw["http_headers"])
         )
     }
 

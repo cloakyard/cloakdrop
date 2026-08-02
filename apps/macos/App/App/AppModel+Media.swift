@@ -3,8 +3,8 @@ import DownloadModels
 import DownloadEngine
 
 /// A resolved media stream plus the request context, awaiting the user's quality pick in the picker.
-/// `extracted` is present when the stream came from the *page extractor* (yt-dlp): its variants are
-/// already resolved (direct URLs), so confirming builds the plan locally with no further fetch.
+/// `extracted` is present when the stream came from the *page extractor* (yt-dlp), either as direct
+/// URLs or through one adaptive manifest subsequently resolved by CloakDrop's own media resolver.
 struct MediaSelection: Identifiable {
     let id = UUID()
     let stream: MediaStream
@@ -90,10 +90,6 @@ extension AppModel {
                 let media = try await extractor.extract(
                     pageURL: capture.url, cookies: cookies, userAgent: capture.userAgent
                 )
-                guard let stream = media.toMediaStream(pageURL: capture.url) else {
-                    presentMediaError(Self.friendlyExtractionMessage(.noGrabbableFormats))
-                    return
-                }
                 let destination = destinationDirectoryPath ?? AppEnvironment.defaultDownloadsDirectory().path
                 var request = capture.toRequest(
                     destinationDirectoryPath: destination, destinationBookmark: destinationBookmark
@@ -102,7 +98,22 @@ extension AppModel {
                 // actually fetch the deciphered URLs — apply them over the capture's.
                 for (name, value) in media.downloadHeaders { request.requestHeaders[name] = value }
                 request.suggestedFileName = nil                       // named from the title per tier below
-                routeStream(stream, request: request, extracted: media, forcePicker: forcePicker)
+                if let stream = media.toMediaStream(pageURL: capture.url) {
+                    routeStream(stream, request: request, extracted: media, forcePicker: forcePicker)
+                    return
+                }
+                // Some otherwise well-supported sites expose only HLS/DASH formats through yt-dlp
+                // (AcFun anime and Loom are current examples). yt-dlp remains a read-only oracle:
+                // choose one manifest, then let CloakDrop fetch/parse/download every media byte.
+                if let manifest = media.preferredManifestFormat {
+                    let headers = Self.mediaHeaders(for: request)
+                    if let stream = try? await manager.resolveMediaStream(url: manifest.url, headers: headers),
+                       !stream.variants.isEmpty {
+                        routeStream(stream, request: request, extracted: media, forcePicker: forcePicker)
+                        return
+                    }
+                }
+                presentMediaError(Self.friendlyExtractionMessage(.noGrabbableFormats))
             } catch let error as MediaExtractionError {
                 presentMediaError(Self.friendlyExtractionMessage(error))
             } catch {

@@ -62,8 +62,11 @@ public enum MediaSniffer {
         "mp3", "m4a", "aac", "flac", "wav", "ogg", "oga", "opus", "weba"
     ]
     public static let fileExtensions: Set<String> = [
-        "zip", "rar", "7z", "tar", "gz", "tgz", "bz2", "xz", "dmg", "pkg", "iso",
-        "exe", "msi", "apk", "deb", "rpm", "pdf", "epub"
+        "zip", "rar", "7z", "tar", "gz", "tgz", "bz2", "xz", "zst", "cab", "jar", "war",
+        "whl", "nupkg", "vsix", "dmg", "pkg", "iso", "img", "ova", "qcow2", "vhd", "vhdx",
+        "appimage", "exe", "msi", "apk", "xapk", "apkm", "ipa", "deb", "rpm", "crx", "xpi",
+        "torrent", "safetensors", "gguf", "pdf", "epub", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
+        "odt", "ods", "odp", "rtf"
     ]
     public static let segmentExtensions: Set<String> = ["ts", "m4s", "cmfv", "cmfa", "cmft", "cmfm"]
     static let audioExtensions: Set<String> = ["mp3", "m4a", "aac", "flac", "wav", "ogg", "oga", "opus", "weba"]
@@ -75,12 +78,20 @@ public enum MediaSniffer {
         "application/zip", "application/x-zip-compressed",
         "application/x-rar-compressed", "application/vnd.rar", "application/x-7z-compressed",
         "application/x-tar", "application/gzip", "application/x-gzip", "application/x-xz",
-        "application/x-bzip2",
+        "application/x-bzip2", "application/zstd", "application/x-xar", "application/java-archive",
+        "application/vnd.ms-cab-compressed", "application/vnd.microsoft.portable-executable",
         "application/pdf", "application/epub+zip",
         "application/x-apple-diskimage", "application/x-iso9660-image",
+        "application/x-bittorrent", "application/x-xpinstall", "application/vnd.google-chrome-extension",
         "application/vnd.android.package-archive",
         "application/x-msdownload", "application/x-msdos-program", "application/x-msi",
-        "application/x-debian-package", "application/x-rpm", "application/x-redhat-package-manager"
+        "application/x-debian-package", "application/x-rpm", "application/x-redhat-package-manager",
+        "application/msword", "application/vnd.ms-excel", "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "application/vnd.oasis.opendocument.text", "application/vnd.oasis.opendocument.spreadsheet",
+        "application/vnd.oasis.opendocument.presentation", "application/rtf", "text/rtf"
     ]
 
     /// URL substrings that mark analytics / telemetry / ad pings — never downloadable media.
@@ -112,10 +123,30 @@ public enum MediaSniffer {
         "contextweb.com", "sonobi.com", "gumgum.com", "sharethrough.com", "media.net",
         "zedo.com", "yieldlab.net", "improvedigital.com", "smartclip.net", "adroll.com",
         "bidswitch.net", "mgid.com", "revcontent.com", "applovin.com", "vungle.com", "inmobi.com",
+        // Hosted outstream/pre-roll platforms. Their player/creative CDNs often use ordinary .mp4
+        // names, so URL-extension classification alone cannot distinguish them from page content.
+        "connatix.com", "vidazoo.com", "primis.tech", "playwire.com", "playwiremedia.com",
+        "lijit.com", "sovrn.com", "anyclip.com", "undertone.com", "yieldlove.com",
         // Pop/banner networks that dominate video-piracy and adult sites — the pages where a
         // sniffer sees the most third-party "media" that is really an ad creative.
         "exoclick.com", "trafficjunky.net", "juicyads.com", "popads.net", "propellerads.com",
-        "adsterra.com", "hilltopads.net", "adcash.com", "popcash.net", "tsyndicate.com"
+        "adsterra.com", "hilltopads.net", "adcash.com", "popcash.net", "tsyndicate.com",
+        "onclickalgo.com", "clickadu.com", "ad-maven.com"
+    ]
+    /// High-confidence ad-video route markers for first-party proxy/CDN URLs. These are matched as
+    /// whole path components (or an unambiguous roll-prefixed filename), never as loose substrings:
+    /// a movie called `Ad Astra.mp4` must not disappear merely because its title begins with "ad".
+    static let adPathComponents: Set<String> = [
+        "ad", "ads", "advert", "adverts", "advertisement", "advertisements", "commercial",
+        "commercials", "preroll", "pre-roll", "midroll", "mid-roll", "postroll", "post-roll",
+        "vast", "vmap", "adcreative", "ad-creative", "adserver", "ad-server"
+    ]
+    /// Query keys used specifically to carry an ad decision/tag/creative. Exact key matching avoids
+    /// false positives from innocent values that happen to contain words such as "creative".
+    static let adQueryNames: Set<String> = [
+        "adtag", "ad_tag", "adtagurl", "ad_tag_url", "adunit", "ad_unit", "adslot", "ad_slot",
+        "creative_id", "creativeid", "campaign_id", "campaignid", "vast_url", "vmap_url",
+        "preroll", "midroll", "postroll"
     ]
     /// Generic UI / notification sound basenames (site-agnostic). These short, generically-named
     /// audio clips are overwhelmingly interface sounds, not content — this kills YouTube's
@@ -196,6 +227,27 @@ public enum MediaSniffer {
         return adHostSuffixes.contains { h == $0 || h.hasSuffix("." + $0) }
     }
 
+    /// Whether a URL explicitly identifies itself as an ad creative/tag even when it is proxied
+    /// through the site's own CDN. Deliberately conservative: exact path components/query names and
+    /// roll-prefixed filenames only.
+    static func hasAdRouteMarker(_ url: String) -> Bool {
+        guard let components = URLComponents(string: url) else { return false }
+        let pathParts = components.path.lowercased().split(separator: "/").map(String.init)
+        if pathParts.contains(where: { part in
+            if adPathComponents.contains(part) { return true }
+            return part.firstMatch(of: /^(?:pre|mid|post)[-_]?roll(?:[-_.]\d+|[-_.](?:creative|video|spot))?/) != nil
+                || part.firstMatch(of: /^(?:vast|vmap)[-_.]/) != nil
+        }) { return true }
+        return components.queryItems?.contains { item in
+            let name = item.name.lowercased()
+            if adQueryNames.contains(name) { return true }
+            let value = (item.value ?? "").lowercased()
+            if name == "ad" { return ["1", "true", "yes", "video"].contains(value) }
+            return ["content_type", "kind", "media_type", "type"].contains(name)
+                && ["ad", "advert", "advertisement", "commercial", "preroll", "midroll", "postroll"].contains(value)
+        } == true
+    }
+
     /// True when a URL/response is noise we must never surface as downloadable media. `contentLength`
     /// comes from response headers when known.
     public static func isNoise(_ url: String, contentLength: Int64? = nil) -> Bool {
@@ -206,6 +258,8 @@ public enum MediaSniffer {
         if host.hasSuffix("googlevideo.com") { return true }
         // Third-party ad-network media is an advertisement, never the page's own content.
         if isAdHost(host) { return true }
+        // First-party ad proxy / creative paths (VAST, pre-roll, adserver, …).
+        if hasAdRouteMarker(url) { return true }
         if beaconHints.contains(where: { lower.contains($0) }) { return true }
         let ext = extensionOf(url)
         if segmentExtensions.contains(ext) { return true }

@@ -55,13 +55,14 @@ public struct YtDlpExtractor: MediaExtractor {
         }
         arguments.append(pageURL.absoluteString)
 
-        let result: ProcessRunResult
-        do {
-            result = try await runner.run(executable: executableURL, arguments: arguments, timeout: timeout)
-        } catch let error as MediaExtractionError {
-            throw error
-        } catch {
-            throw MediaExtractionError.toolUnavailable
+        var result = try await run(arguments: arguments)
+        if result.exitCode != 0, let fallbackURL = Self.vimeoPlayerFallbackURL(for: pageURL) {
+            // Vimeo's public watch page can reject the resolver's API bootstrap even though the
+            // equivalent first-party player URL remains public and returns the same video's formats.
+            // Retry only canonical numeric public routes; private/hash routes deliberately do not
+            // qualify, and every other site keeps its single normal attempt.
+            arguments[arguments.count - 1] = fallbackURL.absoluteString
+            result = try await run(arguments: arguments)
         }
 
         guard result.exitCode == 0 else {
@@ -70,6 +71,28 @@ public struct YtDlpExtractor: MediaExtractor {
         }
         guard !result.stdout.isEmpty else { throw MediaExtractionError.invalidOutput }
         return try ExtractedMedia.parse(json: result.stdout)
+    }
+
+    private func run(arguments: [String]) async throws -> ProcessRunResult {
+        do {
+            return try await runner.run(executable: executableURL, arguments: arguments, timeout: timeout)
+        } catch let error as MediaExtractionError {
+            throw error
+        } catch {
+            throw MediaExtractionError.toolUnavailable
+        }
+    }
+
+    private static func vimeoPlayerFallbackURL(for pageURL: URL) -> URL? {
+        let host = pageURL.host?.lowercased()
+        guard host == "vimeo.com" || host == "www.vimeo.com" else { return nil }
+        let path = pageURL.path.split(separator: "/")
+        guard let rawID = path.last, !rawID.isEmpty, rawID.allSatisfy(\.isNumber) else { return nil }
+        var components = URLComponents()
+        components.scheme = pageURL.scheme
+        components.host = "player.vimeo.com"
+        components.path = "/video/\(rawID)"
+        return components.url
     }
 
     public func version() async -> String? {
