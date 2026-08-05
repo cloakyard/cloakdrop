@@ -9,7 +9,7 @@ struct SniffEnvelopeTests {
         {"v":1,"frame":"https://site.example.com/watch","top":true,"events":[
           {"kind":"resource","url":"https://cdn.example.com/master.m3u8","initiator":"fetch","size":1200},
           {"kind":"response","url":"https://x.com/live?id=9","contentType":"application/vnd.apple.mpegurl"},
-          {"kind":"element","url":"https://cdn.example.com/movie.mp4","tag":"video","duration":12.5},
+          {"kind":"element","url":"https://cdn.example.com/movie.mp4","tag":"video","duration":12.5,"area":921600},
           {"kind":"mse","url":"mse:video/mp4","mime":"video/mp4; codecs=\\"avc1\\""},
           {"kind":"drm","url":"drm:com.apple.fps","keySystem":"com.apple.fps"},
           {"kind":"page","url":"https://site.example.com/watch","title":"A Video","players":[{"video":true,"area":409920}],"blob":true},
@@ -24,6 +24,7 @@ struct SniffEnvelopeTests {
         #expect(envelope.events[0].kind == .resource)
         #expect(envelope.events[0].size == 1200)
         #expect(envelope.events[3].mime == "video/mp4; codecs=\"avc1\"")
+        #expect(envelope.events[2].area == 921_600)
         #expect(envelope.events[5].players == [MediaSniffer.SniffedPlayer(video: true, area: 409_920)])
         #expect(envelope.events[5].blob == true)
     }
@@ -72,7 +73,7 @@ struct PageMediaStateTests {
         SniffEnvelope(frameURL: frame, isTopFrame: top, events: events)
     }
 
-    @Test func classifiesResourcesResponsesAndElementsIntoCandidates() {
+    @Test func classifiesResourcesResponsesAndElementsAndSelectsOnePrimaryCandidate() {
         var state = PageMediaState(pageURL: "https://site.example.com/watch")
         state.apply(envelope([
             SniffEvent(kind: .resource, url: "https://cdn.example.com/vod/master.m3u8"),
@@ -81,8 +82,9 @@ struct PageMediaStateTests {
             SniffEvent(kind: .resource, url: "https://cdn.example.com/app.js"),          // not media
             SniffEvent(kind: .resource, url: "https://cdn.example.com/seg00042.ts")      // segment noise
         ]))
-        #expect(state.candidates.count == 3)
-        #expect(state.candidates.filter { $0.type == .stream }.count == 2)
+        #expect(state.recordedCount == 3, "all plausible sightings remain available to the selector")
+        #expect(state.candidates.count == 1, "the browser shelf exposes one primary grab")
+        #expect(state.candidates.first?.type == .page, "unrelated manifests are resolved instead of guessed")
     }
 
     @Test func responsesFallBackToURLClassificationWhenHeadersSayNothing() {
@@ -191,6 +193,276 @@ struct PageMediaStateTests {
         #expect(state.pageTitle.isEmpty, "iframe page state is not trusted")
         #expect(state.players.isEmpty)
     }
+
+    @Test("Known video sites use one extractor grab and discard player/ad resources")
+    func knownVideoSiteUsesExtractorOnly() throws {
+        var state = PageMediaState(pageURL: "https://www.youtube.com/watch?v=BaW_jenozKc")
+        state.apply(envelope([
+            SniffEvent(kind: .resource, url: "https://r1---sn.example.googlevideo.com/videoplayback?id=main"),
+            SniffEvent(kind: .resource, url: "https://imasdk.googleapis.com/video/preroll.mp4"),
+            SniffEvent(kind: .resource, url: "https://fallback-cdn.example.com/player/master.m3u8"),
+            SniffEvent(kind: .mse, url: "mse:video/mp4", mime: "video/mp4"),
+            SniffEvent(kind: .page, url: "https://www.youtube.com/watch?v=BaW_jenozKc",
+                       blob: true, title: "yt-dlp test video", players: [.init(video: true, area: 854 * 480)])
+        ]))
+        let item = try #require(state.candidates.only)
+        #expect(item.type == .page)
+        #expect(item.extract)
+        #expect(item.url == "https://www.youtube.com/watch?v=BaW_jenozKc")
+    }
+
+    @Test("Mainstream video-site watch routes always reduce to one page grab")
+    func mainstreamVideoSiteCorpus() throws {
+        let pages = [
+            "https://vimeo.com/76979871",
+            "https://www.twitch.tv/videos/123456",
+            "https://www.dailymotion.com/video/x9abcde",
+            "https://soundcloud.com/creator/track-name",
+            "https://www.bilibili.com/video/BV1gi4y1V7Xx"
+        ]
+        for page in pages {
+            var state = PageMediaState(pageURL: page)
+            state.apply(envelope([
+                SniffEvent(kind: .resource, url: "https://cdn.example.com/preroll/ad.mp4"),
+                SniffEvent(kind: .resource, url: "https://cdn.example.com/program/master.m3u8"),
+                SniffEvent(kind: .page, url: page, blob: true, title: "Program",
+                           players: [.init(video: true, area: 1280 * 720)])
+            ], frame: page))
+            let item = try #require(state.candidates.only, "\(page) did not produce exactly one grab")
+            #expect(item.type == .page, "\(page) should go through the resolver")
+            #expect(item.url == page)
+        }
+    }
+
+    @Test("Additional live-verified media routes reduce to one extractor grab")
+    func expandedVideoSiteCorpus() throws {
+        let pages = [
+            "https://rumble.com/embed/v5pv5f",
+            "https://odysee.com/@channel:1/video:e",
+            "https://www.ted.com/talks/a_public_talk",
+            "https://www.loom.com/share/43d05f362f734614a2e81b4694a3a523",
+            "https://medal.tv/games/valorant/clips/jTBFnLKdLy15K",
+            "https://www.nicovideo.jp/watch/sm8628149",
+            "https://artist.bandcamp.com/track/a-song",
+            "https://www.mixcloud.com/artist/a-mix/",
+            "https://kick.com/user?clip=clip_123",
+            "https://vk.com/video205387401_165548505",
+            "https://www.snapchat.com/spotlight/ABC123",
+            "https://streamable.com/dnd1",
+            "https://rutube.ru/video/3eac3b4561676c17df9132a9a1e62e3e/",
+            "https://www.acfun.cn/v/ac35457073",
+            "https://www.hidive.com/stream/show/s01e001",
+        ]
+        for page in pages {
+            let state = PageMediaState(pageURL: page)
+            let item = try #require(state.candidates.only, "\(page) did not produce exactly one grab")
+            #expect(item.type == .page)
+            #expect(item.url == page)
+        }
+    }
+
+    @Test("Mixed and unreliable social sites prefer one observed program URL over their page endpoint")
+    func observedFirstSitesUsePrimaryProgram() throws {
+        let cases = [
+            "https://www.tiktok.com/@creator/video/123456",
+            "https://www.facebook.com/reel/123456",
+            "https://x.com/creator/status/123456",
+            "https://www.instagram.com/reel/ABC123/",
+            "https://www.reddit.com/r/videos/comments/abc123/title/",
+            "https://www.linkedin.com/posts/creator_video-activity-7151241570371948544",
+            "https://bsky.app/profile/creator.example/post/3l3vgf77uco2g",
+        ]
+        for page in cases {
+            var state = PageMediaState(pageURL: page)
+            state.apply(envelope([
+                SniffEvent(kind: .page, url: page, players: [.init(video: true, area: 1280 * 720)]),
+                SniffEvent(kind: .element, url: "https://ads.example.com/preroll/creative.mp4",
+                           tag: "video", duration: 15),
+                SniffEvent(kind: .element, url: "https://first-party-cdn.example/program.mp4",
+                           tag: "video", duration: 600),
+            ], frame: page))
+
+            let item = try #require(state.candidates.only)
+            #expect(item.type == .video)
+            #expect(item.url.hasSuffix("program.mp4"))
+        }
+    }
+
+    @Test("A mixed social-post route appears only after actual media activity")
+    func mixedPostRequiresObservedMedia() throws {
+        let page = "https://x.com/creator/status/123456"
+        var state = PageMediaState(pageURL: page)
+        #expect(state.candidates.isEmpty, "a text/image-only post must not show a fake video grab")
+
+        state.apply(envelope([
+            SniffEvent(kind: .page, url: page, blob: true, title: "Post video",
+                       players: [.init(video: true, area: 1280 * 720)])
+        ], frame: page))
+        let item = try #require(state.candidates.only)
+        #expect(item.type == .page)
+        #expect(item.url == page)
+    }
+
+    @Test("A Bilibili anime watch page resolves as one extractor item")
+    func bilibiliAnimeUsesSinglePageExtraction() throws {
+        let page = "https://www.bilibili.com/bangumi/play/ep100643"
+        var state = PageMediaState(pageURL: page)
+        state.apply(envelope([
+            SniffEvent(kind: .resource, url: "https://content.example.com/episode/master.m3u8"),
+            SniffEvent(kind: .resource, url: "https://ads.example.net/preroll/creative.mp4"),
+            SniffEvent(kind: .page, url: page, blob: true, title: "Episode 1",
+                       players: [.init(video: true, area: 1280 * 720)])
+        ], frame: page))
+        let item = try #require(state.candidates.only)
+        #expect(item.type == .page)
+        #expect(item.url == page)
+    }
+
+    @Test("DRM on the primary anime player suppresses every media grab")
+    func primaryPlayerDRMSuppressesMedia() {
+        let page = "https://www.hidive.com/video/123456"
+        var state = PageMediaState(pageURL: page)
+        state.apply(envelope([
+            SniffEvent(kind: .page, url: page, blob: true, title: "Protected episode",
+                       players: [.init(video: true, area: 1280 * 720)]),
+            SniffEvent(kind: .drm, url: "drm:mediakeys"),
+            SniffEvent(kind: .resource, url: "https://content.example.com/episode/master.m3u8")
+        ], frame: page))
+        #expect(state.drmDetected)
+        #expect(state.candidates.isEmpty)
+    }
+
+    @Test("A small DRM ad iframe cannot poison a larger clear embedded player")
+    func adFrameDRMDoesNotPoisonPrimaryPlayer() throws {
+        let page = "https://watch.example.com/episode/1"
+        var state = PageMediaState(pageURL: page)
+        state.apply(envelope([
+            SniffEvent(kind: .page, url: page, title: "Episode 1", players: [])
+        ], frame: page))
+        state.apply(envelope([
+            SniffEvent(kind: .page, url: "https://ad-player.example/frame",
+                       players: [.init(video: true, area: 300 * 169)]),
+            SniffEvent(kind: .drm, url: "drm:mediakeys"),
+            SniffEvent(kind: .resource, url: "https://unknown-cdn.example/promo.mp4")
+        ], top: false, frame: "https://ad-player.example/frame"))
+        state.apply(envelope([
+            SniffEvent(kind: .page, url: "https://player.example/embed/episode-1",
+                       players: [.init(video: true, area: 1280 * 720)]),
+            SniffEvent(kind: .resource, url: "https://media.example.com/episode-1/master.m3u8")
+        ], top: false, frame: "https://player.example/embed/episode-1"))
+
+        #expect(!state.drmDetected)
+        let item = try #require(state.candidates.only)
+        #expect(item.url.contains("episode-1/master.m3u8"))
+    }
+
+    @Test("The largest embedded player wins over a generic-CDN video ad")
+    func largestPlayerFrameWins() throws {
+        var state = PageMediaState(pageURL: "https://anime.example/watch/42")
+        state.apply(envelope([
+            SniffEvent(kind: .page, url: "https://promo-player.example/embed",
+                       players: [.init(video: true, area: 300 * 169)]),
+            SniffEvent(kind: .element, url: "https://neutral-cdn.example/promo-spot.mp4",
+                       tag: "video", duration: 20)
+        ], top: false, frame: "https://promo-player.example/embed"))
+        state.apply(envelope([
+            SniffEvent(kind: .page, url: "https://episode-player.example/embed/42",
+                       players: [.init(video: true, area: 1280 * 720)]),
+            SniffEvent(kind: .resource, url: "https://stream.example.com/show/42/master.m3u8"),
+            SniffEvent(kind: .resource, url: "https://stream.example.com/show/42/720p/index.m3u8")
+        ], top: false, frame: "https://episode-player.example/embed/42"))
+
+        let item = try #require(state.candidates.only)
+        #expect(item.type == .stream)
+        #expect(item.url.contains("show/42/master.m3u8"))
+        #expect(!item.url.contains("promo"))
+    }
+
+    @Test("Unmarked ad/program streams in one player resolve the page instead of guessing")
+    func ambiguousStreamsUsePageExtraction() throws {
+        let frame = "https://player.example/embed/42"
+        var state = PageMediaState(pageURL: "https://watch.example.com/42")
+        state.apply(envelope([
+            SniffEvent(kind: .page, url: frame, players: [.init(video: true, area: 1280 * 720)]),
+            // Neither URL has an ad marker: ordering cannot distinguish pre-roll from post-roll.
+            SniffEvent(kind: .response, url: "https://cdn-one.example/v/first.m3u8",
+                       contentType: "application/vnd.apple.mpegurl", contentLength: 2_000),
+            SniffEvent(kind: .response, url: "https://cdn-two.example/v/episode-42.m3u8",
+                       contentType: "application/vnd.apple.mpegurl", contentLength: 2_000)
+        ], top: false, frame: frame))
+
+        let item = try #require(state.candidates.only)
+        #expect(item.type == .page)
+        #expect(item.url == "https://watch.example.com/42")
+    }
+
+    @Test("A marked roll stream is removed and leaves the one program master")
+    func markedRollLeavesDirectProgram() throws {
+        let page = "https://watch.example.com/42"
+        var state = PageMediaState(pageURL: page)
+        state.apply(envelope([
+            SniffEvent(kind: .page, url: page, players: [.init(video: true, area: 1280 * 720)]),
+            SniffEvent(kind: .response, url: "https://cdn.example.com/preroll/spot.m3u8",
+                       contentType: "application/vnd.apple.mpegurl"),
+            SniffEvent(kind: .response, url: "https://cdn.example.com/show/42/master.m3u8",
+                       contentType: "application/vnd.apple.mpegurl"),
+        ], frame: page))
+
+        let item = try #require(state.candidates.only)
+        #expect(item.type == .stream)
+        #expect(item.url.contains("show/42/master.m3u8"))
+    }
+
+    @Test("Multiple direct videos reduce to the longest primary-player source")
+    func longestElementSourceWins() throws {
+        let page = "https://video.example.com/watch/1"
+        var state = PageMediaState(pageURL: page)
+        state.apply(envelope([
+            SniffEvent(kind: .page, url: page, players: [.init(video: true, area: 1280 * 720)]),
+            SniffEvent(kind: .element, url: "https://cdn.example.com/preview.mp4", tag: "video", duration: 15),
+            SniffEvent(kind: .element, url: "https://cdn.example.com/feature.mp4", tag: "video", duration: 5_400),
+            SniffEvent(kind: .element, url: "https://cdn.example.com/bumper.mp4", tag: "video", duration: 5)
+        ], frame: page))
+
+        let item = try #require(state.candidates.only)
+        #expect(item.url.hasSuffix("feature.mp4"))
+    }
+
+    @Test("Player area breaks a same-frame tie instead of last-loaded order")
+    func largestElementSourceWinsWithoutDuration() throws {
+        let page = "https://social.example.com/post/1"
+        var state = PageMediaState(pageURL: page)
+        state.apply(envelope([
+            SniffEvent(kind: .page, url: page, players: [
+                .init(video: true, area: 1280 * 720), .init(video: true, area: 240 * 135)
+            ]),
+            SniffEvent(kind: .element, url: "https://cdn.example.com/main.mp4", tag: "video", area: 1280 * 720),
+            SniffEvent(kind: .element, url: "https://cdn.example.com/late-preview.mp4", tag: "video", area: 240 * 135)
+        ], frame: page))
+
+        let item = try #require(state.candidates.only)
+        #expect(item.url.hasSuffix("main.mp4"))
+    }
+
+    @Test("Download-site responses surface only the explicit attachment")
+    func downloadSiteAttachmentWins() throws {
+        let page = "https://downloads.example.com/project/releases"
+        var state = PageMediaState(pageURL: page)
+        state.apply(envelope([
+            SniffEvent(kind: .resource, url: "https://cdn.example.com/promo.mp4"),
+            SniffEvent(kind: .response, url: "https://objects.example.com/releases/asset?id=7",
+                       contentType: "application/octet-stream", contentLength: 25_000_000,
+                       contentDisposition: "attachment; filename=Project-2.0.dmg")
+        ], frame: page))
+
+        let item = try #require(state.candidates.only)
+        #expect(item.type == .file)
+        #expect(item.filename == "Project-2.0.dmg")
+    }
+}
+
+private extension Collection {
+    var only: Element? { count == 1 ? first : nil }
 }
 
 @Suite("Browser cookies (jar export)")

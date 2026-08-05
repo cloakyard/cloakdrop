@@ -26,6 +26,40 @@ struct MediaSnifferClassificationTests {
         #expect(MediaSniffer.classifyByURL("https://example.com/src/archive.tar.gz")?.type == .file)
     }
 
+    @Test("Well-known download-site URL and attachment shapes classify as one exact file")
+    func downloadSiteFixtures() {
+        #expect(MediaSniffer.classifyByURL(
+            "https://github.com/example/project/releases/download/v2.0/Project-2.0.dmg")?.type == .file)
+        let sourceForge = MediaSniffer.classifyByContentType(
+            "https://downloads.sourceforge.net/project/example/download",
+            contentType: "application/octet-stream", contentLength: 42_000_000,
+            contentDisposition: "attachment; filename=example-2.0.zip")
+        #expect(sourceForge?.type == .file)
+        #expect(sourceForge?.filename == "example-2.0.zip")
+        #expect(MediaSniffer.classifyByURL(
+            "https://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4")?.type == .video)
+        for artifact in [
+            "https://repo1.maven.org/library-2.2.0.jar",
+            "https://files.pythonhosted.org/package-1.0-py3-none-any.whl",
+            "https://addons.mozilla.org/extension.xpi",
+            "https://downloads.example.com/application.AppImage",
+            "https://downloads.example.com/source.tar.zst",
+            "https://huggingface.co/model/resolve/main/model.safetensors",
+            "https://huggingface.co/model/resolve/main/model-q4.gguf",
+            "https://marketplace.visualstudio.com/package.vsix",
+            "https://api.nuget.org/v3-flatcontainer/tool/1.0/tool.1.0.nupkg",
+            "https://downloads.example.com/office/report.docx",
+            "https://downloads.example.com/vm/image.qcow2",
+        ] {
+            #expect(MediaSniffer.classifyByURL(artifact)?.type == .file, "missed \(artifact)")
+        }
+        #expect(MediaSniffer.classifyByContentType(
+            "https://repo1.maven.org/artifact", contentType: "application/java-archive")?.type == .file)
+        #expect(MediaSniffer.classifyByContentType(
+            "https://office.example.com/export", contentType:
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")?.type == .file)
+    }
+
     @Test func uiNotificationSoundsAreFilteredByGenericBasename() {
         for name in ["open", "success", "failure", "no_input", "notification", "click"] {
             #expect(MediaSniffer.classifyByURL("https://www.youtube.com/s/desktop/xyz/\(name).mp3") == nil,
@@ -68,6 +102,43 @@ struct MediaSnifferClassificationTests {
         #expect(!MediaSniffer.isNoise("https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd"))
         #expect(MediaSniffer.classifyByURL("https://storage.googleapis.com/bucket/movie.mp4")?.type == .video)
         #expect(MediaSniffer.classifyByURL("https://cdn.example.com/movie.mp4")?.type == .video)
+    }
+
+    @Test("Hosted video-ad platforms and first-party VAST/roll routes are noise")
+    func currentVideoAdShapesAreNoise() {
+        for adURL in [
+            "https://cdn.connatix.com/creatives/spot.mp4",
+            "https://delivery.vidazoo.com/content/video.mp4",
+            "https://video.primis.tech/assets/creative.mp4",
+            "https://cdn.playwire.com/player/ad.mp4",
+            "https://news.example.com/video/preroll/creative-30.mp4",
+            "https://cdn.example.com/vod/mid-roll/spot.m3u8",
+            "https://media.example.com/vast/response.mp4",
+            "https://cdn.example.com/asset.mp4?ad_tag_url=https%3A%2F%2Fads.example%2Fvast",
+            "https://cdn.example.com/asset.m3u8?creative_id=9988",
+            "https://cdn.example.com/asset.mp4?ad=1",
+            "https://cdn.example.com/asset.m3u8?type=preroll",
+            "https://cdn.example.com/asset.mp4?content_type=advertisement"
+        ] {
+            #expect(MediaSniffer.isNoise(adURL), "\(adURL) should never reach the grab shelf")
+            #expect(MediaSniffer.classifyByURL(adURL) == nil)
+        }
+    }
+
+    @Test("Ad route matching is component-exact and spares real titles/identifiers")
+    func adRouteMarkersDoNotOvermatch() {
+        for contentURL in [
+            "https://cdn.example.com/movies/ad-astra-2019.mp4",
+            "https://cdn.example.com/shows/advertising-age/documentary.mp4",
+            "https://cdn.example.com/users/brad/video.mp4",
+            "https://cdn.example.com/vod/master.m3u8?campaign=history",
+            "https://cdn.example.com/vod/master.m3u8?creative=filmmaking",
+            "https://cdn.example.com/vod/master.m3u8?ad=0",
+            "https://cdn.example.com/vod/master.m3u8?type=movie"
+        ] {
+            #expect(!MediaSniffer.isNoise(contentURL), "\(contentURL) is authored content")
+            #expect(MediaSniffer.classifyByURL(contentURL) != nil)
+        }
     }
 
     @Test func byteWindowedChunkFetchesAreNoise() {

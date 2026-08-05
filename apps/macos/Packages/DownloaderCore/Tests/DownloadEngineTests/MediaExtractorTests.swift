@@ -56,6 +56,64 @@ struct MediaExtractionParseTests {
         #expect(media.formats.contains { $0.formatID == "hls" })           // but still present in the raw list
     }
 
+    @Test("Selected quality keeps its own extractor headers and resolved host")
+    func selectedFormatContextIsExact() throws {
+        let media = try ExtractedMedia.parse(json: Data(sampleJSON.utf8))
+
+        #expect(media.downloadHeaders["User-Agent"] == "UA-4k")
+        #expect(media.downloadHeaders(forFormatID: "18")["User-Agent"] == "UA-progressive")
+        #expect(media.downloadHeaders(forFormatID: "137")["User-Agent"] == "UA-video1080")
+        #expect(media.downloadURL(forFormatID: "18")?.host == "v")
+    }
+
+    @Test("A direct video with omitted codecs remains grabbable")
+    func codecOmittedDirectVideoIsProgressive() throws {
+        let json = #"""
+        { "title": "Vimeo clip", "formats": [
+          { "format_id": "http-720p", "url": "https://vod.example/video.mp4", "ext": "mp4",
+            "protocol": "https", "width": 1280, "height": 720 },
+          { "format_id": "http-unknown", "url": "https://video.example/content?id=7", "ext": "mp4",
+            "protocol": "https" },
+          { "format_id": "hls-720p", "url": "https://vod.example/video.m3u8", "ext": "mp4",
+            "protocol": "m3u8_native", "width": 1280, "height": 720 }
+        ] }
+        """#
+        let media = try ExtractedMedia.parse(json: Data(json.utf8))
+        let direct = try #require(media.formats.first { $0.formatID == "http-720p" })
+        let dimensionless = try #require(media.formats.first { $0.formatID == "http-unknown" })
+        let manifest = try #require(media.formats.first { $0.formatID == "hls-720p" })
+
+        #expect(direct.isProgressive)
+        #expect(dimensionless.isProgressive, "a declared direct MP4 needs no codec/dimension metadata")
+        #expect(media.directFormats.map(\.formatID) == ["http-720p", "http-unknown"])
+        #expect(!manifest.hasVideo && !manifest.hasAudio, "manifest codec omissions are never inferred")
+        let stream = try #require(media.toMediaStream(pageURL: URL(string: "https://vimeo.example/1")!))
+        #expect(stream.variants.map(\.id) == ["http-720p", "http-unknown"])
+        #expect(stream.variants[0].audioGroupID == nil)
+    }
+
+    @Test("HLS-only extraction chooses one highest-quality manifest for the app resolver")
+    func hlsOnlyExtractionChoosesOneManifest() throws {
+        let json = #"""
+        { "title": "AcFun episode", "formats": [
+          { "format_id": "360p", "url": "https://cdn.example/360/index.m3u8", "ext": "mp4",
+            "protocol": "m3u8_native", "width": 640, "height": 360, "tbr": 700 },
+          { "format_id": "master", "url": "https://cdn.example/master.m3u8", "ext": "mp4",
+            "protocol": "m3u8_native", "http_headers": { "Referer": "https://www.acfun.cn/" } },
+          { "format_id": "1080p-low", "url": "https://cdn.example/1080-low/index.m3u8", "ext": "mp4",
+            "protocol": "m3u8_native", "width": 1920, "height": 1080, "tbr": 2500 },
+          { "format_id": "1080p-high", "url": "https://cdn.example/1080-high/index.m3u8", "ext": "mp4",
+            "protocol": "m3u8_native", "width": 1920, "height": 1080, "tbr": 5000,
+            "http_headers": { "Referer": "https://www.acfun.cn/" } }
+        ] }
+        """#
+        let media = try ExtractedMedia.parse(json: Data(json.utf8))
+
+        #expect(media.toMediaStream(pageURL: URL(string: "https://www.acfun.cn/v/ac1")!) == nil)
+        #expect(media.preferredManifestFormat?.formatID == "1080p-high")
+        #expect(media.downloadHeaders["Referer"] == "https://www.acfun.cn/")
+    }
+
     @Test func invalidOutputThrows() {
         #expect(throws: MediaExtractionError.invalidOutput) {
             try ExtractedMedia.parse(json: Data("not json at all".utf8))
@@ -139,6 +197,30 @@ struct MediaExtractionMappingTests {
     }
 }
 
+private final class SequencedProcessRunner: ProcessRunning, @unchecked Sendable {
+    private let lock = NSLock()
+    private var results: [ProcessRunResult]
+    private var recordedArguments: [[String]] = []
+
+    init(_ results: [ProcessRunResult]) {
+        self.results = results
+    }
+
+    var allArguments: [[String]] { lock.withLock { recordedArguments } }
+
+    func run(executable: URL, arguments: [String], timeout: Duration) async throws -> ProcessRunResult {
+        lock.withLock {
+            recordedArguments.append(arguments)
+            guard !results.isEmpty else {
+                return ProcessRunResult(
+                    exitCode: 127, stdout: Data(), stderr: Data("unexpected extra process call".utf8)
+                )
+            }
+            return results.removeFirst()
+        }
+    }
+}
+
 @Suite("Media extraction — YtDlpExtractor over a mock process")
 struct YtDlpExtractorTests {
     private let fakeBinary = URL(fileURLWithPath: "/usr/bin/true")
@@ -147,7 +229,10 @@ struct YtDlpExtractorTests {
     @Test func buildsExpectedArgumentsAndParses() async throws {
         let runner = MockProcessRunner(json: sampleJSON)
         let extractor = YtDlpExtractor(executableURL: fakeBinary, runner: runner)
-        let media = try await extractor.extract(pageURL: page, cookies: .header("SID=abc"), userAgent: "UA/1")
+        let authenticatedPage = URL(string: "https://video.example/watch/abc123")!
+        let media = try await extractor.extract(
+            pageURL: authenticatedPage, cookies: .header("SID=abc"), userAgent: "UA/1"
+        )
 
         #expect(media.formats.count == 7)
         let args = runner.lastArguments
@@ -157,18 +242,48 @@ struct YtDlpExtractorTests {
         #expect(args.contains("UA/1"))
         #expect(args.contains("--add-header"))
         #expect(args.contains("Cookie:SID=abc"))
-        #expect(args.last == page.absoluteString)
+        #expect(args.last == authenticatedPage.absoluteString)
     }
 
     @Test func aCookiesFilePassesTheNetscapeJarPath() async throws {
         let runner = MockProcessRunner(json: sampleJSON)
         let extractor = YtDlpExtractor(executableURL: fakeBinary, runner: runner)
         let jar = URL(fileURLWithPath: "/tmp/cloakdrop-jar/cookies.txt")
-        _ = try await extractor.extract(pageURL: page, cookies: .file(jar), userAgent: nil)
+        let authenticatedPage = URL(string: "https://video.example/watch/abc123")!
+        _ = try await extractor.extract(pageURL: authenticatedPage, cookies: .file(jar), userAgent: nil)
         let args = runner.lastArguments
         #expect(args.contains("--cookies"))
         #expect(args.contains(jar.path))
         #expect(!args.contains("--add-header"), "a jar replaces the flattened header, never joins it")
+    }
+
+    @Test("YouTube resolves public-first and retries with browser cookies only after failure")
+    func youtubeDefersCookiesUntilNeeded() async throws {
+        let jar = URL(fileURLWithPath: "/tmp/cloakdrop-jar/cookies.txt")
+        let runner = SequencedProcessRunner([
+            ProcessRunResult(exitCode: 1, stdout: Data(), stderr: Data("login required".utf8)),
+            ProcessRunResult(exitCode: 0, stdout: Data(sampleJSON.utf8), stderr: Data()),
+        ])
+        let extractor = YtDlpExtractor(executableURL: fakeBinary, runner: runner)
+
+        _ = try await extractor.extract(pageURL: page, cookies: .file(jar), userAgent: "Safari/26")
+
+        #expect(runner.allArguments.count == 2)
+        #expect(!runner.allArguments[0].contains("--cookies"))
+        #expect(runner.allArguments[0].contains("Safari/26"))
+        #expect(runner.allArguments[1].contains("--cookies"))
+        #expect(runner.allArguments[1].contains(jar.path))
+    }
+
+    @Test("A public YouTube result never receives browser cookies")
+    func publicYoutubeSkipsCookies() async throws {
+        let runner = MockProcessRunner(json: sampleJSON)
+        let extractor = YtDlpExtractor(executableURL: fakeBinary, runner: runner)
+
+        _ = try await extractor.extract(pageURL: page, cookies: .header("SID=abc"), userAgent: nil)
+
+        #expect(!runner.lastArguments.contains("--cookies"))
+        #expect(!runner.lastArguments.contains("--add-header"))
     }
 
     @Test func omitsCookieAndUAWhenNotProvided() async throws {
@@ -190,6 +305,38 @@ struct YtDlpExtractorTests {
             guard case let .failed(message) = error else { Issue.record("wrong case: \(error)"); return }
             #expect(message.contains("bot"))
         } catch { Issue.record("unexpected: \(error)") }
+    }
+
+    @Test("A failed public Vimeo page retries the equivalent first-party player URL")
+    func vimeoPublicPageFallback() async throws {
+        let runner = SequencedProcessRunner([
+            ProcessRunResult(exitCode: 1, stdout: Data(), stderr: Data("HTTP Error 401".utf8)),
+            ProcessRunResult(exitCode: 0, stdout: Data(sampleJSON.utf8), stderr: Data()),
+        ])
+        let extractor = YtDlpExtractor(executableURL: fakeBinary, runner: runner)
+        let page = URL(string: "https://vimeo.com/channels/staffpicks/76979871")!
+
+        _ = try await extractor.extract(pageURL: page, cookies: nil, userAgent: "Safari/18")
+
+        #expect(runner.allArguments.count == 2)
+        #expect(runner.allArguments[0].last == page.absoluteString)
+        #expect(runner.allArguments[1].last == "https://player.vimeo.com/video/76979871")
+        #expect(runner.allArguments[1].contains("Safari/18"))
+    }
+
+    @Test("Private/hash Vimeo routes are never rewritten by the public-player fallback")
+    func vimeoPrivateRouteDoesNotFallback() async {
+        let runner = SequencedProcessRunner([
+            ProcessRunResult(exitCode: 1, stdout: Data(), stderr: Data("private video".utf8)),
+            ProcessRunResult(exitCode: 0, stdout: Data(sampleJSON.utf8), stderr: Data()),
+        ])
+        let extractor = YtDlpExtractor(executableURL: fakeBinary, runner: runner)
+        let privatePage = URL(string: "https://vimeo.com/76979871/privatehash")!
+
+        await #expect(throws: MediaExtractionError.self) {
+            _ = try await extractor.extract(pageURL: privatePage, cookies: nil, userAgent: nil)
+        }
+        #expect(runner.allArguments.count == 1)
     }
 
     @Test func emptyOutputIsInvalid() async {

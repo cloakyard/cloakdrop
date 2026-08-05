@@ -14,7 +14,7 @@ struct MediaPickerSheet: View {
     @State private var audioOnly = false
 
     private var variants: [MediaVariant] {
-        selection.stream.variants.sorted { $0.bandwidth > $1.bandwidth }
+        selection.stream.variants.sorted(by: MediaVariant.higherQualityFirst)
     }
 
     private var subtitleTracks: [MediaTrack] {

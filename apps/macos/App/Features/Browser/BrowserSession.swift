@@ -70,6 +70,10 @@ final class BrowserSession: NSObject {
     private var observations: [NSKeyValueObservation] = []
     private var lastCrashRecovery: Date?
     var popupTimestamps: [Date] = []
+    /// One page may emit the same WebKit download through more than one delegate callback, and a
+    /// fast double-click can beat the row's visual checkmark. Keep a per-page handoff gate so one
+    /// grab gesture can enqueue only one engine request.
+    private var handedOffKeys: Set<String> = []
     private static let messageHandlerName = "mediaSniffer"
 
     init(openedByPage: Bool = false) {
@@ -218,7 +222,9 @@ final class BrowserSession: NSObject {
     /// Send one shelf candidate to the app: streams resolve to the quality picker, files download
     /// directly, `.page` runs the extractor with the browser's whole cookie jar.
     func download(_ item: SniffedItem) {
-        guard let url = item.resolvedURL else { return }
+        guard let url = item.resolvedURL, !MediaSniffer.isNoise(item.url) else { return }
+        let handoffKey = MediaSniffer.recordKey(item.url)
+        guard handedOffKeys.insert(handoffKey).inserted else { return }
         let kind = item.type
         var filename = item.filename.flatMap(CapturedDownload.sanitizedFileName)
         // A sniffed stream's URL names its manifest ("master.m3u8"), not the video — hand the
@@ -256,6 +262,9 @@ final class BrowserSession: NSObject {
     /// ⌥-click…) — cancelled in WebKit and handed to the engine with full page context.
     /// `kind` routes it (`.stream` sends a downloaded manifest through the quality picker).
     func takeOver(url: URL, suggestedFilename: String?, mimeType: String?, kind: SniffedItem.ItemType = .file) {
+        guard !MediaSniffer.isNoise(url.absoluteString) else { return }
+        let handoffKey = MediaSniffer.recordKey(url.absoluteString)
+        guard handedOffKeys.insert(handoffKey).inserted else { return }
         let filename = CapturedDownload.sanitizedFileName(suggestedFilename)
         Task { [weak self] in
             guard let self else { return }
@@ -286,6 +295,7 @@ final class BrowserSession: NSObject {
         favicon = nil
         media.reset(pageURL: url?.absoluteString ?? "")
         shelfItems = []
+        handedOffKeys = []
     }
 
     func applySniff(_ envelope: SniffEnvelope) {

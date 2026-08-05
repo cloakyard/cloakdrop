@@ -178,6 +178,21 @@ public struct MediaVariant: Sendable, Hashable, Codable, Identifiable {
 
     /// An audio-only rendition: it declares codecs and none of them are video.
     public var isAudioOnly: Bool { !codecs.isEmpty && !hasVideo }
+
+    /// Stable quality ordering for pickers and automatic selection. Resolution is authoritative;
+    /// bitrate only breaks ties. A lower-resolution progressive encode can have a slightly higher
+    /// total bitrate than a sharper video-only encode because its bitrate includes audio.
+    public static func higherQualityFirst(_ lhs: MediaVariant, _ rhs: MediaVariant) -> Bool {
+        if lhs.hasVideo != rhs.hasVideo { return lhs.hasVideo }
+        let leftHeight = lhs.resolution?.qualityHeight ?? 0
+        let rightHeight = rhs.resolution?.qualityHeight ?? 0
+        if leftHeight != rightHeight { return leftHeight > rightHeight }
+        let leftPixels = lhs.resolution?.pixelCount ?? 0
+        let rightPixels = rhs.resolution?.pixelCount ?? 0
+        if leftPixels != rightPixels { return leftPixels > rightPixels }
+        if lhs.bandwidth != rhs.bandwidth { return lhs.bandwidth > rhs.bandwidth }
+        return lhs.id < rhs.id
+    }
 }
 
 /// An alternate audio or subtitle rendition (HLS `EXT-X-MEDIA`, DASH audio/text adaptation set).
@@ -301,9 +316,9 @@ public struct MediaStream: Sendable, Hashable, Codable {
         variants.contains { $0.segments.isEmpty && $0.playlistURL != nil }
     }
 
-    /// The highest-bandwidth variant — a sensible default selection.
+    /// The highest-resolution video variant, with pixel count and bitrate as tie-breakers.
     public var bestVariant: MediaVariant? {
-        variants.max { $0.bandwidth < $1.bandwidth }
+        variants.sorted(by: MediaVariant.higherQualityFirst).first
     }
 
     /// Whether the stream exposes a separate audio track to grab on its own (the "audio only" verb).

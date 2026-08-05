@@ -47,6 +47,38 @@ struct MediaTransferTests {
         throw MediaTimeout()
     }
 
+    @Test("Media cookies retain exact-host scope and never ride to a different CDN")
+    func mediaCookiesStayHostScoped() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let mock = MockHTTPClient()
+        let manager = try await makeManager(store: GRDBDownloadStore.inMemory(), mock: mock)
+        let pageURL = URL(string: "https://video.example/watch/1")!
+
+        let sameHostPlan = MediaPlan(format: .dash, segments: [
+            MediaSegment(id: 0, url: URL(string: "https://video.example/media/1.mp4")!, duration: 0)
+        ])
+        var sameHostRequest = DownloadRequest(
+            url: pageURL, suggestedFileName: "same.mp4", destinationDirectoryPath: dir.path,
+            requestHeaders: ["Cookie": "from-headers=1"], startImmediately: false,
+            cookies: "from-field=1"
+        )
+        sameHostRequest.referrer = pageURL.absoluteString
+        let sameHost = await manager.addMedia(sameHostRequest, plan: sameHostPlan)
+        #expect(sameHost.requestHeaders["Cookie"] == "from-field=1")
+        #expect(sameHost.requestHeaders["Referer"] == pageURL.absoluteString)
+
+        let crossHostPlan = MediaPlan(format: .dash, segments: [
+            MediaSegment(id: 0, url: URL(string: "https://cdn.example.net/media/1.mp4")!, duration: 0)
+        ])
+        var crossHostRequest = sameHostRequest
+        crossHostRequest.suggestedFileName = "cross.mp4"
+        let crossHost = await manager.addMedia(crossHostRequest, plan: crossHostPlan)
+        #expect(crossHost.requestHeaders.keys.allSatisfy { $0.caseInsensitiveCompare("Cookie") != .orderedSame })
+        #expect(crossHost.requestHeaders["Referer"] == pageURL.absoluteString)
+    }
+
     @Test("A cleartext grab downloads every segment, concatenates init + segments, and cleans up")
     func grabCompletes() async throws {
         let dir = try tempDir()

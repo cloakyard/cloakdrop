@@ -183,11 +183,15 @@ struct DownloadRowView: View {
         let base = Text(detailLine)
         guard download.status == .completed else { return base }
         if download.checksumVerified == true {
-            return base + Text(verbatim: " · ") + Text("Verified")
+            let verified = Text("Verified")
+            return Text("\(base) · \(verified)")
         }
         if download.checksumVerified == false {
             let mismatch = Text("Checksum mismatch")
-            return base + Text(verbatim: " · ") + (onAccent ? mismatch.foregroundStyle(.white) : mismatch.foregroundStyle(.red))
+            let styledMismatch = onAccent
+                ? mismatch.foregroundStyle(.white)
+                : mismatch.foregroundStyle(.red)
+            return Text("\(base) · \(styledMismatch)")
         }
         return base
     }

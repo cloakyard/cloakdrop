@@ -31,8 +31,10 @@ struct QuarantineTests {
         // without the 0x40 bit), so Gatekeeper still vets it on first open.
         var buffer = [CChar](repeating: 0, count: 256)
         let length = getxattr(file.path, Quarantine.attributeName, &buffer, buffer.count, 0, 0)
-        #expect(length > 0)
-        let value = String(cString: buffer)
+        try #require(length > 0)
+        let value = try #require(buffer.withUnsafeBytes { raw in
+            String(bytes: raw.prefix(length), encoding: .utf8)
+        })
         #expect(value.hasPrefix("0001;"))
         #expect(value.contains("CloakDrop"))
     }

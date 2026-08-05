@@ -121,6 +121,7 @@ private struct ShelfRow: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .disabled(handedOff)
             .help(grabHelp)
             // `.help` is only a tooltip — VoiceOver needs an explicit name.
             .accessibilityLabel(Text(grabHelp))

@@ -272,7 +272,24 @@ public actor DownloadManager {
 
         var headers = request.requestHeaders
         if let referrer = request.referrer, !referrer.isEmpty { headers["Referer"] = referrer }
-        if let cookies = request.cookies, !cookies.isEmpty { headers["Cookie"] = cookies }
+        // A flattened Cookie header no longer carries domain/path scope. Never forward page cookies
+        // to a different media host (for example youtube.com → googlevideo.com): apart from leaking
+        // unrelated session data, some signed CDNs reject an otherwise valid URL with HTTP 403.
+        // Exact-host media keeps the cookie for authenticated same-origin manifests.
+        let mediaURLs = plan.segments.map(\.url)
+            + (plan.audioSegments ?? []).map(\.url)
+            + [plan.initSegment?.url, plan.audioInitSegment?.url].compactMap { $0 }
+            + (plan.subtitles ?? []).flatMap { $0.segments.map(\.url) }
+            + Array(plan.keyURLs)
+        let sourceHost = request.url.host?.lowercased()
+        let crossesHost = mediaURLs.contains { $0.host?.lowercased() != sourceHost }
+        if crossesHost {
+            for key in headers.keys where key.caseInsensitiveCompare("Cookie") == .orderedSame {
+                headers.removeValue(forKey: key)
+            }
+        } else if let cookies = request.cookies, !cookies.isEmpty {
+            headers["Cookie"] = cookies
+        }
 
         var download = Download(
             url: request.url,

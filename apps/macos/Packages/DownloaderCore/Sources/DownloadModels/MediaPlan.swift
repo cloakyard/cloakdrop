@@ -137,12 +137,13 @@ public extension MediaStream {
         }
     }
 
-    /// A plan for the highest-bandwidth *resolved* variant — the default when the user doesn't pick —
+    /// A plan for the highest-quality *resolved* variant — the default when the user doesn't pick —
     /// paired with its audio track.
     var bestPlan: MediaPlan? {
         variants
             .filter { !$0.segments.isEmpty }
-            .max { $0.bandwidth < $1.bandwidth }
+            .sorted(by: MediaVariant.higherQualityFirst)
+            .first
             .map { plan(for: $0, audio: audioTrack(for: $0)) }
     }
 }

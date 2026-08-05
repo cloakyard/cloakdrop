@@ -54,10 +54,10 @@
     }
 
     // Report a URL-keyed sighting once per document. `extra` carries kind-specific fields.
-    function report(kind, url, extra) {
+    function report(kind, url, extra, dedupeSuffix) {
         if (typeof url !== "string" || !url) { return; }
         if (url.slice(0, 5) === "data:") { return; }
-        var key = kind + "|" + url;
+        var key = kind + "|" + url + (dedupeSuffix ? "|" + dedupeSuffix : "");
         if (seen[key] || seenCount >= SEEN_MAX) { return; }
         seen[key] = 1;
         seenCount += 1;
@@ -214,20 +214,30 @@
             var isVideo = el.tagName === "VIDEO";
             var tag = isVideo ? "video" : "audio";
             var src = el.currentSrc || el.src || "";
+            var duration = isFinite(el.duration) && el.duration > 0 ? el.duration : null;
+            var rect = el.getBoundingClientRect ? el.getBoundingClientRect() : { width: 0, height: 0 };
+            var area = Math.max(0, rect.width || 0) * Math.max(0, rect.height || 0);
+            // `loadstart` usually has no duration; `durationchange` must be allowed to send the
+            // stronger facts for the same URL. Area is coarsely bucketed so responsive layout
+            // jitter cannot flood the bridge with effectively identical element updates.
+            var evidenceKey = String(duration || 0) + "|" + String(Math.round(area / 1000));
             if (src) {
                 if (src.slice(0, 5) === "blob:") {
-                    report("element", src, { tag: tag, blob: true });   // MediaSource playback signal
+                    report("element", src, { tag: tag, blob: true, area: area }, evidenceKey);
                 } else {
                     report("element", absolute(src), {
                         tag: tag,
-                        duration: isFinite(el.duration) && el.duration > 0 ? el.duration : null
-                    });
+                        duration: duration,
+                        area: area
+                    }, evidenceKey);
                 }
             }
             var sources = el.querySelectorAll ? el.querySelectorAll("source") : [];
             for (var i = 0; i < sources.length; i++) {
                 var alt = sources[i].getAttribute("src");
-                if (alt) { report("element", absolute(alt), { tag: tag }); }
+                if (alt) {
+                    report("element", absolute(alt), { tag: tag, duration: duration, area: area }, evidenceKey);
+                }
             }
         } catch (e) { /* detached/exotic element */ }
     }
@@ -278,12 +288,12 @@
         }
     } catch (e) { /* leave EME alone */ }
 
-    // ── 6. Page snapshots — title + player inventory (top frame only), for the primary-player pick
-    // and the "extract this page's video" offer. Snapshots bypass the seen-set: they're repeated
-    // state, replaced wholesale on the native side.
+    // ── 6. Frame snapshots — title + player inventory, for the primary-player/frame pick and the
+    // "extract this page's video" offer. Every frame reports its own visible player area so native
+    // code can prefer a large embedded program over a small ad iframe. Only the top frame's title
+    // and URL become page metadata. Snapshots bypass the seen-set: they're repeated state.
     function sendPageSnapshot() {
         pageTimer = null;
-        if (window !== window.top) { return; }
         try {
             var els = collectMediaElements();
             var players = [];
@@ -310,7 +320,6 @@
     }
 
     function schedulePageSnapshot() {
-        if (window !== window.top) { return; }
         if (!pageTimer) { pageTimer = setTimeout(sendPageSnapshot, PAGE_SNAPSHOT_MS); }
     }
 
