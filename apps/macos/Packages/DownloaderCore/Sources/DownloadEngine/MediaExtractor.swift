@@ -91,6 +91,20 @@ public struct ExtractedMedia: Sendable, Hashable {
             .sorted { ($0.height ?? 0) > ($1.height ?? 0) }
         return (ranked.first ?? directFormats.first ?? preferredManifestFormat)?.httpHeaders ?? [:]
     }
+
+    /// Headers for the exact format the user selected. Extractors can mix formats produced by
+    /// different site clients, so their required User-Agent/Origin headers are not necessarily
+    /// interchangeable across quality tiers.
+    public func downloadHeaders(forFormatID id: String) -> [String: String] {
+        formats.first(where: { $0.formatID == id })?.httpHeaders ?? downloadHeaders
+    }
+
+    /// The resolved URL behind a selected format. Used by the app to avoid forwarding a flattened
+    /// page-cookie header to an unrelated CDN host; the extractor's cookie jar already handled the
+    /// page request with proper domain scoping.
+    public func downloadURL(forFormatID id: String) -> URL? {
+        formats.first(where: { $0.formatID == id })?.url
+    }
 }
 
 /// One media format from an extraction: a deciphered direct URL plus the metadata needed to label it,

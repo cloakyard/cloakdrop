@@ -29,7 +29,8 @@ enum AppEnvironment {
     /// The user's real home directory (`/Users/<name>`), bypassing the sandbox container.
     private static func realHomeDirectory() -> String {
         if let pw = getpwuid(getuid()), let home = pw.pointee.pw_dir {
-            return String(cString: home)
+            let bytes = UnsafeRawBufferPointer(start: home, count: strlen(home))
+            return String(bytes: bytes, encoding: .utf8) ?? NSHomeDirectory()
         }
         return NSHomeDirectory()
     }

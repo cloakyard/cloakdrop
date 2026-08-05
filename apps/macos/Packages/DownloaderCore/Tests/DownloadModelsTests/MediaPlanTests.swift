@@ -81,6 +81,29 @@ struct MediaPlanTests {
         #expect(unknown.isAudioOnly == false)
     }
 
+    @Test("Resolution outranks total bitrate when ordering quality tiers")
+    func qualityOrderingPrefersResolution() {
+        // A progressive 360p tier includes audio in its total bitrate and can therefore edge above
+        // a sharper video-only 480p tier. The picker and automatic default must still prefer 480p.
+        let progressive360 = MediaVariant(
+            id: "360", bandwidth: 359_000,
+            resolution: MediaResolution(width: 640, height: 360),
+            codecs: ["avc1", "mp4a"]
+        )
+        let video480 = MediaVariant(
+            id: "480", bandwidth: 355_000,
+            resolution: MediaResolution(width: 854, height: 480),
+            codecs: ["avc1"]
+        )
+        let stream = MediaStream(
+            sourceURL: URL(string: "https://example.com/watch")!, format: .dash,
+            variants: [progressive360, video480]
+        )
+
+        #expect(stream.variants.sorted(by: MediaVariant.higherQualityFirst).map(\.id) == ["480", "360"])
+        #expect(stream.bestVariant?.id == "480")
+    }
+
     @Test("hasUnsupportedEncryption and keyURLs reflect the segments")
     func encryptionSummary() {
         let key = URL(string: "https://k/e.bin")!

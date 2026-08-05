@@ -56,6 +56,16 @@ struct MediaExtractionParseTests {
         #expect(media.formats.contains { $0.formatID == "hls" })           // but still present in the raw list
     }
 
+    @Test("Selected quality keeps its own extractor headers and resolved host")
+    func selectedFormatContextIsExact() throws {
+        let media = try ExtractedMedia.parse(json: Data(sampleJSON.utf8))
+
+        #expect(media.downloadHeaders["User-Agent"] == "UA-4k")
+        #expect(media.downloadHeaders(forFormatID: "18")["User-Agent"] == "UA-progressive")
+        #expect(media.downloadHeaders(forFormatID: "137")["User-Agent"] == "UA-video1080")
+        #expect(media.downloadURL(forFormatID: "18")?.host == "v")
+    }
+
     @Test("A direct video with omitted codecs remains grabbable")
     func codecOmittedDirectVideoIsProgressive() throws {
         let json = #"""
@@ -219,7 +229,10 @@ struct YtDlpExtractorTests {
     @Test func buildsExpectedArgumentsAndParses() async throws {
         let runner = MockProcessRunner(json: sampleJSON)
         let extractor = YtDlpExtractor(executableURL: fakeBinary, runner: runner)
-        let media = try await extractor.extract(pageURL: page, cookies: .header("SID=abc"), userAgent: "UA/1")
+        let authenticatedPage = URL(string: "https://video.example/watch/abc123")!
+        let media = try await extractor.extract(
+            pageURL: authenticatedPage, cookies: .header("SID=abc"), userAgent: "UA/1"
+        )
 
         #expect(media.formats.count == 7)
         let args = runner.lastArguments
@@ -229,18 +242,48 @@ struct YtDlpExtractorTests {
         #expect(args.contains("UA/1"))
         #expect(args.contains("--add-header"))
         #expect(args.contains("Cookie:SID=abc"))
-        #expect(args.last == page.absoluteString)
+        #expect(args.last == authenticatedPage.absoluteString)
     }
 
     @Test func aCookiesFilePassesTheNetscapeJarPath() async throws {
         let runner = MockProcessRunner(json: sampleJSON)
         let extractor = YtDlpExtractor(executableURL: fakeBinary, runner: runner)
         let jar = URL(fileURLWithPath: "/tmp/cloakdrop-jar/cookies.txt")
-        _ = try await extractor.extract(pageURL: page, cookies: .file(jar), userAgent: nil)
+        let authenticatedPage = URL(string: "https://video.example/watch/abc123")!
+        _ = try await extractor.extract(pageURL: authenticatedPage, cookies: .file(jar), userAgent: nil)
         let args = runner.lastArguments
         #expect(args.contains("--cookies"))
         #expect(args.contains(jar.path))
         #expect(!args.contains("--add-header"), "a jar replaces the flattened header, never joins it")
+    }
+
+    @Test("YouTube resolves public-first and retries with browser cookies only after failure")
+    func youtubeDefersCookiesUntilNeeded() async throws {
+        let jar = URL(fileURLWithPath: "/tmp/cloakdrop-jar/cookies.txt")
+        let runner = SequencedProcessRunner([
+            ProcessRunResult(exitCode: 1, stdout: Data(), stderr: Data("login required".utf8)),
+            ProcessRunResult(exitCode: 0, stdout: Data(sampleJSON.utf8), stderr: Data()),
+        ])
+        let extractor = YtDlpExtractor(executableURL: fakeBinary, runner: runner)
+
+        _ = try await extractor.extract(pageURL: page, cookies: .file(jar), userAgent: "Safari/26")
+
+        #expect(runner.allArguments.count == 2)
+        #expect(!runner.allArguments[0].contains("--cookies"))
+        #expect(runner.allArguments[0].contains("Safari/26"))
+        #expect(runner.allArguments[1].contains("--cookies"))
+        #expect(runner.allArguments[1].contains(jar.path))
+    }
+
+    @Test("A public YouTube result never receives browser cookies")
+    func publicYoutubeSkipsCookies() async throws {
+        let runner = MockProcessRunner(json: sampleJSON)
+        let extractor = YtDlpExtractor(executableURL: fakeBinary, runner: runner)
+
+        _ = try await extractor.extract(pageURL: page, cookies: .header("SID=abc"), userAgent: nil)
+
+        #expect(!runner.lastArguments.contains("--cookies"))
+        #expect(!runner.lastArguments.contains("--add-header"))
     }
 
     @Test func omitsCookieAndUAWhenNotProvided() async throws {

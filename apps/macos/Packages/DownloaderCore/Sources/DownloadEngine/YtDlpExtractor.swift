@@ -35,27 +35,45 @@ public struct YtDlpExtractor: MediaExtractor {
     }
 
     public func extract(pageURL: URL, cookies: ExtractionCookies?, userAgent: String?) async throws -> ExtractedMedia {
-        var arguments = [
+        var baseArguments = [
             "-J",                       // dump a single JSON object describing the video + all formats
             "--no-playlist",            // resolve just this video, never a whole playlist/channel
             "--no-warnings",
             "--no-progress",
             "--socket-timeout", "20"
         ]
-        if let userAgent, !userAgent.isEmpty { arguments += ["--user-agent", userAgent] }
-        switch cookies {
-        case .header(let header) where !header.isEmpty:
-            arguments += ["--add-header", "Cookie:\(header)"]
-        case .file(let url):
-            // A Netscape jar keeps per-domain scoping — required for multi-host logins. The file
-            // may be updated in place by yt-dlp; callers hand over a private temp copy.
-            arguments += ["--cookies", url.path]
-        case .header, .none:
-            break
-        }
-        arguments.append(pageURL.absoluteString)
+        if let userAgent, !userAgent.isEmpty { baseArguments += ["--user-agent", userAgent] }
 
+        func makeArguments(for url: URL, includeCookies: Bool) -> [String] {
+            var arguments = baseArguments
+            if includeCookies {
+                switch cookies {
+                case .header(let header) where !header.isEmpty:
+                    arguments += ["--add-header", "Cookie:\(header)"]
+                case .file(let url):
+                    // A Netscape jar keeps per-domain scoping — required for multi-host logins. The
+                    // file may be updated in place by yt-dlp; callers hand over a private temp copy.
+                    arguments += ["--cookies", url.path]
+                case .header, .none:
+                    break
+                }
+            }
+            arguments.append(url.absoluteString)
+            return arguments
+        }
+
+        // A signed-in YouTube jar makes the extractor choose web-client formats that increasingly
+        // require a separate PO token; their deciphered googlevideo URLs then return HTTP 403 to an
+        // external downloader. Public-first resolution chooses yt-dlp's cookie-less client path,
+        // which is stable for ordinary public videos. If that honestly fails (private/age-gated
+        // content), retry with the browser jar so authenticated access still gets a chance.
+        let deferCookies = cookies != nil && Self.isYouTubeURL(pageURL)
+        var arguments = makeArguments(for: pageURL, includeCookies: !deferCookies)
         var result = try await run(arguments: arguments)
+        if result.exitCode != 0, deferCookies {
+            arguments = makeArguments(for: pageURL, includeCookies: true)
+            result = try await run(arguments: arguments)
+        }
         if result.exitCode != 0, let fallbackURL = Self.vimeoPlayerFallbackURL(for: pageURL) {
             // Vimeo's public watch page can reject the resolver's API bootstrap even though the
             // equivalent first-party player URL remains public and returns the same video's formats.
@@ -71,6 +89,12 @@ public struct YtDlpExtractor: MediaExtractor {
         }
         guard !result.stdout.isEmpty else { throw MediaExtractionError.invalidOutput }
         return try ExtractedMedia.parse(json: result.stdout)
+    }
+
+    private static func isYouTubeURL(_ url: URL) -> Bool {
+        guard let host = url.host?.lowercased() else { return false }
+        return host == "youtu.be" || host == "youtube.com" || host.hasSuffix(".youtube.com")
+            || host == "youtube-nocookie.com" || host.hasSuffix(".youtube-nocookie.com")
     }
 
     private func run(arguments: [String]) async throws -> ProcessRunResult {

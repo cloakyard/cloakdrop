@@ -94,9 +94,11 @@ extension AppModel {
                 var request = capture.toRequest(
                     destinationDirectoryPath: destination, destinationBookmark: destinationBookmark
                 )
-                // The extractor's per-format headers (chiefly the exact User-Agent it used) are what
-                // actually fetch the deciphered URLs — apply them over the capture's.
-                for (name, value) in media.downloadHeaders { request.requestHeaders[name] = value }
+                // The browser supplied a domain-scoped jar to the extractor. Its flattened page
+                // cookie header must not then ride to a different media CDN (YouTube → googlevideo,
+                // for example); doing so can both leak unrelated cookies and make valid signed URLs
+                // fail with HTTP 403. The exact selected format's headers are applied later.
+                if cookiesFile != nil { request.cookies = nil }
                 request.suggestedFileName = nil                       // named from the title per tier below
                 if let stream = media.toMediaStream(pageURL: capture.url) {
                     routeStream(stream, request: request, extracted: media, forcePicker: forcePicker)
@@ -106,6 +108,7 @@ extension AppModel {
                 // (AcFun anime and Loom are current examples). yt-dlp remains a read-only oracle:
                 // choose one manifest, then let CloakDrop fetch/parse/download every media byte.
                 if let manifest = media.preferredManifestFormat {
+                    for (name, value) in manifest.httpHeaders { request.requestHeaders[name] = value }
                     let headers = Self.mediaHeaders(for: request)
                     if let stream = try? await manager.resolveMediaStream(url: manifest.url, headers: headers),
                        !stream.variants.isEmpty {
@@ -306,6 +309,20 @@ extension AppModel {
             request.suggestedFileName = nil
         }
         guard let extracted, request.suggestedFileName == nil else { return request }
+        // A page extraction can contain formats from different site clients. Apply the headers for
+        // the chosen tier, not a representative top-tier header set. Also keep manually supplied
+        // page cookies on their original host only; a flattened Cookie header has lost the browser
+        // jar's domain/path metadata and is unsafe (and often rejected) on a media CDN.
+        for (name, value) in extracted.downloadHeaders(forFormatID: variantID) {
+            request.requestHeaders[name] = value
+        }
+        if let mediaHost = extracted.downloadURL(forFormatID: variantID)?.host?.lowercased(),
+           let pageHost = request.url.host?.lowercased(), mediaHost != pageHost {
+            request.cookies = nil
+            for key in request.requestHeaders.keys where key.caseInsensitiveCompare("Cookie") == .orderedSame {
+                request.requestHeaders.removeValue(forKey: key)
+            }
+        }
         request.suggestedFileName = extracted.downloadName(forFormatID: variantID)
         return request
     }

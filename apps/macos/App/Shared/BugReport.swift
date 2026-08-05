@@ -84,7 +84,8 @@ enum BugReport {
         var info = utsname()
         uname(&info)
         return withUnsafeBytes(of: &info.machine) { raw in
-            raw.baseAddress.map { String(cString: $0.assumingMemoryBound(to: CChar.self)) } ?? "—"
+            let bytes = raw.prefix { $0 != 0 }
+            return bytes.isEmpty ? "—" : String(bytes: bytes, encoding: .utf8) ?? "—"
         }
     }
 
@@ -94,6 +95,8 @@ enum BugReport {
         guard sysctlbyname(name, nil, &size, nil, 0) == 0, size > 0 else { return nil }
         var buffer = [CChar](repeating: 0, count: size)
         guard sysctlbyname(name, &buffer, &size, nil, 0) == 0 else { return nil }
-        return String(cString: buffer)
+        return buffer.withUnsafeBytes { raw in
+            String(bytes: raw.prefix { $0 != 0 }, encoding: .utf8)
+        }
     }
 }
