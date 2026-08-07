@@ -225,6 +225,23 @@ final class AppModel {
         AppModel(manager: try AppEnvironment.makeManager())
     }
 
+    #if DEBUG
+    /// Build the deterministic catalog used by `--hero-fixture`. Keeping this behind DEBUG makes
+    /// the capture repeatable without shipping sample data or ever opening the user's database.
+    static func heroFixture() throws -> AppModel {
+        let model = AppModel(manager: try AppEnvironment.makeHeroFixtureManager())
+        let fixture = HeroFixtureState.make()
+        model.downloads = fixture.downloads
+        model.queues = [.makeDefault]
+        model.progress = [fixture.activeDownloadID: ProgressBox(fixture.progress)]
+        model.selectedDownloadIDs = [fixture.activeDownloadID]
+        // The fixture is already a complete UI snapshot. Skip the live manager bootstrap, which
+        // would replace it with an empty in-memory catalog and start ambient services.
+        model.didBootstrap = true
+        return model
+    }
+    #endif
+
     // MARK: Lifecycle
 
     func bootstrap() async {

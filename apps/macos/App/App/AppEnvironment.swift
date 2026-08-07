@@ -43,6 +43,14 @@ enum AppEnvironment {
         return DownloadManager(store: store, remuxer: makeRemuxer())
     }
 
+    #if DEBUG
+    /// A disposable manager for deterministic marketing captures. Hero fixture mode never starts
+    /// this manager, so it performs no network or disk work and cannot touch the user's catalog.
+    static func makeHeroFixtureManager() throws -> DownloadManager {
+        DownloadManager(store: try GRDBDownloadStore.inMemory())
+    }
+    #endif
+
     /// The media remuxer that assembles adaptive grabs into a clean, single file with sound.
     /// AVFoundation runs first (fast, in-process, no bundled dependency — H.264/HEVC + AAC), falling
     /// back to a bundled ffmpeg for the codecs it can't mux (VP9/AV1/Opus). Without a bundled ffmpeg

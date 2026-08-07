@@ -66,6 +66,20 @@ That's it — every consumer picks it up. Renditions (extra sizes, WebP) are pro
 a human and committed here; the sync step only distributes them, it never resizes or
 re-encodes.
 
+### Reproducible hero capture
+
+Debug builds include a deterministic, read-only hero catalog. It renders the Ubuntu transfer and
+the five completed reference rows without opening the user's database, creating partial files, or
+making a network request:
+
+```bash
+open -n apps/macos/build/Verify/Build/Products/Debug/CloakDrop.app --args --hero-fixture
+```
+
+The fixture is compiled only when `DEBUG` is set. Capture the main window at 1097 × 678 points
+(2194 × 1356 Retina pixels), then produce the padded README rendition on a 2338 × 1500 transparent
+canvas. Keep the four files in `assets/screenshots/` synchronized before running the asset sync.
+
 ## The social card
 
 `social/og.png` is **rendered, not drawn** — edit [`social/og.html`](social/og.html) and run:
