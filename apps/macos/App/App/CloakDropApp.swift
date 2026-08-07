@@ -13,7 +13,14 @@ struct CloakDropApp: App {
 
     init() {
         do {
-            _model = State(initialValue: try AppModel.live())
+            #if DEBUG
+            let appModel = ProcessInfo.processInfo.arguments.contains("--hero-fixture")
+                ? try AppModel.heroFixture()
+                : try AppModel.live()
+            #else
+            let appModel = try AppModel.live()
+            #endif
+            _model = State(initialValue: appModel)
         } catch {
             // The only failure here is being unable to open the local database; there's no
             // safe way to continue without persistence, so fail fast with a clear message.

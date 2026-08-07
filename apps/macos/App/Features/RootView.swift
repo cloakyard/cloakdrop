@@ -2,9 +2,10 @@ import AppKit
 import SwiftUI
 import DownloadModels
 
-/// The main window: a sidebar + content list with a persistent detail panel. System materials
-/// supply Liquid Glass for the sidebar, toolbar, and detail chrome. The detail stays open so the
-/// layout has a single, left-side collapse affordance.
+/// The main window: a sidebar + content list with a persistent detail panel. The source-list
+/// sidebar keeps its system material while the content and detail panes share a quieter content
+/// surface, matching Notes. The detail stays open so the layout has a single, left-side collapse
+/// affordance.
 struct RootView: View {
     @Environment(AppModel.self) private var model
 
@@ -94,6 +95,7 @@ private struct PersistentInspectorSplitView: View {
     private static let idealWidth = 320.0
     private static let maximumWidth = 360.0
 
+    @Environment(\.displayScale) private var displayScale
     @AppStorage("mainInspectorWidth") private var storedWidth = Self.idealWidth
 
     private var inspectorWidth: CGFloat {
@@ -112,31 +114,43 @@ private struct PersistentInspectorSplitView: View {
 
             InspectorView()
                 .frame(width: inspectorWidth)
-                .background(.regularMaterial)
+                .background(Color(nsColor: .textBackgroundColor))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            Rectangle()
+                .fill(Color(nsColor: .separatorColor))
+                .frame(height: 1 / displayScale)
+        }
         .onAppear { storedWidth = Double(inspectorWidth) }
     }
 }
 
-/// A one-point separator with a forgiving invisible hit target. The drag origin is captured once
-/// per gesture so repeated updates remain stable, and every input path clamps to the same bounds.
+/// A one-pixel separator with a forgiving invisible hit target. A geometry container respects the
+/// unified title bar's safe area, so the line and resize target start below toolbar controls
+/// (notably the search field). Matching the toolbar hairline at the current display scale keeps the
+/// two boundaries visually continuous. The drag origin is captured once per gesture so repeated
+/// updates remain stable, and every input path clamps to the same bounds.
 private struct InspectorDivider: View {
+    @Environment(\.displayScale) private var displayScale
     @Binding var width: Double
     let range: ClosedRange<Double>
 
     @State private var dragOrigin: Double?
 
     var body: some View {
-        Rectangle()
-            .fill(Color(nsColor: .separatorColor))
-            .frame(width: 1)
-            .overlay {
-                ResizeCursorArea(width: $width, range: range)
-                    .frame(width: 9)
-                    .contentShape(Rectangle())
-                    .gesture(resizeGesture)
-            }
+        GeometryReader { _ in
+            Rectangle()
+                .fill(Color(nsColor: .separatorColor))
+                .frame(maxHeight: .infinity)
+                .overlay {
+                    ResizeCursorArea(width: $width, range: range)
+                        .frame(width: 9)
+                        .contentShape(Rectangle())
+                        .gesture(resizeGesture)
+                }
+        }
+        .frame(width: 1 / displayScale)
     }
 
     private var resizeGesture: some Gesture {
