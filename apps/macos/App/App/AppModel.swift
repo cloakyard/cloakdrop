@@ -42,9 +42,9 @@ final class AppModel {
     // transfer starts or ends).
     private(set) var progress: [UUID: ProgressBox] = [:]
     private(set) var queues: [DownloadQueue] = []
-    private(set) var settings: EngineSettings = .default
+    var settings: EngineSettings = .default
     /// User-defined routing rules, in evaluation order. Mirrored from the engine.
-    private(set) var rules: [SmartRule] = []
+    var rules: [SmartRule] = []
     /// Lifetime download totals (today / this month / all-time), shown in Settings ▸ Stats.
     private(set) var stats: DownloadStats = .empty
     /// The single owner of speed-test runs (Settings ▸ Speed Test, menu bar). One runner on
@@ -73,7 +73,7 @@ final class AppModel {
     /// A URL to pre-fill the add sheet with (e.g. from a clipboard banner or drop).
     var pendingAddURL: String?
     /// A clipboard-detected link awaiting the user's "Add" / "Dismiss" decision.
-    private(set) var detectedClipboardURL: URL?
+    var detectedClipboardURL: URL?
 
     /// A resolved media stream awaiting the user's quality selection in the picker (see
     /// `AppModel+Media`). Settable within the module rather than `private(set)` so the media-intake
@@ -118,7 +118,7 @@ final class AppModel {
 
     /// Adds that matched an existing download by URL, each awaiting a "download again?" decision.
     /// FIFO so several confirm one at a time; the alert binds to the head.
-    private(set) var pendingDuplicateAdds: [DuplicateAdd] = []
+    var pendingDuplicateAdds: [DuplicateAdd] = []
     var currentDuplicateAdd: DuplicateAdd? { pendingDuplicateAdds.first }
 
     /// Whether the built-in browser's address bar treats non-URL text as a search (on) or always
@@ -186,7 +186,7 @@ final class AppModel {
     /// Whether CloakDrop opens at login — and so, after a reboot, comes back and resumes any
     /// downloads that were in flight. Backed by `SMAppService` (the OS is the source of truth); this
     /// mirrors it so the Settings toggle reflects the real state.
-    private(set) var launchAtLoginEnabled: Bool = false
+    var launchAtLoginEnabled: Bool = false
 
     let manager: DownloadManager
     private let dock = DockProgressController()
@@ -196,7 +196,7 @@ final class AppModel {
     /// Latch so the post-completion action fires once per "work → drained" cycle, not on every drain.
     private var postCompletionArmed = false
     private let clipboard = ClipboardMonitor()
-    private let loginItem = LoginItemService()
+    let loginItem = LoginItemService()
     private let sleepPreventer = SleepPreventer()
     private var eventTask: Task<Void, Never>?
     private var progressTask: Task<Void, Never>?
@@ -387,327 +387,6 @@ final class AppModel {
         } else {
             downloads.append(download)
         }
-    }
-
-    // MARK: Derived
-
-    var effectiveSelection: SidebarSelection { selection ?? .smart(.all) }
-
-    var filteredDownloads: [Download] {
-        let active = effectiveSelection
-        var result = downloads.filter { active.matches($0) }
-        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if !query.isEmpty {
-            result = result.filter {
-                $0.fileName.lowercased().contains(query) || $0.url.absoluteString.lowercased().contains(query)
-            }
-        }
-        return result.sorted(by: sortComparator)
-    }
-
-    private func sortComparator(_ a: Download, _ b: Download) -> Bool {
-        switch sort {
-        case .dateAdded: return a.createdAt > b.createdAt
-        case .name: return a.fileName.localizedStandardCompare(b.fileName) == .orderedAscending
-        case .size: return (a.totalBytes ?? 0) > (b.totalBytes ?? 0)
-        case .status: return a.status.rawKind < b.status.rawKind
-        }
-    }
-
-    var activeCount: Int {
-        downloads.filter { $0.status == .downloading }.count
-    }
-
-    var aggregateSpeed: Double {
-        progress.values.reduce(0) { $0 + $1.value.bytesPerSecond }
-    }
-
-    /// Overall progress across in-flight downloads, for the Dock badge. `nil` if nothing active.
-    var aggregateFraction: Double? {
-        let active = downloads.filter { $0.status == .downloading }
-        guard !active.isEmpty else { return nil }
-        var done: Int64 = 0
-        var total: Int64 = 0
-        for d in active {
-            let current = progress[d.id]?.value.downloadedBytes ?? d.downloadedBytes
-            done += current
-            total += d.totalBytes ?? current
-        }
-        guard total > 0 else { return nil }
-        return min(1, Double(done) / Double(total))
-    }
-
-    func liveDownloadedBytes(_ download: Download) -> Int64 {
-        progress[download.id]?.value.downloadedBytes ?? download.downloadedBytes
-    }
-
-    /// The byte total to show — live from the engine when it has one (a media grab learns its total
-    /// from the segments' response heads), else the persisted value (`nil` while a media grab's
-    /// total is still unknown).
-    func liveTotalBytes(_ download: Download) -> Int64? {
-        progress[download.id]?.value.totalBytes ?? download.totalBytes
-    }
-
-    func liveSpeed(_ download: Download) -> Double {
-        progress[download.id]?.value.bytesPerSecond ?? 0
-    }
-
-    /// Peak transfer rate to show in the summary — live while downloading, else the persisted value.
-    func peakSpeed(_ download: Download) -> Double {
-        progress[download.id]?.value.peakBytesPerSecond ?? download.peakBytesPerSecond ?? 0
-    }
-
-    /// Average transfer rate over active time — live while downloading, else the persisted value.
-    func averageSpeed(_ download: Download) -> Double {
-        progress[download.id]?.value.averageBytesPerSecond ?? download.averageBytesPerSecond ?? 0
-    }
-
-    func liveFraction(_ download: Download) -> Double? {
-        progress[download.id]?.value.fractionCompleted ?? download.fractionCompleted
-    }
-
-    func eta(_ download: Download) -> TimeInterval? {
-        progress[download.id]?.value.estimatedTimeRemaining
-    }
-
-    var selectedDownload: Download? {
-        guard selectedDownloadIDs.count == 1, let id = selectedDownloadIDs.first else { return nil }
-        return downloads.first { $0.id == id }
-    }
-
-    // MARK: Actions
-
-    /// Enqueue an add — but if the catalog already holds this download (same URL, same-origin ETag,
-    /// or an already-completed file of the same name and size), don't silently create a duplicate;
-    /// surface a confirmation instead (the user can still choose to re-download via
-    /// `confirmDuplicateAdd`). Every intake path funnels through here, so the guard applies uniformly.
-    /// A `preview` from the add sheet's pre-flight sharpens detection with the resource's ETag/size.
-    func add(_ request: DownloadRequest, preview: LinkPreview? = nil) {
-        let fileName = request.suggestedFileName ?? FileNaming.fileName(url: request.url)
-        let candidate = DuplicateCandidate(request: request.url, fileName: fileName, preview: preview)
-        if let match = DuplicateDetector.findDuplicate(of: candidate, in: downloads) {
-            pendingDuplicateAdds.append(DuplicateAdd(request: request, match: match))
-        } else {
-            commitAdd(request, preview: preview)
-        }
-    }
-
-    private func commitAdd(_ request: DownloadRequest, preview: LinkPreview? = nil) {
-        Task { await manager.add(request, preview: preview) }
-    }
-
-    // MARK: Link intelligence (pre-flight)
-
-    /// Pre-flight a URL against the server — best-effort — so the add sheet can show what's actually
-    /// there (final URL after redirects, size, type, resumability, connection estimate) before the
-    /// user commits. Returns `nil` when the server can't be reached; the caller degrades gracefully.
-    func preview(
-        url: URL,
-        referrer: String? = nil,
-        cookies: String? = nil,
-        username: String? = nil,
-        password: String? = nil
-    ) async -> LinkPreview? {
-        await manager.preview(url: url, username: username, password: password, referrer: referrer, cookies: cookies)
-    }
-
-    /// User chose to re-download a duplicate: give it a unique file name so the new transfer doesn't
-    /// overwrite the existing file (finalize replaces a same-named file), then enqueue it. Advances
-    /// to the next pending duplicate, if any.
-    func confirmDuplicateAdd() {
-        guard var pending = pendingDuplicateAdds.first else { return }
-        pendingDuplicateAdds.removeFirst()
-        let base = pending.request.suggestedFileName ?? FileNaming.fileName(url: pending.request.url)
-        pending.request.suggestedFileName = uniqueFileName(base: base, inDirectory: pending.request.destinationDirectoryPath)
-        commitAdd(pending.request)
-    }
-
-    func cancelDuplicateAdd() {
-        if !pendingDuplicateAdds.isEmpty { pendingDuplicateAdds.removeFirst() }
-    }
-
-    /// User chose to look at the file they already have instead of downloading it again: reveal the
-    /// matched download in Finder and dismiss the prompt.
-    func revealExistingDuplicate() {
-        guard let pending = pendingDuplicateAdds.first else { return }
-        pendingDuplicateAdds.removeFirst()
-        revealInFinder(pending.match.existing)
-    }
-
-    /// A file name not already used (in the catalog or on disk) in `directory`, appending " (2)",
-    /// " (3)", … before the extension until it's free — the browser-style de-collision.
-    private func uniqueFileName(base: String, inDirectory directory: String) -> String {
-        func taken(_ name: String) -> Bool {
-            downloads.contains { $0.destinationDirectoryPath == directory && $0.fileName == name }
-                || FileManager.default.fileExists(atPath: (directory as NSString).appendingPathComponent(name))
-        }
-        guard taken(base) else { return base }
-        let ns = base as NSString
-        let ext = ns.pathExtension
-        let stem = ns.deletingPathExtension
-        var counter = 2
-        while counter < 10_000 {
-            let candidate = ext.isEmpty ? "\(stem) (\(counter))" : "\(stem) (\(counter)).\(ext)"
-            if !taken(candidate) { return candidate }
-            counter += 1
-        }
-        return base
-    }
-
-    /// Build a request from a raw URL string and the default destination, then enqueue it.
-    @discardableResult
-    func quickAdd(urlString: String, into directory: URL = AppEnvironment.defaultDownloadsDirectory()) -> Bool {
-        guard let url = Self.normalizedURL(urlString) else { return false }
-        let request = DownloadRequest(url: url, destinationDirectoryPath: directory.path)
-        add(request)
-        return true
-    }
-
-    /// Fetch a single user-entered page and extract its downloadable links (the "grab everything on
-    /// this page" flow). One user-initiated request to the page the user typed — never a crawler; it
-    /// does not follow the links it finds. The body is size-capped so a pathological page can't blow up.
-    func extractPageLinks(from pageURL: URL, extensions: Set<String> = []) async -> [URL] {
-        var request = URLRequest(url: pageURL)
-        request.timeoutInterval = 20
-        request.setValue("text/html,application/xhtml+xml", forHTTPHeaderField: "Accept")
-        guard let (data, _) = try? await URLSession.shared.data(for: request) else { return [] }
-        let capped = data.prefix(10 * 1024 * 1024)
-        let html = String(bytes: capped, encoding: .utf8) ?? String(bytes: capped, encoding: .isoLatin1) ?? ""
-        return PageLinkExtractor.extract(html: html, baseURL: pageURL, extensions: extensions)
-    }
-
-    /// Enqueue a specific set of already-parsed URLs (the link-grabber's selected rows).
-    func addURLs(_ urls: [URL], into directory: URL = AppEnvironment.defaultDownloadsDirectory(), bookmark: Data? = nil) {
-        for url in urls {
-            add(DownloadRequest(url: url, destinationDirectoryPath: directory.path, destinationBookmark: bookmark))
-        }
-    }
-
-    /// Accept dropped web URLs or text links onto the window.
-    @discardableResult
-    func acceptDrop(urls: [URL], strings: [String]) -> Bool {
-        var added = false
-        for url in urls where url.scheme == "http" || url.scheme == "https" {
-            add(DownloadRequest(url: url, destinationDirectoryPath: AppEnvironment.defaultDownloadsDirectory().path))
-            added = true
-        }
-        for string in strings where URLBatch.normalized(string) != nil {
-            _ = quickAdd(urlString: string)
-            added = true
-        }
-        return added
-    }
-
-    /// User accepted a clipboard-detected link: open the add sheet pre-filled with it.
-    func addDetectedClipboardURL() {
-        guard let url = detectedClipboardURL else { return }
-        pendingAddURL = url.absoluteString
-        detectedClipboardURL = nil
-        isAddSheetPresented = true
-    }
-
-    func dismissDetectedClipboardURL() {
-        detectedClipboardURL = nil
-    }
-
-    // MARK: External capture (cloakdrop:// link, Share Extension, Services item)
-
-    /// Handle an incoming deep link or opened file. A `cloakdrop://add?…` URL becomes a
-    /// `CapturedDownload`; a `.metalink`/`.meta4` file becomes one or more multi-source downloads;
-    /// anything else is ignored.
-    func handleIncomingURL(_ url: URL) {
-        if url.isFileURL {
-            if Self.isMetalink(url) { openMetalink(url) }
-            return
-        }
-        guard url.scheme?.lowercased() == "cloakdrop" else { return }
-        guard let capture = try? CapturedDownload.parse(cloakdropURL: url) else { return }
-        enqueueCapture(capture)
-    }
-
-    /// Pull every capture the Share extension / deep links dropped into the shared App Group inbox and start
-    /// them. Called on the Darwin wake signal and once on launch (for anything that arrived while the
-    /// app was closed).
-    func drainCaptureInbox() {
-        for capture in CaptureInbox.drain() { enqueueCapture(capture) }
-    }
-
-    /// Start a captured download immediately — no confirm step, since the user already chose to
-    /// download it in the browser (the pill) or share sheet. A *page* capture goes to the extractor
-    /// (auto-best tier, or the picker when "Ask me quality" is on); a video+audio pair is muxed;
-    /// anything else takes the normal download path. Duplicate detection still guards a re-add.
-    func enqueueCapture(_ capture: CapturedDownload) {
-        let request = capture.toRequest(destinationDirectoryPath: AppEnvironment.defaultDownloadsDirectory().path)
-        if capture.extractFromPage == true {
-            grabFromPage(capture)
-        } else if let audioURL = capture.audioURL {
-            // A video URL paired with a separate audio URL (adaptive source with no manifest): grab
-            // both and mux them so the download has sound.
-            grabPairedMedia(request, audioURL: audioURL)
-        } else {
-            grab(request)
-        }
-    }
-
-    /// Surface a transient, auto-dismissing media error (protected stream, sign-in wall, unavailable).
-    func presentMediaError(_ message: String) {
-        mediaExtractionError = message
-        Task { [weak self] in
-            try? await Task.sleep(for: .seconds(5))
-            if self?.mediaExtractionError == message { self?.mediaExtractionError = nil }
-        }
-    }
-
-    func pause(_ id: UUID) { Task { await manager.pause(id: id) } }
-    func resume(_ id: UUID) { Task { await manager.resume(id: id) } }
-    func cancel(_ id: UUID) { Task { await manager.cancel(id: id) } }
-    func remove(_ id: UUID, deleteFile: Bool) { Task { await manager.remove(id: id, deleteFile: deleteFile) } }
-
-    func removeSelected(deleteFile: Bool) { selectedDownloadIDs.forEach { remove($0, deleteFile: deleteFile) } }
-
-    func pauseAll() { Task { await manager.pauseAll() } }
-    func resumeAll() { Task { await manager.resumeAll() } }
-    func clearCompleted() { Task { await manager.clearCompleted() } }
-
-    /// Recompute lifetime stats (e.g. when the Stats tab appears, so "today" is fresh after midnight).
-    func refreshStats() { Task { await manager.reloadStats() } }
-    /// Clear every recorded download total (Settings ▸ Stats ▸ Reset).
-    func resetStats() { Task { await manager.resetStats() } }
-
-    /// Whether any completed download is present (drives the "Clear Completed" command).
-    var hasCompleted: Bool { downloads.contains { $0.status == .completed } }
-
-    func updateSettings(_ newSettings: EngineSettings) {
-        settings = newSettings
-        Task { await manager.updateSettings(newSettings) }
-        // Keep the built-in browser on the same route as the engine.
-        BrowserStore.shared.applyProxy(newSettings.resolvedProxy)
-    }
-
-    // MARK: Smart rules
-
-    /// The next `order` value for a newly-created rule (appends to the end of the priority list).
-    var nextRuleOrder: Int { (rules.map(\.order).max() ?? -1) + 1 }
-
-    func saveRule(_ rule: SmartRule) { Task { await manager.saveRule(rule) } }
-    func deleteRule(_ id: UUID) { Task { await manager.deleteRule(id: id) } }
-
-    /// Reorder rules from a SwiftUI `.onMove` (source offsets → destination), then persist the new
-    /// priority order.
-    func moveRules(fromOffsets source: IndexSet, toOffset destination: Int) {
-        var reordered = rules
-        reordered.move(fromOffsets: source, toOffset: destination)
-        rules = reordered   // optimistic local update so the list doesn't jump before the event
-        Task { await manager.reorderRules(reordered.map(\.id)) }
-    }
-
-    /// Turn "open at login" on or off. Reflects the actual resulting OS state afterward (so a failed
-    /// or approval-gated change never leaves the switch lying), and nudges the user to System
-    /// Settings when re-enabling needs their approval.
-    func setLaunchAtLogin(_ enabled: Bool) {
-        try? loginItem.setEnabled(enabled)
-        if enabled, loginItem.needsApproval { loginItem.openSystemSettings() }
-        launchAtLoginEnabled = loginItem.isEnabled
     }
 
     // MARK: Ambient surfaces
