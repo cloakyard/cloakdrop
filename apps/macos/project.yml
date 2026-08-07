@@ -14,11 +14,17 @@ settings:
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
     MACOSX_DEPLOYMENT_TARGET: "26.0"
+    # Xcode 27 beta otherwise warns that App Intents extraction was skipped for these targets even
+    # though CloakDrop intentionally has no AppIntents dependency. Its own package targets already
+    # force an empty metadata result; using the same supported extractor mode keeps app builds clean.
+    LM_FORCE_LINK_GENERATION: YES
     CODE_SIGN_STYLE: Automatic
     CODE_SIGN_IDENTITY: "-"
     ENABLE_HARDENED_RUNTIME: YES
-    SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
-    GCC_TREAT_WARNINGS_AS_ERRORS: NO
+    # Keep first-party app and extension sources warning-free on each SDK update. Swift package
+    # dependencies retain their own warning policy rather than inheriting command-line overrides.
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+    GCC_TREAT_WARNINGS_AS_ERRORS: YES
     # "1.0.0 Beta" until the notarized 1.0 ships alongside macOS 27's final release — the tag rides
     # the version string so About, Finder's Get Info, and bug reports all say beta without a
     # second source of truth. Drop the suffix (here and in both targets' CFBundleShortVersionString)

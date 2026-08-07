@@ -15,34 +15,34 @@ enum StopReason: Sendable {
 /// speed limit, streams progress, then finalizes and verifies the file. All mutable state
 /// is actor-isolated; the concurrent segment workers report back through actor methods.
 actor DownloadTask {
-    private(set) var download: Download
-    private let httpClient: any HTTPClient
+    var download: Download
+    let httpClient: any HTTPClient
     private let store: any DownloadStore
     private let globalLimiter: BandwidthLimiter
     let settings: EngineSettings
-    private let remuxer: any Remuxer
+    let remuxer: any Remuxer
     private let signatureInspector: any CodeSignatureInspecting
-    private let emit: @Sendable (EngineEvent) -> Void
+    let emit: @Sendable (EngineEvent) -> Void
 
     private var stopReason: StopReason?
-    private let clock = ContinuousClock()
-    private var speedSampler = SpeedSampler()
-    private var lastEmit: ContinuousClock.Instant
-    private var lastPersist: ContinuousClock.Instant
+    let clock = ContinuousClock()
+    var speedSampler = SpeedSampler()
+    var lastEmit: ContinuousClock.Instant
+    var lastPersist: ContinuousClock.Instant
     /// Chains the fire-and-forget snapshot saves so they hit the store in issue order, and so the
     /// awaited `persist()` drains them — a stale mid-transfer snapshot landing after the terminal
     /// save would mark a finished download `.downloading` and re-run it on relaunch.
     private var pendingSave: Task<Void, Never>?
     /// Timestamp of the last forward-progress sample, for accumulating active-transfer time.
-    private var lastStatSample: ContinuousClock.Instant?
+    var lastStatSample: ContinuousClock.Instant?
     /// Live byte tallies of the *in-flight* media segments (keyed by part-file path) — the
     /// mid-segment progress the completed count can't see, so a paired grab whose whole video is
     /// one segment still shows moving bytes. Entries clear as their segments complete.
-    private var mediaInflight: [String: Int64] = [:]
+    var mediaInflight: [String: Int64] = [:]
     /// Expected size per media segment (keyed by part-file path), reported by workers from the
     /// response head / seeded from completed files on disk. Once every segment is present the sum
     /// becomes the grab's byte total, giving the UI a real fraction and ETA.
-    private var mediaExpected: [String: Int64] = [:]
+    var mediaExpected: [String: Int64] = [:]
 
     init(
         download: Download,
@@ -338,7 +338,7 @@ actor DownloadTask {
     /// A fresh, unused segment id (ids only ever grow, so splits never collide with existing ones).
     private func nextSegmentID() -> Int { (download.segments.map(\.id).max() ?? -1) + 1 }
 
-    private func perDownloadLimiters() -> [BandwidthLimiter] {
+    func perDownloadLimiters() -> [BandwidthLimiter] {
         var limiters = [globalLimiter]
         if let perDownload = download.speedLimitBytesPerSecond {
             limiters.append(BandwidthLimiter(bytesPerSecond: perDownload))
@@ -378,335 +378,6 @@ actor DownloadTask {
             enqueueSave(download)
         }
         return download.segments[index].end
-    }
-
-    // MARK: Media transfer (HLS/DASH)
-
-    /// Transfer a media plan: fetch the fMP4 init segment and any AES-128 keys, then each media
-    /// segment in parallel (rate-limited, retrying on drops), decrypting as needed. Every segment
-    /// lands in its own file in the `.cdparts` directory, so an interrupted grab resumes by
-    /// skipping the files already on disk — the same "disk is the source of truth" invariant the
-    /// file path relies on, so it survives force-quit and reboot.
-    private func transferMedia() async throws {
-        guard let plan = download.mediaPlan else { return }
-        let partDir = download.mediaPartDirectoryPath
-        try FileManager.default.createDirectory(atPath: partDir, withIntermediateDirectories: true)
-        let headers = download.requestHeaders
-
-        // fMP4 init segments — small, fetched once and reused across a resume. A separate audio stream
-        // has its own init.
-        try await fetchInitIfNeeded(plan.initSegment, named: "init.part", partDir: partDir, headers: headers)
-        if plan.hasSeparateAudio {
-            try await fetchInitIfNeeded(plan.audioInitSegment, named: "audio-init.part", partDir: partDir, headers: headers)
-        }
-
-        // AES-128 keys across video + audio — usually one for the whole stream; fetch each once.
-        var keys: [URL: Data] = [:]
-        for keyURL in plan.keyURLs {
-            keys[keyURL] = try await fetchResource(url: keyURL, byteRange: nil, headers: headers)
-        }
-
-        // Resume: whatever's already on disk is done.
-        syncMediaProgressFromDisk(plan: plan, partDir: partDir)
-        await persist()
-        emitMediaProgress(plan: plan)
-
-        // One work list over the video (or muxed) segments and any separate audio segments; each
-        // lands in its own file, so an interrupted grab resumes by skipping what's already there.
-        let remaining = mediaWorkItems(plan: plan, partDir: partDir)
-            .filter { !FileManager.default.fileExists(atPath: $0.path) }
-        guard !remaining.isEmpty else { return }
-
-        let limiters = perDownloadLimiters()
-        let concurrency = max(1, min(settings.maxSegmentCount, settings.defaultSegmentCount))
-        let settings = self.settings
-
-        for batch in remaining.chunked(into: concurrency) {
-            try await withThrowingTaskGroup(of: (String, Int).self) { group in
-                for item in batch {
-                    let path = item.path
-                    let segment = item.segment
-                    let key = segment.encryption.method == .aes128 ? segment.encryption.keyURL.flatMap { keys[$0] } : nil
-                    group.addTask { [httpClient] in
-                        let bytes = try await runMediaSegment(
-                            segment: segment,
-                            filePath: path,
-                            key: key,
-                            headers: headers,
-                            httpClient: httpClient,
-                            limiters: limiters,
-                            settings: settings,
-                            onExpectedBytes: { total in await self.recordMediaExpected(path: path, bytes: total) },
-                            onBytes: { delta in await self.recordMediaBytes(path: path, delta: delta) }
-                        )
-                        return (path, bytes)
-                    }
-                }
-                for try await (path, bytes) in group {
-                    markMediaSegmentComplete(path: path, bytes: Int64(bytes), plan: plan)
-                }
-            }
-        }
-    }
-
-    /// One downloadable unit: a segment and the file it lands in. Video and audio share this list so
-    /// the transfer, resume, and progress logic treat both streams uniformly.
-    private struct MediaWorkItem { let segment: MediaSegment; let path: String }
-
-    /// Every segment to fetch for a plan — the video (or muxed) segments plus any separate audio —
-    /// each mapped to its own on-disk part file (audio in a distinct `audio-` namespace).
-    private func mediaWorkItems(plan: MediaPlan, partDir: String) -> [MediaWorkItem] {
-        var items = plan.segments.map { MediaWorkItem(segment: $0, path: segmentPath(partDir, $0)) }
-        for segment in (plan.audioSegments ?? []) {
-            items.append(MediaWorkItem(segment: segment, path: audioSegmentPath(partDir, segment)))
-        }
-        return items
-    }
-
-    /// Fetch an fMP4 init segment into `named` under the part dir, unless it's already there (resume).
-    private func fetchInitIfNeeded(
-        _ initSegment: MediaInitSegment?, named: String, partDir: String, headers: [String: String]
-    ) async throws {
-        guard let initSegment else { return }
-        let path = (partDir as NSString).appendingPathComponent(named)
-        guard !FileManager.default.fileExists(atPath: path) else { return }
-        let range = initSegment.byteRange.map { $0.offset...$0.end }
-        let data = try await fetchResource(url: initSegment.url, byteRange: range, headers: headers)
-        try data.write(to: URL(fileURLWithPath: path), options: .atomic)
-    }
-
-    /// Recompute completed-segment progress from the files already on disk (the resume basis) —
-    /// counting video and audio parts alike.
-    private func syncMediaProgressFromDisk(plan: MediaPlan, partDir: String) {
-        var completed = 0
-        var bytes: Int64 = 0
-        mediaInflight = [:]
-        mediaExpected = [:]
-        for item in mediaWorkItems(plan: plan, partDir: partDir) {
-            if let size = fileSize(item.path) {
-                completed += 1
-                bytes += size
-                mediaExpected[item.path] = size   // a finished file *is* its expected size
-            }
-        }
-        download.mediaCompletedSegments = completed
-        download.mediaDownloadedBytes = bytes
-    }
-
-    /// Record a worker's transfer delta for one segment. A negative delta retracts bytes a restart
-    /// discarded (a refused resume) — it adjusts the in-flight tally without polluting the speed
-    /// stats. The tally from a *previous* run's partial isn't counted here (it was never added), so
-    /// the clamp to zero keeps a retraction from bleeding into other segments' bytes.
-    private func recordMediaBytes(path: String, delta: Int) {
-        guard delta >= 0 else {
-            mediaInflight[path] = max(0, (mediaInflight[path] ?? 0) + Int64(delta))
-            return
-        }
-        mediaInflight[path, default: 0] += Int64(delta)
-        let now = clock.now
-        speedSampler.add(bytes: Int64(delta), at: now)
-        recordStats(at: now)
-        if Self.seconds(from: lastEmit, to: now) >= 0.1, let plan = download.mediaPlan {
-            lastEmit = now
-            emitMediaProgress(plan: plan)
-        }
-    }
-
-    /// Record a segment's expected size (from its response head) — see `mediaExpected`.
-    private func recordMediaExpected(path: String, bytes: Int64) {
-        mediaExpected[path] = bytes
-    }
-
-    /// Update the peak-rate and active-transfer-time stats from the current sample. Called only on
-    /// forward progress. Active time ignores gaps ≥ 2s (a stall or pause), so the average reflects
-    /// real transfer speed rather than wall-clock elapsed.
-    private func recordStats(at now: ContinuousClock.Instant) {
-        let rate = speedSampler.rate(now: now)
-        if rate > (download.peakBytesPerSecond ?? 0) { download.peakBytesPerSecond = rate }
-        if let last = lastStatSample {
-            let gap = Self.seconds(from: last, to: now)
-            if gap > 0, gap < 2.0 { download.activeSeconds = (download.activeSeconds ?? 0) + gap }
-        }
-        lastStatSample = now
-    }
-
-    private func markMediaSegmentComplete(path: String, bytes: Int64, plan: MediaPlan) {
-        download.mediaCompletedSegments += 1
-        download.mediaDownloadedBytes += bytes
-        mediaInflight[path] = nil                 // its bytes now live in the completed tally
-        mediaExpected[path] = bytes               // the actual size is authoritative
-        emitMediaProgress(plan: plan)
-        let now = clock.now
-        // Persist less often than the file path: a media resume recomputes progress from the segment
-        // files already on disk (`syncMediaProgressFromDisk`), so these snapshots only keep the
-        // displayed count fresh after a force-quit — not worth re-encoding the whole (immutable,
-        // possibly thousands-of-segments) `mediaPlan` every second.
-        if Self.seconds(from: lastPersist, to: now) >= 5.0 {
-            lastPersist = now
-            enqueueSave(download)
-        }
-    }
-
-    private func emitMediaProgress(plan: MediaPlan) {
-        // Live bytes include the in-flight segments; the total appears once every segment's size is
-        // known (immediately for a paired grab, whose 1–2 segments all start at once) — giving the
-        // UI a byte-accurate bar and ETA instead of a frozen "0 of 2 segments".
-        let inflight = mediaInflight.values.reduce(0, +)
-        let totalBytes: Int64? = mediaExpected.count == plan.totalSegments
-            ? mediaExpected.values.reduce(0, +)
-            : nil
-        emit(.progress(DownloadProgress(
-            id: download.id,
-            downloadedBytes: download.mediaDownloadedBytes + inflight,
-            totalBytes: totalBytes,
-            bytesPerSecond: speedSampler.rate(now: clock.now),
-            peakBytesPerSecond: download.peakBytesPerSecond ?? 0,
-            averageBytesPerSecond: download.averageBytesPerSecond ?? 0,
-            completedSegments: download.mediaCompletedSegments,
-            totalSegments: plan.totalSegments
-        )))
-    }
-
-    /// Assemble the finished parts (init first, then each segment in order) into one file, remux it
-    /// into a clean container when the remuxer can, and move the result into place — then remove the
-    /// transient part directory. Concatenation alone yields a playable fMP4/TS file; the remuxer
-    /// turns it into a clean, seekable `.mp4`/`.m4a` (falling back to the raw concatenation when it
-    /// can't repackage the input).
-    private func finalizeMedia() async throws {
-        guard let plan = download.mediaPlan else { return }
-        let partDir = download.mediaPartDirectoryPath
-
-        // Assemble the video (or muxed) stream by concatenating its init + segments into one file,
-        // named with a content-appropriate extension so the remuxer's asset loader sniffs the right
-        // container: an fMP4 (init + `.m4s`) concatenation is an MP4; otherwise keep the segments'
-        // own extension (`.ts`, `.aac`, …) so raw elementary streams aren't mislabelled `.mp4`.
-        let videoExt = assemblyExtension(initSegment: plan.initSegment, segments: plan.segments)
-        let videoAssembly = (partDir as NSString).appendingPathComponent("assembly.\(videoExt)")
-        try concatenate(initNamed: "init.part", segments: plan.segments,
-                        pathFor: { segmentPath(partDir, $0) }, partDir: partDir, into: videoAssembly)
-
-        var sourcePath = videoAssembly
-        var container = videoExt
-        if plan.hasSeparateAudio {
-            // Assemble the separate audio stream and mux it into the video so the result has sound.
-            let audioSegs = plan.audioSegments ?? []
-            let audioExt = assemblyExtension(initSegment: plan.audioInitSegment, segments: audioSegs)
-            let audioAssembly = (partDir as NSString).appendingPathComponent("assembly-audio.\(audioExt)")
-            try concatenate(initNamed: "audio-init.part", segments: audioSegs,
-                            pathFor: { audioSegmentPath(partDir, $0) }, partDir: partDir, into: audioAssembly)
-            if let muxed = try await attemptRepackage({ try await remuxer.mux(videoPath: videoAssembly, audioPath: audioAssembly) }) {
-                sourcePath = muxed.outputPath
-                container = muxed.fileExtension
-            } else if let result = try await attemptRepackage({ try await remuxer.remux(sourcePath: videoAssembly) }) {
-                // Muxing these codecs isn't supported (e.g. VP9/Opus without the ffmpeg backend): ship
-                // a clean video-only file rather than fail the whole grab.
-                sourcePath = result.outputPath
-                container = result.fileExtension
-            }
-        } else if let result = try await attemptRepackage({ try await remuxer.remux(sourcePath: videoAssembly) }) {
-            // Single muxed stream — repackage into a clean container when possible.
-            sourcePath = result.outputPath
-            container = result.fileExtension
-        }
-
-        // Correct the name/category to the produced container, then auto-categorize and move it in.
-        download.fileName = (download.fileName as NSString).deletingPathExtension + ".\(container)"
-        download.category = FileCategory.classify(fileName: download.fileName)
-        if settings.autoCategorize {
-            let categoryDir = (download.destinationDirectoryPath as NSString)
-                .appendingPathComponent(download.category.displayName)
-            download.destinationDirectoryPath = categoryDir
-        }
-
-        try SegmentedFileWriter.finalize(partPath: sourcePath, destinationPath: download.destinationFilePath)
-        try? FileManager.default.removeItem(atPath: partDir)
-
-        if settings.applyQuarantine {
-            Quarantine.apply(toPath: download.destinationFilePath,
-                             sourceURL: download.url,
-                             originURL: download.requestHeaders["Referer"].flatMap(URL.init(string:)))
-        }
-        await writeSubtitleSidecars(plan.subtitles ?? [], headers: download.requestHeaders)
-        download.totalBytes = fileSize(download.destinationFilePath)
-        download.mediaDownloadedBytes = download.totalBytes ?? download.mediaDownloadedBytes
-    }
-
-    /// Run one repackage attempt, mapping its failures to `nil` so the caller can fall back — while
-    /// letting cancellation propagate. A pause/cancel issued during the mux must abort the finalize,
-    /// not read as "codec unsupported" and ship a wrong (e.g. audio-less) file marked completed.
-    private func attemptRepackage(_ attempt: () async throws -> RemuxResult) async throws -> RemuxResult? {
-        do {
-            return try await attempt()
-        } catch is CancellationError {
-            throw CancellationError()
-        } catch {
-            // Some backends surface a cancelled export as their own error type; re-check the task.
-            try Task.checkCancellation()
-            return nil
-        }
-    }
-
-    /// The container extension for a concatenation: `mp4` for an fMP4 stream (has an init segment),
-    /// else the segments' own extension (`.ts`, `.aac`, …) so raw elementary streams aren't
-    /// mislabelled and the remuxer's loader sniffs the right container.
-    private func assemblyExtension(initSegment: MediaInitSegment?, segments: [MediaSegment]) -> String {
-        if initSegment != nil { return "mp4" }
-        let ext = segments.first?.url.pathExtension.lowercased() ?? ""
-        return ext.isEmpty ? "mp4" : ext
-    }
-
-    /// Concatenate an init segment (named file, if present) and every segment, in order, into a
-    /// single file at `assemblyPath`. `pathFor` maps a segment to its on-disk part file, so the same
-    /// routine assembles both the video and the separate audio stream.
-    private func concatenate(
-        initNamed initName: String, segments: [MediaSegment],
-        pathFor: (MediaSegment) -> String, partDir: String, into assemblyPath: String
-    ) throws {
-        let fm = FileManager.default
-        if !fm.fileExists(atPath: partDir) {
-            try fm.createDirectory(atPath: partDir, withIntermediateDirectories: true)
-        }
-        try? fm.removeItem(atPath: assemblyPath)
-        guard fm.createFile(atPath: assemblyPath, contents: nil),
-              let output = FileHandle(forWritingAtPath: assemblyPath) else {
-            throw DownloadError.fileSystem(reason: "Could not open \(assemblyPath) for assembly.")
-        }
-        defer { try? output.close() }
-
-        func append(_ path: String) throws {
-            guard let input = FileHandle(forReadingAtPath: path) else {
-                throw DownloadError.fileSystem(reason: "Missing media part \(path).")
-            }
-            defer { try? input.close() }
-            while let chunk = try input.read(upToCount: 1 << 20), !chunk.isEmpty {
-                try output.write(contentsOf: chunk)
-            }
-        }
-
-        let initPath = (partDir as NSString).appendingPathComponent(initName)
-        if fm.fileExists(atPath: initPath) { try append(initPath) }
-        for segment in segments { try append(pathFor(segment)) }
-    }
-
-    private func segmentPath(_ partDir: String, _ segment: MediaSegment) -> String {
-        (partDir as NSString).appendingPathComponent("seg-\(segment.id).part")
-    }
-
-    /// Audio part files live in a distinct namespace so an audio segment can't collide with a video
-    /// segment that happens to share its media-sequence id.
-    private func audioSegmentPath(_ partDir: String, _ segment: MediaSegment) -> String {
-        (partDir as NSString).appendingPathComponent("audio-\(segment.id).part")
-    }
-
-    private func fileSize(_ path: String) -> Int64? {
-        (try? FileManager.default.attributesOfItem(atPath: path)[.size] as? NSNumber)?.int64Value
-    }
-
-    func fetchResource(url: URL, byteRange: ClosedRange<Int64>?, headers: [String: String]) async throws -> Data {
-        let (_, stream) = try await httpClient.stream(HTTPDownloadRequest(url: url, headers: headers, byteRange: byteRange))
-        var data = Data()
-        for try await chunk in stream { data.append(chunk) }
-        return data
     }
 
     // MARK: Finalize
@@ -803,19 +474,19 @@ actor DownloadTask {
     }
 
     /// Persist a throttled mid-transfer snapshot after any save already queued (fire-and-forget).
-    private func enqueueSave(_ snapshot: Download) {
+    func enqueueSave(_ snapshot: Download) {
         pendingSave = Task { [store, previous = pendingSave] in
             await previous?.value
             try? await store.save(snapshot)
         }
     }
 
-    private func persist() async {
+    func persist() async {
         enqueueSave(download)
         await pendingSave?.value
     }
 
-    private static func seconds(from start: ContinuousClock.Instant, to end: ContinuousClock.Instant) -> Double {
+    static func seconds(from start: ContinuousClock.Instant, to end: ContinuousClock.Instant) -> Double {
         start.seconds(to: end)
     }
 
