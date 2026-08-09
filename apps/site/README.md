@@ -2,7 +2,8 @@
 
 The marketing site for **CloakDrop**, hosted at **[drop.cloakyard.com](https://drop.cloakyard.com)**.
 
-- **Stack:** [Astro](https://astro.build) 7 — fully static output, zero client-side JS.
+- **Stack:** [Astro](https://astro.build) 7 — fully static output, with a small first-party
+  script for progressive motion and the interactive transfer demonstration.
 - **Host:** Cloudflare **Workers static assets** (`wrangler.jsonc` → serves `dist/` from the edge).
 - **Design:** editorial / magazine layout — numbered sections, hairline rules, self-hosted **Archivo** (heavy display) + **JetBrains Mono** (labels & data) on CloakDrop's deep-ocean accent (`#2A7B9B`). Follows the OS light/dark theme via `prefers-color-scheme`. Fonts are self-hosted (no Google Fonts request) to keep the privacy story intact.
 
@@ -40,16 +41,20 @@ apps/site/
 │   └── cloakdrop-mark.svg, icons/favicon.svg, *.png …
 │                           # brand assets — GENERATED from /assets by sync-assets (git-ignored)
 └── src/
-    ├── data/site.ts        # ← all copy, links, section content (single source of truth)
+    ├── data/site.ts        # shared product copy, links, and structured section content
     ├── layouts/BaseLayout  # <head>, SEO/OG, JSON-LD, theme-color, font preloads
-    ├── components/         # Header · Hero · SpecStrip · Engine · Provenance · Capture ·
-    │                       #   Details · Privacy · UnderTheHood · Suite · Footer
+    ├── components/         # Header · Hero · SpecStrip · TransferTheatre · Provenance ·
+    │                       #   Details · Privacy · Download · Footer
     │                       #   + shared: Icon · Kicker (numbered label) · Brand (logo lockup)
-    ├── pages/index.astro   # the one page — composes the sections in order
+    ├── pages/index.astro   # landing page — composes the sections in order
+    ├── pages/privacy.astro # renders the repo-root privacy policy for the web
+    ├── scripts/motion.ts   # progressive enhancement for reveal/count/scroll motion
     └── styles/global.css   # @font-face + design tokens (light/dark) + shared primitives
 ```
 
-Edit copy in [`src/data/site.ts`](src/data/site.ts); components read from it. Brand assets
+Edit shared product copy and links in [`src/data/site.ts`](src/data/site.ts). Labels and
+annotations that belong to a specific visual demonstration live beside that component's markup.
+Brand assets
 (the `cloakdrop-mark.svg` mark, favicons, `og.png`, `hero.webp`/`hero.png`) are the **generated** copies
 of the sources in [`/assets`](../../assets) — edit them there, not in `public/`, then rerun
 `npm run build` (or `npm run sync:assets`). The web logo is the circular

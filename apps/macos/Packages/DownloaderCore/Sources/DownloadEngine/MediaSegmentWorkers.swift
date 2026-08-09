@@ -188,6 +188,7 @@ private func streamMediaSegmentToDisk(
             try Task.checkCancellation()
             if chunk.isEmpty { continue }
             for limiter in limiters where limiter.isLimited { await limiter.awaitAllowance(byteCount: chunk.count) }
+            try Task.checkCancellation()
             try handle.write(contentsOf: chunk)
             written += Int64(chunk.count)
             await onBytes(chunk.count)
@@ -267,6 +268,7 @@ private func streamMediaChunked(
                 try Task.checkCancellation()
                 if data.isEmpty { continue }
                 for limiter in limiters where limiter.isLimited { await limiter.awaitAllowance(byteCount: data.count) }
+                try Task.checkCancellation()
                 try handle.write(contentsOf: data)
                 chunkBytes += data.count
                 written += Int64(data.count)
@@ -310,6 +312,7 @@ private func fetchEncryptedMediaSegment(
         try Task.checkCancellation()
         if chunk.isEmpty { continue }
         for limiter in limiters { await limiter.awaitAllowance(byteCount: chunk.count) }
+        try Task.checkCancellation()
         buffer.append(chunk)
         await onBytes(chunk.count)
     }

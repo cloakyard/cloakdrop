@@ -57,7 +57,7 @@ const segmentLabels = ['01', '02', '03', '04', '05', '06', '07', '08'];
                 <div
                   class="diagram diagram--speed"
                   role="img"
-                  aria-label="One URL is planned into eight parallel byte ranges, written into one resumable part file, then verified as a complete file"
+                  aria-label="One URL is configured for eight parallel byte ranges, written into one resumable part file, then checked before finalization when checksum verification is enabled and a checksum is available"
                 >
                   <div class="node">
                     <small>INPUT</small>
@@ -66,7 +66,7 @@ const segmentLabels = ['01', '02', '03', '04', '05', '06', '07', '08'];
                   </div>
                   <i class="arrow" aria-hidden="true">→</i>
                   <div class="range-bank">
-                    <small>TRANSFER</small>
+                    <small>CONFIGURED EXAMPLE</small>
                     <strong>8 byte ranges</strong>
                     <div aria-hidden="true">
                       {segmentLabels.map((label) => <span><b>{label}</b><i></i></span>)}
@@ -81,8 +81,8 @@ const segmentLabels = ['01', '02', '03', '04', '05', '06', '07', '08'];
                   <i class="arrow" aria-hidden="true">→</i>
                   <div class="node node--accent">
                     <small>OUTPUT</small>
-                    <strong>Verified file</strong>
-                    <span>Byte-perfect</span>
+                    <strong>Finished file</strong>
+                    <span>Checksum checked when enabled and available</span>
                   </div>
                 </div>
               )}

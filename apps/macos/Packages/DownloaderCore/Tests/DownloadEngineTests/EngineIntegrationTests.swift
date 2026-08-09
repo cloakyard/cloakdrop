@@ -31,8 +31,13 @@ private struct Harness {
         await manager.updateSettings(settings)
     }
 
-    func request(checksum: ChecksumExpectation? = nil) -> DownloadRequest {
-        DownloadRequest(url: url, destinationDirectoryPath: directory.path, checksum: checksum)
+    func request(checksum: ChecksumExpectation? = nil, segmentCount: Int? = nil) -> DownloadRequest {
+        DownloadRequest(
+            url: url,
+            destinationDirectoryPath: directory.path,
+            segmentCount: segmentCount,
+            checksum: checksum
+        )
     }
 
     func waitFor(
@@ -102,6 +107,43 @@ struct EngineIntegrationTests {
         #expect(!FileManager.default.fileExists(atPath: done.partFilePath))  // part file cleaned up
     }
 
+    @Test("A per-download connection override is persisted and controls the actual plan")
+    func perDownloadConnectionOverride() async throws {
+        let payload = makePayload(240_000)
+        let h = try await Harness(data: payload)
+        var settings = await h.manager.currentSettings()
+        settings.defaultSegmentCount = 4
+        settings.minimumSegmentSizeBytes = 60_000
+        await h.manager.updateSettings(settings)
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request(segmentCount: 2))
+        let done = try await h.waitFor(download.id) { $0.status == .completed }
+
+        #expect(done.requestedSegmentCount == 2)
+        #expect(done.segments.count == 2)
+        #expect(try h.fileData(done) == payload)
+        let persisted = try #require(try await h.store.download(id: done.id))
+        #expect(persisted.requestedSegmentCount == 2)
+    }
+
+    @Test("A known zero-byte resource completes without opening a body stream")
+    func knownEmptyResourceCompletes() async throws {
+        let h = try await Harness(data: Data())
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        let done = try await h.waitFor(download.id) { $0.status == .completed }
+
+        #expect(done.totalBytes == 0)
+        #expect(done.downloadedBytes == 0)
+        #expect(done.supportsResume == false)
+        #expect(done.segments.isEmpty)
+        // Completion may probe sibling checksum URLs, but the empty resource itself needs no body.
+        #expect(!h.mock.streamedRequests.contains { $0.url == h.url })
+        #expect(try h.fileData(done).isEmpty)
+    }
+
     @Test("A slow straggler segment gets its tail stolen, splitting into more segments, and still reassembles byte-perfectly")
     func dynamicResplittingStealsStragglerTail() async throws {
         let payload = makePayload(1_000_000)
@@ -123,6 +165,64 @@ struct EngineIntegrationTests {
         #expect(done.segments.count > 4)          // the straggler's tail was split off at least once
         #expect(try h.fileData(done) == payload)  // every split half landed in the right place
         #expect(done.totalBytes == Int64(payload.count))
+    }
+
+    @Test("Relaunching a work-stolen segment table never exceeds the current connection cap")
+    func resumedSegmentTableUsesBoundedScheduler() async throws {
+        let payload = makePayload(800_000)
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("cloakdrop-bounded-resume-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let url = URL(string: "https://example.com/bounded.bin")!
+        let store = try GRDBDownloadStore.inMemory()
+        try await store.bootstrap()
+        var settings = EngineSettings.default
+        settings.defaultSegmentCount = 2
+        settings.maxSegmentCount = 2
+        settings.minimumSegmentSizeBytes = 10_000
+        settings.autoDiscoverChecksums = false
+        try await store.save(settings: settings)
+
+        var interrupted = Download(
+            url: url,
+            fileName: "bounded.bin",
+            destinationDirectoryPath: directory.path,
+            totalBytes: Int64(payload.count),
+            supportsResume: true,
+            segments: SegmentPlanner.plan(
+                totalBytes: Int64(payload.count), requestedSegments: 8, minimumSegmentSize: 10_000
+            ),
+            requestedSegmentCount: 2
+        )
+        interrupted.status = .queued
+        try await store.save(interrupted)
+        try SegmentedFileWriter.prepare(partPath: interrupted.partFilePath, totalBytes: interrupted.totalBytes)
+
+        let mock = MockHTTPClient()
+        mock.chunkSize = 2_048
+        mock.perChunkDelay = .milliseconds(2)
+        mock.setResource(.init(data: payload, acceptsRanges: true), for: url)
+        let manager = DownloadManager(store: store, httpClient: mock, networkMonitor: AlwaysReachableMonitor())
+        try await manager.start()
+
+        let deadline = ContinuousClock().now + .seconds(15)
+        var completed: Download?
+        while ContinuousClock().now < deadline {
+            if let candidate = await manager.snapshot().downloads.first(where: { $0.id == interrupted.id }) {
+                if candidate.status == .completed { completed = candidate; break }
+                if case .failed(let reason) = candidate.status {
+                    Issue.record("download failed: \(reason)")
+                    break
+                }
+            }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+
+        let done = try #require(completed)
+        #expect(mock.peakActiveStreamCount <= 2)
+        #expect(try Data(contentsOf: URL(fileURLWithPath: done.destinationFilePath)) == payload)
     }
 
     @Test("A completed download records peak and average speed stats")
@@ -152,6 +252,59 @@ struct EngineIntegrationTests {
 
         #expect(done.segments.count == 1)
         #expect(done.supportsResume == false)
+        #expect(try h.fileData(done) == payload)
+    }
+
+    @Test("A server that proves Range during probe but ignores segment ranges falls back safely")
+    func lyingRangeServerFallsBackToWholeStream() async throws {
+        let payload = makePayload(180_000)
+        let h = try await Harness(data: payload)
+        h.mock.setResource(
+            .init(data: payload, acceptsRanges: true, streamHonorsRanges: false),
+            for: h.url
+        )
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        let done = try await h.waitFor(download.id) { $0.status == .completed }
+
+        #expect(done.supportsResume == false)
+        #expect(done.segments.count == 1)
+        #expect(h.mock.streamedRequests.contains { $0.byteRange != nil })
+        #expect(h.mock.streamedRequests.contains { $0.byteRange == nil })
+        #expect(try h.fileData(done) == payload)
+    }
+
+    @Test("A shifted Content-Range is rejected before writing and recovered without corruption")
+    func shiftedContentRangeFallsBackSafely() async throws {
+        let payload = makePayload(180_000)
+        let h = try await Harness(data: payload)
+        h.mock.setResource(
+            .init(data: payload, acceptsRanges: true, responseRangeOffsetDelta: 1),
+            for: h.url
+        )
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        let done = try await h.waitFor(download.id) { $0.status == .completed }
+
+        #expect(done.supportsResume == false)
+        #expect(done.segments.count == 1)
+        #expect(try h.fileData(done) == payload)
+    }
+
+    @Test("Strong probe validators are sent as If-Range on same-origin segment requests")
+    func segmentRequestsUseIfRange() async throws {
+        let payload = makePayload(180_000)
+        let h = try await Harness(data: payload, etag: "\"stable-v1\"")
+        defer { h.cleanup() }
+
+        let download = await h.manager.add(h.request())
+        let done = try await h.waitFor(download.id) { $0.status == .completed }
+
+        let ranged = h.mock.streamedRequests.filter { $0.byteRange != nil }
+        #expect(!ranged.isEmpty)
+        #expect(ranged.allSatisfy { $0.headers["If-Range"] == "\"stable-v1\"" })
         #expect(try h.fileData(done) == payload)
     }
 
@@ -259,6 +412,8 @@ struct EngineIntegrationTests {
         let badDownload = await bad.manager.add(bad.request(checksum: .init(algorithm: .sha256, expectedHex: String(repeating: "a", count: 64))))
         let badDone = try await bad.waitFor(badDownload.id) { if case .failed = $0.status { return true } else { return false } }
         if case .failed = badDone.status {} else { Issue.record("expected checksum failure") }
+        #expect(!FileManager.default.fileExists(atPath: badDone.destinationFilePath))
+        #expect(FileManager.default.fileExists(atPath: badDone.partFilePath))
     }
 
     @Test("Auto-discovers a sibling checksum file and verifies against it")

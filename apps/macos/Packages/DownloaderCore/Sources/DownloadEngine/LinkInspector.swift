@@ -49,8 +49,15 @@ public struct LinkInspector: Sendable {
     /// `DownloadTask.prepareIfNeeded` exactly, so the previewed estimate matches the real transfer.
     /// `1` when the resource is non-resumable or too small to split.
     static func plannedSegmentCount(totalBytes: Int64?, acceptsRanges: Bool, settings: EngineSettings) -> Int {
-        guard let total = totalBytes, acceptsRanges, total >= settings.minimumSegmentSizeBytes * 2 else { return 1 }
-        let requested = min(settings.maxSegmentCount, max(1, settings.defaultSegmentCount))
+        guard let total = totalBytes, acceptsRanges,
+              total / max(1, settings.minimumSegmentSizeBytes) >= 2 else { return 1 }
+        let requested = SegmentPlanner.recommendedSegmentCount(
+            totalBytes: total,
+            requestedSegments: nil,
+            preferredSegments: settings.defaultSegmentCount,
+            maximumSegments: settings.maxSegmentCount,
+            minimumSegmentSize: settings.minimumSegmentSizeBytes
+        )
         return SegmentPlanner.plan(
             totalBytes: total,
             requestedSegments: requested,

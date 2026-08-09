@@ -82,6 +82,7 @@ extension DownloadManager {
             fileName: completed.fileName,
             destinationDirectoryPath: destination,
             destinationBookmark: completed.destinationBookmark,
+            requestedSegmentCount: completed.requestedSegmentCount,
             queueID: completed.queueID,
             requestHeaders: completed.requestHeaders,
             speedLimitBytesPerSecond: completed.speedLimitBytesPerSecond,

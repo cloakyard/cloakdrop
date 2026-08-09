@@ -1,6 +1,6 @@
 # CloakDrop App Privacy Policy
 
-_Last updated: July 16, 2026_
+_Last updated: August 9, 2026_
 
 CloakDrop is a free, open-source download manager for macOS. This policy describes the data the app keeps on your Mac, the network activity its features can create, and the controls available to you.
 
@@ -38,7 +38,7 @@ CloakDrop can make the following network requests:
 - **Video-page resolution:** when you submit a supported video-page URL, the bundled yt-dlp helper contacts that page and related service endpoints to resolve metadata and media-format URLs.
 - **Built-in browser:** WebKit loads pages you visit and the resources those pages request, which can include third-party images, scripts, frames, media, ads, or trackers. The optional blocker can reduce some of those requests.
 - **Address-bar search:** if search is enabled, the query is sent to your selected search engine only when you press Return.
-- **Proxies:** connections use your macOS system proxy by default, or a manual proxy if you configure one. Direct mode bypasses the system proxy.
+- **Proxies:** HTTP-based downloads and speed tests use your macOS system proxy by default, or direct/manual routing if you choose it. Manual routing is also mirrored into the built-in browser (which otherwise follows the system configuration). The native FTP/FTPS client connects directly.
 - **Speed tests:** Cloudflare or Ookla is contacted only while a speed test you started is running.
 - **Optional blocklists:** an open-source ad-blocking list is fetched only when you select it or press **Update Now**, never on a timer or at launch.
 
@@ -55,7 +55,7 @@ CloakDrop includes two open-source command-line helpers:
 - **ffmpeg** works locally to combine or transform media files and does not perform CloakDrop's transfers.
 - **yt-dlp** contacts a video page to resolve its metadata and available formats, but it does not download the selected media payload.
 
-CloakDrop's own download engine transfers the files and media you select, preserving its pause, resume, verification, and sandbox behavior.
+CloakDrop's own download engine transfers the files and media you select, preserving its pause, resume, persistence, and sandbox behavior.
 
 ## Sandbox and file access
 

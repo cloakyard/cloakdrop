@@ -3,16 +3,18 @@ import Network
 
 /// A tiny loopback FTP server for integration tests: enough of RFC 959 to exercise the real
 /// `FTPClient` — greeting, USER/PASS, TYPE I, SIZE, EPSV, REST, RETR, QUIT — over passive mode on
-/// loopback. Serves a fixed payload and honors `REST` so resume can be tested.
+/// loopback. Serves a fixed payload and can optionally reject `REST` so fallback can be tested.
 final class LoopbackFTPServer: @unchecked Sendable {
     private let control: NWListener
     private let payload: Data
+    private let supportsREST: Bool
     private let queue = DispatchQueue(label: "cloakdrop.loopback.ftp")
 
     private(set) var port: UInt16 = 0
 
-    init(payload: Data) throws {
+    init(payload: Data, supportsREST: Bool = true) throws {
         self.payload = payload
+        self.supportsREST = supportsREST
         let params = NWParameters.tcp
         params.allowLocalEndpointReuse = true
         self.control = try NWListener(using: params)
@@ -84,7 +86,13 @@ final class LoopbackFTPServer: @unchecked Sendable {
         case "PASS": send(connection, "230 Logged in\r\n")
         case "TYPE": send(connection, "200 Type set\r\n")
         case "SIZE": send(connection, "213 \(payload.count)\r\n")
-        case "REST": session.restOffset = Int(arg) ?? 0; send(connection, "350 Restarting\r\n")
+        case "REST":
+            if supportsREST {
+                session.restOffset = Int(arg) ?? 0
+                send(connection, "350 Restarting\r\n")
+            } else {
+                send(connection, "502 REST not supported\r\n")
+            }
         case "EPSV": openPassive(connection, session: session)
         case "PASV": openPassivePASV(connection, session: session)
         case "RETR": retrieve(connection, session: session)

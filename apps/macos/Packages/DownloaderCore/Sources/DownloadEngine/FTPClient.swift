@@ -6,8 +6,9 @@ import DownloadModels
 /// through the exact same segmented-transfer, resume, throttle, and persistence machinery as HTTP —
 /// no bundled library, just `Network.framework`.
 ///
-/// Supports plain `ftp://` and **explicit** `ftps://` (RFC 4217 `AUTH TLS`, the common flavor), using
-/// passive mode (`EPSV`, falling back to `PASV`) so it works from behind NAT without inbound ports.
+/// Supports plain `ftp://` and **implicit** `ftps://` (TLS from connection establishment, normally
+/// on port 990), using passive mode (`EPSV`, falling back to `PASV`) so it works from behind NAT
+/// without inbound ports.
 /// Resume is real: `REST <offset>` before `RETR` starts the byte stream at the segment's offset, which
 /// is exactly what the engine's per-segment resume needs. The wire-protocol parsing lives in the pure
 /// `FTPProtocol`; this type is the I/O around it.
@@ -23,10 +24,17 @@ public actor FTPClient: HTTPClient {
         defer { control.cancel() }
 
         let size = try? await control.size(path: FTPProtocol.path(for: request.url))
+        let supportsResume: Bool
+        do {
+            try await control.restart(at: 0)
+            supportsResume = true
+        } catch {
+            supportsResume = false
+        }
         return HTTPResponseHead(
             statusCode: 200,
             totalBytes: size,
-            acceptsRanges: true,        // FTP servers that speak REST support resume; we probe REST lazily
+            acceptsRanges: supportsResume,
             suggestedFilename: request.url.lastPathComponent.isEmpty ? nil : request.url.lastPathComponent,
             etag: nil,
             finalURL: request.url,
@@ -66,12 +74,13 @@ public actor FTPClient: HTTPClient {
             suggestedFilename: request.url.lastPathComponent.isEmpty ? nil : request.url.lastPathComponent,
             etag: nil,
             finalURL: request.url,
-            mimeType: nil
+            mimeType: nil,
+            contentRange: request.byteRange
         )
 
         // Bound the stream to the segment's byte count when the caller asked for a range: FTP's REST
         // only sets a start, so we stop reading once we've delivered `end - start + 1` bytes.
-        let limit: Int64? = request.byteRange.map { $0.upperBound - $0.lowerBound + 1 }
+        let limit: Int64? = request.byteRange.map { $0.upperBound - $0.lowerBound + 1 } ?? size
         let stream = data.bodyStream(byteLimit: limit) {
             // On completion/cancellation, read the transfer-complete reply and close the control link.
             Task { await control.finishTransfer() }

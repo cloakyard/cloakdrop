@@ -23,7 +23,8 @@ enum DownloadChecksum {
     static func resolveAndVerify(
         for download: Download,
         settings: EngineSettings,
-        httpClient: any HTTPClient
+        httpClient: any HTTPClient,
+        filePath: String? = nil
     ) async throws -> Outcome {
         guard settings.verifyChecksumsAutomatically else {
             return Outcome(expectation: download.checksum, verified: download.checksumVerified)
@@ -47,7 +48,7 @@ enum DownloadChecksum {
             return Outcome(expectation: expectation, verified: nil)
         }
 
-        let fileURL = URL(fileURLWithPath: download.destinationFilePath)
+        let fileURL = URL(fileURLWithPath: filePath ?? download.destinationFilePath)
         let actual = try await ChecksumVerifier.hash(fileURL: fileURL, algorithm: expectation.algorithm)
         let matches = actual == expectation.expectedHex
         if !matches, userProvided {

@@ -25,7 +25,7 @@ Legend: ✅ full · ⚠️ partial/limited · ❌ none · 🚫 deliberately out 
 | Feature | CloakDrop | IDM | FDM | JDownloader |
 |---|:--:|:--:|:--:|:--:|
 | **Transfer** |
-| Multi-segment | ✅ (8 + work-stealing) | ✅ (≤32) | ✅ | ✅ |
+| Multi-segment | ✅ (size-aware auto: 8 baseline / 16 default max; manual max up to 32; work-stealing) | ✅ (≤32) | ✅ | ✅ |
 | Resume across reboot | ✅ | ✅ | ✅ | ✅ |
 | Auto-retry / net-drop recovery | ✅ | ✅ | ✅ | ✅ |
 | Bandwidth limit — global **and** per-download | ✅ | ✅ | ✅ | ✅ |
@@ -38,7 +38,7 @@ Legend: ✅ full · ⚠️ partial/limited · ❌ none · 🚫 deliberately out 
 | Checksum verify (MD5/SHA) + sibling auto-discovery | ✅ | ❌ | ❌ | ⚠️ (hash, no sibling) |
 | Code-signature / trust assessment | ✅ | ❌ | ❌ | ❌ |
 | Gatekeeper quarantine flag on saved files | ✅ | n/a | n/a | n/a |
-| **Provenance Receipt (verified-download record)** | ✅ **unique** | ❌ | ❌ | ❌ |
+| **Provenance Receipt (optional verified-download record for ordinary files)** | ✅ **unique** | ❌ | ❌ | ❌ |
 | **C2PA / Content Credentials verify on ingest** | ❌ *(white space)* | ❌ | ❌ | ❌ |
 | **Intake** |
 | Built-in browser (grab media by browsing in-app; nothing to install) | ✅ (WebKit + first-party sniffing) | ❌ | ❌ | ❌ |
@@ -46,12 +46,12 @@ Legend: ✅ full · ⚠️ partial/limited · ❌ none · 🚫 deliberately out 
 | Clipboard monitor / drag-drop | ✅ | ✅ | ✅ | ✅ |
 | Batch / pattern add | ✅ | ✅ | ⚠️ | ✅ |
 | Link-grabber (paste wall → analyze → pick) | ✅ | ⚠️ | ⚠️ | ✅ (best) |
-| Deep multi-level site crawler | ⚠️ (bounded, 1 page by design) | ✅ (two-axis depth) | ⚠️ (legacy spider) | ✅ |
+| Deep multi-level site crawler | ❌ (single-page grabber only) | ✅ (two-axis depth) | ⚠️ (legacy spider) | ✅ |
 | Scheduler + recurrence | ✅ | ✅ | ✅ | ✅ |
 | Watch & auto-refresh on server change | ❌ | ✅ (sync queue) | ❌ | ⚠️ |
 | Folder watch (job files) | ❌ | ❌ | ❌ | ✅ |
 | **Automation** |
-| Scripting / automation surface | ⚠️ (planned: App Intents) | ⚠️ (CLI flags) | ✅ (Deno/Python add-ons) | ✅ (Event Scripter, best) |
+| Scripting / automation surface | ❌ (App Intents planned) | ⚠️ (CLI flags) | ✅ (Deno/Python add-ons) | ✅ (Event Scripter, best) |
 | Native OS integration (Shortcuts / Siri / Spotlight) | ⚠️ (Shortcut post-action) | ❌ | ❌ | ❌ |
 | **Media** |
 | HLS/DASH grab + mux | ✅ | ⚠️ (HLS/TS only) | ⚠️ | ⚠️ |
@@ -61,11 +61,11 @@ Legend: ✅ full · ⚠️ partial/limited · ❌ none · 🚫 deliberately out 
 | **Post / organize** |
 | Categories / auto-sort | ✅ | ✅ | ✅ | ⚠️ |
 | Smart-rule routing engine | ✅ | ⚠️ | ⚠️ | ✅ (scripter) |
-| Duplicate detection | ✅ (URL/ETag/content) | ❌ | ❌ | ⚠️ (hash-avoid) |
+| Duplicate detection | ✅ (URL / same-origin ETag / completed name+size) | ❌ | ❌ | ⚠️ (hash-avoid) |
 | Content-addressed library dedup | ❌ *(white space)* | ❌ | ❌ | ❌ |
 | Archive auto-extraction (ZIP) | ✅ | ⚠️ (zip preview) | ⚠️ (partial-zip) | ✅ |
 | Password-protected / RAR / 7z extraction | ❌ | ❌ | ❌ | ✅ |
-| Post-download actions (sleep / quit / notify / run) | ✅ *(sleep via a user Shortcut)* | ✅ | ✅ | ✅ |
+| All-downloads-finished actions (sleep / quit / notify / run) | ✅ *(sleep via a user Shortcut)* | ✅ | ✅ | ✅ |
 | Saved credential store (Keychain) | ✅ | ⚠️ | ✅ | ✅ |
 | **Intelligence** |
 | On-device AI organize (rename / tag / categorize) | ❌ *(white space)* | ❌ | ❌ | ❌ |
@@ -75,7 +75,7 @@ Legend: ✅ full · ⚠️ partial/limited · ❌ none · 🚫 deliberately out 
 | **Platform / trust posture** |
 | Sandboxed, truly native | ✅ | ❌ | ⚠️ (Qt) | ❌ (Java) |
 | No telemetry / no bundled adware | ✅ | ⚠️ | ⚠️ | ❌ (installer PUP) |
-| Full accessibility (VoiceOver / keyboard) | ✅ | ⚠️ | ⚠️ | ❌ |
+| Native accessibility support (VoiceOver / keyboard) | ✅ | ⚠️ | ⚠️ | ❌ |
 | **Remote** |
 | Remote / mobile control | ❌ | ❌ | ✅ (self-hosted HTTP) | ✅ (My.JD cloud) |
 | Hoster / premium-account / captcha ecosystem | 🚫 | ❌ | ❌ | ✅ |
@@ -87,9 +87,9 @@ Legend: ✅ full · ⚠️ partial/limited · ❌ none · 🚫 deliberately out 
 Parity items competitors have that we don't. Ranked by whether they're worth chasing:
 
 **Worth doing**
-- **Password-protected + RAR/7z extraction** (JD leads). We do ZIP natively; RAR/7z need a bundled
-  tool (`unar`/`7-Zip` lib) — the one place bundling might be justified. Password-protected ZIP we
-  *can* do natively today.
+- **Password-protected + RAR/7z extraction** (JD leads). Current native ZIP support handles STORE and
+  DEFLATE without encryption. Password-protected ZIP needs a new decryption path; RAR/7z likely need
+  a bundled tool (`unar`/`7-Zip` lib)—the one place bundling might be justified.
 - **Watch & auto-refresh on server change** (IDM's synchronization queue). Re-fetch when a remote
   file's ETag/Last-Modified changes — nightly builds, datasets, feeds. Pure scheduler + `probe`; no
   new dependency. *(This is on the unique-features list below, expanded into feed subscriptions.)*
@@ -120,7 +120,7 @@ Parity items competitors have that we don't. Ranked by whether they're worth cha
 
 Stated plainly so the roadmap doesn't chase parity we already have:
 
-- **Truly native macOS** — Liquid Glass, full light/dark, VoiceOver + full-keyboard access. IDM is
+- **Truly native macOS** — Liquid Glass, light/dark appearance, VoiceOver labels, and keyboard access. IDM is
   Windows-only; FDM's Mac app is Qt; JDownloader is Java. This is the *enabler* for everything in the
   next section: only a native app gets Speech, Foundation Models, App Intents, and NWPath for free.
 - **Integrity & trust stack** — checksum + sibling auto-discovery, code-signature assessment, and the
@@ -213,18 +213,20 @@ gap and adds the automation feeds none of them do cleanly. Pure scheduler + `pro
 
 ## Shipped — the current unique feature: Provenance Receipt
 
-**One-liner:** every completed download gets a local, shareable *verified-download record* — a
-cryptographic provenance card no other download manager produces.
+**One-liner:** when receipt generation is enabled (the default), every completed ordinary file
+download gets a local, exportable text record assembled from the evidence CloakDrop actually has.
 
-**What the receipt captures (all already observable in the transfer path):**
-- Source URL(s) and the final URL after redirects; every Metalink mirror that served bytes.
-- TLS: cert issuer / chain summary for each host.
-- Integrity: the whole-file SHA-256, plus whether it matched a supplied/auto-discovered checksum and
-  (for Metalink) whether independent mirrors agreed byte-for-byte.
-- Code signing: for `.app`/`.dmg`, the notarization / Developer-ID / ad-hoc / unsigned verdict
-  (`.pkg` and other installers are recorded unassessed).
-- A single **trust verdict** rolled up from the above, shown in the inspector and exportable as a
-  `.txt`/JSON receipt.
+**What the receipt captures (all already observable in the ordinary-file finalize path):**
+- The requested source URL and configured Metalink mirrors. The current receipt does not claim which
+  mirror served each byte or persist the post-redirect URL.
+- Whether the source scheme used encrypted transport (`https`/`ftps`); it does not record a TLS
+  certificate or chain.
+- The whole-file SHA-256, plus the verdict for a supplied or auto-discovered checksum when present.
+- For recognizable `.app`/`.dmg` code objects, an offline code-signature status
+  (valid / invalid / unsigned) and signing authority when available. This is not a notarization
+  assessment; `.pkg` and other installers remain unassessed.
+- A single **trust verdict** derived from checksum and signature status, shown in the inspector and
+  exportable with the other evidence as a plain-text `.txt` receipt.
 
 **The natural next step** is inbound provenance — reading **C2PA Content Credentials** the publisher
 already embedded (Tier 1, #1) — so the receipt reflects not just *how we fetched it* but *where the
@@ -239,7 +241,7 @@ Each item followed the architecture rule: model in `DownloadModels` → logic in
 
 - [x] **Bandwidth limiter correctness** — global + per-download caps hold under concurrency (GCRA
   virtual-clock; aggregate-throughput test). *Fixed a real bug: N connections each ran at ~full rate.*
-- [x] **Post-download actions** — notify / quit / run a Shortcut (sandbox-clean, via `shortcuts://`).
+- [x] **All-downloads-finished actions** — notify / quit / run a Shortcut (sandbox-clean, via `shortcuts://`).
 - [x] **Gatekeeper quarantine flag** — `com.apple.quarantine` on completed files.
 - [x] **Time-of-day bandwidth profiles** — `BandwidthSchedule`, re-applied each minute, wraps midnight.
 - [x] **FTP / FTPS** — native client over Network.framework (EPSV/PASV, `REST` resume, `SIZE`, implicit
@@ -248,8 +250,9 @@ Each item followed the architecture rule: model in `DownloadModels` → logic in
 - [x] **Keychain credential store** — proxy password + per-site HTTP/FTP credentials in the Keychain.
 - [x] **Link-grabber panel** — paste/import a wall of links → dedupe / pattern-expand → pick.
 - [x] **Bounded page "grab all"** — `PageLinkExtractor`, single page only (no crawler).
-- [x] **Provenance Receipt** — per-download verified record, inspector + export.
-- [x] **Localization** — `validate_localizations.py`: 456 strings × 10 languages.
+- [x] **Provenance Receipt** — optional ordinary-file record, inspector + plain-text export.
+- [x] **Localization** — `validate_localizations.py`: 481 strings × 10 translations
+  (11 locales including English).
 - [x] **Built-in speed test** — speedometer dials in Settings ▸ Speed Test (+ menu-bar shortcut):
   multi-connection download/upload with warm-up exclusion, idle + loaded latency (bufferbloat),
   jitter. Cloudflare default, Ookla optional; strictly user-initiated (privacy docs updated).
@@ -276,5 +279,6 @@ Saying no is part of the strategy:
   separate opt-in module later.
 - **LAN-only remote control** — privacy-clean (Bonjour, local-network only, opt-in, no cloud) as a
   differentiator vs. FDM's self-hosted HTTP and JD's cloud remote. Medium-large; revisit after Tier 1–2.
-- **RAR / 7z extraction** — the one case where bundling a tool (`unar`) might be justified; ZIP
-  (incl. password) stays native. Decide when a user actually asks.
+- **RAR / 7z extraction** — the one case where bundling a tool (`unar`) might be justified. Existing
+  unencrypted ZIP stays native; password-protected ZIP also needs new implementation. Decide when a
+  user actually asks.

@@ -43,6 +43,10 @@ public struct HTTPResponseHead: Sendable, Hashable {
     public let finalURL: URL?
     /// The resource's MIME type (`Content-Type` with parameters stripped, lowercased), if any.
     public let mimeType: String?
+    /// The inclusive byte interval the server says this `206` body represents. `nil` for a full
+    /// response, an unsatisfied range, or a malformed/missing `Content-Range` header. Segment
+    /// workers validate this against the requested interval before writing any bytes.
+    public let contentRange: ClosedRange<Int64>?
 
     public init(
         statusCode: Int,
@@ -51,7 +55,8 @@ public struct HTTPResponseHead: Sendable, Hashable {
         suggestedFilename: String?,
         etag: String?,
         finalURL: URL? = nil,
-        mimeType: String? = nil
+        mimeType: String? = nil,
+        contentRange: ClosedRange<Int64>? = nil
     ) {
         self.statusCode = statusCode
         self.totalBytes = totalBytes
@@ -60,6 +65,7 @@ public struct HTTPResponseHead: Sendable, Hashable {
         self.etag = etag
         self.finalURL = finalURL
         self.mimeType = mimeType
+        self.contentRange = contentRange
     }
 
     /// Whether the status code is a 2xx success.

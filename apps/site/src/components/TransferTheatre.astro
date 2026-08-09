@@ -27,7 +27,7 @@ const chapters = [
   },
 ] as const;
 
-/* The default eight-range configuration is used only as an inspectable example. */
+/* A manually configured eight-range transfer is used only as an inspectable example. */
 const lanes = [
   { n: '01', seed: 18, hold: 64, byte: '531,382,272' },
   { n: '02', seed: 11, hold: 49, byte: '1,253,949,440' },
@@ -91,14 +91,14 @@ const lanes = [
               <p>Transfer</p>
             </div>
             <div class="chapter-copy">
-              <p class="overline">DEFAULT EXAMPLE / 8 PLANNED RANGES</p>
+              <p class="overline">CONFIGURED EXAMPLE / 8 PLANNED RANGES</p>
               <h3>Close the app. Keep your place.</h3>
               <p>{transferStory?.body}</p>
             </div>
             <ul class="chapter-facts" aria-label="Transfer capabilities">
-              <li>Settings ceiling: 32</li>
-              <li>Adaptive range planning</li>
-              <li>Saved-offset recovery</li>
+              <li>Automatic or manual count</li>
+              <li>Validated range responses</li>
+              <li>Safe single-stream fallback</li>
             </ul>
           </header>
 
@@ -108,7 +108,7 @@ const lanes = [
                 <span class="file-mark" aria-hidden="true">CD</span>
                 <span>
                   <b>ubuntu-26.04.iso</b>
-                  <small>6.52 GB · default eight-range example</small>
+                  <small>6.52 GB · manual eight-connection example</small>
                 </span>
               </div>
               <p class="phase-pill">
@@ -126,7 +126,7 @@ const lanes = [
                 <span>SAVED BYTE</span>
                 <span>END</span>
               </div>
-              <ol class="lanes" aria-label="Eight byte ranges in this default example, each with an independent resume marker">
+              <ol class="lanes" aria-label="Eight byte ranges in this configured example, each with an independent resume marker">
                 {
                   lanes.map((lane) => (
                     <li
@@ -311,8 +311,8 @@ const lanes = [
               <p class="board-label">AFTER TRANSFER</p>
               <ol>
                 <li><span>01</span><p><b>Combine media</b><small>Audio + video, no re-encode</small></p><i>READY</i></li>
-                <li><span>02</span><p><b>Guarded extraction</b><small>ZIP-Slip and bomb checks</small></p><i>ON MATCH</i></li>
-                <li><span>03</span><p><b>Run an action</b><small>Notify, quit, or a Shortcut</small></p><i>OPTIONAL</i></li>
+                <li><span>02</span><p><b>Guarded extraction</b><small>ZIP-Slip and bomb checks</small></p><i>OPTIONAL</i></li>
+                <li><span>03</span><p><b>Run an all-done action</b><small>When no unfinished work remains</small></p><i>OPTIONAL</i></li>
               </ol>
               <div class="destination">
                 <span aria-hidden="true">⌂</span>

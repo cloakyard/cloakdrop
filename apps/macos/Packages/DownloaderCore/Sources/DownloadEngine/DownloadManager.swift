@@ -195,19 +195,25 @@ public actor DownloadManager {
 
     @discardableResult
     public func add(_ request: DownloadRequest, preview: LinkPreview? = nil) async -> Download {
-        let fileName = request.suggestedFileName ?? FileNaming.fileName(url: request.url)
+        // Suggested names cross several engine entry points (manual adds, browser capture, Metalink),
+        // so enforce the single-component invariant here rather than trusting every caller to sanitize.
+        let proposedFileName = FileNaming.fileName(suggested: request.suggestedFileName, url: request.url)
 
         // Apply the first matching smart rule (routing to a folder/queue, a speed cap, auto-start).
         // The pre-flight preview, when present, contributes MIME/size so those conditions can fire —
         // all evaluated on-device, no extra network call.
         let ruleInput = RuleInput(
             url: request.url,
-            fileName: fileName,
-            category: FileCategory.classify(fileName: fileName),
+            fileName: proposedFileName,
+            category: FileCategory.classify(fileName: proposedFileName),
             mimeType: preview?.mimeType,
             sizeBytes: preview?.totalBytes
         )
         let effectiveRequest = SmartRuleEngine.resolve(request, input: ruleInput, rules: rules).request
+
+        let fileName = reserveUniqueFileName(
+            proposedFileName, inDirectory: effectiveRequest.destinationDirectoryPath
+        )
 
         let order = (downloads.values.map(\.order).max() ?? -1) + 1
 
@@ -222,6 +228,9 @@ public actor DownloadManager {
             fileName: fileName,
             destinationDirectoryPath: effectiveRequest.destinationDirectoryPath,
             destinationBookmark: effectiveRequest.destinationBookmark,
+            requestedSegmentCount: effectiveRequest.segmentCount.map {
+                min(settings.maxSegmentCount, max(1, $0))
+            },
             queueID: queues[effectiveRequest.queueID] != nil ? effectiveRequest.queueID : DownloadQueue.defaultQueueID,
             requestHeaders: headers,
             speedLimitBytesPerSecond: effectiveRequest.speedLimitBytesPerSecond,
@@ -253,21 +262,7 @@ public actor DownloadManager {
     /// transfer path. Otherwise identical to `add` — same queue, persistence, and scheduling.
     @discardableResult
     public func addMedia(_ request: DownloadRequest, plan: MediaPlan) async -> Download {
-        // A suggested name without a media extension is a *stem* (the in-app browser passes the
-        // page title for a sniffed stream, whose URL only names its manifest) — give it the plan's
-        // container extension. A dot inside a title ("Ep 2.5") is not an extension.
-        var fileName: String
-        if let suggested = request.suggestedFileName {
-            let ext = (suggested as NSString).pathExtension.lowercased()
-            let isMediaExt = MediaSniffer.mediaExtensions.contains(ext) || MediaSniffer.segmentExtensions.contains(ext)
-            fileName = isMediaExt ? suggested : "\(suggested).\(Self.mediaContainerExtension(for: plan))"
-        } else {
-            fileName = Self.deriveMediaFileName(from: request.url, plan: plan)
-        }
-        // Media grabs skip the app layer's duplicate confirm, so de-collide here: re-grabbing the
-        // same title must produce "name (2).ext", not silently overwrite the finished file.
-        fileName = Self.uniqueMediaFileName(fileName, inDirectory: request.destinationDirectoryPath,
-                                            takenNames: Set(downloads.values.map(\.fileName)))
+        let fileName = reserveMediaFileName(for: request, plan: plan)
         let order = (downloads.values.map(\.order).max() ?? -1) + 1
 
         var headers = request.requestHeaders

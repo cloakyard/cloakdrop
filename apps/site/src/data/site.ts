@@ -1,9 +1,10 @@
 /**
- * Single source of truth for the CloakDrop brand site — every string, link, and
- * content row lives here; components stay presentational and read from this file.
+ * Shared product copy and structured content for the CloakDrop brand site.
+ * Components read the reusable claims and links here while keeping their own
+ * interface labels and visual-example annotations alongside the markup they describe.
  *
- * The site is an editorial, magazine-style layout: numbered sections (01–07), a mono
- * kicker on each, big Archivo display headlines, and hairline dividers throughout.
+ * The site is an editorial, magazine-style layout: numbered sections, a mono kicker
+ * on each, big Archivo display headlines, and hairline dividers throughout.
  * Copy is deliberately de-duplicated — each section owns one distinct message.
  *
  * Product claims are verified against the macOS app source. Keep this file in sync
@@ -60,8 +61,10 @@ export const hero = {
   titleLead: 'Built to resume.',
   titleAccent: 'Finished with proof.',
   lead:
-    'A native transfer engine that adapts parallel ranges to the file and source, ' +
-    'recovers saved progress after relaunch, and verifies the result locally.',
+    'A native transfer engine that plans parallel ranges from file size and proven ' +
+    'range support, lets you choose the connection count, recovers saved progress ' +
+    'after relaunch, and—when verification is enabled—checks available checksums ' +
+    'locally before the final file appears.',
   micro: 'MIT licensed · No account, ever',
   figLabel: 'LIVE APP · ADAPTIVE RANGE TRANSFER',
   shotAlt:
@@ -92,9 +95,10 @@ export const product = {
       label: 'Transfer',
       title: 'Adaptive lanes. Saved-offset recovery.',
       body:
-        'Eligible files split across a configurable number of byte ranges. The plan ' +
-        'adapts to file size and range support, then restores saved offsets after relaunch.',
-      points: ['Configurable range plan', 'Single-stream fallback', 'Relaunch-safe resume'],
+        'Eligible files split across validated parallel byte ranges. Automatic mode ' +
+        'sizes the plan up to your ceiling, or you can choose the connection count. ' +
+        'Matching saved offsets restore after relaunch.',
+      points: ['Automatic or manual connections', 'Safe single-stream fallback', 'Relaunch-safe resume'],
       visual: 'speed',
     },
     {
@@ -178,9 +182,10 @@ export const engine = {
     n: '01',
     title: 'Multi-segment speed',
     body:
-      'Each file splits into parallel streams over HTTP Range and reassembles ' +
-      "byte-perfectly — with automatic single-stream fallback when a server can't " +
-      'do ranges. FTP and FTPS segment the same way, natively.',
+      'Eligible known-size files split into parallel streams over HTTP Range and reassemble ' +
+      'byte-perfectly. Range responses are checked before bytes reach disk; a server ' +
+      'that refuses or misreports them triggers a safe single-stream restart. FTP and ' +
+      'FTPS use the same native engine, segmenting only after REST resume is proven.',
   } as NumberedFeature,
   lead2: {
     n: '02',
@@ -209,15 +214,16 @@ export const engine = {
       n: '05',
       title: 'Multi-source mirrors',
       body:
-        'Open a Metalink and segments spread across mirrors, failing over the ' +
-        'moment one dies or serves corrupt bytes — then verify.',
+        'Open a Metalink and segments spread across compatible mirrors, failing over ' +
+        'when a source is unavailable or fails range and size checks. When verification ' +
+        'is enabled, a provided Metalink checksum is tested before publication.',
     },
     {
       n: '06',
       title: 'Post-processing',
       body:
-        'Native ZIP auto-extraction — Zip-Slip and bomb guarded — a Gatekeeper ' +
-        'quarantine flag, plus notify, quit, or run a Shortcut.',
+        'Native ZIP auto-extraction—Zip-Slip and bomb guarded—a default-on Gatekeeper ' +
+        'quarantine setting, plus an all-done action to notify, quit, or run a Shortcut.',
     },
   ] as NumberedFeature[],
 } as const;
@@ -233,7 +239,10 @@ export const provenance = {
   label: 'Local verification',
   title: 'A local record of what arrived.',
   bodyHtml:
-    'When enabled, a completed file download can generate an exportable ' +
+    'When checksum verification is enabled (the default), a supplied or same-origin ' +
+    'discovered checksum is tested against private staging ' +
+    'bytes before the final file is exposed. When receipt generation is enabled, a completed ' +
+    'ordinary file download can then generate an exportable ' +
     '<strong>Provenance Receipt</strong> — source, transport security, whole-file ' +
     'SHA-256, and any available checksum or code-signature result. Checksum ' +
     'discovery stays same-origin; <code>.app</code> and <code>.dmg</code> files ' +
@@ -302,7 +311,7 @@ export const details = {
     {
       icon: 'network',
       title: 'Proxy routing',
-      body: 'Route HTTP-based traffic through the macOS system proxy, connect directly, or configure a manual HTTP, HTTPS, or SOCKS5 endpoint.',
+      body: 'Choose system, direct, or manual HTTP, HTTPS, or SOCKS5 routing for HTTP-based downloads and speed tests. Manual routing is mirrored into the built-in browser.',
       meta: ['System', 'Direct', 'Manual'],
     },
     {
@@ -326,7 +335,7 @@ export const details = {
   ] as DetailItem[],
 } as const;
 
-/* 05 — Privacy. The one place the egress story is told in full. */
+/* 04 — Privacy. The one place the egress story is told in full. */
 export const privacy = {
   num: '04',
   label: 'The network boundary',

@@ -37,8 +37,8 @@ all-time bytes); the checksum-sibling logic (`ChecksumDiscovery`); the capture p
 `BrowserCookies` — all pure, DOM-free, and unit-tested against a captured fixture corpus.
 Because they're plain values, they cross actor boundaries freely and are trivial to test. The
 on-device *intake intelligence* lives here too, all pure and I/O-free: `LinkPreview` (the pre-flight
-result), `DuplicateDetector`/`DuplicateCandidate` (content-addressed duplicate detection by URL /
-same-origin ETag / completed name+size), `SignatureAssessment` + `TrustLevel` (the unified trust
+  result), `DuplicateDetector`/`DuplicateCandidate` (duplicate warnings by URL / same-origin ETag /
+completed name+size; no content-hash library yet), `SignatureAssessment` + `TrustLevel` (the unified trust
 signal from checksum + code signature), the smart-rule model (`SmartRule`, `SmartRuleCondition`,
 `SmartRuleAction`, `RuleInput`) with its evaluator `SmartRuleEngine`, the link-grabber parser
 (`PageLinkExtractor` — resolve/dedupe/filter a page's href/src links; `URLBatch` — pattern expansion),
@@ -64,33 +64,43 @@ The concurrency core. Everything mutable is actor-isolated.
   queues, enforces per-queue concurrency, persists state, and drives one `DownloadTask` per
   active transfer. Publishes an `AsyncStream<EngineEvent>` the UI renders. Subscribes to
   `NetworkMonitor` to auto-pause on connectivity loss and auto-resume on return.
-- **`DownloadTask`** (actor, one per download) — probes the server, plans segments, transfers
-  them concurrently, throttles, streams progress, then finalizes and verifies. The concurrent
+- **`DownloadTask`** (actor, one per download) — probes the server, chooses an automatic or persisted
+  per-download connection count, plans segments, transfers them concurrently, throttles, streams
+  progress, verifies ordinary-file staging data, then finalizes. The concurrent
   segment workers are **non-isolated free functions** (`runSegment`) that report byte deltas
   back through actor methods, so the authoritative state mutates serially and race-free. When a
   download carries Metalink `mirrors`, each worker is seeded at a different source (so segments
-  **spread** across mirrors for parallel throughput) and **advances to the next mirror on every
-  failure** — a `head`-check rejects a mirror that ignores the `Range`, is unreachable, or serves
-  the wrong bytes before a single byte is written, and no mirror is abandoned until every source
-  has had at least one attempt. The whole-file checksum is the backstop against silent corruption.
+  **spread** across mirrors for parallel throughput) and **advances to the next mirror on retryable
+  failures**. Response validation rejects a source that ignores `Range`, returns a different
+  `Content-Range`, advertises a different total, or changes a same-origin ETag before a byte is
+  written. A permanent HTTP error fails promptly; transient failures sweep every configured source
+  at least once. A supplied whole-file checksum is the backstop against otherwise-undetectable byte
+  corruption.
 - **`HTTPClient`** (protocol) — the single networking boundary (`probe` + `stream`). In production
   a `SchemeRoutingHTTPClient` dispatches by URL scheme: `http(s)` → `URLSessionHTTPClient`
-  (delegate-driven, chunked `Data`, cancellable); `ftp`/`ftps` → the native **`FTPClient`**. Tests
-  and previews use `MockHTTPClient` (in-memory, supports Range, injectable drops).
+  (delegate-driven, chunked `Data`, cancellable); `ftp`/`ftps` → the native **`FTPClient`**. HTTP
+  requests use identity encoding so probe/range/fallback requests address the same representation.
+  Body streams have bounded buffers with producer backpressure, and cancellation also tears down a
+  request that is still waiting for response headers. Tests and previews use `MockHTTPClient`
+  (in-memory, supports Range, injectable drops and malformed-range responses).
 - **Native FTP/FTPS (`FTPClient`)** — an FTP client over **Network.framework** (`NWConnection`), no
   bundled library. Speaks EPSV/PASV passive data connections, `SIZE`, and `REST` for byte-range
-  resume, with implicit TLS for `ftps`. A ranged request reports `statusCode: 206` so the segment
-  engine treats an offset transfer exactly like an HTTP partial. Control + data connections carry
-  idle timeouts, a bounded reply buffer, and cooperative cancellation so a dead/hung server can
-  never wedge a transfer.
-- **Saved credentials (`CredentialStoring` → `KeychainCredentialStore`)** — per-site HTTP/FTP logins
-  and the manual-proxy password live in the **Keychain** (`kSecClassGenericPassword`, keyed on an
-  opaque identifier, `…AfterFirstUnlockThisDeviceOnly`), never in the plaintext settings payload;
-  the proxy password is blanked on disk and rehydrated into memory at launch.
+  resume, with implicit TLS for `ftps`. The probe tests `REST` support rather than assuming it; a
+  server without it remains a valid single-stream source. A ranged request reports `statusCode: 206`
+  so the segment engine treats an offset transfer exactly like an HTTP partial. Control + data
+  connections carry idle timeouts, bounded reply/body buffers, and cooperative cancellation so a
+  dead or slow server does not cause unbounded memory growth or wedge a transfer indefinitely.
+- **Saved credentials (`CredentialStoring` → `KeychainCredentialStore`)** — remembered per-site
+  HTTP/FTP logins and the manual-proxy password live in the **Keychain** (`kSecClassGenericPassword`,
+  keyed on an opaque identifier, `…AfterFirstUnlockThisDeviceOnly`). The proxy password is blanked
+  from the settings payload and rehydrated into memory at launch. Credentials attached to one
+  download are also part of that local download record so it can resume; deleting the record removes
+  that copy.
 - **Archive extraction (`ZipArchive`)** — optional native ZIP auto-extraction via
   **Compression.framework** (STORE + raw DEFLATE), memory-mapped, guarded against Zip-Slip path
-  traversal and decompression bombs (compression-ratio + hard-size caps), and run only *after* the
-  checksum verifies; each extracted file is quarantine-stamped.
+  traversal and decompression bombs (compression-ratio + hard-size caps). It never runs after a
+  known checksum mismatch; when checksum verification is enabled and a checksum exists, verification
+  completes first. Extracted files receive quarantine when that setting is enabled.
 - **Pure helpers** — `SegmentPlanner` (segmentation math), `BandwidthLimiter` (a **GCRA
   virtual-clock** rate limiter — a shared limiter caps *aggregate* throughput correctly across all
   concurrent segment workers, unlike a naive per-connection token bucket), `BackoffPolicy` (retry
@@ -101,38 +111,41 @@ The concurrency core. Everything mutable is actor-isolated.
   in prod, a scripted mock in tests): idle-latency probes, then parallel download/upload workers with
   warm-up exclusion (`SpeedTestMath`, pure and unit-tested) while sampling loaded latency for a
   bufferbloat signal. Providers: Cloudflare's speed endpoints (default) or Ookla's public server
-  directory — the one deliberate, disclosed exception to "egress only to your download URLs".
+  directory—one of the app's disclosed, user-started network surfaces.
 - **Intake seams** — `LinkInspector` turns one `HTTPClient.probe` into a `LinkPreview` (final URL
-  after redirects, size, range-support, MIME, ETag, connection estimate) for the add sheet's live
-  pre-flight; `CodeSignatureInspecting` (protocol → `SecCodeSignatureInspector`, Security framework,
+  after redirects, size, proven range support, MIME, ETag, automatic connection estimate) for the add
+  sheet's live pre-flight; `CodeSignatureInspecting` (protocol → `SecCodeSignatureInspector`, Security framework,
   in-process, no network) assesses a finished `.app`/`.dmg`'s code signature in `DownloadTask.finalize`.
   Smart-rule routing is applied in `DownloadManager.add` (folder / queue / speed cap / auto-start).
-  After verify, `DownloadTask` assembles the **`ProvenanceReceipt`** from signals already in the
-  transfer path — source + mirrors, transport/TLS, the whole-file SHA-256 (reused from the verify
-  pass, not re-hashed), and the checksum + signature verdicts — rolled into one `TrustLevel`.
-- **Media** — `MediaResolver` fetches + parses a manifest URL into a ready `MediaPlan`, pairing an
-  adaptive video rendition with its separate audio track so a "video" grab always has sound;
-  `DownloadTask` grabs the video *and* audio segments over the same engine, decrypting AES-128
-  (`AES128`), then muxes and passthrough-remuxes the result into a clean container. A *whole-file*
-  segment (a progressive / paired video+audio grab, as YouTube serves its `adaptiveFormats`) is
-  fetched in bounded **~10 MB ranged chunks** on a range-capable server — a single large GET is
-  throttled to a crawl by some CDNs' per-connection limits (googlevideo's `n`-throttle), while ≤10 MB
-  ranges stream at full line speed; HLS/DASH's many small segments download as-is. Selected
+  After verify, and only when enabled, the ordinary-file path assembles the **`ProvenanceReceipt`**
+  from signals already in the transfer path—requested source, configured mirrors, encrypted-
+  transport flag, whole-file SHA-256 (reused from the verify pass when available), and checksum +
+  signature verdicts. Its `TrustLevel` is derived specifically from checksum and signature status;
+  the other fields are recorded evidence, not trust inputs.
+- **Media** — `MediaResolver` fetches + parses a manifest URL into a ready `MediaPlan` and attempts to
+  pair an adaptive video rendition with its separate audio track; failed audio resolution degrades
+  to a video-only grab rather than failing the transfer. `DownloadTask` grabs the video and any
+  resolved audio segments through a bounded rolling work window, decrypting AES-128 (`AES128`), then
+  muxes and passthrough-remuxes the result into a clean container.
+  A *whole-file* segment (a progressive / paired video+audio grab, as YouTube serves its `adaptiveFormats`) is
+  fetched in bounded **~10 MB ranged chunks** on a range-capable server—a mitigation for the
+  per-connection throttling observed on some CDNs (including googlevideo's `n`-throttle), without
+  promising a particular origin or network speed. HLS/DASH's many small segments download as-is. Selected
   subtitle tracks are converted (`SubtitleConverter`, WebVTT → SRT) and written as sidecar `.srt`
   files next to the finished video. The `Remuxer`
   protocol has two backends behind a `CompositeRemuxer` (tries each in order): `AVFoundationRemuxer`
   first — fast, in-process, no dependency, H.264/HEVC + AAC → `.mp4`/`.m4a` — falling back to a
   bundled `FFmpegMuxer` (stream-copy via a `Process`) for the codecs AVFoundation can't carry
-  (VP9/AV1/Opus → `.mkv`). `MediaThumbnailer` renders a poster frame; `ChecksumResolver` fetches a
-  sibling checksum for auto-verification. All behind protocols / injected, so the transfer path
-  stays testable against `MockHTTPClient`.
+  (VP9/AV1/Opus → `.mkv`). `MediaThumbnailer` renders a poster frame. These operations sit behind
+  protocols / injected seams, so the transfer path stays testable against `MockHTTPClient`.
 - **Page extraction (yt-dlp)** — `MediaExtractor` (protocol) resolves a *page* URL (a YouTube
   watch page, or any of the ~1800 sites yt-dlp knows) into its real, deciphered video/audio
   formats (`ExtractedMedia` / `ExtractedFormat`). It is a **resolver / decipher oracle, not a
   downloader**: the production `YtDlpExtractor` spawns the bundled, code-signed `yt-dlp` binary
-  with `-J` (dump-single-json) — it only *reads* and prints JSON to stdout, never touching the
-  destination — so CloakDrop's own segmented engine still does every byte of downloading, and
-  pause/resume, persistence, and the sandbox story stay ours. Subprocess spawning is behind
+  with `-J` (dump-single-json). It may contact the submitted page and related service endpoints to
+  resolve metadata and media URLs, then prints JSON to stdout; it never touches the destination or
+  transfers the selected media payload. CloakDrop's own segmented engine does those payload bytes,
+  so pause/resume, persistence, and the sandbox story stay ours. Subprocess spawning is behind
   `ProcessRunning` (`SystemProcessRunner` in prod, captured to temp files with a hard timeout so a
   multi-MB dump can't deadlock a pipe; a mock in tests), and `ExtractedMedia+Mapping` folds the
   result into the existing `MediaStream`/`MediaPlan` quality picker. `locate(in:)` feature-detects
@@ -143,13 +156,18 @@ The concurrency core. Everything mutable is actor-isolated.
 
 - **No shared mutable state across threads.** Mutable coordination lives in the `DownloadManager`
   actor; per-download mutable state lives in its `DownloadTask` actor.
-- **Parallel segments** run as children of a `withThrowingTaskGroup` inside the task. Each child
-  opens its **own** `FileHandle` into the shared sparse part file at a disjoint offset, so
-  parallel writes never contend.
+- **Connection selection is explicit and bounded.** Automatic mode keeps the configured default for
+  ordinary files and scales large files toward the configured maximum while respecting minimum
+  segment size. A per-download manual choice overrides the automatic target but is still clamped to
+  the resource and global maximum. The choice persists across scheduling and relaunch.
+- **Parallel segments** run through a rolling `withThrowingTaskGroup` window inside the task. It
+  launches no more than the current connection budget—even when a resumed segment table contains
+  old work-stealing tails—and feeds pending segments into slots as they finish. Each child opens its
+  **own** `FileHandle` into the shared sparse part file at a disjoint offset.
 - **Dynamic re-splitting (work-stealing).** When a worker finishes its region while others are
   still going, it steals the largest remaining tail from a straggler — splitting that segment and
-  taking over the back half — so a slow connection never leaves fast connections idle and every
-  segment slot stays busy until the whole file is done.
+  taking over the back half when enough useful work remains, reducing the slow-tail period without
+  exceeding the connection budget.
 - **Pause/cancel** is cooperative: the manager sets a stop reason then cancels the task's
   enclosing `Task`; structured cancellation propagates to the segment children, which unwind and
   let the task persist a clean paused/canceled state.
@@ -163,22 +181,31 @@ The concurrency core. Everything mutable is actor-isolated.
 1. UI builds a `DownloadRequest` → `DownloadManager.add`.
 2. Manager creates a `Download`, persists it, emits `.downloadAdded`, and schedules it if a queue
    slot is free.
-3. `DownloadTask.run`: probe (best-first across mirrors when a Metalink supplied them) → plan
-   segments (or single-stream fallback) → pre-size the `.cdpart` file → transfer segments in
-   parallel with retry/resume + per-mirror failover + work-stealing + throttle → emit throttled
-   `.progress` events and periodically persist.
-4. On completion: move part file → destination, verify checksum, assess code signature, build the
-   Provenance Receipt, auto-extract the archive if enabled, stamp the Gatekeeper quarantine flag,
-   run any post-download action, mark completed, and emit the update. The manager fills the freed
-   queue slot.
+3. `DownloadTask.run`: probe (best-first across mirrors when a Metalink supplied them) → choose the
+   connection budget → plan segments (or a single stream) → size the `.cdpart` file exactly → transfer
+   through the bounded rolling scheduler with retry/resume + mirror failover + work-stealing +
+   throttle → emit throttled `.progress` events and periodically persist. If a server's ranged
+   response is invalid, discard the coherent staging set and retry once as a whole stream.
+4. On ordinary-file completion: when enabled, resolve and verify any checksum **against `.cdpart`** →
+   move staging to an unoccupied destination without replacing an existing file/directory → optionally
+   (default on) stamp Gatekeeper quarantine → optionally extract ZIP → assess the local code signature → optionally build the
+   Provenance Receipt → mark completed and emit the update. Media plans assemble/remux their persisted
+   `.cdparts` through their separate finalize path. The manager fills the freed queue slot; when all
+   work has drained it emits `.allDownloadsCompleted`, and `AppModel` applies the configured all-done
+   action once for that work cycle.
 
 ## Persistence & resume
 
-Bytes are written into a single sparse `*.cdpart` file; each segment owns a contiguous byte
-region. Per-segment `downloadedBytes` is persisted, so a resume request starts exactly at
-`segment.start + downloadedBytes`. This is what makes **resume survive force-quit and reboot** —
-verified by an integration test that pauses mid-flight, discards the manager, and resumes a
-brand-new manager from the same store and part file.
+Ordinary-file bytes are written into a single sparse `*.cdpart` file; each segment owns a contiguous
+byte region. The known-size staging file is resized exactly in both directions, preventing stale
+trailing bytes from an older attempt. Per-segment `downloadedBytes` is persisted, so a resume request
+starts at `segment.start + downloadedBytes`. This makes **resume survive force-quit and reboot**—
+verified by an integration test that pauses mid-flight, discards the manager, and resumes a brand-new
+manager from the same store and part file. Suggested names are reduced to safe basenames and reserved
+case-insensitively against cataloged downloads and existing destination entries. Distinct catalog
+names imply distinct staging paths for concurrent adds; an orphan same-name part file is resized
+exactly before reuse. Finalization still refuses replacement if another process wins the remaining
+race.
 
 ## Sandbox
 

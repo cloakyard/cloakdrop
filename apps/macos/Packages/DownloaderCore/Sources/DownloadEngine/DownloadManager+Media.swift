@@ -99,25 +99,44 @@ public extension DownloadManager {
         return stem.trimmingCharacters(in: .whitespaces)
     }
 
-    /// De-collide an output name against the catalog (`takenNames`) and the destination folder
-    /// (`name (2).ext`), so re-grabbing the same title can't silently overwrite an existing file
-    /// at finalize.
-    internal static func uniqueMediaFileName(
+    /// De-collide an output name against names already allocated in the catalog (including in-progress
+    /// transfers) and existing final entries in the destination folder (`name (2).ext`). The manager
+    /// calls this and inserts the resulting record without an intervening `await`, so two concurrent
+    /// adds cannot reserve the same final or staging path.
+    internal static func uniqueFileName(
         _ fileName: String, inDirectory directory: String, takenNames: Set<String>
     ) -> String {
         let base = (fileName as NSString).deletingPathExtension
         let ext = (fileName as NSString).pathExtension
         func taken(_ name: String) -> Bool {
-            takenNames.contains(name)
-                || FileManager.default.fileExists(atPath: (directory as NSString).appendingPathComponent(name))
+            let catalogContainsName = takenNames.contains {
+                $0.caseInsensitiveCompare(name) == .orderedSame
+            }
+            let destination = (directory as NSString).appendingPathComponent(name)
+            return catalogContainsName
+                || FileManager.default.fileExists(atPath: destination)
         }
         guard taken(fileName) else { return fileName }
-        for n in 2...999 {
+        for n in 2...9_999 {
             let candidate = ext.isEmpty ? "\(base) (\(n))" : "\(base) (\(n)).\(ext)"
             if !taken(candidate) { return candidate }
         }
-        return ext.isEmpty ? "\(base)-\(UUID().uuidString.prefix(8))"
-                           : "\(base)-\(UUID().uuidString.prefix(8)).\(ext)"
+        // The numeric namespace is exhausted only under a deliberately hostile catalog. Retain the
+        // same no-overwrite invariant with a checked UUID fallback rather than returning a possibly
+        // occupied name.
+        while true {
+            let token = UUID().uuidString
+            let candidate = ext.isEmpty ? "\(base)-\(token)" : "\(base)-\(token).\(ext)"
+            if !taken(candidate) { return candidate }
+        }
+    }
+
+    /// Compatibility spelling for existing media-focused callers/tests. File and media downloads now
+    /// share the same allocator so their staging paths cannot collide either.
+    internal static func uniqueMediaFileName(
+        _ fileName: String, inDirectory directory: String, takenNames: Set<String>
+    ) -> String {
+        uniqueFileName(fileName, inDirectory: directory, takenNames: takenNames)
     }
 
     /// The container extension a media grab's output starts with: fMP4 (has an init segment) →

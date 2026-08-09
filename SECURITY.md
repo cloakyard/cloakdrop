@@ -36,35 +36,40 @@ What to expect:
 
 CloakDrop is a native, sandboxed macOS app designed to minimize attack surface:
 
-- **No server, no account, no telemetry.** Nothing is uploaded and nothing phones home. Network
-  egress happens only on your action: the URLs you choose to download, the sites you visit in the
-  built-in browser (address-bar search, when enabled, sends the typed query to your chosen engine
-  on Return), a proxy you configure, and the strictly manual speed test (Cloudflare by default,
-  Ookla optional).
-- **Sandboxed.** The app runs under the macOS App Sandbox with the hardened runtime. It accesses
-  only the folders you point it at, via security-scoped bookmarks.
-- **Local-only state.** Download history and settings are stored in a local SQLite database that
-  you can export or delete at any time.
-- **Credentials in the Keychain.** Saved per-site HTTP/FTP logins and the manual-proxy password are
-  stored in the macOS **Keychain**, never in the plaintext settings database. The on-disk proxy
-  password field is blanked and rehydrated into memory only at runtime.
+- **No CloakDrop server, account, or telemetry.** Network activity is limited to configured download
+  work (including redirects, mirrors, retries, schedules/resume, and optional same-origin checksum
+  discovery); yt-dlp metadata resolution for a video page you submit; pages and subresources loaded
+  in the built-in browser; an address-bar query sent to your chosen search engine on Return; a proxy
+  you configure; a speed test you start (Cloudflare default, Ookla optional); and an optional browser
+  blocklist you explicitly select or update. There are no project analytics or update pings.
+- **Sandboxed.** The app runs under the macOS App Sandbox with the hardened runtime. It accesses its
+  containers, the standard Downloads folder covered by its entitlement, and destinations you select
+  via security-scoped bookmarks.
+- **Local-only state.** Download history and settings are stored in a local SQLite database. The app
+  provides controls to remove download records, clear completed records, and reset local statistics.
+- **Credential boundaries.** Remembered per-site HTTP/FTP logins and the manual-proxy password are
+  stored in the macOS **Keychain**. The on-disk proxy password field is blanked and rehydrated into
+  memory only at runtime. A credential attached to one download is also stored in that local,
+  user-deletable download record so the transfer can resume.
 
 ### Risk areas
 
 - **Third-party dependencies.** CloakDrop's only third-party Swift dependency is GRDB (SQLite).
   Two native command-line tools are also bundled as code-signed, sandboxed helper binaries:
-  **ffmpeg** (stream-copy muxing) and **yt-dlp** (a read-only page→formats resolver). Both run
-  in-sandbox as `inherit`-entitled children, only ever *read* or *transform* local data, and add
-  no network egress of their own — the app's engine performs every download. Dependencies are kept
-  minimal and reviewed before being added.
-- **Downloaded content.** CloakDrop transfers files but does not execute them, and stamps the
-  `com.apple.quarantine` flag on saved files so Gatekeeper vets them on first open. Always verify
-  what you download; use the built-in checksum verification and the Provenance Receipt when an
-  expected hash or signature is available.
+  **ffmpeg** (network-free stream-copy muxing) and **yt-dlp** (a page→formats resolver). Both run
+  in-sandbox as `inherit`-entitled children. ffmpeg transforms local data only; yt-dlp may contact a
+  user-submitted video page and related endpoints to resolve metadata/media URLs, but it does not
+  transfer the selected media payload—the app's engine does. Dependencies are kept minimal and
+  reviewed before being added.
+- **Downloaded content.** CloakDrop transfers files but does not execute them. Its default-on
+  quarantine setting stamps `com.apple.quarantine` on saved files so Gatekeeper vets them on first
+  open. Always verify what you download; use the built-in checksum verification and the Provenance
+  Receipt when an expected hash or signature is available.
 - **Archive extraction.** Optional native ZIP auto-extraction is hardened against **Zip-Slip** path
-  traversal and **decompression bombs** (compression-ratio + hard per-entry size caps), and runs
-  only after the checksum verifies; each extracted file is quarantine-stamped. Only ZIP is handled
-  natively — no third-party archive library is bundled.
+  traversal and **decompression bombs** (compression-ratio + hard per-entry size caps). It never runs
+  after a known checksum mismatch; when checksum verification is enabled and an expected checksum is
+  available, verification runs first. Extracted files receive quarantine when that setting is enabled.
+  Only ZIP is handled natively—no third-party archive library is bundled.
 - **macOS / system vulnerabilities** should be reported to Apple.
 
 ## Scope

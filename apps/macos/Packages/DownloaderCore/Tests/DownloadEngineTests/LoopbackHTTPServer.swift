@@ -9,12 +9,14 @@ final class LoopbackHTTPServer: @unchecked Sendable {
     private let payload: Data
     private let queue = DispatchQueue(label: "cloakdrop.loopback.server")
     let acceptsRanges: Bool
+    private let stallsBeforeResponse: Bool
 
     private(set) var port: UInt16 = 0
 
-    init(payload: Data, acceptsRanges: Bool = true) throws {
+    init(payload: Data, acceptsRanges: Bool = true, stallsBeforeResponse: Bool = false) throws {
         self.payload = payload
         self.acceptsRanges = acceptsRanges
+        self.stallsBeforeResponse = stallsBeforeResponse
         let params = NWParameters.tcp
         params.allowLocalEndpointReuse = true
         self.listener = try NWListener(using: params)
@@ -69,6 +71,7 @@ final class LoopbackHTTPServer: @unchecked Sendable {
     }
 
     private func respond(_ connection: NWConnection, requestHeader: String) {
+        if stallsBeforeResponse { return }
         let lines = requestHeader.split(separator: "\r\n", omittingEmptySubsequences: false)
         var rangeHeader: String?
         for line in lines where line.lowercased().hasPrefix("range:") {
@@ -84,14 +87,17 @@ final class LoopbackHTTPServer: @unchecked Sendable {
         if acceptsRanges {
             extraHeaders += "Accept-Ranges: bytes\r\n"
         }
-        if acceptsRanges, let rangeHeader, let parsed = Self.parseRange(rangeHeader, total: total) {
+        if acceptsRanges, rangeHeader != nil, total == 0 {
+            status = "416 Range Not Satisfiable"
+            extraHeaders += "Content-Range: bytes */0\r\n"
+        } else if acceptsRanges, let rangeHeader, let parsed = Self.parseRange(rangeHeader, total: total) {
             status = "206 Partial Content"
             bodyStart = parsed.lowerBound
             bodyEnd = parsed.upperBound
             extraHeaders += "Content-Range: bytes \(bodyStart)-\(bodyEnd)/\(total)\r\n"
         }
 
-        let body = payload.subdata(in: bodyStart..<(bodyEnd + 1))
+        let body = total == 0 ? Data() : payload.subdata(in: bodyStart..<(bodyEnd + 1))
         var response = "HTTP/1.1 \(status)\r\n"
         response += "Content-Length: \(body.count)\r\n"
         response += extraHeaders

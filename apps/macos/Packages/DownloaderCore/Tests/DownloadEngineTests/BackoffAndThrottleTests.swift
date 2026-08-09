@@ -2,6 +2,44 @@ import Foundation
 import Testing
 @testable import DownloadEngine
 
+@Suite("Speed sampler")
+struct SpeedSamplerTests {
+    @Test("Rate includes only samples in the trailing window")
+    func trailingWindow() {
+        let start = ContinuousClock().now
+        var sampler = SpeedSampler(windowSeconds: 1.0)
+        sampler.add(bytes: 100, at: start)
+        sampler.add(bytes: 200, at: start.advanced(by: .milliseconds(500)))
+
+        // At 1.25 s the first sample has expired. The remaining 200 bytes span 0.75 s.
+        let rate = sampler.rate(now: start.advanced(by: .milliseconds(1_250)))
+        #expect(abs(rate - (200.0 / 0.75)) < 0.001)
+    }
+
+    @Test("Many rolling samples preserve the rate through repeated compaction")
+    func manyRollingSamples() {
+        let start = ContinuousClock().now
+        var sampler = SpeedSampler(windowSeconds: 1.0)
+        var instant = start
+
+        // Far more samples than the compaction threshold, with a steady 1 KiB/ms stream. The live
+        // window remains 1,000 samples even as almost 100,000 older samples expire.
+        for _ in 0..<100_000 {
+            sampler.add(bytes: 1_024, at: instant)
+            instant = instant.advanced(by: .milliseconds(1))
+        }
+
+        let rate = sampler.rate(now: instant)
+        #expect(abs(rate - 1_024_000) < 0.001)
+
+        // Expiring the entire buffer and reusing it must not retain bytes in the running sum.
+        let resumedAt = instant.advanced(by: .seconds(3))
+        #expect(sampler.rate(now: resumedAt) == 0)
+        sampler.add(bytes: 500, at: resumedAt)
+        #expect(abs(sampler.rate(now: resumedAt.advanced(by: .milliseconds(100))) - 5_000) < 0.001)
+    }
+}
+
 @Suite("Backoff policy")
 struct BackoffPolicyTests {
     @Test("Exponential growth, capped at the maximum")

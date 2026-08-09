@@ -8,20 +8,20 @@ import Foundation
 /// A `Remuxer` turns it into a proper `.mp4`/`.m4a` **without re-encoding** (a fast, lossless
 /// repackage), so the finished file seeks cleanly and carries the right extension.
 ///
-/// It sits behind a protocol so the AVFoundation implementation is swappable (a future ffmpeg
-/// fallback for containers AVFoundation can't mux) and so tests can inject a deterministic one.
+/// It sits behind a protocol so AVFoundation and the bundled ffmpeg fallback can be composed, and
+/// so tests can inject a deterministic implementation.
 public protocol Remuxer: Sendable {
     /// Repackage the concatenated media at `sourcePath` into a clean container.
     ///
-    /// Returns the produced file plus the container it chose (`mp4` for video, `m4a` for
-    /// audio-only). Throws `RemuxError` when the input can't be repackaged — the caller then
+    /// Returns the produced file plus the container it chose (for example `mp4`, `m4a`, or `mkv`).
+    /// Throws `RemuxError` when the input can't be repackaged—the caller then
     /// keeps the raw concatenation, which is still playable. Implementations must not mutate or
     /// remove `sourcePath`; the caller owns its lifecycle.
     func remux(sourcePath: String) async throws -> RemuxResult
 
     /// Combine a separate video-only file and audio-only file into one clean container carrying
-    /// both tracks — how an adaptive source's split video/audio streams become a single playable
-    /// file, so a "video" download always has sound. Throws `RemuxError.unsupported` when this
+    /// both tracks—how an adaptive source's split video/audio streams become a single playable
+    /// file with sound when muxing succeeds. Throws `RemuxError.unsupported` when this
     /// muxer can't combine the given codecs (the AVFoundation implementation handles H.264/HEVC +
     /// AAC; VP9/AV1/Opus need the ffmpeg backend). Neither input is mutated.
     func mux(videoPath: String, audioPath: String) async throws -> RemuxResult

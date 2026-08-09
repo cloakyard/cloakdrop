@@ -62,7 +62,7 @@ struct SettingsView: View {
             } header: {
                 Text("Connections")
             } footer: {
-                Text("Files download in parallel segments. More connections can be faster on high-latency links.")
+                Text("Automatic mode uses the default for ordinary files and adds connections for very large files, up to the maximum.")
             }
 
             Section {

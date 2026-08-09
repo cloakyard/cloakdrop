@@ -37,29 +37,43 @@ extension DownloadTask {
         let concurrency = max(1, min(settings.maxSegmentCount, settings.defaultSegmentCount))
         let settings = self.settings
 
-        for batch in remaining.chunked(into: concurrency) {
-            try await withThrowingTaskGroup(of: (String, Int).self) { group in
-                for item in batch {
-                    let path = item.path
-                    let segment = item.segment
-                    let key = segment.encryption.method == .aes128 ? segment.encryption.keyURL.flatMap { keys[$0] } : nil
-                    group.addTask { [httpClient] in
-                        let bytes = try await runMediaSegment(
-                            segment: segment,
-                            filePath: path,
-                            key: key,
-                            headers: headers,
-                            httpClient: httpClient,
-                            limiters: limiters,
-                            settings: settings,
-                            onExpectedBytes: { total in await self.recordMediaExpected(path: path, bytes: total) },
-                            onBytes: { delta in await self.recordMediaBytes(path: path, delta: delta) }
-                        )
-                        return (path, bytes)
-                    }
+        // Keep a rolling window full instead of waiting for fixed batches. With batch barriers, one
+        // slow segment held every later segment behind it even after the other connections in its
+        // batch had gone idle. Refill one slot whenever any child finishes so useful work continues
+        // while preserving the same hard concurrency bound.
+        try await withThrowingTaskGroup(of: (String, Int).self) { group in
+            var nextIndex = 0
+
+            func enqueue(_ item: MediaWorkItem) {
+                let path = item.path
+                let segment = item.segment
+                let key = segment.encryption.method == .aes128 ? segment.encryption.keyURL.flatMap { keys[$0] } : nil
+                group.addTask { [httpClient] in
+                    let bytes = try await runMediaSegment(
+                        segment: segment,
+                        filePath: path,
+                        key: key,
+                        headers: headers,
+                        httpClient: httpClient,
+                        limiters: limiters,
+                        settings: settings,
+                        onExpectedBytes: { total in await self.recordMediaExpected(path: path, bytes: total) },
+                        onBytes: { delta in await self.recordMediaBytes(path: path, delta: delta) }
+                    )
+                    return (path, bytes)
                 }
-                for try await (path, bytes) in group {
-                    markMediaSegmentComplete(path: path, bytes: Int64(bytes), plan: plan)
+            }
+
+            while nextIndex < min(concurrency, remaining.count) {
+                enqueue(remaining[nextIndex])
+                nextIndex += 1
+            }
+
+            while let (path, bytes) = try await group.next() {
+                markMediaSegmentComplete(path: path, bytes: Int64(bytes), plan: plan)
+                if nextIndex < remaining.count {
+                    enqueue(remaining[nextIndex])
+                    nextIndex += 1
                 }
             }
         }

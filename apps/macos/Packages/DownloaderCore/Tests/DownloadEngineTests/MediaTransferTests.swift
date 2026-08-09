@@ -743,4 +743,57 @@ struct MediaTransferTests {
     }
 }
 
+extension MediaTransferTests {
+    @Test("A freed media connection starts later work without waiting for a slow segment")
+    func rollingSchedulerRefillsFreedSlot() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let slowURL = URL(string: "https://cdn/x/slow.ts")!
+        let fastURLs = (1...3).map { URL(string: "https://cdn/x/fast\($0).ts")! }
+        let slowResource = payload(0, 60_000)
+        let slowRange = MediaByteRange(offset: 20_000, length: 30_000)
+        let fastSegments = (1...3).map { payload($0, 2_000) }
+
+        let mock = MockHTTPClient()
+        mock.chunkSize = 512
+        mock.slowFromOffset = slowRange.offset
+        mock.slowChunkDelay = .milliseconds(15)
+        mock.setResource(.init(data: slowResource), for: slowURL)
+        for (index, url) in fastURLs.enumerated() {
+            mock.setResource(.init(data: fastSegments[index]), for: url)
+        }
+        let plan = MediaPlan(format: .hls, segments: [
+            MediaSegment(id: 0, url: slowURL, duration: 6, byteRange: slowRange),
+            MediaSegment(id: 1, url: fastURLs[0], duration: 6),
+            MediaSegment(id: 2, url: fastURLs[1], duration: 6),
+            MediaSegment(id: 3, url: fastURLs[2], duration: 6)
+        ])
+
+        let manager = try await makeManager(store: GRDBDownloadStore.inMemory(), mock: mock)
+        var settings = await manager.currentSettings()
+        settings.defaultSegmentCount = 2
+        settings.maxSegmentCount = 2
+        await manager.updateSettings(settings)
+        let request = DownloadRequest(
+            url: URL(string: "https://cdn/x/rolling.m3u8")!, suggestedFileName: "rolling.ts",
+            destinationDirectoryPath: dir.path
+        )
+        let download = await manager.addMedia(request, plan: plan)
+
+        // Segment 0 occupies one slot for ~1 second. Segment 2 must take segment 1's freed slot.
+        let deadline = ContinuousClock().now + .seconds(5)
+        while !mock.streamedURLs.contains(fastURLs[1]), ContinuousClock().now < deadline {
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        #expect(mock.streamedURLs.contains(fastURLs[1]))
+        let slowPart = (download.mediaPartDirectoryPath as NSString).appendingPathComponent("seg-0.part")
+        #expect(!FileManager.default.fileExists(atPath: slowPart))
+
+        let done = try await waitFor(manager, download.id) { $0.status == .completed }
+        let bounds = Int(slowRange.offset)..<Int(slowRange.offset + slowRange.length)
+        let expected = slowResource.subdata(in: bounds) + fastSegments.reduce(Data(), +)
+        #expect(try Data(contentsOf: URL(fileURLWithPath: done.destinationFilePath)) == expected)
+    }
+}
+
 private struct MediaTimeout: Error {}

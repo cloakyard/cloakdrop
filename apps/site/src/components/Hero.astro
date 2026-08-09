@@ -11,8 +11,9 @@ const titleAccent = hero.titleAccent.replace(/\n/g, ' ');
 // asset, even when a new product capture replaces it.
 const shot = measureHero(resolve(process.cwd(), 'public/hero.png'));
 
-// This product capture uses the default eight-range plan as an example. The
-// number itself is configurable and the engine may plan fewer ranges.
+// This product capture uses a configured eight-range plan as an example. Automatic
+// mode may plan fewer or more ranges (within the user's ceiling), and manual mode can
+// request this exact connection count.
 const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
 ---
 
