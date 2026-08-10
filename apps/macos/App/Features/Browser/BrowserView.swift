@@ -8,6 +8,8 @@ struct BrowserView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openWindow) private var openWindow
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorSchemeContrast) private var colorSchemeContrast
 
     @State private var session: BrowserSession
     @State private var isShelfPresented = false
@@ -28,7 +30,7 @@ struct BrowserView: View {
     var body: some View {
         ZStack(alignment: .top) {
             BrowserWebViewHost(session: session)
-            // Load progress lives inside the address pill (see `loadingFill`), not as a separate bar.
+            // Load progress lives inside the address pill (see `loadingProgress`), not as a separate bar.
             if session.isRunnerPresented {
                 BrowserRunnerView()
             } else {
@@ -170,42 +172,29 @@ struct BrowserView: View {
         .padding(.horizontal, 9)
         .padding(.vertical, 6)
         .frame(minWidth: 280, idealWidth: 540, maxWidth: 640)
-        .background { loadingFill }
+        .overlay(alignment: .bottom) { loadingProgress }
         .overlay(alignment: .trailing) { reloadControl }
     }
 
-    /// The page-load indicator, drawn *inside* the address pill: a soft accent gradient capsule that
-    /// grows from the leading edge as `estimatedProgress` climbs, then fades away when the load
-    /// finishes. It sits behind the pill's content (the URL/domain stays fully legible on top).
-    ///
-    /// Corner-radius fit: the fill is its own `Capsule` — a true half-height radius — inset a uniform
-    /// `fillInset` from the field's frame so it nests *concentrically* inside the toolbar's Liquid
-    /// Glass pill (also a capsule) with an even margin on all sides. That even inset is what makes it
-    /// sit cleanly; matching the system pill edge-to-edge isn't possible (the glass bounds aren't
-    /// exposed), and overshooting would spill colour past the pill. No separate progress bar — this
-    /// is the only load affordance.
-    private var loadingFill: some View {
+    /// A slim rail inside the system address pill. Keeping progress to the lower edge leaves the
+    /// toolbar's native Liquid Glass visible instead of tinting a second capsule over it.
+    private var loadingProgress: some View {
         GeometryReader { geometry in
             Capsule()
-                .fill(
-                    LinearGradient(
-                        colors: [Color.accentColor.opacity(0.32), Color.accentColor.opacity(0.10)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
+                .fill(.tint)
                 .frame(width: max(0, geometry.size.width * loadProgress))
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(Self.fillInset)
-        .opacity(session.isLoading ? 1 : 0)
-        .animation(.easeOut(duration: 0.25), value: loadProgress)
-        .animation(.easeInOut(duration: 0.3), value: session.isLoading)
+        .frame(height: colorSchemeContrast == .increased ? 3 : 2)
+        .padding(.horizontal, 8)
+        .padding(.bottom, 2.5)
+        // Suppress the stale 100% value between navigations; WebKit resets it immediately after.
+        .opacity(session.isLoading && loadProgress < 1 ? 1 : 0)
+        .animation(reduceMotion || loadProgress < 0.15 ? nil : .smooth(duration: 0.18), value: loadProgress)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.15), value: session.isLoading)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
-
-    /// Uniform inset of the loading fill from the field frame, so the fill's capsule nests inside the
-    /// toolbar's glass pill with an even margin.
-    private static let fillInset: CGFloat = 2.5
 
     /// WebKit's estimated load progress, clamped to 0…1 for the fill width.
     private var loadProgress: Double { min(max(session.progress, 0), 1) }
