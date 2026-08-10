@@ -1,4 +1,3 @@
-import Foundation
 import ServiceManagement
 
 /// The app's "Open at Login" registration, via `SMAppService` — the sandbox-safe modern login-item

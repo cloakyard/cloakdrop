@@ -727,6 +727,41 @@ struct EngineIntegrationTests {
         #expect(try h.fileData(done) == payload)
     }
 
+    @Test("A queued save drains before transfer-owned terminal saves")
+    func managerAndTransferPersistenceStayOrdered() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("cloakdrop-save-order-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let url = URL(string: "https://example.com/ordered.bin")!
+        let payload = makePayload(20_000)
+        let store = QueuedSaveGateStore()
+        let mock = MockHTTPClient(resources: [url: .init(data: payload)])
+        let manager = DownloadManager(store: store, httpClient: mock, networkMonitor: AlwaysReachableMonitor())
+        try await manager.start()
+
+        let added = await manager.add(DownloadRequest(
+            url: url, suggestedFileName: "ordered.bin", destinationDirectoryPath: directory.path,
+            startImmediately: false
+        ))
+        await manager.resume(id: added.id)
+        await store.waitUntilQueuedSaveIsBlocked()
+
+        // While the manager's `.queued` save is blocked, the transfer must not get ahead of it.
+        try await Task.sleep(for: .milliseconds(75))
+        #expect(mock.streamCount == 0)
+        await store.releaseQueuedSave()
+
+        let deadline = ContinuousClock().now + .seconds(10)
+        while ContinuousClock().now < deadline {
+            if await manager.snapshot().downloads.first(where: { $0.id == added.id })?.status == .completed { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        let persisted = try #require(try await store.download(id: added.id))
+        #expect(persisted.status == .completed)
+    }
+
     @Test("Auth credentials and referrer/cookies reach the HTTP layer")
     func authAndHeadersThreaded() async throws {
         let payload = makePayload(40_000)
@@ -782,6 +817,13 @@ struct EngineIntegrationTests {
         #expect(next?.id != download.id)
         #expect(next?.scheduledStart != nil)
         #expect(next?.recurrence == .daily)
+        #expect(next?.fileName != download.fileName)
+
+        // The reserved name must make the next occurrence publishable alongside the first.
+        let nextID = try #require(next?.id)
+        await h.manager.promoteScheduled(asOf: Date().addingTimeInterval(2 * 24 * 60 * 60))
+        let second = try await h.waitFor(nextID) { $0.status == .completed }
+        #expect(try h.fileData(second) == payload)
     }
 
     @Test("Completing the last download emits allDownloadsCompleted")
@@ -807,6 +849,47 @@ struct EngineIntegrationTests {
 private actor SignalFlag {
     private(set) var value = false
     func mark() { value = true }
+}
+
+/// Minimal store whose first queued save can be held open, exposing cross-owner save ordering without
+/// sleeping inside production code. Other operations are ordinary in-memory value updates.
+private actor QueuedSaveGateStore: DownloadStore {
+    private var downloads: [UUID: Download] = [:]
+    private var queues: [UUID: DownloadQueue] = [DownloadQueue.defaultQueueID: .makeDefault]
+    private var rules: [UUID: SmartRule] = [:]
+    private var settings = EngineSettings.default
+    private var blocked = false
+    private var released = false
+
+    func waitUntilQueuedSaveIsBlocked() async {
+        while !blocked { try? await Task.sleep(for: .milliseconds(1)) }
+    }
+
+    func releaseQueuedSave() { released = true }
+
+    func bootstrap() async throws {}
+    func allDownloads() async throws -> [Download] { Array(downloads.values) }
+    func download(id: UUID) async throws -> Download? { downloads[id] }
+    func save(_ download: Download) async throws {
+        if download.status == .queued, !blocked {
+            blocked = true
+            while !released { try? await Task.sleep(for: .milliseconds(1)) }
+        }
+        downloads[download.id] = download
+    }
+    func delete(id: UUID) async throws { downloads[id] = nil }
+    func deleteCompleted() async throws { downloads = downloads.filter { $0.value.status != .completed } }
+    func allQueues() async throws -> [DownloadQueue] { Array(queues.values) }
+    func save(_ queue: DownloadQueue) async throws { queues[queue.id] = queue }
+    func deleteQueue(id: UUID) async throws { queues[id] = nil }
+    func allRules() async throws -> [SmartRule] { Array(rules.values) }
+    func save(_ rule: SmartRule) async throws { rules[rule.id] = rule }
+    func deleteRule(id: UUID) async throws { rules[id] = nil }
+    func loadSettings() async throws -> EngineSettings { settings }
+    func save(settings: EngineSettings) async throws { self.settings = settings }
+    func recordDownloadedBytes(_ bytes: Int64, on date: Date) async throws {}
+    func loadStats(asOf date: Date) async throws -> DownloadStats { .empty }
+    func resetStats() async throws {}
 }
 
 private extension EngineEvent {

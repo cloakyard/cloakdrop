@@ -1,5 +1,3 @@
-import Foundation
-
 /// The built-in "smart" sidebar groupings. Each is a predicate over a `Download`.
 public enum SmartFilter: String, Sendable, Hashable, Codable, CaseIterable, Identifiable {
     case all

@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Brand from '../components/Brand.astro';
+import Icon from '../components/Icon.astro';
+---
+
+<BaseLayout
+  title="Page not found — CloakDrop"
+  description="The requested CloakDrop page does not exist."
+  noindex
+>
+  <header class="not-found-header">
+    <div class="container"><Brand size={40} /></div>
+  </header>
+  <main id="main" class="not-found">
+    <div class="container">
+      <p class="kicker">404 — Not found</p>
+      <h1>This link went missing.</h1>
+      <p>The page may have moved. Return home to continue exploring CloakDrop.</p>
+      <a class="btn btn--primary" href="/">
+        Back to CloakDrop
+        <Icon name="arrow" size={17} />
+      </a>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .not-found-header {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .not-found-header .container {
+    display: flex;
+    align-items: center;
+    min-height: 4.25rem;
+  }
+
+  .not-found {
+    display: grid;
+    min-height: calc(100vh - 4.25rem);
+    place-items: center;
+    padding-block: 4rem;
+  }
+
+  .not-found .container {
+    max-width: 48rem;
+  }
+
+  h1 {
+    max-width: 10ch;
+    margin-top: 1.5rem;
+  }
+
+  .not-found p:not(.kicker) {
+    max-width: 42rem;
+    margin-top: 1.5rem;
+    font-size: var(--t-lead);
+  }
+
+  .not-found .btn {
+    margin-top: 2rem;
+  }
+</style>

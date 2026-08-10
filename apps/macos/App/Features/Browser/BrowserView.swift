@@ -16,6 +16,7 @@ struct BrowserView: View {
     @State private var isEditingURL = false
     /// Bumped to ask the address field to become first responder (⌘L, clicking the idle bar).
     @State private var focusRequestToken = 0
+    @State private var didPrepareNetworkSession = false
 
     private let initialURL: URL?
 
@@ -33,6 +34,10 @@ struct BrowserView: View {
             } else {
                 browserStateOverlay
             }
+            if !model.isNetworkReady {
+                Color(nsColor: .windowBackgroundColor)
+                    .overlay { ProgressView() }
+            }
         }
         .background(BrowserWindowConfigurator())
         .navigationTitle(session.pageTitle.isEmpty ? String(localized: "Browser") : session.pageTitle)
@@ -46,13 +51,7 @@ struct BrowserView: View {
             session.searchEngine = model.browserSearchEngine
             session.setAdBlock(model.browserAdBlockEnabled)
             session.onOpenWindow = { openWindow(id: BrowserScene.windowID, value: BrowserLaunch(url: $0, openedByPage: true)) }
-            BrowserStore.shared.applyProxy(model.settings.resolvedProxy)
-            if let initialURL {
-                session.urlText = initialURL.absoluteString
-                session.load(initialURL)
-            } else {
-                beginEditingURL()   // a fresh window opens ready to type an address
-            }
+            prepareNetworkSession()
         }
         .onDisappear { session.teardown() }
         .onChange(of: session.shouldClose) { _, close in if close { dismiss() } }
@@ -60,6 +59,7 @@ struct BrowserView: View {
         .onChange(of: session.dialog?.id) { promptText = session.dialog?.promptDefault ?? "" }
         .onChange(of: model.browserSearchEnabled) { session.searchEnabled = model.browserSearchEnabled }
         .onChange(of: model.browserSearchEngine) { session.searchEngine = model.browserSearchEngine }
+        .onChange(of: model.isNetworkReady) { prepareNetworkSession() }
         .onChange(of: model.browserAdBlockEnabled) { session.setAdBlock(model.browserAdBlockEnabled) }
         // Re-attach when the compiled lists change (a compile finished, the blocklist source
         // switched, or an update landed) — setAdBlock always reflects the current lists.
@@ -71,6 +71,19 @@ struct BrowserView: View {
         }
         .sheet(item: authBinding) { request in
             BrowserAuthSheet(request: request, sink: model)
+        }
+        .disabled(!model.isNetworkReady)
+    }
+
+    private func prepareNetworkSession() {
+        guard model.isNetworkReady, !didPrepareNetworkSession else { return }
+        didPrepareNetworkSession = true
+        BrowserStore.shared.applyProxy(model.settings.resolvedProxy)
+        if let initialURL {
+            session.urlText = initialURL.absoluteString
+            session.load(initialURL)
+        } else {
+            beginEditingURL()
         }
     }
 
@@ -302,12 +315,18 @@ struct BrowserView: View {
             if shelfCount > 0 {
                 Text(shelfCount, format: .number)
                     .font(.system(size: 9, weight: .bold))
+                    .fixedSize(horizontal: true, vertical: true)
                     // The system's "text on accent" color — stays legible even with a light user
                     // accent (yellow, graphite), where forced white would wash out.
                     .foregroundStyle(Color(nsColor: .alternateSelectedControlTextColor))
                     .padding(.horizontal, 3)
                     .padding(.vertical, 0.5)
                     .background(.tint, in: Capsule())
+                    // Keep the badge inside the toolbar group's clipping boundary. Aligning it
+                    // flush to the button's corner lets the system glass capsule crop its top and
+                    // trailing edge.
+                    .padding(.top, 3)
+                    .padding(.trailing, 4)
                     .allowsHitTesting(false)
             }
         }

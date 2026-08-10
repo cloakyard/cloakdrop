@@ -35,15 +35,14 @@ extension DownloadTask {
             }
         }
 
-        // Capture the part file's location before any destination remapping.
+        // Keep publication metadata local until the move succeeds. If another process creates the
+        // destination first, the persisted failed download must still point at its resumable part.
         let partPath = download.partFilePath
-
-        // Auto-categorization: file the finished download into a per-type subfolder.
-        if settings.autoCategorize {
-            let categoryDir = (download.destinationDirectoryPath as NSString)
-                .appendingPathComponent(download.category.displayName)
-            download.destinationDirectoryPath = categoryDir
-        }
+        let destinationDirectory = categorizedDirectory(
+            download.destinationDirectoryPath, category: download.category
+        )
+        let destinationPath = (destinationDirectory as NSString)
+            .appendingPathComponent(download.fileName)
 
         // Integrity is established while the file is still private staging data. A user-supplied
         // checksum mismatch must never expose corrupt bytes at the final Finder-visible path.
@@ -56,7 +55,8 @@ extension DownloadTask {
         download.checksum = checksum.expectation
         download.checksumVerified = checksum.verified
 
-        try SegmentedFileWriter.finalize(partPath: partPath, destinationPath: download.destinationFilePath)
+        try SegmentedFileWriter.finalize(partPath: partPath, destinationPath: destinationPath)
+        download.destinationDirectoryPath = destinationDirectory
 
         // Stamp it like a browser download so Gatekeeper vets it on first open.
         if settings.applyQuarantine {
@@ -82,5 +82,13 @@ extension DownloadTask {
         if settings.generateProvenanceReceipts {
             download.provenance = await buildProvenanceReceipt(precomputedSHA256: checksum.sha256)
         }
+    }
+
+    /// Resolve the final category directory without nesting `Video/Video` when resuming a record
+    /// produced by an older build that had already persisted the remapped destination.
+    func categorizedDirectory(_ base: String, category: FileCategory) -> String {
+        guard settings.autoCategorize,
+              (base as NSString).lastPathComponent != category.displayName else { return base }
+        return (base as NSString).appendingPathComponent(category.displayName)
     }
 }

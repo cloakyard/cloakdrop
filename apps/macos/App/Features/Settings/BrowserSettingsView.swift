@@ -139,7 +139,7 @@ struct BrowserSettingsView: View {
         guard model.browserAdBlockEnabled, model.browserBlocklistSource != .builtIn,
               let host = model.browserBlocklistSource.updateURL?.host() else {
             // swiftlint:disable:next line_length
-            return "Off by default. When on, the built-in browser blocks ads, tracking scripts, and ad pop-ups on nearly every site — pages load faster and cleaner. Blocking happens entirely on your Mac, and never affects your downloads. If a site misbehaves, turn this off."
+            return "Off by default. When on, the built-in browser blocks requests to known ad and tracker hosts and rejects known ad pop-ups. Coverage varies by list and site; turn it off if a site misbehaves. Blocking happens on your Mac and never affects downloads."
         }
         // swiftlint:disable:next line_length
         return "\(model.browserBlocklistSource.displayName) is an open-source blocklist layered on top of the built-in one. It is fetched from \(host) only when you choose it or press Update Now — never automatically. Blocking still happens entirely on your Mac and never affects your downloads."

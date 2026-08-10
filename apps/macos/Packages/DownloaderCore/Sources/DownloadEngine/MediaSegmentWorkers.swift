@@ -3,6 +3,15 @@ import DownloadModels
 
 // MARK: - Media segment worker
 
+/// AES-CBC requires both the complete ciphertext and a same-sized plaintext buffer. HLS segments are
+/// normally only a few megabytes, so rejecting an anomalously large segment is safer than allowing a
+/// malformed manifest or response to create hundreds of megabytes of transient heap pressure.
+let maximumBufferedEncryptedMediaSegmentBytes: Int64 = 64 * 1024 * 1024
+
+/// Bound one media transfer's aggregate buffered AES work. Together with the per-segment ceiling,
+/// two decryptions require at most roughly 256 MiB for ciphertext plus plaintext.
+let maximumConcurrentBufferedMediaSegments = 2
+
 /// Fetch one media segment (retrying with backoff on drops) and write it to its own file. Returns
 /// the bytes written. A completed segment leaves a file the next run skips; pause/cancel is honored
 /// via task cancellation.
@@ -34,17 +43,24 @@ func runMediaSegment(
     while true {
         try Task.checkCancellation()
         do {
-            if key != nil {
+            switch segment.encryption.method {
+            case .aes128:
+                guard let key else {
+                    throw DownloadError.underlying(reason: "An AES-128 media segment has no usable key.")
+                }
                 return try await fetchEncryptedMediaSegment(
                     segment: segment, filePath: filePath, key: key, headers: headers,
                     httpClient: httpClient, limiters: limiters,
                     onExpectedBytes: onExpectedBytes, onBytes: onBytes
                 )
+            case .sampleAES:
+                throw DownloadError.underlying(reason: "SAMPLE-AES media is not supported.")
+            case .none:
+                return try await streamMediaSegmentToDisk(
+                    fetch: &fetch, headers: headers, httpClient: httpClient, limiters: limiters,
+                    onExpectedBytes: onExpectedBytes, onBytes: onBytes
+                )
             }
-            return try await streamMediaSegmentToDisk(
-                fetch: &fetch, headers: headers, httpClient: httpClient, limiters: limiters,
-                onExpectedBytes: onExpectedBytes, onBytes: onBytes
-            )
         } catch is CancellationError {
             throw CancellationError()
         } catch {
@@ -164,13 +180,9 @@ private func streamMediaSegmentToDisk(
     let request = HTTPDownloadRequest(url: fetch.segment.url, headers: headers, byteRange: range)
     let (head, stream) = try await httpClient.stream(request)
 
-    // We asked to resume but the server sent the whole body (no 206): retract the bytes we'd
-    // already counted and restart from scratch — appending a full body would corrupt the segment.
-    if resumeFrom > 0, head.statusCode != 206 {
-        await onBytes(-Int(resumeFrom))
-        try? fm.removeItem(atPath: fetch.partialPath)
-        resumeFrom = 0
-    }
+    resumeFrom = try await validatedMediaResumeOffset(
+        fetch: fetch, requestedRange: range, response: head, resumeFrom: resumeFrom, onBytes: onBytes
+    )
     if fetch.knownEnd == nil, let total = head.totalBytes { fetch.knownEnd = total - 1 }
     if !fetch.expectedNotified, let expected = fetch.expectedLength(head: head) {
         fetch.expectedNotified = true
@@ -187,6 +199,12 @@ private func streamMediaSegmentToDisk(
         for try await chunk in stream {
             try Task.checkCancellation()
             if chunk.isEmpty { continue }
+            if let end = fetch.knownEnd {
+                let expected = end - fetch.base + 1
+                guard Int64(chunk.count) <= expected - written else {
+                    throw DownloadError.underlying(reason: "A media response exceeded its requested byte range.")
+                }
+            }
             for limiter in limiters where limiter.isLimited { await limiter.awaitAllowance(byteCount: chunk.count) }
             try Task.checkCancellation()
             try handle.write(contentsOf: chunk)
@@ -212,12 +230,31 @@ private func streamMediaSegmentToDisk(
     }
     // When the length is known, a short body is a silent drop — retry (and resume) instead of
     // promoting a truncated segment.
-    if let end = fetch.knownEnd, written < end - fetch.base + 1 {
-        throw DownloadError.networkLost
+    if let end = fetch.knownEnd {
+        guard written == end - fetch.base + 1 else { throw DownloadError.networkLost }
     }
     try? fm.removeItem(atPath: fetch.filePath)
     try fm.moveItem(atPath: fetch.partialPath, toPath: fetch.filePath)
     return Int(written)
+}
+
+/// Validate a resumed response before opening the part file. A whole-body `200` is a safe restart
+/// only for a whole-file segment; an HLS/DASH subrange can never accept it.
+private func validatedMediaResumeOffset(
+    fetch: MediaSegmentFetch,
+    requestedRange: ClosedRange<Int64>?,
+    response: HTTPResponseHead,
+    resumeFrom: Int64,
+    onBytes: @Sendable (Int) async -> Void
+) async throws -> Int64 {
+    guard let requestedRange else { return resumeFrom }
+    if resumeFrom > 0, response.statusCode == 200, fetch.segment.byteRange == nil {
+        await onBytes(-Int(resumeFrom))
+        try? FileManager.default.removeItem(atPath: fetch.partialPath)
+        return 0
+    }
+    try validateExactMediaRange(response, requested: requestedRange)
+    return resumeFrom
 }
 
 /// yt-dlp's proven chunk size: a single large GET of a throttled CDN URL crawls; ~10 MB ranges fly.
@@ -252,10 +289,19 @@ private func streamMediaChunked(
             let end = min(start + mediaChunkSize - 1, knownEnd)
             let request = HTTPDownloadRequest(url: fetch.segment.url, headers: headers, byteRange: start...end)
             let (head, stream) = try await httpClient.stream(request)
-            // A range-capable server answers 206; a 200 (whole body) is only safe on a from-scratch
-            // first chunk — appending it after a resume would corrupt the file, so retry instead.
-            guard head.statusCode == 206 || (written == 0 && head.statusCode == 200) else {
+            // A range-capable server normally answers 206. If it later ignores Range and returns a
+            // whole-body 200, restart this response from byte zero instead of appending it to a
+            // partial (corrupt) or retrying the same impossible resume forever.
+            let isWholeBodyFallback = head.statusCode == 200
+            guard head.statusCode == 206 || isWholeBodyFallback else {
                 throw DownloadError.networkLost
+            }
+            if head.statusCode == 206 { try validateExactMediaRange(head, requested: start...end) }
+            if isWholeBodyFallback, written > 0 {
+                await onBytes(-Int(written))
+                try handle.truncate(atOffset: 0)
+                try handle.seek(toOffset: 0)
+                written = 0
             }
             // Guard against a stale cache / an object that changed under a stable URL: a response whose
             // reported total no longer matches the size we bounded to would splice mismatched bytes at
@@ -263,20 +309,24 @@ private func streamMediaChunked(
             if let served = head.totalBytes, served != total {
                 throw DownloadError.networkLost
             }
-            var chunkBytes = 0
+            let expectedBodyBytes = isWholeBodyFallback ? total : end - start + 1
+            var chunkBytes: Int64 = 0
             for try await data in stream {
                 try Task.checkCancellation()
                 if data.isEmpty { continue }
+                guard Int64(data.count) <= expectedBodyBytes - chunkBytes else {
+                    throw DownloadError.underlying(reason: "A media response exceeded its requested byte range.")
+                }
                 for limiter in limiters where limiter.isLimited { await limiter.awaitAllowance(byteCount: data.count) }
                 try Task.checkCancellation()
                 try handle.write(contentsOf: data)
-                chunkBytes += data.count
+                chunkBytes += Int64(data.count)
                 written += Int64(data.count)
                 await onBytes(data.count)
             }
             // A throttle-close can end a chunk with nothing delivered; bail so the retry backs off
             // rather than spinning a zero-progress loop.
-            if chunkBytes == 0 { throw DownloadError.networkLost }
+            guard chunkBytes == expectedBodyBytes else { throw DownloadError.networkLost }
         }
         try handle.close()
     } catch {
@@ -284,7 +334,7 @@ private func streamMediaChunked(
         throw error
     }
     try Task.checkCancellation()
-    if written < total { throw DownloadError.networkLost }   // short overall body → retry & resume
+    if written != total { throw DownloadError.networkLost }
     try? fm.removeItem(atPath: fetch.filePath)
     try fm.moveItem(atPath: fetch.partialPath, toPath: fetch.filePath)
     return Int(written)
@@ -294,7 +344,7 @@ private func streamMediaChunked(
 private func fetchEncryptedMediaSegment(
     segment: MediaSegment,
     filePath: String,
-    key: Data?,
+    key: Data,
     headers: [String: String],
     httpClient: any HTTPClient,
     limiters: [BandwidthLimiter],
@@ -304,27 +354,48 @@ private func fetchEncryptedMediaSegment(
     let byteRange = segment.byteRange.map { $0.offset...$0.end }
     let request = HTTPDownloadRequest(url: segment.url, headers: headers, byteRange: byteRange)
     let (head, stream) = try await httpClient.stream(request)
+    if let byteRange { try validateExactMediaRange(head, requested: byteRange) }
     if let expected = segment.byteRange?.length ?? head.totalBytes {
         await onExpectedBytes(expected)
     }
+    let expected = segment.byteRange?.length ?? head.totalBytes
+    if let expected, expected > maximumBufferedEncryptedMediaSegmentBytes {
+        throw DownloadError.underlying(reason: "The encrypted media segment exceeded its safe size limit.")
+    }
     var buffer = Data()
-    for try await chunk in stream {
+    if let expected, expected > 0 { buffer.reserveCapacity(Int(expected)) }
+    do {
+        for try await chunk in stream {
+            try Task.checkCancellation()
+            if chunk.isEmpty { continue }
+            guard Int64(chunk.count) <= maximumBufferedEncryptedMediaSegmentBytes - Int64(buffer.count),
+                  expected.map({ Int64(chunk.count) <= $0 - Int64(buffer.count) }) ?? true else {
+                throw DownloadError.underlying(reason: "The encrypted media response exceeded its expected size.")
+            }
+            for limiter in limiters where limiter.isLimited { await limiter.awaitAllowance(byteCount: chunk.count) }
+            try Task.checkCancellation()
+            buffer.append(chunk)
+            await onBytes(chunk.count)
+        }
         try Task.checkCancellation()
-        if chunk.isEmpty { continue }
-        for limiter in limiters { await limiter.awaitAllowance(byteCount: chunk.count) }
-        try Task.checkCancellation()
-        buffer.append(chunk)
-        await onBytes(chunk.count)
-    }
-    try Task.checkCancellation()
+        if let expected, Int64(buffer.count) != expected { throw DownloadError.networkLost }
 
-    var output = buffer
-    if let key {
         let iv = AES128.iv(explicit: segment.encryption.iv, sequenceNumber: segment.id)
-        output = try AES128.decryptCBC(buffer, key: key, iv: iv)
+        let output = try AES128.decryptCBC(buffer, key: key, iv: iv)
+        try output.write(to: URL(fileURLWithPath: filePath), options: .atomic)
+        return output.count
+    } catch {
+        if !buffer.isEmpty { await onBytes(-buffer.count) }
+        throw error
     }
-    try output.write(to: URL(fileURLWithPath: filePath), options: .atomic)
-    return output.count
+}
+
+/// A ranged media response is usable only when it proves the exact interval requested. Checking
+/// merely for `206` permits a shifted CDN/cache response to splice the wrong bytes into the output.
+func validateExactMediaRange(_ head: HTTPResponseHead, requested: ClosedRange<Int64>) throws {
+    guard head.statusCode == 206, head.contentRange == requested else {
+        throw DownloadError.underlying(reason: "The server did not return the requested media byte range.")
+    }
 }
 
 private func partialSize(_ path: String) -> Int64 {

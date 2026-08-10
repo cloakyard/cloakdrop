@@ -125,6 +125,58 @@ struct ZipArchiveTests {
         }
     }
 
+    @Test("Rejects an entry above the in-memory ceiling before allocating its advertised output")
+    func rejectsEntryAboveMemoryCeiling() throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        var builder = ZipBuilder()
+        let advertisedSize = UInt32(ZipArchive.maximumInMemoryEntryBytes + 1)
+        builder.add("large.bin", Data([0]), deflate: true, forgedUncompressed: advertisedSize)
+        let zipURL = dir.appendingPathComponent("large.zip")
+        try builder.build().write(to: zipURL)
+
+        #expect(throws: ZipArchive.ExtractionError.suspiciousEntry("large.bin")) {
+            try ZipArchive.extract(zipPath: zipURL.path, to: dir.appendingPathComponent("out").path)
+        }
+    }
+
+    @Test("Refuses to merge into or overwrite an existing extraction directory")
+    func preservesExistingDestination() throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        var builder = ZipBuilder()
+        builder.add("existing.txt", Data("archive".utf8), deflate: false)
+        let zipURL = dir.appendingPathComponent("archive.zip")
+        try builder.build().write(to: zipURL)
+
+        let out = dir.appendingPathComponent("out")
+        try FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
+        let existing = out.appendingPathComponent("existing.txt")
+        try Data("user".utf8).write(to: existing)
+
+        #expect(throws: ZipArchive.ExtractionError.self) {
+            try ZipArchive.extract(zipPath: zipURL.path, to: out.path)
+        }
+        #expect(try Data(contentsOf: existing) == Data("user".utf8))
+    }
+
+    @Test("Rejects a stored entry whose declared size does not match its bytes")
+    func rejectsMalformedStoredSize() throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        var builder = ZipBuilder()
+        builder.add("bad.bin", Data(repeating: 1, count: 32), deflate: false, forgedUncompressed: 64)
+        let zipURL = dir.appendingPathComponent("bad.zip")
+        try builder.build().write(to: zipURL)
+
+        #expect(throws: ZipArchive.ExtractionError.self) {
+            try ZipArchive.extract(zipPath: zipURL.path, to: dir.appendingPathComponent("out").path)
+        }
+    }
+
     @Test("Skips a nameless entry instead of aborting the whole archive")
     func skipsEmptyNameEntry() throws {
         let dir = try tempDir()

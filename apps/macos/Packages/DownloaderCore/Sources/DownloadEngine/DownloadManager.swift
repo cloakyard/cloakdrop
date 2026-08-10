@@ -259,7 +259,7 @@ public actor DownloadManager {
     }
 
     /// Add a media (HLS/DASH) grab: a resolved `MediaPlan` becomes a `Download` on the media
-    /// transfer path. Otherwise identical to `add` — same queue, persistence, and scheduling.
+    /// transfer path, using the same queue, persistence, and lifecycle controls as ordinary files.
     @discardableResult
     public func addMedia(_ request: DownloadRequest, plan: MediaPlan) async -> Download {
         let fileName = reserveMediaFileName(for: request, plan: plan)
@@ -291,6 +291,9 @@ public actor DownloadManager {
             fileName: fileName,
             destinationDirectoryPath: request.destinationDirectoryPath,
             destinationBookmark: request.destinationBookmark,
+            requestedSegmentCount: request.segmentCount.map {
+                min(settings.maxSegmentCount, max(1, $0))
+            },
             queueID: queues[request.queueID] != nil ? request.queueID : DownloadQueue.defaultQueueID,
             requestHeaders: headers,
             speedLimitBytesPerSecond: request.speedLimitBytesPerSecond,
@@ -349,7 +352,7 @@ public actor DownloadManager {
     }
 
     public func remove(id: UUID, deleteFile: Bool) async {
-        guard let download = downloads[id] else { return }
+        guard let initialDownload = downloads[id] else { return }
         // Stop any running transfer and wait for it to fully unwind (its terminal save runs
         // here) so it can't re-create the row after we delete it.
         if let task = tasks[id] {
@@ -358,6 +361,9 @@ public actor DownloadManager {
             handle?.cancel()
             await handle?.value
         }
+        // Finalization may have won the race before cancellation and remapped the destination (for
+        // example into an auto-category folder). Delete from the authoritative post-unwind snapshot.
+        let download = downloads[id] ?? initialDownload
         // Drop from memory, then discard files and delete from the store. We deliberately do
         // NOT route through cancel()/update(): marking a terminal download ".canceled" and
         // persisting it via a detached task would race with the delete below.

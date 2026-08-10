@@ -2,30 +2,7 @@
 import { product } from '../data/site';
 import Kicker from './Kicker.astro';
 
-const transferStory = product.stories.find((story) => story.visual === 'speed');
-const captureStory = product.stories.find((story) => story.visual === 'capture');
-const finishStory = product.stories.find((story) => story.visual === 'organize');
-
-const chapters = [
-  {
-    id: 'transfer',
-    n: '01',
-    label: 'Transfer',
-    title: 'Adaptive ranges. One unbroken file.',
-  },
-  {
-    id: 'capture',
-    n: '02',
-    label: 'Capture',
-    title: 'Every way in, one native engine.',
-  },
-  {
-    id: 'finish',
-    n: '03',
-    label: 'Finish',
-    title: 'Route the work, then get out of the way.',
-  },
-] as const;
+const [transferStory, captureStory, finishStory] = product.stories;
 
 /* A manually configured eight-range transfer is used only as an inspectable example. */
 const lanes = [
@@ -56,7 +33,7 @@ const lanes = [
     <div class="theatre-shell" data-reveal>
       <nav class="chapter-switcher" role="tablist" aria-label="CloakDrop workflow">
         {
-          chapters.map((chapter, index) => (
+          product.stories.map((chapter, index) => (
             <button
               id={`theatre-tab-${chapter.id}`}
               class="chapter-tab"
@@ -93,7 +70,7 @@ const lanes = [
             <div class="chapter-copy">
               <p class="overline">CONFIGURED EXAMPLE / 8 PLANNED RANGES</p>
               <h3>Close the app. Keep your place.</h3>
-              <p>{transferStory?.body}</p>
+              <p>{transferStory.body}</p>
             </div>
             <ul class="chapter-facts" aria-label="Transfer capabilities">
               <li>Automatic or manual count</li>
@@ -186,7 +163,7 @@ const lanes = [
             <div class="chapter-copy">
               <p class="overline">FOUR WAYS IN / ONE LOCAL PATH</p>
               <h3>Bring the link. Keep your flow.</h3>
-              <p>{captureStory?.body}</p>
+              <p>{captureStory.body}</p>
             </div>
             <ul class="chapter-facts" aria-label="Capture capabilities">
               <li>Built-in WebKit browser</li>
@@ -259,7 +236,7 @@ const lanes = [
             <div class="chapter-copy">
               <p class="overline">ROUTING / LIMITS / POST-PROCESSING</p>
               <h3>Set the rules once.</h3>
-              <p>{finishStory?.body}</p>
+              <p>{finishStory.body}</p>
             </div>
             <ul class="chapter-facts" aria-label="Finishing capabilities">
               <li>First-match routing rules</li>
@@ -334,7 +311,6 @@ const lanes = [
 
       const tabs = Array.from(root.querySelectorAll('[data-chapter-tab]'));
       const panels = Array.from(root.querySelectorAll('[data-chapter-panel]'));
-      const mobile = window.matchMedia('(max-width: 760px)');
       let activeKey = tabs.find((tab) => tab.getAttribute('aria-selected') === 'true')?.dataset.chapterTab ?? 'transfer';
 
       const showChapter = (key, moveFocus = false) => {
@@ -348,11 +324,6 @@ const lanes = [
         panels.forEach((panel) => {
           panel.hidden = panel.dataset.chapterPanel !== key;
         });
-      };
-
-      const syncLayout = () => {
-        root.classList.add('is-tabbed');
-        showChapter(activeKey);
       };
 
       tabs.forEach((tab, index) => {
@@ -369,8 +340,7 @@ const lanes = [
         });
       });
 
-      mobile.addEventListener?.('change', syncLayout);
-      syncLayout();
+      showChapter(activeKey);
 
       const simulation = root.querySelector('[data-simulation]');
       const simulate = root.querySelector('[data-simulate]');

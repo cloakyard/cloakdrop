@@ -48,7 +48,7 @@ public final class URLSessionSpeedTestTransport: SpeedTestTransport {
         config.waitsForConnectivity = false
         // One test saturates the link with several parallel streams to one host.
         config.httpMaximumConnectionsPerHost = 16
-        self.session = URLSession(configuration: URLSessionHTTPClient.applyingProxy(proxy, to: config))
+        self.session = URLSession(configuration: ProxyRouting.applying(proxy, to: config))
     }
 
     deinit {

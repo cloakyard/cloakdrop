@@ -1,5 +1,3 @@
-import Foundation
-
 /// How the content list is ordered.
 enum DownloadSort: String, CaseIterable, Identifiable {
     case dateAdded, name, size, status

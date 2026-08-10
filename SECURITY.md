@@ -28,9 +28,9 @@ Please include:
 
 What to expect:
 
-- **Acknowledgement within 48 hours.**
-- **A status update within 7 days.**
-- Credit in the release notes when the fix ships, unless you prefer to remain anonymous.
+- The report will be triaged privately, and maintainers will coordinate reproduction and disclosure
+  with you as availability permits.
+- Credit in the release notes when a fix ships, unless you prefer to remain anonymous.
 
 ## Security Model
 
@@ -55,7 +55,7 @@ CloakDrop is a native, sandboxed macOS app designed to minimize attack surface:
 ### Risk areas
 
 - **Third-party dependencies.** CloakDrop's only third-party Swift dependency is GRDB (SQLite).
-  Two native command-line tools are also bundled as code-signed, sandboxed helper binaries:
+  Release builds can also bundle two native command-line tools as code-signed, sandboxed helpers:
   **ffmpeg** (network-free stream-copy muxing) and **yt-dlp** (a page→formats resolver). Both run
   in-sandbox as `inherit`-entitled children. ffmpeg transforms local data only; yt-dlp may contact a
   user-submitted video page and related endpoints to resolve metadata/media URLs, but it does not

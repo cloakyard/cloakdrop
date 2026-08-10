@@ -1,5 +1,3 @@
-import Foundation
-
 /// One contiguous byte range of a download, transferred over its own HTTP connection.
 ///
 /// A segment owns the half-open byte interval `[start, end]` (inclusive `end`, matching

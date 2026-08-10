@@ -1,5 +1,3 @@
-import Foundation
-
 // The one place the engine converts clock types to Double seconds — `SpeedSampler`,
 // `DownloadTask`, and `SpeedTester` all share these instead of keeping private copies,
 // so a precision fix lands everywhere at once.

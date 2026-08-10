@@ -1,7 +1,7 @@
 import Foundation
 import DownloadModels
 
-/// Resolves a *page* URL (a YouTube watch page, a Vimeo page, any of the ~1800 sites yt-dlp knows)
+/// Resolves a *page* URL (a YouTube watch page, a Vimeo page, or another site yt-dlp supports)
 /// into the real, playable media formats behind it — the deciphered direct video/audio URLs plus the
 /// HTTP headers needed to fetch them. It is a **resolver/decipher oracle, not a downloader**: the
 /// engine's own segmented transfer + mux path does the downloading, so pause/resume, persistence, and

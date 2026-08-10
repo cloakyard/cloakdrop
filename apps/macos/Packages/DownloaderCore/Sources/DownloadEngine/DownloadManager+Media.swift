@@ -106,15 +106,26 @@ public extension DownloadManager {
     internal static func uniqueFileName(
         _ fileName: String, inDirectory directory: String, takenNames: Set<String>
     ) -> String {
+        uniqueFileName(fileName, inDirectories: [directory], takenNames: takenNames)
+    }
+
+    /// Multi-folder form used when auto-categorization means staging and publication live in
+    /// different directories. A name is reserved only when it is free in every possible location.
+    internal static func uniqueFileName(
+        _ fileName: String, inDirectories directories: [String], takenNames: Set<String>
+    ) -> String {
         let base = (fileName as NSString).deletingPathExtension
         let ext = (fileName as NSString).pathExtension
         func taken(_ name: String) -> Bool {
             let catalogContainsName = takenNames.contains {
                 $0.caseInsensitiveCompare(name) == .orderedSame
             }
-            let destination = (directory as NSString).appendingPathComponent(name)
             return catalogContainsName
-                || FileManager.default.fileExists(atPath: destination)
+                || directories.contains {
+                    FileManager.default.fileExists(
+                        atPath: ($0 as NSString).appendingPathComponent(name)
+                    )
+                }
         }
         guard taken(fileName) else { return fileName }
         for n in 2...9_999 {

@@ -10,7 +10,7 @@ struct BatchAddSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
 
-    private struct GrabbedLink: Identifiable, Hashable {
+    private struct GrabbedLink: Identifiable, Hashable, Sendable {
         let url: URL
         /// A deadline baked into a pre-signed / tokened URL, if any (detected without a network call).
         let expiry: LinkExpiry?
@@ -26,6 +26,9 @@ struct BatchAddSheet: View {
     @State private var pageURLString = ""
     @State private var isFetchingPage = false
     @State private var pageFetchNote: String?
+    @State private var pageFetchTask: Task<Void, Never>?
+    @State private var fileImportTask: Task<Void, Never>?
+    @State private var parseTask: Task<Void, Never>?
     @State private var destinationURL = AppEnvironment.defaultDownloadsDirectory()
     @State private var destinationBookmark: Data?
 
@@ -119,6 +122,11 @@ struct BatchAddSheet: View {
             .padding()
         }
         .frame(width: 580, height: 600)
+        .onDisappear {
+            pageFetchTask?.cancel()
+            fileImportTask?.cancel()
+            parseTask?.cancel()
+        }
     }
 
     private var grabbedList: some View {
@@ -196,20 +204,60 @@ struct BatchAddSheet: View {
     /// links that are still present. Each link is inspected for an embedded expiry (pre-signed URLs):
     /// already-dead links are deselected so they don't waste a slot, and the list is ordered
     /// soonest-to-expire first so the most time-critical downloads lead.
+    nonisolated private static let maximumInputBytes = 10 * 1024 * 1024
+
     private func reparse(_ newValue: String) {
-        let previouslyDeselected = Set(links.filter { !$0.selected }.map(\.url))
-        let now = Date()
-        let parsed = URLBatch.parse(newValue).map { url -> GrabbedLink in
-            let expiry = LinkExpiryDetector.detect(in: url)
-            let dead = expiry?.isExpired(asOf: now) ?? false
-            return GrabbedLink(url: url, expiry: expiry, selected: !dead && !previouslyDeselected.contains(url))
+        let bounded = URLBatch.boundedInput(newValue, maximumUTF8Bytes: Self.maximumInputBytes)
+        if text != bounded { text = bounded }
+
+        parseTask?.cancel()
+        parseTask = Task {
+            do {
+                try await Task.sleep(for: .milliseconds(150))
+                try Task.checkCancellation()
+            } catch {
+                return
+            }
+            let work = Task.detached(priority: .userInitiated) { try Self.parseLinks(bounded) }
+            let parsed: [GrabbedLink]
+            do {
+                parsed = try await withTaskCancellationHandler(operation: {
+                    try await work.value
+                }, onCancel: {
+                    work.cancel()
+                })
+            } catch {
+                return
+            }
+            guard !Task.isCancelled, text == bounded else { return }
+            let deselected = Set(links.lazy.filter { !$0.selected }.map(\.url))
+            links = parsed.map { item in
+                guard deselected.contains(item.url) else { return item }
+                var item = item
+                item.selected = false
+                return item
+            }
         }
-        links = sortedByDeadline(parsed, asOf: now)
     }
 
     /// Live links with a deadline first (soonest expiry leading), then links with no deadline in their
     /// original order, then already-expired links last. Ties keep input order for stability.
-    private func sortedByDeadline(_ items: [GrabbedLink], asOf now: Date) -> [GrabbedLink] {
+    nonisolated private static func parseLinks(_ text: String) throws -> [GrabbedLink] {
+        let now = Date()
+        let urls = try URLBatch.parseCancellable(text)
+        var items: [GrabbedLink] = []
+        items.reserveCapacity(urls.count)
+        for (index, url) in urls.enumerated() {
+            if index.isMultiple(of: 128) { try Task.checkCancellation() }
+            let expiry = LinkExpiryDetector.detect(in: url)
+            items.append(GrabbedLink(url: url, expiry: expiry, selected: !(expiry?.isExpired(asOf: now) ?? false)))
+        }
+        let sorted = sortedByDeadline(items, asOf: now)
+        try Task.checkCancellation()
+        return sorted
+    }
+
+    nonisolated private static func sortedByDeadline(_ items: [GrabbedLink], asOf now: Date) -> [GrabbedLink] {
         // Bucket: 0 = live with a deadline, 1 = no deadline, 2 = already expired.
         func bucket(_ link: GrabbedLink) -> Int {
             guard let expiry = link.expiry else { return 1 }
@@ -231,16 +279,17 @@ struct BatchAddSheet: View {
         guard !isFetchingPage, let url = AppModel.normalizedURL(pageURLString) else { return }
         isFetchingPage = true
         pageFetchNote = nil
-        Task {
+        pageFetchTask = Task {
             let found = await model.extractPageLinks(from: url)
             isFetchingPage = false
+            guard !Task.isCancelled else { return }
             guard !found.isEmpty else {
                 // Tell the user rather than silently clearing the field with nothing added.
                 pageFetchNote = String(localized: "No downloadable links found on that page.")
                 return
             }
             let appended = found.map(\.absoluteString).joined(separator: "\n")
-            text = text.isEmpty ? appended : text + "\n" + appended
+            appendToInput(appended)
             pageURLString = ""
         }
     }
@@ -251,9 +300,24 @@ struct BatchAddSheet: View {
         panel.canChooseDirectories = false
         panel.allowedContentTypes = [.plainText, .text]
         panel.prompt = "Import"
-        guard panel.runModal() == .OK, let url = panel.url,
-              let contents = try? String(contentsOf: url, encoding: .utf8) else { return }
-        text = text.isEmpty ? contents : text + "\n" + contents
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        fileImportTask?.cancel()
+        fileImportTask = Task {
+            let read = Task.detached(priority: .userInitiated) {
+                try? BoundedFileReader.read(url, maximumBytes: Self.maximumInputBytes)
+            }
+            guard let data = await withTaskCancellationHandler(operation: {
+                await read.value
+            }, onCancel: {
+                read.cancel()
+            }), !Task.isCancelled, let contents = String(data: data, encoding: .utf8) else { return }
+            appendToInput(contents)
+        }
+    }
+
+    private func appendToInput(_ addition: String) {
+        let combined = text.isEmpty ? addition : text + "\n" + addition
+        text = URLBatch.boundedInput(combined, maximumUTF8Bytes: Self.maximumInputBytes)
     }
 
     private func chooseDestination() {

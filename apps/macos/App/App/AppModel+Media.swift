@@ -12,7 +12,7 @@ struct MediaSelection: Identifiable {
     var extracted: ExtractedMedia?
 }
 
-/// Media intake: streaming manifests (HLS/DASH) and page URLs (YouTube & 1800+ sites, via yt-dlp)
+/// Media intake: streaming manifests (HLS/DASH) and page URLs supported by yt-dlp
 /// funnel through the same `DownloadManager`. With "Ask me quality" off (the default), the best tier
 /// downloads immediately — one click, no picker; with it on, the picker offers every resolution.
 extension AppModel {

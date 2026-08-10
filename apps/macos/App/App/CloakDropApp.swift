@@ -84,19 +84,24 @@ struct CloakDropCommands: Commands {
         CommandGroup(replacing: .newItem) {
             Button("New Download…") { model.isAddSheetPresented = true }
                 .keyboardShortcut("n", modifiers: .command)
+                .disabled(!model.isNetworkReady)
             Button("New Browser Window") { openWindow(id: BrowserScene.windowID) }
                 .keyboardShortcut("b", modifiers: [.command, .shift])
+                .disabled(!model.isNetworkReady)
             Button("Open Metalink…") { model.importMetalink() }
                 .keyboardShortcut("o", modifiers: .command)
+                .disabled(!model.isNetworkReady)
         }
         CommandMenu("Downloads") {
             Button("Pause All") { model.pauseAll() }
                 .keyboardShortcut("p", modifiers: [.command, .shift])
+                .disabled(!model.isNetworkReady)
             Button("Resume All") { model.resumeAll() }
                 .keyboardShortcut("r", modifiers: [.command, .shift])
+                .disabled(!model.isNetworkReady)
             Divider()
             Button("Clear Completed") { model.clearCompleted() }
-                .disabled(!model.hasCompleted)
+                .disabled(!model.isNetworkReady || !model.hasCompleted)
         }
         // The macOS-standard home for "Report a Bug" is the Help menu; also mirrored in the
         // menu-bar extra for one-click access while the main window is closed.
@@ -109,13 +114,33 @@ struct CloakDropCommands: Commands {
 /// Delivers `cloakdrop://` opens to the app even when the main window is closed (it keeps running
 /// via the menu-bar extra). SwiftUI's `.onOpenURL` only fires while a window hosting it is alive,
 /// so capture links route through the AppKit delegate instead.
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    var onOpenURLs: (([URL]) -> Void)?
+    private static let pendingURLLimit = 128
+    private var openURLsHandler: (([URL]) -> Void)?
+    private var pendingURLs: [URL] = []
     /// `NSApplication` doesn't retain `servicesProvider`, so we hold it here for the app's lifetime.
     var servicesProvider: ServicesProvider?
 
     func application(_ application: NSApplication, open urls: [URL]) {
-        onOpenURLs?(urls)
+        guard let openURLsHandler else {
+            for url in urls where !pendingURLs.contains(url) {
+                if pendingURLs.count == Self.pendingURLLimit { pendingURLs.removeFirst() }
+                pendingURLs.append(url)
+            }
+            return
+        }
+        openURLsHandler(urls)
+    }
+
+    /// Installs the live handler and drains cold-launch URLs exactly once. Delegate callbacks and
+    /// this setter are main-actor isolated, so clearing before delivery makes the handoff atomic.
+    func installOpenURLsHandler(_ handler: @escaping ([URL]) -> Void) {
+        openURLsHandler = handler
+        guard !pendingURLs.isEmpty else { return }
+        let urls = pendingURLs
+        pendingURLs.removeAll()
+        handler(urls)
     }
 }
 
@@ -130,14 +155,14 @@ private struct CaptureIntakeInstaller: View {
     var body: some View {
         Color.clear
             .onAppear {
-                appDelegate.onOpenURLs = { urls in
-                    NSApp.activate(ignoringOtherApps: true)
+                appDelegate.installOpenURLsHandler { urls in
+                    NSApp.activate()
                     openWindow(id: CloakDropApp.mainWindowID)
                     for url in urls { model.handleIncomingURL(url) }
                 }
                 // Lets browser windows summon the main window (quality picker, duplicate prompts).
                 model.raiseMainWindow = {
-                    NSApp.activate(ignoringOtherApps: true)
+                    NSApp.activate()
                     openWindow(id: CloakDropApp.mainWindowID)
                 }
                 // Register the "Send to CloakDrop" Services item. NSApp doesn't retain the provider,

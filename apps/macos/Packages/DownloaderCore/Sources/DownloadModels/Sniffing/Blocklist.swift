@@ -93,9 +93,36 @@ public enum BlocklistParser {
     ]
 
     public static func parse(_ text: String) -> Result {
+        guard let result = parse(text, isCancelled: { false }) else {
+            preconditionFailure("A non-cancellable blocklist parse cannot be cancelled")
+        }
+        return result
+    }
+
+    /// The app's off-main parser entry point. It checks cooperative task cancellation throughout
+    /// line ingestion and suffix pruning so changing sources does not leave an obsolete large parse
+    /// consuming CPU and memory in the background.
+    public static func parseCancellable(_ text: String) throws -> Result {
+        let result = parse(text) {
+            withUnsafeCurrentTask { $0?.isCancelled ?? false }
+        }
+        guard let result else { throw CancellationError() }
+        return result
+    }
+
+    private static func parse(_ text: String, isCancelled: @escaping () -> Bool) -> Result? {
         var kept: Set<String> = []
         var skipped = 0
-        text.enumerateLines { rawLine, _ in
+        var truncated = false
+        var lineCount = 0
+        var wasCancelled = false
+        text.enumerateLines { rawLine, stop in
+            lineCount += 1
+            if lineCount.isMultiple(of: 256), isCancelled() {
+                wasCancelled = true
+                stop = true
+                return
+            }
             let line = rawLine.trimmingCharacters(in: .whitespaces)
             guard !line.isEmpty else { return }
             // Whole-line comments and ABP section headers.
@@ -104,17 +131,21 @@ public enum BlocklistParser {
             let payload = line.firstIndex(of: "#").map { String(line[..<$0]).trimmingCharacters(in: .whitespaces) } ?? line
             guard !payload.isEmpty else { return }
             if let domain = extractDomain(payload) {
+                guard !kept.contains(domain) else { return }
+                guard kept.count < maxDomains else {
+                    truncated = true
+                    stop = true
+                    return
+                }
                 kept.insert(domain)
             } else {
                 skipped += 1
             }
         }
-        var domains = pruneCovered(kept).sorted()
-        var truncated = false
-        if domains.count > maxDomains {
-            domains = Array(domains.prefix(maxDomains))
-            truncated = true
-        }
+        guard !wasCancelled, !isCancelled(),
+              let pruned = pruneCovered(kept, isCancelled: isCancelled) else { return nil }
+        let domains = pruned.sorted()
+        guard !isCancelled() else { return nil }
         return Result(domains: domains, skipped: skipped, truncated: truncated)
     }
 
@@ -189,8 +220,15 @@ public enum BlocklistParser {
 
     /// Drop every domain whose parent is also listed — the parent's subdomain-suffix rule already
     /// covers it. Fewer rules, identical coverage, more headroom under the compile cap.
-    static func pruneCovered(_ domains: Set<String>) -> [String] {
-        domains.filter { domain in
+    private static func pruneCovered(_ domains: Set<String>, isCancelled: () -> Bool) -> Set<String>? {
+        var inspected = 0
+        var wasCancelled = false
+        let pruned = domains.filter { domain in
+            inspected += 1
+            if inspected.isMultiple(of: 256), isCancelled() {
+                wasCancelled = true
+                return false
+            }
             var parent = Substring(domain)
             while let dot = parent.firstIndex(of: ".") {
                 parent = parent[parent.index(after: dot)...]
@@ -199,5 +237,6 @@ public enum BlocklistParser {
             }
             return true
         }
+        return wasCancelled || isCancelled() ? nil : pruned
     }
 }

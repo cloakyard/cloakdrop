@@ -30,18 +30,22 @@ struct MenuBarContent: View {
 
         Divider()
         Button("Pause All") { model.pauseAll() }
+            .disabled(!model.isNetworkReady)
         Button("Resume All") { model.resumeAll() }
+            .disabled(!model.isNetworkReady)
         Divider()
         Button("Open CloakDrop") { showMainWindow() }
         Button("Open Browser") {
-            NSApp.activate(ignoringOtherApps: true)
+            NSApp.activate()
             openWindow(id: BrowserScene.windowID)
         }
+        .disabled(!model.isNetworkReady)
         Button("Speed Test…") {
-            NSApp.activate(ignoringOtherApps: true)
+            NSApp.activate()
             model.settingsSelection = .speedTest
             openSettings()
         }
+        .disabled(!model.isNetworkReady)
         Button("Report a Bug…") { NSWorkspace.shared.open(BugReport.issueURL) }
         Button("Quit CloakDrop") { NSApp.terminate(nil) }
     }
@@ -57,7 +61,7 @@ struct MenuBarContent: View {
     /// Bring the app forward and reopen/raise the main window — works even if the user closed
     /// it while downloads keep running in the background.
     private func showMainWindow() {
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.activate()
         openWindow(id: CloakDropApp.mainWindowID)
     }
 }

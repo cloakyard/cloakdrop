@@ -1,4 +1,4 @@
-import SwiftUI
+import Observation
 import WebKit
 import DownloadModels
 

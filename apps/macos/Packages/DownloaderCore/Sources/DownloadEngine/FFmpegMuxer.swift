@@ -72,8 +72,12 @@ public struct FFmpegMuxer: Remuxer {
         // never deadlock the child on a long transfer, then keep only the tail for diagnostics.
         let logURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("cloakdrop-ffmpeg-\(UUID().uuidString).log")
-        FileManager.default.createFile(atPath: logURL.path, contents: nil)
         defer { try? FileManager.default.removeItem(at: logURL) }
+        guard FileManager.default.createFile(
+            atPath: logURL.path, contents: nil, attributes: [.posixPermissions: 0o600]
+        ) else {
+            throw RemuxError.failed("Could not create a private ffmpeg log file")
+        }
 
         let status: Int32
         do {

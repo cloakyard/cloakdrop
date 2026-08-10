@@ -142,9 +142,12 @@ public struct SystemProcessRunner: ProcessRunning {
         let tmp = FileManager.default.temporaryDirectory
         let outURL = tmp.appendingPathComponent("cloakdrop-proc-\(UUID().uuidString).out")
         let errURL = tmp.appendingPathComponent("cloakdrop-proc-\(UUID().uuidString).err")
-        FileManager.default.createFile(atPath: outURL.path, contents: nil)
-        FileManager.default.createFile(atPath: errURL.path, contents: nil)
         defer { try? FileManager.default.removeItem(at: outURL); try? FileManager.default.removeItem(at: errURL) }
+        let privateAttributes: [FileAttributeKey: Any] = [.posixPermissions: 0o600]
+        guard FileManager.default.createFile(atPath: outURL.path, contents: nil, attributes: privateAttributes),
+              FileManager.default.createFile(atPath: errURL.path, contents: nil, attributes: privateAttributes) else {
+            throw MediaExtractionError.failed("Could not create private process-output files.")
+        }
 
         let outHandle = try FileHandle(forWritingTo: outURL)
         let errHandle = try FileHandle(forWritingTo: errURL)

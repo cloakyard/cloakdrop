@@ -6,14 +6,23 @@ extension DownloadManager {
     /// inserts the resulting record before its next suspension, so another concurrent add observes
     /// the reservation and receives a distinct final name and staging path.
     func reserveUniqueFileName(_ proposed: String, inDirectory directory: String) -> String {
-        let standardizedDirectory = URL(fileURLWithPath: directory, isDirectory: true).standardizedFileURL.path
+        var directories = [directory]
+        if settings.autoCategorize {
+            let categoryName = FileCategory.classify(fileName: proposed).displayName
+            if (directory as NSString).lastPathComponent != categoryName {
+                directories.append((directory as NSString).appendingPathComponent(categoryName))
+            }
+        }
+        let standardizedDirectories = Set(directories.map {
+            URL(fileURLWithPath: $0, isDirectory: true).standardizedFileURL.path
+        })
         let takenNames = Set(downloads.values.compactMap { existing -> String? in
             let existingDirectory = URL(
                 fileURLWithPath: existing.destinationDirectoryPath, isDirectory: true
             ).standardizedFileURL.path
-            return existingDirectory == standardizedDirectory ? existing.fileName : nil
+            return standardizedDirectories.contains(existingDirectory) ? existing.fileName : nil
         })
-        return Self.uniqueFileName(proposed, inDirectory: directory, takenNames: takenNames)
+        return Self.uniqueFileName(proposed, inDirectories: directories, takenNames: takenNames)
     }
 
     /// Resolve, sanitize, and reserve the name for a media grab. A suggested name without a media

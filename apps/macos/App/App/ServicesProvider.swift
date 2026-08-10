@@ -1,5 +1,4 @@
 import AppKit
-import DownloadModels
 
 /// Backs the "Send to CloakDrop" macOS Services item (declared as `NSServices` in Info.plist). When
 /// the user selects a link in any app and picks the service, macOS hands us the pasteboard here; we

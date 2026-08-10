@@ -90,6 +90,7 @@ struct MediaTransferTests {
         let segURLs = (0..<5).map { URL(string: "https://cdn/x/seg\($0).m4s")! }
 
         let mock = MockHTTPClient()
+        mock.perChunkDelay = .milliseconds(1)
         mock.setResource(.init(data: initData), for: initURL)
         for (index, url) in segURLs.enumerated() { mock.setResource(.init(data: segs[index]), for: url) }
 
@@ -103,7 +104,10 @@ struct MediaTransferTests {
 
         let store = try GRDBDownloadStore.inMemory()
         let manager = try await makeManager(store: store, mock: mock)
-        let request = DownloadRequest(url: URL(string: "https://cdn/x/master.m3u8")!, suggestedFileName: "clip.mp4", destinationDirectoryPath: dir.path)
+        let request = DownloadRequest(
+            url: URL(string: "https://cdn/x/master.m3u8")!, suggestedFileName: "clip.mp4",
+            destinationDirectoryPath: dir.path, segmentCount: 1
+        )
         let download = await manager.addMedia(request, plan: plan)
         let done = try await waitFor(manager, download.id) { $0.status == .completed }
 
@@ -111,8 +115,102 @@ struct MediaTransferTests {
         #expect(try Data(contentsOf: URL(fileURLWithPath: done.destinationFilePath)) == expected)
         #expect(done.fractionCompleted == 1.0)
         #expect(done.mediaCompletedSegments == 5)
+        #expect(download.requestedSegmentCount == 1)
+        #expect(mock.peakActiveStreamCount == 1)
         #expect(!FileManager.default.fileExists(atPath: done.mediaPartDirectoryPath)) // part dir removed
         #expect(!FileManager.default.fileExists(atPath: done.partFilePath))           // assembly file moved
+    }
+
+    @Test("A shifted media Content-Range is rejected instead of publishing corrupt bytes")
+    func shiftedMediaRangeFailsSafely() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let data = payload(3, 20_000)
+        let url = URL(string: "https://cdn/x/shared.ts")!
+        let mock = MockHTTPClient()
+        mock.setResource(.init(data: data, responseRangeOffsetDelta: 1), for: url)
+        let plan = MediaPlan(format: .hls, segments: [
+            MediaSegment(id: 0, url: url, duration: 6, byteRange: MediaByteRange(offset: 2_000, length: 5_000))
+        ])
+
+        let manager = try await makeManager(store: GRDBDownloadStore.inMemory(), mock: mock)
+        let request = DownloadRequest(url: url, suggestedFileName: "shifted.ts", destinationDirectoryPath: dir.path)
+        let download = await manager.addMedia(request, plan: plan)
+        let failed = try await waitFor(manager, download.id) {
+            if case .failed = $0.status { true } else { false }
+        }
+
+        #expect(!FileManager.default.fileExists(atPath: failed.destinationFilePath))
+    }
+
+    @Test("A server that ignores an HLS byte range cannot publish the whole backing resource")
+    func ignoredMediaRangeFailsSafely() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let data = payload(4, 20_000)
+        let url = URL(string: "https://cdn/x/shared.ts")!
+        let mock = MockHTTPClient()
+        mock.setResource(.init(data: data, streamHonorsRanges: false), for: url)
+        let plan = MediaPlan(format: .hls, segments: [
+            MediaSegment(id: 0, url: url, duration: 6, byteRange: MediaByteRange(offset: 4_000, length: 3_000))
+        ])
+
+        let manager = try await makeManager(store: GRDBDownloadStore.inMemory(), mock: mock)
+        let request = DownloadRequest(url: url, suggestedFileName: "ignored.ts", destinationDirectoryPath: dir.path)
+        let download = await manager.addMedia(request, plan: plan)
+        let failed = try await waitFor(manager, download.id) {
+            if case .failed = $0.status { true } else { false }
+        }
+
+        #expect(!FileManager.default.fileExists(atPath: failed.destinationFilePath))
+    }
+
+    @Test("A whole-file media grab restarts safely when a CDN ignores its resume range")
+    func ignoredWholeFileResumeRestartsSafely() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let data = payload(4, 80_000)
+        let url = URL(string: "https://cdn/x/whole.mp4")!
+        let mock = MockHTTPClient(pendingDrops: 1, dropAfterBytes: 8_000)
+        mock.chunkSize = 2_000
+        mock.setResource(.init(data: data, acceptsRanges: true, streamHonorsRanges: false), for: url)
+        let plan = MediaPlan(format: .dash, segments: [MediaSegment(id: 0, url: url, duration: 0)])
+        let manager = try await makeManager(store: GRDBDownloadStore.inMemory(), mock: mock)
+        let request = DownloadRequest(
+            url: url, suggestedFileName: "whole.mp4", destinationDirectoryPath: dir.path
+        )
+
+        let added = await manager.addMedia(request, plan: plan)
+        let done = try await waitFor(manager, added.id) { $0.status == .completed }
+        #expect(try Data(contentsOf: URL(fileURLWithPath: done.destinationFilePath)) == data)
+        #expect(mock.streamedRequests.contains { ($0.byteRange?.lowerBound ?? 0) > 0 })
+    }
+
+    @Test("Unsupported media encryption fails before ciphertext reaches the destination")
+    func unsupportedEncryptionFailsSafely() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let url = URL(string: "https://cdn/x/encrypted.ts")!
+        let mock = MockHTTPClient()
+        mock.setResource(.init(data: payload(5)), for: url)
+        let encryption = MediaEncryption(method: .sampleAES, keyURL: URL(string: "skd://license")!)
+        let plan = MediaPlan(format: .hls, segments: [
+            MediaSegment(id: 0, url: url, duration: 6, encryption: encryption)
+        ])
+
+        let manager = try await makeManager(store: GRDBDownloadStore.inMemory(), mock: mock)
+        let request = DownloadRequest(url: url, suggestedFileName: "encrypted.ts", destinationDirectoryPath: dir.path)
+        let download = await manager.addMedia(request, plan: plan)
+        let failed = try await waitFor(manager, download.id) {
+            if case .failed = $0.status { true } else { false }
+        }
+
+        #expect(mock.streamCount == 0)
+        #expect(!FileManager.default.fileExists(atPath: failed.destinationFilePath))
     }
 
     @Test("An AES-128 grab fetches the key and decrypts each segment to the original bytes")
@@ -150,6 +248,73 @@ struct MediaTransferTests {
         // `.mp4` we asked for is corrected to `.ts` since the concatenation is an MPEG-TS stream.
         #expect((done.fileName as NSString).pathExtension == "ts")
         #expect(done.category == .video)
+    }
+
+    @Test("AES-128 grabs cap aggregate buffered segment concurrency")
+    func grabBoundsAES128Concurrency() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let key = Data((0..<16).map { UInt8($0) })
+        let iv = Data((16..<32).map { UInt8($0) })
+        let keyURL = URL(string: "https://cdn/keys/bounded.bin")!
+        let plainSegs = (0..<6).map { payload($0, 64 * 1024) }
+        let segURLs = (0..<plainSegs.count).map { URL(string: "https://cdn/x/bounded\($0).ts")! }
+
+        let mock = MockHTTPClient()
+        mock.chunkSize = 1024
+        mock.perChunkDelay = .milliseconds(1)
+        mock.setResource(.init(data: key), for: keyURL)
+        for (index, url) in segURLs.enumerated() {
+            let cipher = try AES128.encryptCBC(plainSegs[index], key: key, iv: iv)
+            mock.setResource(.init(data: cipher), for: url)
+        }
+
+        let encryption = MediaEncryption(method: .aes128, keyURL: keyURL, iv: iv)
+        let plan = MediaPlan(format: .hls, segments: segURLs.enumerated().map {
+            MediaSegment(id: $0.offset, url: $0.element, duration: 6, encryption: encryption)
+        })
+        let manager = try await makeManager(store: GRDBDownloadStore.inMemory(), mock: mock)
+        let request = DownloadRequest(
+            url: URL(string: "https://cdn/x/bounded.m3u8")!, suggestedFileName: "bounded.ts",
+            destinationDirectoryPath: dir.path, segmentCount: 16
+        )
+
+        let added = await manager.addMedia(request, plan: plan)
+        let done = try await waitFor(manager, added.id) { $0.status == .completed }
+
+        #expect(mock.peakActiveStreamCount == maximumConcurrentBufferedMediaSegments)
+        #expect(try Data(contentsOf: URL(fileURLWithPath: done.destinationFilePath)) == plainSegs.reduce(Data(), +))
+    }
+
+    @Test("AES-128 rejects an oversized advertised segment before buffering its body")
+    func grabRejectsOversizedAES128Segment() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let url = URL(string: "https://cdn/x/oversized.ts")!
+        let segment = MediaSegment(
+            id: 0, url: url, duration: 6,
+            encryption: MediaEncryption(method: .aes128, keyURL: URL(string: "https://cdn/keys/key.bin")!)
+        )
+        let destination = dir.appendingPathComponent("oversized.ts").path
+        let client = AdvertisedSizeHTTPClient(
+            advertisedSize: maximumBufferedEncryptedMediaSegmentBytes + 1
+        )
+
+        do {
+            _ = try await runMediaSegment(
+                segment: segment, filePath: destination, key: Data(count: 16), headers: [:],
+                httpClient: client, limiters: [], settings: EngineSettings(maxRetryAttempts: 0),
+                onExpectedBytes: { _ in }, onBytes: { _ in }
+            )
+            Issue.record("expected the oversized encrypted segment to be rejected")
+        } catch let error as DownloadError {
+            #expect(error.userMessage.contains("safe size limit"))
+        } catch {
+            Issue.record("unexpected error: \(error)")
+        }
+        #expect(!FileManager.default.fileExists(atPath: destination))
     }
 
     @Test("Without a remux, the file keeps the segments' own container extension (raw .aac stays .aac, not .mp4)")
@@ -793,6 +958,28 @@ extension MediaTransferTests {
         let bounds = Int(slowRange.offset)..<Int(slowRange.offset + slowRange.length)
         let expected = slowResource.subdata(in: bounds) + fastSegments.reduce(Data(), +)
         #expect(try Data(contentsOf: URL(fileURLWithPath: done.destinationFilePath)) == expected)
+    }
+}
+
+private struct AdvertisedSizeHTTPClient: HTTPClient {
+    let advertisedSize: Int64
+
+    func probe(_ request: HTTPDownloadRequest) async throws -> HTTPResponseHead {
+        response(for: request)
+    }
+
+    func stream(
+        _ request: HTTPDownloadRequest
+    ) async throws -> (HTTPResponseHead, AsyncThrowingStream<Data, Error>) {
+        let stream = AsyncThrowingStream<Data, Error> { continuation in continuation.finish() }
+        return (response(for: request), stream)
+    }
+
+    private func response(for request: HTTPDownloadRequest) -> HTTPResponseHead {
+        HTTPResponseHead(
+            statusCode: 200, totalBytes: advertisedSize, acceptsRanges: false,
+            suggestedFilename: nil, etag: nil, finalURL: request.url
+        )
     }
 }
 

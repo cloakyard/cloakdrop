@@ -1,6 +1,6 @@
 # CloakDrop
 
-**A fast, private, multi-segment download manager for macOS — that feels like Apple made it.**
+**A native, private, multi-segment download manager for macOS.**
 
 Serious multi-segment download power with the look and feel of a first-party app. The app shell is
 native SwiftUI—not Electron or a web-powered UI—and WebKit is used only for the built-in browser.
@@ -25,20 +25,13 @@ There is no telemetry, account, or CloakDrop service receiving your activity.
 
 ---
 
-## 📥 Download & release timeline
+## 📥 Download & release status
 
 **[⬇️ Download the beta](https://github.com/cloakyard/cloakdrop/releases)** · Apple silicon · grab the `.dmg` from the newest release
 
-CloakDrop is in **active development**. The beta is a complete, usable app — but it is *not* notarized yet, so macOS will not open it on a double-click: **right-click the app ▸ Open** the first time, then it launches normally forever after.
-
-| | |
-|---|---|
-| 🧪 **Beta — now** | Rolling pre-release, rebuilt as features land. Unsigned by Apple's notary service; the same tested engine is used by beta and stable builds. |
-| 🍎 **Stable — with macOS 27 Golden Gate** | The first Developer ID-signed, **notarized** build is timed to Golden Gate's final release, not to a date of our own. |
-
-**Why wait for Golden Gate?** CloakDrop already targets **macOS 26 or later** and uses its native
-Liquid Glass APIs. The current release plan is to cut the first notarized 1.0 alongside the final
-macOS 27 release, after testing the same app on that finished OS.
+CloakDrop is in **active beta development**. This README documents the current source tree, which
+can be ahead of the newest published beta. The Releases page is the source of truth for each build's
+features, SHA-256 checksum, signing/notarization status, and current installation steps.
 
 **Why Apple silicon only?** CloakDrop's release app and bundled helper builds are intentionally
 **arm64-only**. There is no Intel or universal release build.
@@ -57,9 +50,9 @@ macOS 27 release, after testing the same app on that finished OS.
 | 🗂️ **Queues, categories & rules** | Per-queue concurrency limits, smart filters, a rule-based routing engine (folder / queue / speed cap / auto-start), duplicate detection, and auto-sorting of finished files into per-type folders. |
 | 📦 **Post-processing** | Native ZIP auto-extraction (Zip-Slip + decompression-bomb guarded), a Gatekeeper quarantine flag on saved files, and an optional all-downloads-finished action (notify / quit / run a Shortcut). |
 | 📋 **Effortless capture** | Clipboard watching, drag & drop, a link-grabber (paste mixed links or **grab all** from a page → dedupe → pattern-expand `file[01-50].zip` → pick), scheduler, Keychain-backed HTTP/FTP auth, cookies/referrer, and system/manual proxy. |
-| 🌐 **Built-in browser** | A WebKit browser inside the app (⇧⌘B): visit any site and a live badge lists the video, audio, and files on the page (HLS/DASH manifests, direct files, `attachment` responses) — deduped down to the one thing worth grabbing and titled by the page, with ads, tracking beacons, and stream chunks filtered out (players hidden in shadow DOM still found). IDM-style, it **takes over downloads** the moment a page starts one. Streams open a quality picker so you choose the resolution; logged-in grabs carry your cookies. An optional **ad & tracker blocker** (off by default, in Settings ▸ Browser) drops ad/tracker requests and ad pop-ups on nearly every site via a compiled WebKit content-rule list — with a choice of blocklist: the built-in curated one, or an open-source list (OISD Small, StevenBlack Hosts, Peter Lowe's) downloaded on demand and updatable with one click. Plus a Share Extension and a "Send to CloakDrop" Services item for capture from other apps. |
-| 🎬 **Media grabbing** | Detects HLS (`.m3u8`) and DASH (`.mpd`) streams, lists qualities, decrypts AES-128, and pairs a chosen video rendition with a resolvable audio track—muxed into a clean, playable file with no re-encode (AVFoundation → `.mp4`/`.m4a`; bundled ffmpeg stream-copies VP9/AV1/Opus → `.mkv`). Selected, successfully resolved subtitle tracks are written as sidecar `.srt` files; audio-only grabs are repackaged losslessly into `.m4a` for AAC or another compatible audio container. |
-| 🎥 **Site & video extraction** | Paste a YouTube link into **New Download** — or any of the **~1800 sites** yt-dlp knows — and CloakDrop recognizes the video page, resolves its formats, and grabs them with **its own** segmented engine: the best quality straight away, or a resolution picker when *Ask which quality* is on. yt-dlp contacts the page/service only to resolve metadata and media URLs; it never downloads the selected media payload, so that transfer's pause/resume and persistence stay CloakDrop's. |
+| 🌐 **Built-in browser** | A WebKit browser inside the app (⇧⌘B): visit a page and a live badge lists detected video, audio, and files (HLS/DASH manifests, direct files, `attachment` responses). Repeated sightings are deduplicated; known ad hosts, tracking beacons, and stream chunks are filtered, and players in shadow DOM can still be observed. Supported downloads can hand off to CloakDrop; streams open a quality picker, and logged-in grabs can carry the page's cookies. An optional **ad & tracker blocker** (off by default in Settings ▸ Browser) applies a compiled WebKit rule list: built-in curated rules or an open-source list (OISD Small, StevenBlack Hosts, Peter Lowe's) fetched on demand. Coverage varies by list and site. A Share Extension and “Send to CloakDrop” Services item provide capture from other apps. |
+| 🎬 **Media grabbing** | Detects HLS (`.m3u8`) and DASH (`.mpd`) streams, lists qualities, decrypts supported AES-128 streams, and attempts to pair a chosen video rendition with a resolvable audio track without re-encoding. AVFoundation handles compatible H.264/HEVC + AAC media; the optional ffmpeg helper adds VP9/AV1/Opus support. If no muxer accepts a split rendition, CloakDrop keeps the video-only result. Successfully fetched selected subtitle tracks are written as sidecar `.srt` files; compatible audio-only grabs are repackaged without re-encoding. |
+| 🎥 **Site & video extraction** | When the optional yt-dlp helper is included, paste a supported video-page URL into **New Download** and CloakDrop can resolve its available formats, then transfer the selected media payload with its own engine. It can select a format automatically or show a resolution picker when *Ask which quality* is on. yt-dlp contacts the submitted page and related service endpoints for metadata and media URLs; it does not transfer the selected payload. Site support depends on the bundled yt-dlp version and on upstream sites. |
 | 🪞 **Multi-source mirrors** | Open a Metalink (`.metalink` / `.meta4`) and CloakDrop spreads segments across its mirrors, rejects invalid range/size responses and detected same-origin ETag changes, and fails over between sources. When checksum verification is enabled (the default), a supplied whole-file Metalink checksum is tested against staging data before publication. |
 | 🏅 **Download stats** | Local, private lifetime totals — today / this month / all-time — with a playful monthly tier badge that resets each month (Warming Up → ISP's Worst Nightmare). Just counters on your Mac; nothing leaves the device. |
 | 🏎️ **Built-in speed test** | Speedometer-style dials measure your connection's real download, upload, idle/loaded latency, and jitter — multi-connection, warm-up-aware, and strictly manual. Cloudflare by default, Ookla optional; reachable from the menu bar. |
@@ -87,7 +80,7 @@ CloakDrop has no telemetry, analytics beacons, update checks, or other phone-hom
 | Persistence | GRDB (SQLite); remembered site/proxy secrets in the **Keychain**, with per-download request state in the local database for resume |
 | Integrity | CryptoKit (checksums) + Security framework (code-signature trust, Provenance Receipt) |
 | Media | AVFoundation for passthrough remux/mux (HLS/DASH → clean `.mp4`/`.m4a`) with a bundled ffmpeg fallback for VP9/AV1/Opus (→ `.mkv`), plus poster-frame thumbnails |
-| Extraction | A bundled, code-signed **yt-dlp** page→formats resolver (YouTube + ~1800 sites); it may contact the submitted page/service endpoints, while CloakDrop's engine downloads the selected media payload |
+| Extraction | An optional, code-signed **yt-dlp** page→formats resolver; supported sites depend on the bundled version, and CloakDrop's engine downloads the selected media payload |
 | Capture | A built-in WebKit browser (first-party media sniffing + download takeover), plus Share/Services bridged through a shared App Group inbox |
 | Build | XcodeGen (`project.yml` → `.xcodeproj`), SwiftLint |
 
@@ -120,14 +113,14 @@ The `.xcodeproj` is generated and git-ignored — regenerate it any time with `x
 
 ## 🧪 Testing
 
-The engine is UI-agnostic and fully tested in isolation — no GUI required:
+The engine is UI-agnostic and tested in isolation — no GUI required:
 
 ```bash
 cd apps/macos/Packages/DownloaderCore
 swift test
 ```
 
-**528 tests across 75 suites** cover the core end-to-end: automatic and manual connection planning,
+**More than 500 tests** cover the core end-to-end: automatic and manual connection planning,
 bounded parallel scheduling and reassembly, **resume across a simulated relaunch**, strict range and
 resource-identity validation, safe single-stream fallback, retry-after-drop, dynamic tail
 re-splitting, bounded HTTP/FTP buffering, rolling HLS/DASH work, Metalink spread + mirror failover,
@@ -157,7 +150,7 @@ cloakdrop/                      # monorepo root
 │   │   ├── ShareExtension/     # macOS share-sheet capture
 │   │   ├── scripts/            # Opt-in helpers: fetch-ffmpeg.sh · fetch-ytdlp.sh (bundle & sign the native tools) · dmg/ (build the installer DMG) · generate_app_icon.swift (exports flattened fallbacks from the native Icon Composer document) · validate_localizations.py
 │   │   └── Packages/
-│   │       └── DownloaderCore/ # Headless, UI-agnostic, fully unit-tested core
+│   │       └── DownloaderCore/ # Headless, UI-agnostic, unit-tested core
 │   │           ├── DownloadModels/       # Sendable value types + HLS/DASH & Metalink parsers + stats, link-grabber, bandwidth-schedule & provenance models
 │   │           ├── DownloadPersistence/  # GRDB store behind a protocol
 │   │           └── DownloadEngine/       # Actors, segmentation, HTTP + native FTP/FTPS networking, checksums, Keychain credentials, archive extraction, media, yt-dlp resolver

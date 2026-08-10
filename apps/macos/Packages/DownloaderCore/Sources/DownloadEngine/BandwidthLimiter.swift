@@ -1,4 +1,3 @@
-import Foundation
 import Synchronization
 
 /// Pure rate-scheduling arithmetic, separated from time and concurrency so it can be tested

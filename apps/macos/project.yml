@@ -25,10 +25,9 @@ settings:
     # dependencies retain their own warning policy rather than inheriting command-line overrides.
     SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
     GCC_TREAT_WARNINGS_AS_ERRORS: YES
-    # "1.0.0 Beta" until the notarized 1.0 ships alongside macOS 27's final release — the tag rides
-    # the version string so About, Finder's Get Info, and bug reports all say beta without a
-    # second source of truth. Drop the suffix (here and in both targets' CFBundleShortVersionString)
-    # to cut the stable build.
+    # Keep the beta suffix until a notarized stable build is ready. The tag rides the version string
+    # so About, Finder's Get Info, and bug reports agree without a second source of truth. Drop the
+    # suffix here to cut that stable build.
     MARKETING_VERSION: "1.0.0 Beta"
     # The build number is the build date (yyyymmdd). Both targets set
     # CFBundleVersion: $(CURRENT_PROJECT_VERSION), which Xcode expands while it processes the
@@ -119,7 +118,7 @@ targets:
       # Bundle the optional, git-ignored static ffmpeg (built by scripts/fetch-ffmpeg.sh) into
       # Contents/MacOS and sign it with the app's identity + inherit entitlements, so it runs in the
       # app's sandbox and FFmpegMuxer.locate() finds it. Runs before Xcode's CodeSign so the app
-      # seal covers it. No-ops (with a warning) when the binary isn't present, so a checkout without
+      # seal covers it. No-ops (with a note) when the binary isn't present, so a checkout without
       # it still builds — the app just remuxes with AVFoundation.
       - name: Bundle & sign ffmpeg (optional; adds VP9/AV1/Opus muxing)
         basedOnDependencyAnalysis: false
@@ -127,7 +126,7 @@ targets:
           set -euo pipefail
           FFMPEG_SRC="${SRCROOT}/Vendor/ffmpeg/ffmpeg"
           if [ ! -f "${FFMPEG_SRC}" ]; then
-            echo "warning: Vendor/ffmpeg/ffmpeg not found — CloakDrop will remux with AVFoundation only. Run scripts/fetch-ffmpeg.sh to add VP9/AV1/Opus muxing."
+            echo "note: Vendor/ffmpeg/ffmpeg not found — CloakDrop will remux with AVFoundation only. Run scripts/fetch-ffmpeg.sh to add VP9/AV1/Opus muxing."
             exit 0
           fi
           DEST_DIR="${CODESIGNING_FOLDER_PATH}/Contents/MacOS"
@@ -148,19 +147,19 @@ targets:
           fi
       # Bundle the optional, git-ignored yt-dlp ONEDIR tree (vendored by scripts/fetch-ytdlp.sh) into
       # Contents/Resources/yt-dlp and sign it, so the sandboxed app can spawn it to resolve page URLs
-      # (YouTube & 1800+ sites) into real format tiers — which our own engine then downloads. The tree
+      # (YouTube and other supported sites) into real format tiers — which our own engine then downloads. The tree
       # is the executable + `_internal/` (an unpacked Python runtime): shipping it unpacked (vs. the
       # self-extracting single-file build) is what lets it run under the App Sandbox at all — no temp
-      # extraction, no SysV semaphore, no Gatekeeper prompt. No-ops (with a warning) when it isn't
+      # extraction, no SysV semaphore, no Gatekeeper prompt. No-ops (with a note) when it isn't
       # vendored, so a checkout without it still builds — page-URL extraction is just disabled. Runs
       # before Xcode's CodeSign so the app seal covers the tree.
-      - name: Bundle & sign yt-dlp (optional; adds page-URL extraction for YouTube & 1800+ sites)
+      - name: Bundle & sign yt-dlp (optional; adds supported page-URL extraction)
         basedOnDependencyAnalysis: false
         script: |
           set -euo pipefail
           SRC="${SRCROOT}/Vendor/yt-dlp"
           if [ ! -x "${SRC}/yt-dlp" ] || [ ! -d "${SRC}/_internal" ]; then
-            echo "warning: Vendor/yt-dlp not vendored — page-URL extraction (YouTube etc.) is disabled. Run scripts/fetch-ytdlp.sh to enable it."
+            echo "note: Vendor/yt-dlp not vendored — page-URL extraction (YouTube etc.) is disabled. Run scripts/fetch-ytdlp.sh to enable it."
             exit 0
           fi
           DEST="${CODESIGNING_FOLDER_PATH}/Contents/Resources/yt-dlp"

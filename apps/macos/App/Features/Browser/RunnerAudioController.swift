@@ -1,5 +1,4 @@
 import AVFoundation
-import Foundation
 
 /// A small procedural soundscape for Cloak Runner. Keeping the audio synthesized means the game
 /// remains self-contained, works offline, and adds no bundled media or network dependency.

@@ -1,5 +1,3 @@
-import Foundation
-
 /// A single, unified trust signal for a download, distilled from its checksum result and its code
 /// signature so the UI can show one badge. Ordered by severity: a failure always outranks a pass.
 public enum TrustLevel: String, Sendable, Hashable, Codable {

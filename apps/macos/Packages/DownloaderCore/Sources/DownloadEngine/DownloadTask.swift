@@ -70,8 +70,6 @@ actor DownloadTask {
         self.lastPersist = now
     }
 
-    var snapshot: Download { download }
-
     /// Request a stop. The manager cancels this task's enclosing `Task` immediately after.
     func requestStop(_ reason: StopReason) {
         stopReason = reason

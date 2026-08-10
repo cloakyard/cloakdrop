@@ -1,5 +1,4 @@
 import Foundation
-import CFNetwork
 import DownloadModels
 
 /// `HTTPClient` backed by `URLSession`.
@@ -30,6 +29,15 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
         self._probeSession = URLSession(configuration: configuration, delegate: probeDelegate, delegateQueue: nil)
         super.init()
         self._streamSession = Self.makeStreamSession(configuration: configuration, delegate: self)
+    }
+
+    /// Cancel outstanding work and break URLSession's delegate-retention cycle. Long-lived engine
+    /// clients do not need to call this; transient clients should invalidate when their request ends.
+    public func invalidate() {
+        sessionLock.withLock {
+            _probeSession.invalidateAndCancel()
+            _streamSession.invalidateAndCancel()
+        }
     }
 
     public static func defaultConfiguration() -> URLSessionConfiguration {
@@ -148,7 +156,7 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
                 )
             }
 
-            let config = Self.applyingProxy(proxy, to: baseConfiguration)
+            let config = ProxyRouting.applying(proxy, to: baseConfiguration)
             _probeSession.invalidateAndCancel()
             _streamSession.invalidateAndCancel()
             _probeSession = URLSession(configuration: config, delegate: probeDelegate, delegateQueue: nil)
@@ -192,8 +200,7 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
 
     /// A stock desktop-Safari User-Agent, used only when the caller (a browser capture) didn't supply
     /// one. Many CDNs — googlevideo especially — throttle or reject a generic/non-browser UA.
-    static let defaultUserAgent =
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
+    static let defaultUserAgent = DesktopUserAgent.safari()
 
     static func makeURLRequest(_ request: HTTPDownloadRequest) -> URLRequest {
         var urlRequest = URLRequest(url: request.url)
@@ -224,51 +231,6 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
 
     static func basicAuthorizationValue(user: String, password: String) -> String {
         "Basic " + Data("\(user):\(password)".utf8).base64EncodedString()
-    }
-
-    // MARK: Proxy configuration
-
-    /// Internal so the speed-test transport applies the same proxy routing as the engine.
-    static func applyingProxy(_ proxy: ProxyConfiguration, to base: URLSessionConfiguration) -> URLSessionConfiguration {
-        guard let config = base.copy() as? URLSessionConfiguration else { return base }
-        switch proxy.mode {
-        case .system:
-            config.connectionProxyDictionary = nil          // default: macOS system proxy
-        case .direct:
-            config.connectionProxyDictionary = [
-                kCFNetworkProxiesHTTPEnable as String: 0,
-                kCFNetworkProxiesHTTPSEnable as String: 0,
-                kCFNetworkProxiesSOCKSEnable as String: 0
-            ]
-        case .manual where proxy.isUsableManualProxy:
-            config.connectionProxyDictionary = manualProxyDictionary(proxy)
-        case .manual:
-            config.connectionProxyDictionary = nil           // incomplete config → fall back to system
-        }
-        return config
-    }
-
-    private static func manualProxyDictionary(_ proxy: ProxyConfiguration) -> [String: Any] {
-        switch proxy.type {
-        case .http:
-            return [
-                kCFNetworkProxiesHTTPEnable as String: 1,
-                kCFNetworkProxiesHTTPProxy as String: proxy.host,
-                kCFNetworkProxiesHTTPPort as String: proxy.port
-            ]
-        case .https:
-            return [
-                kCFNetworkProxiesHTTPSEnable as String: 1,
-                kCFNetworkProxiesHTTPSProxy as String: proxy.host,
-                kCFNetworkProxiesHTTPSPort as String: proxy.port
-            ]
-        case .socks5:
-            return [
-                kCFNetworkProxiesSOCKSEnable as String: 1,
-                kCFNetworkProxiesSOCKSProxy as String: proxy.host,
-                kCFNetworkProxiesSOCKSPort as String: proxy.port
-            ]
-        }
     }
 
     // MARK: Response parsing

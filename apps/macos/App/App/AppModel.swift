@@ -1,33 +1,8 @@
-import SwiftUI
+import AppKit
 import Observation
 import UniformTypeIdentifiers
 import DownloadModels
 import DownloadEngine
-
-/// An add that matched a download already in the catalog — by URL, by same-origin ETag, or by an
-/// already-completed file of the same name and size — awaiting the user's "download again?" decision.
-/// Held in a FIFO so several at once (e.g. a re-pasted batch) confirm one at a time.
-struct DuplicateAdd: Identifiable, Equatable {
-    let id = UUID()
-    var request: DownloadRequest
-    /// The existing download this add matched, and why.
-    let match: DuplicateMatch
-
-    var existingFileName: String { match.existing.fileName }
-    var reason: DuplicateReason { match.reason }
-    /// Whether the matched download has finished (so we can offer "Reveal in Finder").
-    var existingIsOnDisk: Bool { match.existing.status == .completed }
-}
-
-/// Live per-transfer metrics in a reference box, so a 10 Hz tick invalidates only the views
-/// observing *that* download — with a shared dictionary of values, every row (and the inspector)
-/// would re-render on every other download's tick, scaling UI work quadratically with concurrency.
-@MainActor
-@Observable
-final class ProgressBox {
-    var value: DownloadProgress
-    init(_ value: DownloadProgress) { self.value = value }
-}
 
 /// The single source of UI truth. Owns the `DownloadManager`, mirrors its event stream into
 /// observable state, and exposes intent-style actions the views call. `@MainActor` so all
@@ -69,6 +44,11 @@ final class AppModel {
     var isBatchSheetPresented = false
     /// Which Settings tab is shown; a menu command can steer this (e.g. "About CloakDrop").
     var settingsSelection: SettingsTab = .general
+    /// Becomes true only after persisted settings have configured both engine and browser routing.
+    /// Network-capable UI stays disabled until then, so a restored manual proxy cannot be bypassed
+    /// during the brief async launch window.
+    private(set) var isNetworkReady = false
+    private(set) var startupError: String?
 
     /// A URL to pre-fill the add sheet with (e.g. from a clipboard banner or drop).
     var pendingAddURL: String?
@@ -105,11 +85,9 @@ final class AppModel {
     }
     private static let grabSubtitlesKey = "grabSubtitlesEnabled"
 
-    /// The bundled page extractor (yt-dlp), if present — resolves page URLs (YouTube & 1800+ sites)
-    /// into real format tiers. `nil` in a checkout/build without the vendored binary.
+    /// The bundled page extractor (yt-dlp), if present — resolves supported page URLs
+    /// into real format tiers. `nil` when the helper is absent or cannot launch in the sandbox.
     private(set) var mediaExtractor: (any MediaExtractor)?
-    /// Whether the bundled extractor actually ran (its version probe succeeded in-sandbox at launch).
-    private(set) var isPageExtractionAvailable = false
 
     /// Reopens/raises the main window (set where SwiftUI's `openWindow` is available). Browser
     /// media grabs call it so the quality picker — hosted by the main window — is actually visible
@@ -165,6 +143,10 @@ final class AppModel {
     var isUpdatingBlocklist = false
     /// The last update failure, user-presentable; cleared by the next attempt or source switch.
     var blocklistUpdateError: String?
+    /// The one selected-source activation/update pipeline. Replacing it cancels every stage of the
+    /// previous source's work; the generation keeps same-source replacements from clearing newer UI.
+    @ObservationIgnored var blocklistTask: Task<Void, Never>?
+    @ObservationIgnored var blocklistTaskGeneration = 0
     /// Bumped whenever the set of compiled content-rule lists changes — open browser windows
     /// observe it and re-apply their lists. Blocklist intents live in `AppModel+Browser.swift`.
     var browserContentRulesGeneration = 0
@@ -200,7 +182,11 @@ final class AppModel {
     private let sleepPreventer = SleepPreventer()
     private var eventTask: Task<Void, Never>?
     private var progressTask: Task<Void, Never>?
+    private var notificationAuthorizationTask: Task<Void, Never>?
     private var didBootstrap = false
+    static let pendingIntakeLimit = 128
+    @ObservationIgnored var pendingIncomingURLs: [URL] = []
+    @ObservationIgnored var pendingCaptures: [CapturedDownload] = []
 
     init(manager: DownloadManager) {
         self.manager = manager
@@ -238,6 +224,7 @@ final class AppModel {
         // The fixture is already a complete UI snapshot. Skip the live manager bootstrap, which
         // would replace it with an empty in-memory catalog and start ambient services.
         model.didBootstrap = true
+        model.isNetworkReady = true
         return model
     }
     #endif
@@ -250,35 +237,33 @@ final class AppModel {
         // UI (events land in the store but never reach a live consumer). Run the setup exactly once.
         guard !didBootstrap else { return }
         didBootstrap = true
-        await notifications.requestAuthorization()
-        notifications.onAction = { [weak self] action in
-            Task { @MainActor in self?.handleNotificationAction(action) }
-        }
+        startupError = nil
+        notifications.onAction = { [weak self] action in self?.handleNotificationAction(action) }
         do {
             try await manager.start()
         } catch {
-            // Persistence failed to open; surface nothing destructive — start empty.
+            startupError = error.localizedDescription
+            didBootstrap = false
+            return
         }
         let snapshot = await manager.snapshot()
         downloads = snapshot.downloads
         queues = snapshot.queues
         settings = snapshot.settings
+        BrowserStore.shared.applyProxy(settings.resolvedProxy)
         rules = snapshot.rules
         stats = snapshot.stats
         startObservingEvents()
         refreshAmbient()
+        isNetworkReady = true
 
-        // Locate the bundled page extractor (yt-dlp) and confirm it actually runs inside our sandbox —
-        // a launch-time smoke test of the bundled binary. `isPageExtractionAvailable` reflects the
-        // probe; page grabs (YouTube etc.) route through it.
-        let extractor = YtDlpExtractor.locate()
-        mediaExtractor = extractor
-        if let extractor {
-            Task { [weak self] in
-                let version = await extractor.version()
-                self?.isPageExtractionAvailable = (version != nil)
-                NSLog("[CloakDrop] page extractor (yt-dlp): %@", version ?? "unavailable")
-            }
+        // Offer page extraction only after the bundled helper has actually run in the sandbox.
+        // Locating an executable is not enough: an invalid signature or damaged runtime can still
+        // make launch fail, and the UI must not advertise a feature that cannot work.
+        if let extractor = YtDlpExtractor.locate() {
+            let version = await extractor.version()
+            if version != nil { mediaExtractor = extractor }
+            NSLog("[CloakDrop] page extractor (yt-dlp): %@", version ?? "unavailable")
         }
 
         clipboard.onURLDetected = { [weak self] url in
@@ -291,8 +276,21 @@ final class AppModel {
 
         // Drain any captures the share extension / deep links dropped while we were launching, then
         // watch for new ones arriving via the Darwin wake signal.
+        let incomingURLs = pendingIncomingURLs
+        pendingIncomingURLs.removeAll()
+        for url in incomingURLs { handleIncomingURL(url) }
+        let captures = pendingCaptures
+        pendingCaptures.removeAll()
+        for capture in captures { enqueueCapture(capture) }
         drainCaptureInbox()
         CaptureInboxObserver.shared.start { [weak self] in self?.drainCaptureInbox() }
+        notificationAuthorizationTask = Task { [notifications] in
+            await notifications.requestAuthorization()
+        }
+    }
+
+    func retryBootstrap() {
+        Task { await bootstrap() }
     }
 
     private func startObservingEvents() {
@@ -322,7 +320,7 @@ final class AppModel {
             upsert(download)
             if download.status != previous { announce(transition: download, from: previous) }
             if download.status == .downloading { postCompletionArmed = true }
-            if download.status.isTerminal || download.status == .completed { progress[download.id] = nil }
+            if download.status.isTerminal { progress[download.id] = nil }
             if download.status == .completed, download.isMedia { ensureThumbnail(for: download) }
         case .downloadRemoved(let id):
             downloads.removeAll { $0.id == id }
@@ -334,6 +332,7 @@ final class AppModel {
             queues = q
         case .settingsChanged(let s):
             settings = s
+            BrowserStore.shared.applyProxy(s.resolvedProxy)
         case .rulesChanged(let r):
             rules = r
         case .statsChanged(let s):
@@ -363,7 +362,7 @@ final class AppModel {
     private func applyProgress(_ p: DownloadProgress) {
         if let box = progress[p.id] {
             box.value = p
-        } else if downloads.contains(where: { $0.id == p.id && !$0.status.isTerminal && $0.status != .completed }) {
+        } else if downloads.contains(where: { $0.id == p.id && !$0.status.isTerminal }) {
             progress[p.id] = ProgressBox(p)
         }
     }

@@ -30,7 +30,7 @@ public struct VideoPageSite: Sendable, Hashable {
 /// instead of saving `watch.html`.
 ///
 /// Deliberately a **curated allowlist**, not "any HTML page": a link only routes to the extractor when
-/// it's a known video host, so a genuine "download this file" is never hijacked. yt-dlp supports ~1800
+/// it's a known video host, so a genuine "download this file" is never hijacked. yt-dlp supports many
 /// sites; this names the popular ones a user is likely to paste. Add entries here as needed.
 public enum VideoPageDetector {
     public static let sites: [VideoPageSite] = [

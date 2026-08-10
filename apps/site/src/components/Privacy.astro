@@ -26,7 +26,7 @@ import Icon from './Icon.astro';
           <div class="route-node route-node--input">
             <span class="node-tag">01 / INPUT</span>
             <strong>Initiated or configured</strong>
-            <small>Transfer · browser · resolver · checksum · chosen tools</small>
+            <small>Transfer · browser · resolver · speed test · blocklist</small>
           </div>
 
           <div class="connector connector--in" aria-hidden="true">
@@ -46,14 +46,14 @@ import Icon from './Icon.astro';
 
           <div class="destinations">
             <div class="route-node route-node--destination">
-              <span class="node-tag">03A / FILE</span>
-              <strong>Chosen file</strong>
-              <code>/selected-destination</code>
+              <span class="node-tag">03A / NETWORK</span>
+              <strong>Chosen service</strong>
+              <code>origin · page · proxy · provider</code>
             </div>
             <div class="route-node route-node--destination">
               <span class="node-tag">03B / LOCAL</span>
-              <strong>Local app storage</strong>
-              <code>SQLite · WebKit · Keychain</code>
+              <strong>Selected destination & app storage</strong>
+              <code>file · SQLite · WebKit · Keychain</code>
             </div>
           </div>
         </div>
@@ -78,9 +78,9 @@ import Icon from './Icon.astro';
         </div>
 
         <figcaption id="boundary-caption" class="sr-only">
-          Network activity is limited to transfers and features the user initiates or
-          configures. App data stays on the Mac, while telemetry, account, automatic crash
-          upload, and update-ping routes are absent.
+          Requests go only to services selected by a user-started or configured feature.
+          Files and app data stay on the Mac, while telemetry, account, automatic crash-upload,
+          and update-ping routes are absent.
         </figcaption>
       </figure>
     </div>

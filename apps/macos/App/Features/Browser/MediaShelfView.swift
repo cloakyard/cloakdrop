@@ -74,7 +74,7 @@ struct MediaShelfView: View {
         .buttonStyle(.plain)
         .font(.callout)
         .padding(10)
-        .help("Read this page with the bundled resolver (YouTube and 1800+ sites) and pick a quality")
+        .help("Read this page with the bundled resolver (YouTube and other supported sites) and pick a quality")
         .disabled(session.currentURL == nil || !canExtract)
     }
 

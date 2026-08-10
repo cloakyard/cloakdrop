@@ -47,7 +47,12 @@ extension DownloadManager {
         tasks[download.id] = task
 
         let id = download.id
+        // A status update such as `.paused → .queued` is persisted on the manager's ordered chain,
+        // while the transfer owns its later `.downloading`/terminal saves. Bridge the two chains at
+        // handoff so a slow queued save can never land after `.completed` and resurrect work on launch.
+        let previousSave = pendingSaves[id]
         handles[id] = Task { [weak self] in
+            await previousSave?.value
             let final = await task.run()
             await self?.taskFinished(id: id, result: final)
         }
@@ -71,15 +76,16 @@ extension DownloadManager {
         guard let recurrence = completed.recurrence, recurrence != .none,
               let next = recurrence.nextDate(after: Date()) else { return }
 
-        var destination = completed.destinationDirectoryPath
-        if (destination as NSString).lastPathComponent == completed.category.displayName {
-            destination = (destination as NSString).deletingLastPathComponent
-        }
+        // Recur beside the completed output. `DownloadTask.categorizedDirectory` recognizes an
+        // existing category leaf, so this never nests `Video/Video` and never guesses whether a
+        // user-selected folder that happens to be named "Video" should be stripped.
+        let destination = completed.destinationDirectoryPath
+        let fileName = reserveUniqueFileName(completed.fileName, inDirectory: destination)
 
         let order = (downloads.values.map(\.order).max() ?? -1) + 1
         var nextRun = Download(
             url: completed.url,
-            fileName: completed.fileName,
+            fileName: fileName,
             destinationDirectoryPath: destination,
             destinationBookmark: completed.destinationBookmark,
             requestedSegmentCount: completed.requestedSegmentCount,

@@ -139,7 +139,7 @@ The concurrency core. Everything mutable is actor-isolated.
   (VP9/AV1/Opus → `.mkv`). `MediaThumbnailer` renders a poster frame. These operations sit behind
   protocols / injected seams, so the transfer path stays testable against `MockHTTPClient`.
 - **Page extraction (yt-dlp)** — `MediaExtractor` (protocol) resolves a *page* URL (a YouTube
-  watch page, or any of the ~1800 sites yt-dlp knows) into its real, deciphered video/audio
+  watch page, or another site supported by the bundled yt-dlp version) into its available video/audio
   formats (`ExtractedMedia` / `ExtractedFormat`). It is a **resolver / decipher oracle, not a
   downloader**: the production `YtDlpExtractor` spawns the bundled, code-signed `yt-dlp` binary
   with `-J` (dump-single-json). It may contact the submitted page and related service endpoints to

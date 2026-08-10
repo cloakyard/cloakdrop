@@ -1,15 +1,13 @@
 ---
 import { resolve } from 'node:path';
 import { hero, downloads } from '../data/site';
-import { measureHero } from '../lib/heroGeometry';
+import { readPngDimensions } from '../lib/heroGeometry';
 import Icon from './Icon.astro';
 
 const titleLead = hero.titleLead.replace(/\n/g, ' ');
 const titleAccent = hero.titleAccent.replace(/\n/g, ' ');
 
-// Measure the shipped image so its intrinsic dimensions always match the source
-// asset, even when a new product capture replaces it.
-const shot = measureHero(resolve(process.cwd(), 'public/hero.png'));
+const shot = readPngDimensions(resolve(process.cwd(), 'public/hero.png'));
 
 // This product capture uses a configured eight-range plan as an example. Automatic
 // mode may plan fewer or more ranges (within the user's ceiling), and manual mode can
@@ -519,7 +517,7 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
     }
 
     .cta {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       width: 100%;
     }
 
@@ -565,14 +563,6 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
   @media (max-width: 350px) {
     .lede h1 {
       font-size: 3.15rem;
-    }
-
-    .cta {
-      grid-template-columns: 1fr;
-    }
-
-    .cta .btn {
-      justify-self: stretch;
     }
   }
 </style>

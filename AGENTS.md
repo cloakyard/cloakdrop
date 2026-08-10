@@ -2,14 +2,14 @@
 
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
-CloakDrop is a native, sandboxed macOS Tahoe 26 download manager (IDM-class multi-segment downloads) built as a thin SwiftUI shell over a headless, fully-tested Swift package. See [README.md](README.md) for the product overview and [ARCHITECTURE.md](apps/macos/ARCHITECTURE.md) for the full design.
+CloakDrop is a native, sandboxed macOS Tahoe 26 multi-segment download manager built as a thin SwiftUI shell over a headless, independently tested Swift package. See [README.md](README.md) for the product overview and [ARCHITECTURE.md](apps/macos/ARCHITECTURE.md) for the full design.
 
 ## Repo layout (monorepo)
 
 This is a **monorepo** with two independent deliverables under `apps/`:
 
 - **`apps/macos/`** — the native macOS app (this document's subject). All the paths below are relative to `apps/macos/` unless noted; run the app commands from there.
-- **`apps/site/`** — the CloakDrop brand site (Astro, static), deployed to Cloudflare Workers at `drop.cloakyard.com`. See [apps/site/README.md](apps/site/README.md). It shares nothing with the app build; a Swift change never rebuilds the site and vice-versa (Cloudflare build-watch paths are scoped to `apps/site/*`).
+- **`apps/site/`** — the CloakDrop brand site (Astro, static), deployed to Cloudflare Workers at `drop.cloakyard.com`. See [apps/site/README.md](apps/site/README.md). It shares nothing with the app build; configure Cloudflare to watch `apps/site/*`, `assets/*`, and `scripts/sync-assets.mjs`, so shared-asset changes deploy but a Swift-only change does not rebuild the site.
 
 ## Commands
 
@@ -63,5 +63,5 @@ apps/macos/scripts/dmg/make-dmg.sh <path/to/CloakDrop.app> [output.dmg]   # artw
 - **Adding a feature:** model new persisted state in `DownloadModels`; implement transfer logic in `DownloadEngine` behind the relevant protocol with `MockHTTPClient`/in-memory-store tests; surface it through `AppModel` intents and SwiftUI views. Keep the app target thin.
 - **Liquid Glass discipline:** glass only on floating chrome (toolbar/sidebar/inspector), **never on list rows or scrolling content**. **SF Symbols only** for iconography.
 - **Sandbox:** App Sandbox + hardened runtime. The default `~/Downloads` is covered by entitlement; user-chosen folders are persisted as security-scoped bookmarks and activated (`SecurityScope`) for the duration of a transfer.
-- **Dependencies:** the only third-party Swift dependency is GRDB (persistence). Two native tools are bundled as code-signed, sandboxed `inherit` children via opt-in scripts (`apps/macos/scripts/fetch-ffmpeg.sh`, `apps/macos/scripts/fetch-ytdlp.sh`): **ffmpeg** is a network-free local muxer; **yt-dlp** is a page→formats resolver for YouTube + ~1800 sites and may contact the submitted page/service endpoints, but it never downloads the selected media payload. The engine transfers that payload. Ask before adding anything else. Prefer system frameworks (e.g. CryptoKit over swift-crypto).
+- **Dependencies:** the only third-party Swift dependency is GRDB (persistence). Two native tools are bundled as code-signed, sandboxed `inherit` children via opt-in scripts (`apps/macos/scripts/fetch-ffmpeg.sh`, `apps/macos/scripts/fetch-ytdlp.sh`): **ffmpeg** is a network-free local muxer; **yt-dlp** is a page→formats resolver for YouTube and other sites supported by that bundled version and may contact the submitted page/service endpoints, but it never downloads the selected media payload. The engine transfers that payload. Ask before adding anything else. Prefer system frameworks (e.g. CryptoKit over swift-crypto).
 - **Privacy is a hard constraint:** allowed network activity is limited to configured download work (URLs, redirects, mirrors, retries, schedules/resume, and optional same-origin checksum discovery); yt-dlp metadata resolution for a video page the user submits; sites and subresources the user visits in the built-in browser (plus, if address-bar search is on, the query sent to DuckDuckGo/Google/Bing on Return only—no keystroke/suggestion traffic); a configured proxy; a user-started speed test (Cloudflare default, Ookla optional—never automatic); and an optional open-source browser blocklist (OISD Small / StevenBlack / Peter Lowe's) fetched only when selected or updated by the user—never on a timer or at launch. The browser keeps cookies/site data (so logins persist) but **no browsing history**, and offers a one-click wipe. No telemetry, analytics, accounts, or phone-home.

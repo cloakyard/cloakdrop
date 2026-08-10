@@ -1,5 +1,3 @@
-import Foundation
-
 /// Engine-wide tunables. These are persisted and editable from Settings.
 ///
 /// Defaults match the brief: 8 segments, sensible retry/backoff, no global speed cap.

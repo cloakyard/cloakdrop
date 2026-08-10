@@ -183,4 +183,50 @@ struct DestinationSafetyTests {
         #expect(try Data(contentsOf: sentinel) == original)
         #expect(FileManager.default.fileExists(atPath: directoryPart.path))
     }
+
+    @Test("A publication collision keeps the part resumable after auto-categorization")
+    func categorizedCollisionCanResumeWithoutRetransfer() async throws {
+        let url = URL(string: "https://example.com/resumable.bin")!
+        let payload = Data(repeating: 0x6B, count: 64_000)
+        let harness = try await Harness(resources: [url: payload])
+        defer { harness.cleanup() }
+
+        var settings = await harness.manager.currentSettings()
+        settings.autoCategorize = true
+        await harness.manager.updateSettings(settings)
+        let added = await harness.manager.add(DownloadRequest(
+            url: url, suggestedFileName: "resumable.bin",
+            destinationDirectoryPath: harness.directory.path, startImmediately: false
+        ))
+
+        let categoryDirectory = harness.directory.appendingPathComponent(added.category.displayName)
+        try FileManager.default.createDirectory(at: categoryDirectory, withIntermediateDirectories: true)
+        let collision = categoryDirectory.appendingPathComponent(added.fileName)
+        let sentinel = Data("existing".utf8)
+        try sentinel.write(to: collision)
+        await harness.manager.resume(id: added.id)
+
+        let deadline = ContinuousClock().now + .seconds(10)
+        var failed: Download?
+        while ContinuousClock().now < deadline {
+            if let candidate = await harness.manager.snapshot().downloads.first(where: { $0.id == added.id }),
+               case .failed = candidate.status {
+                failed = candidate
+                break
+            }
+            try await Task.sleep(for: .milliseconds(15))
+        }
+        let blocked = try #require(failed)
+        #expect(blocked.destinationDirectoryPath == harness.directory.path)
+        #expect(FileManager.default.fileExists(atPath: blocked.partFilePath))
+        #expect(try Data(contentsOf: collision) == sentinel)
+
+        let streamsAfterFailure = harness.mock.streamCount
+        try FileManager.default.removeItem(at: collision)
+        await harness.manager.resume(id: added.id)
+        let done = try await harness.waitForCompletion(added.id)
+        #expect(done.status == .completed)
+        #expect(harness.mock.streamCount == streamsAfterFailure)
+        #expect(try Data(contentsOf: URL(fileURLWithPath: done.destinationFilePath)) == payload)
+    }
 }

@@ -6,14 +6,14 @@ Electron or web-powered app shell, no telemetry, no phone-home. WebKit is used o
 user-facing built-in browser.
 
 By participating, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md). For the
-architecture and where things live, see [ARCHITECTURE.md](apps/macos/ARCHITECTURE.md); for what's shipped,
-see the [README](README.md#-what-it-does).
+architecture and where things live, see [ARCHITECTURE.md](apps/macos/ARCHITECTURE.md); for what the
+current source implements, see the [README](README.md#-what-it-does).
 
 This repo is a **monorepo**: the macOS app is in `apps/macos/` and the brand site in `apps/site/`. Run the commands below from `apps/macos/`.
 
 ## Prerequisites
 
-- macOS 26+ on Apple silicon (the app is arm64-only — see the release timeline in the [README](README.md#-download--release-timeline))
+- macOS 26+ on Apple silicon (the app is arm64-only — see the release status in the [README](README.md#-download--release-status))
 - Xcode 26+
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen): `brew install xcodegen`
 

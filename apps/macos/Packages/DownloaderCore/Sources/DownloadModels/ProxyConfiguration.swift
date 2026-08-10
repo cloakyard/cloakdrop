@@ -36,7 +36,8 @@ public struct ProxyConfiguration: Sendable, Hashable, Codable {
     public var host: String
     public var port: Int
     public var username: String
-    /// Stored alongside other local state. (A future hardening could move this to the Keychain.)
+    /// Present only in memory. The manager strips it from persisted settings and restores it from
+    /// the user's Keychain when the engine starts.
     public var password: String
 
     public init(
@@ -59,10 +60,10 @@ public struct ProxyConfiguration: Sendable, Hashable, Codable {
 
     /// A manual proxy is only usable once it has a host and a valid port.
     public var isUsableManualProxy: Bool {
-        mode == .manual && !host.trimmingCharacters(in: .whitespaces).isEmpty && (1...65_535).contains(port)
+        mode == .manual && !host.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && (1...65_535).contains(port)
     }
 
     public var requiresCredentials: Bool {
-        !username.trimmingCharacters(in: .whitespaces).isEmpty
+        !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }

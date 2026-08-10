@@ -16057,67 +16057,67 @@
         }
       }
     },
-    "Off by default. When on, the built-in browser blocks ads, tracking scripts, and ad pop-ups on nearly every site — pages load faster and cleaner. Blocking happens entirely on your Mac, and never affects your downloads. If a site misbehaves, turn this off.": {
+    "Off by default. When on, the built-in browser blocks requests to known ad and tracker hosts and rejects known ad pop-ups. Coverage varies by list and site; turn it off if a site misbehaves. Blocking happens on your Mac and never affects downloads.": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "مُعطَّل افتراضيًا. عند تفعيله، يحظر المتصفّح المدمج الإعلانات ونصوص التتبّع والنوافذ الإعلانية المنبثقة في جميع المواقع تقريبًا — فتُحمَّل الصفحات بشكل أسرع وأنظف. تتم عملية الحظر بالكامل على جهاز Mac الخاص بك ولا تؤثّر أبدًا على تنزيلاتك. إذا لم يعمل أحد المواقع بشكل صحيح، فأوقف تشغيل هذا الخيار."
+            "value": "مُعطَّل افتراضيًا. عند تفعيله، يحظر المتصفّح المدمج الطلبات إلى مضيفي الإعلانات والتتبّع المعروفين ويرفض النوافذ الإعلانية المنبثقة المعروفة. تختلف التغطية حسب القائمة والموقع؛ أوقفه إذا لم يعمل موقع بشكل صحيح. تتم عملية الحظر على جهاز Mac ولا تؤثّر أبدًا على التنزيلات."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Standardmäßig aus. Wenn aktiviert, blockiert der integrierte Browser Werbung, Tracking-Skripte und Werbe-Pop-ups auf nahezu jeder Website – Seiten laden schneller und sauberer. Die Blockierung erfolgt vollständig auf deinem Mac und wirkt sich nie auf deine Downloads aus. Falls eine Website nicht richtig funktioniert, schalte dies aus."
+            "value": "Standardmäßig aus. Wenn aktiviert, blockiert der integrierte Browser Anfragen an bekannte Werbe- und Tracking-Hosts und weist bekannte Werbe-Pop-ups ab. Die Abdeckung variiert je nach Liste und Website; schalte die Funktion aus, wenn eine Website nicht richtig funktioniert. Die Blockierung erfolgt auf deinem Mac und wirkt sich nie auf Downloads aus."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Desactivado de forma predeterminada. Cuando está activado, el navegador integrado bloquea anuncios, scripts de rastreo y ventanas emergentes publicitarias en casi todos los sitios: las páginas se cargan más rápido y más limpias. El bloqueo ocurre por completo en tu Mac y nunca afecta a tus descargas. Si un sitio no funciona bien, desactívalo."
+            "value": "Desactivado de forma predeterminada. Cuando está activado, el navegador integrado bloquea solicitudes a hosts conocidos de anuncios y rastreo, y rechaza ventanas emergentes publicitarias conocidas. La cobertura varía según la lista y el sitio; desactívalo si un sitio no funciona bien. El bloqueo ocurre en tu Mac y nunca afecta a las descargas."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Désactivé par défaut. Une fois activé, le navigateur intégré bloque les publicités, les scripts de suivi et les fenêtres publicitaires sur presque tous les sites : les pages se chargent plus vite et plus proprement. Le blocage a lieu entièrement sur votre Mac et n’affecte jamais vos téléchargements. Si un site fonctionne mal, désactivez cette option."
+            "value": "Désactivé par défaut. Une fois activé, le navigateur intégré bloque les requêtes vers des hôtes publicitaires et de suivi connus, et refuse les fenêtres publicitaires connues. La couverture varie selon la liste et le site ; désactivez-le si un site fonctionne mal. Le blocage a lieu sur votre Mac et n’affecte jamais les téléchargements."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "डिफ़ॉल्ट रूप से बंद। चालू होने पर, अंतर्निहित ब्राउज़र लगभग हर साइट पर विज्ञापन, ट्रैकिंग स्क्रिप्ट और विज्ञापन पॉप-अप ब्लॉक करता है — पेज तेज़ी से और साफ़-सुथरे लोड होते हैं। ब्लॉकिंग पूरी तरह आपके Mac पर होती है और आपके डाउनलोड को कभी प्रभावित नहीं करती। यदि कोई साइट ठीक से काम न करे, तो इसे बंद कर दें।"
+            "value": "डिफ़ॉल्ट रूप से बंद। चालू होने पर, अंतर्निहित ब्राउज़र ज्ञात विज्ञापन और ट्रैकर होस्ट के अनुरोधों को ब्लॉक करता है और ज्ञात विज्ञापन पॉप-अप को रोकता है। कवरेज सूची और साइट के अनुसार बदलती है; यदि कोई साइट ठीक से काम न करे तो इसे बंद कर दें। ब्लॉकिंग आपके Mac पर होती है और डाउनलोड को कभी प्रभावित नहीं करती।"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "デフォルトはオフです。オンにすると、内蔵ブラウザがほぼすべてのサイトで広告、トラッキングスクリプト、広告ポップアップをブロックし、ページの読み込みが速く、すっきりします。ブロックはすべてお使いの Mac 上で行われ、ダウンロードに影響することはありません。サイトの動作がおかしい場合はオフにしてください。"
+            "value": "デフォルトはオフです。オンにすると、内蔵ブラウザは既知の広告・トラッカーホストへのリクエストと、既知の広告ポップアップをブロックします。対象範囲はリストやサイトによって異なるため、サイトの動作がおかしい場合はオフにしてください。ブロックは Mac 上で行われ、ダウンロードには影響しません。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "기본적으로 꺼져 있습니다. 켜면 내장 브라우저가 거의 모든 사이트에서 광고, 추적 스크립트, 광고 팝업을 차단하여 페이지가 더 빠르고 깔끔하게 로드됩니다. 차단은 전적으로 Mac에서 이루어지며 다운로드에는 전혀 영향을 주지 않습니다. 사이트가 제대로 작동하지 않으면 이 기능을 끄세요."
+            "value": "기본적으로 꺼져 있습니다. 켜면 내장 브라우저가 알려진 광고 및 추적 호스트에 대한 요청과 알려진 광고 팝업을 차단합니다. 차단 범위는 목록과 사이트에 따라 다르므로 사이트가 제대로 작동하지 않으면 끄세요. 차단은 Mac에서 이루어지며 다운로드에는 영향을 주지 않습니다."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Desativado por padrão. Quando ativado, o navegador integrado bloqueia anúncios, scripts de rastreamento e pop-ups publicitários em quase todos os sites — as páginas carregam mais rápido e mais limpas. O bloqueio acontece inteiramente no seu Mac e nunca afeta seus downloads. Se um site não funcionar bem, desative isto."
+            "value": "Desativado por padrão. Quando ativado, o navegador integrado bloqueia solicitações a hosts conhecidos de anúncios e rastreamento e rejeita pop-ups publicitários conhecidos. A cobertura varia conforme a lista e o site; desative se um site não funcionar bem. O bloqueio acontece no Mac e nunca afeta os downloads."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "По умолчанию выключено. Когда включено, встроенный браузер блокирует рекламу, отслеживающие скрипты и рекламные всплывающие окна почти на всех сайтах — страницы загружаются быстрее и чище. Блокировка выполняется полностью на вашем Mac и никогда не влияет на загрузки. Если сайт работает некорректно, отключите это."
+            "value": "По умолчанию выключено. Когда включено, встроенный браузер блокирует запросы к известным рекламным и отслеживающим хостам и отклоняет известные рекламные всплывающие окна. Покрытие зависит от списка и сайта; отключите функцию, если сайт работает некорректно. Блокировка выполняется на вашем Mac и не влияет на загрузки."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "默认关闭。开启后，内置浏览器会在几乎所有网站上拦截广告、跟踪脚本和广告弹窗——页面加载更快、更干净。拦截完全在你的 Mac 上进行，绝不影响你的下载。如果某个网站出现异常，请关闭此项。"
+            "value": "默认关闭。开启后，内置浏览器会拦截对已知广告和跟踪主机的请求，并拒绝已知广告弹窗。覆盖范围因列表和网站而异；如果网站出现异常，请关闭此项。拦截在你的 Mac 上进行，绝不影响下载。"
           }
         }
       }
@@ -18917,67 +18917,67 @@
         }
       }
     },
-    "Read this page with the bundled resolver (YouTube and 1800+ sites) and pick a quality": {
+    "Read this page with the bundled resolver (YouTube and other supported sites) and pick a quality": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "اقرأ هذه الصفحة باستخدام المحلّل المدمج (يوتيوب و1800+ موقع) واختر الجودة"
+            "value": "اقرأ هذه الصفحة باستخدام المحلّل المدمج (يوتيوب والمواقع الأخرى المدعومة) واختر الجودة"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diese Seite mit dem integrierten Resolver (YouTube und 1800+ Seiten) lesen und eine Qualität wählen"
+            "value": "Diese Seite mit dem integrierten Resolver (YouTube und andere unterstützte Websites) lesen und eine Qualität wählen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lee esta página con el resolutor integrado (YouTube y más de 1800 sitios) y elige una calidad"
+            "value": "Lee esta página con el resolutor integrado (YouTube y otros sitios compatibles) y elige una calidad"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Analysez cette page avec le résolveur intégré (YouTube et plus de 1800 sites) et choisissez une qualité"
+            "value": "Analysez cette page avec le résolveur intégré (YouTube et d’autres sites pris en charge) et choisissez une qualité"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "इस पेज को अंतर्निहित रिज़ॉल्वर (YouTube और 1800+ साइटें) से पढ़ें और गुणवत्ता चुनें"
+            "value": "इस पेज को अंतर्निहित रिज़ॉल्वर (YouTube और अन्य समर्थित साइटों) से पढ़ें और गुणवत्ता चुनें"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "内蔵のリゾルバ（YouTube と 1800 以上のサイト）でこのページを解析し、画質を選択"
+            "value": "内蔵のリゾルバ（YouTube とその他の対応サイト）でこのページを解析し、画質を選択"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "내장 리졸버(YouTube 및 1800개 이상 사이트)로 이 페이지를 읽고 화질을 선택하세요"
+            "value": "내장 리졸버(YouTube 및 기타 지원 사이트)로 이 페이지를 읽고 화질을 선택하세요"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leia esta página com o resolvedor integrado (YouTube e mais de 1800 sites) e escolha uma qualidade"
+            "value": "Leia esta página com o resolvedor integrado (YouTube e outros sites compatíveis) e escolha uma qualidade"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Прочитать эту страницу встроенным резолвером (YouTube и 1800+ сайтов) и выбрать качество"
+            "value": "Прочитать эту страницу встроенным резолвером (YouTube и другие поддерживаемые сайты) и выбрать качество"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用内置解析器（YouTube 及 1800 多个网站）读取此页面并选择画质"
+            "value": "使用内置解析器（YouTube 及其他受支持的网站）读取此页面并选择画质"
           }
         }
       }

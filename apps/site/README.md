@@ -8,10 +8,13 @@ The marketing site for **CloakDrop**, hosted at **[drop.cloakyard.com](https://d
 - **Design:** editorial / magazine layout — numbered sections, hairline rules, self-hosted **Archivo** (heavy display) + **JetBrains Mono** (labels & data) on CloakDrop's deep-ocean accent (`#2A7B9B`). Follows the OS light/dark theme via `prefers-color-scheme`. Fonts are self-hosted (no Google Fonts request) to keep the privacy story intact.
 
 Part of the CloakDrop monorepo — the macOS app lives in [`../macos`](../macos). Shared brand
-assets (logo, favicons, OG card, hero screenshot) are **not** stored here — they live in the
-repo-root [`/assets`](../../assets) folder and are copied into `public/` at build time by
-`scripts/sync-assets.mjs` (runs automatically via the `prebuild` npm hook). See
+assets (logo, favicons, OG card, hero screenshot) live in the repo-root
+[`/assets`](../../assets) folder and are copied into `public/` at build time by the root
+`scripts/sync-assets.mjs` script (run automatically by the `prebuild` hook). See
 [`/assets/README.md`](../../assets/README.md).
+
+The landing-page copy describes the current source tree. Published beta builds can lag behind it;
+GitHub Releases remains the source of truth for the contents and installation status of each build.
 
 ## Develop
 
@@ -43,11 +46,10 @@ apps/site/
 └── src/
     ├── data/site.ts        # shared product copy, links, and structured section content
     ├── layouts/BaseLayout  # <head>, SEO/OG, JSON-LD, theme-color, font preloads
-    ├── components/         # Header · Hero · SpecStrip · TransferTheatre · Provenance ·
-    │                       #   Details · Privacy · Download · Footer
-    │                       #   + shared: Icon · Kicker (numbered label) · Brand (logo lockup)
+    ├── components/         # Landing sections plus shared Brand · Icon · Kicker components
     ├── pages/index.astro   # landing page — composes the sections in order
     ├── pages/privacy.astro # renders the repo-root privacy policy for the web
+    ├── pages/404.astro     # static not-found page used by Cloudflare
     ├── scripts/motion.ts   # progressive enhancement for reveal/count/scroll motion
     └── styles/global.css   # @font-face + design tokens (light/dark) + shared primitives
 ```
@@ -77,7 +79,8 @@ pointed at this subdirectory:
    already satisfies it.)*
 2. **Root directory:** `apps/site`
 3. **Build command:** `npm run build` · **Deploy command:** `npx wrangler deploy`
-4. **Build watch paths:** `apps/site/*` — so a Swift-only commit never rebuilds the site.
+4. **Build watch include paths:** `apps/site/*`, `assets/*`, `scripts/sync-assets.mjs` — site and
+   shared-asset changes deploy, while a Swift-only commit does not rebuild the site.
 
 Push to the connected branch → production deploy; pull requests → preview URLs.
 

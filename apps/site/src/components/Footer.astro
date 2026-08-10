@@ -1,5 +1,5 @@
 ---
-import { site, suite } from '../data/site';
+import { site, suiteApps } from '../data/site';
 import Brand from './Brand.astro';
 import Icon from './Icon.astro';
 ---
@@ -14,7 +14,7 @@ import Icon from './Icon.astro';
     <nav aria-label="Cloakyard apps">
       <p>Cloakyard</p>
       {
-        suite.apps.filter((app) => !app.self).map((app) => (
+        suiteApps.map((app) => (
           <a href={app.href} rel="noopener">{app.name}<Icon name="arrow" size={14} /></a>
         ))
       }

@@ -1,4 +1,3 @@
-import Foundation
 import DownloadModels
 
 /// Pure segmentation math: splits a known-size resource into balanced, contiguous,

@@ -75,8 +75,15 @@ public struct MediaEncryption: Sendable, Hashable, Codable {
     }
     /// A convenience for the common cleartext case.
     public static let none = MediaEncryption(method: .none)
-    /// Whether segments under this key can actually be decrypted here.
-    public var isDecryptable: Bool { method == .none || method == .aes128 }
+    /// Whether segments under this key can actually be decrypted here. AES-128 without a key URI is
+    /// malformed, not cleartext: treating it as supported would publish the ciphertext unchanged.
+    public var isDecryptable: Bool {
+        switch method {
+        case .none: true
+        case .aes128: keyURL != nil
+        case .sampleAES: false
+        }
+    }
 }
 
 /// One media segment to download — a fragment of a rendition's timeline.

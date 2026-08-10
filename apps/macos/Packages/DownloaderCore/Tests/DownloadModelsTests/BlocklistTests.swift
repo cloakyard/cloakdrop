@@ -167,6 +167,22 @@ struct BlocklistTests {
         #expect(BlocklistParser.parse("# only\n! comments\n\n").domains.isEmpty)
     }
 
+    @Test("Cancellable parsing exits when its task is cancelled")
+    func cancellation() async {
+        let parse = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try BlocklistParser.parseCancellable("ads.example.com")
+        }
+        do {
+            _ = try await parse.value
+            Issue.record("expected cancellation")
+        } catch is CancellationError {
+            // Expected: source replacement must stop obsolete parsing work.
+        } catch {
+            Issue.record("unexpected error: \(error)")
+        }
+    }
+
     // MARK: - Host coverage (popup rejection)
 
     @Test("covers() matches the domain and subdomains, strips ports, rejects look-alikes")
@@ -187,6 +203,9 @@ struct BlocklistTests {
     @Test("External rules JSON: one anchored block rule per domain, end-of-host anchored")
     func externalRules() throws {
         let json = AdBlockList.externalRulesJSON(blocking: ["ads.example.com", "media.net"])
+        #expect(try AdBlockList.externalRulesJSONCancellable(
+            blocking: ["ads.example.com", "media.net"]
+        ) == json)
         let data = try #require(json.data(using: .utf8))
         let rules = try #require(try JSONSerialization.jsonObject(with: data) as? [[String: Any]])
         #expect(rules.count == 2)
@@ -198,6 +217,17 @@ struct BlocklistTests {
         #expect(blocked("https://media.net/ad.js"))
         #expect(blocked("https://cdn.ads.example.com/x"))
         #expect(!blocked("https://media.netflix.com/video.mp4"))   // the anchoring regression
+    }
+
+    @Test("External JSON generation cooperatively exits when cancelled")
+    func externalRulesCancellation() async {
+        let generation = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try AdBlockList.externalRulesJSONCancellable(blocking: ["ads.example.com"])
+        }
+        await #expect(throws: CancellationError.self) {
+            _ = try await generation.value
+        }
     }
 
     @Test("External identifiers are content-hashed and disjoint from the curated identifier")

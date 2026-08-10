@@ -1,4 +1,5 @@
 import WebKit
+import Network
 import DownloadModels
 
 /// Why a blocklist update failed — every case renders as a one-line, user-facing explanation.
@@ -37,7 +38,7 @@ enum BlocklistUpdateError: LocalizedError {
 // Any failure leaves the previous list — or the curated baseline — in effect: fail-open, never broken.
 extension BrowserStore {
     /// Fetched payloads beyond this are rejected outright (the real lists are 1–4 MB).
-    static let maxBlocklistPayloadBytes = 32 * 1024 * 1024
+    nonisolated static let maxBlocklistPayloadBytes = 32 * 1024 * 1024
 
     /// Everything `setAdBlock` should attach: the curated list plus the external one when active.
     var activeRuleLists: [WKContentRuleList] {
@@ -53,14 +54,23 @@ extension BrowserStore {
     /// or when nothing is stored yet — the external list simply comes off and the curated ruleset
     /// stands alone.
     func activateBlocklist(_ source: BlocklistSource) async {
+        cancelExternalRulesGeneration()
         activeBlocklistSource = source
         externalRuleList = nil
         externalDomains = []
         externalInfo = nil
         guard source != .builtIn,
-              let file = try? Self.domainsFile(for: source),
-              let text = try? String(contentsOf: file, encoding: .utf8) else { return }
-        let parsed = await Self.parseOffMain(text)
+              let file = try? Self.domainsFile(for: source) else { return }
+        let read = Task.detached(priority: .userInitiated) { try? Self.readStoredList(from: file) }
+        guard let text = await withTaskCancellationHandler(operation: {
+            await read.value
+        }, onCancel: {
+            read.cancel()
+        }) else { return }
+        guard !Task.isCancelled,
+              let parsed = try? await Self.parseOffMain(text),
+              !Task.isCancelled,
+              activeBlocklistSource == source else { return }
         // The stored copy gets the same floor as a fresh download — a corrupted file must not
         // silently shrink blocking to a handful of rules.
         guard parsed.domains.count >= source.minimumExpectedDomains else { return }
@@ -77,7 +87,9 @@ extension BrowserStore {
             return BlocklistInfo(source: .builtIn, updatedAt: Date(), domainCount: AdBlockList.blockedHosts.count)
         }
         let text = try await Self.fetchList(from: url, proxies: browsingProxyConfigurations)
-        let parsed = await Self.parseOffMain(text)
+        try Task.checkCancellation()
+        let parsed = try await Self.parseOffMain(text)
+        try Task.checkCancellation()
         guard parsed.domains.count >= source.minimumExpectedDomains else {
             throw BlocklistUpdateError.tooFewDomains(parsed.domains.count)
         }
@@ -92,48 +104,74 @@ extension BrowserStore {
         return info
     }
 
-    /// The stored metadata for `source`, if a copy has been downloaded before.
-    func storedBlocklistInfo(for source: BlocklistSource) -> BlocklistInfo? {
-        Self.readInfo(for: source)
-    }
-
     // MARK: - Compile & install
 
     /// Generate rules (off-main — it's megabytes of JSON), compile via WebKit's cached store, and
     /// install. Re-checks the active source around every await; sweeps stale bytecode on success.
     private func installCompiled(domains: [String], for source: BlocklistSource, info: BlocklistInfo) async throws {
-        let json = await Task.detached(priority: .userInitiated) {
-            AdBlockList.externalRulesJSON(blocking: domains)
-        }.value
         guard activeBlocklistSource == source else { return }
+        cancelExternalRulesGeneration()
+        let generation = externalRulesGeneration
+        let jsonTask = Task.detached(priority: .userInitiated) {
+            try AdBlockList.externalRulesJSONCancellable(blocking: domains)
+        }
+        externalRulesJSONTask = jsonTask
+        defer {
+            if externalRulesGeneration == generation { externalRulesJSONTask = nil }
+        }
+        let json = try await withTaskCancellationHandler(operation: {
+            try await jsonTask.value
+        }, onCancel: {
+            jsonTask.cancel()
+        })
+        try Task.checkCancellation()
+        guard isCurrentExternalRulesGeneration(generation, source: source) else { return }
         guard let store = WKContentRuleListStore.default() else { throw BlocklistUpdateError.compileFailed }
         let identifier = AdBlockList.externalIdentifier(forJSON: json)
         var list = await Self.lookUp(identifier, in: store)
+        try Task.checkCancellation()
+        guard isCurrentExternalRulesGeneration(generation, source: source) else { return }
         if list == nil {
             list = await Self.compile(identifier, json: json, in: store)
+            try Task.checkCancellation()
+            guard isCurrentExternalRulesGeneration(generation, source: source) else { return }
         }
         guard let list else { throw BlocklistUpdateError.compileFailed }
-        guard activeBlocklistSource == source else { return }
         externalRuleList = list
         externalDomains = Set(domains)
         externalInfo = info
         await evictStaleCompiledLists()
     }
 
+    private func cancelExternalRulesGeneration() {
+        externalRulesGeneration &+= 1
+        externalRulesJSONTask?.cancel()
+        externalRulesJSONTask = nil
+    }
+
+    private func isCurrentExternalRulesGeneration(_ generation: Int, source: BlocklistSource) -> Bool {
+        !Task.isCancelled && externalRulesGeneration == generation && activeBlocklistSource == source
+    }
+
     // MARK: - Network
 
     /// One plain GET on an ephemeral session (no cookies, no cache) that rides the browser's proxy.
     private static func fetchList(from url: URL, proxies: [Network.ProxyConfiguration]) async throws -> String {
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.timeoutIntervalForRequest = 30
-        configuration.timeoutIntervalForResource = 180
-        configuration.proxyConfigurations = proxies
-        let session = URLSession(configuration: configuration)
-        defer { session.finishTasksAndInvalidate() }
-        let (data, response) = try await session.data(from: url)
-        guard let http = response as? HTTPURLResponse else { throw BlocklistUpdateError.badStatus(0) }
-        guard http.statusCode == 200 else { throw BlocklistUpdateError.badStatus(http.statusCode) }
-        guard data.count <= maxBlocklistPayloadBytes else { throw BlocklistUpdateError.payloadTooLarge }
+        let data: Data
+        do {
+            data = try await BoundedHTTPFetcher.get(
+                url,
+                acceptedStatusCodes: 200..<201,
+                maximumBytes: maxBlocklistPayloadBytes,
+                requestTimeout: 30,
+                resourceTimeout: 180,
+                proxies: proxies
+            )
+        } catch BoundedHTTPFetchError.payloadTooLarge {
+            throw BlocklistUpdateError.payloadTooLarge
+        } catch DownloadError.httpStatus(let code) {
+            throw BlocklistUpdateError.badStatus(code)
+        }
         guard !data.isEmpty, let text = String(data: data, encoding: .utf8) else {
             throw BlocklistUpdateError.unreadablePayload
         }
@@ -141,11 +179,24 @@ extension BrowserStore {
     }
 
     /// Parsing a 78k-line list is real CPU work — keep it off the main actor.
-    private static func parseOffMain(_ text: String) async -> BlocklistParser.Result {
-        await Task.detached(priority: .userInitiated) { BlocklistParser.parse(text) }.value
+    private static func parseOffMain(_ text: String) async throws -> BlocklistParser.Result {
+        let parse = Task.detached(priority: .userInitiated) {
+            try BlocklistParser.parseCancellable(text)
+        }
+        return try await withTaskCancellationHandler(operation: {
+            try await parse.value
+        }, onCancel: {
+            parse.cancel()
+        })
     }
 
     // MARK: - Storage (Application Support/Blocklists)
+
+    nonisolated private static func readStoredList(from file: URL) throws -> String {
+        let data = try BoundedFileReader.read(file, maximumBytes: maxBlocklistPayloadBytes)
+        guard let text = String(data: data, encoding: .utf8) else { throw BlocklistUpdateError.unreadablePayload }
+        return text
+    }
 
     private static func blocklistsDirectory() throws -> URL {
         let directory = try AppEnvironment.supportDirectory().appendingPathComponent("Blocklists", isDirectory: true)

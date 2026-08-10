@@ -1,6 +1,6 @@
 # CloakDrop App Privacy Policy
 
-_Last updated: August 9, 2026_
+_Last updated: August 10, 2026_
 
 CloakDrop is a free, open-source download manager for macOS. This policy describes the data the app keeps on your Mac, the network activity its features can create, and the controls available to you.
 
@@ -35,7 +35,7 @@ CloakDrop can make the following network requests:
 
 - **Downloads:** probes and transfers for URLs you add, including redirects, mirrors, retries, scheduled or repeating transfers, and downloads resumed automatically after launch when that setting is enabled.
 - **Checksum discovery:** when automatic checksum verification and discovery are enabled, CloakDrop tries same-origin sibling files ending in `.sha256`, `.sha1`, and `.md5` after a download. This setting is enabled by default and can be turned off in Settings.
-- **Video-page resolution:** when you submit a supported video-page URL, the bundled yt-dlp helper contacts that page and related service endpoints to resolve metadata and media-format URLs.
+- **Video-page resolution:** when a build includes the optional yt-dlp helper and you submit a supported video-page URL, the helper contacts that page and related service endpoints to resolve metadata and media-format URLs.
 - **Built-in browser:** WebKit loads pages you visit and the resources those pages request, which can include third-party images, scripts, frames, media, ads, or trackers. The optional blocker can reduce some of those requests.
 - **Address-bar search:** if search is enabled, the query is sent to your selected search engine only when you press Return.
 - **Proxies:** HTTP-based downloads and speed tests use your macOS system proxy by default, or direct/manual routing if you choose it. Manual routing is also mirrored into the built-in browser (which otherwise follows the system configuration). The native FTP/FTPS client connects directly.
@@ -50,7 +50,8 @@ Servers and proxies you choose to contact can receive ordinary request informati
 
 ## Bundled tools
 
-CloakDrop includes two open-source command-line helpers:
+CloakDrop release builds can include two open-source command-line helpers; source builds still run
+without either helper, with the related media capability unavailable:
 
 - **ffmpeg** works locally to combine or transform media files and does not perform CloakDrop's transfers.
 - **yt-dlp** contacts a video page to resolve its metadata and available formats, but it does not download the selected media payload.

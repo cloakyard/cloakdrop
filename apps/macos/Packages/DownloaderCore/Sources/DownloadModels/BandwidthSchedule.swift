@@ -1,5 +1,3 @@
-import Foundation
-
 /// A time-of-day override for the global speed limit — "throttle to 1 MB/s between 9am–5pm" or
 /// "go unlimited overnight". Pure value + arithmetic; the engine ticks it and applies the resolved
 /// limit to the shared global `BandwidthLimiter`. Persisted in `EngineSettings`.

@@ -249,7 +249,7 @@ struct PrivacySettingsView: View {
         var components = DateComponents()
         components.year = 2026
         components.month = 8
-        components.day = 9
+        components.day = 10
         return Calendar.current.date(from: components) ?? Date()
     }()
 }
