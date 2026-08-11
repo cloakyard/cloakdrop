@@ -224,7 +224,14 @@ struct MediaPickerSheet: View {
     @ViewBuilder
     private func subtitleMenuItem(title: String, isOn: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            if isOn { Label(title, systemImage: "checkmark") } else { Text(title) }
+            if isOn {
+                // macOS 27 hides SF Symbols in menu items by default. This mark communicates the
+                // active audio/subtitle choice, so opt it back in explicitly.
+                Label(title, systemImage: "checkmark")
+                    .labelStyle(.titleAndIcon)
+            } else {
+                Text(title)
+            }
         }
     }
 

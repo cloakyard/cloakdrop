@@ -20,6 +20,10 @@ struct RulesSettingsView: View {
                     .onMove { model.moveRules(fromOffsets: $0, toOffset: $1) }
                 }
                 .listStyle(.inset)
+                // Like the download catalog, this List replaces an empty placeholder when the
+                // first rule is added. Keep its two-line rows from inheriting macOS's compact
+                // estimate until a later scroll forces remeasurement.
+                .environment(\.defaultMinListRowHeight, 40)
             }
 
             Divider()
