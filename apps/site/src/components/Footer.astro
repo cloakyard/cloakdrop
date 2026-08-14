@@ -5,6 +5,13 @@ import Icon from './Icon.astro';
 const authorUrl = 'https://github.com/sumitsahoo';
 const cloakyardUrl = 'https://cloakyard.com';
 const licenseUrl = `${site.repo}/blob/main/LICENSE`;
+
+interface Props {
+  /** Prefix in-page anchors when the footer is rendered on a secondary route. */
+  linkPrefix?: string;
+}
+
+const { linkPrefix = '' } = Astro.props;
 ---
 
 <footer class="footer">
@@ -16,7 +23,7 @@ const licenseUrl = `${site.repo}/blob/main/LICENSE`;
       </div>
 
       <nav class="index" aria-label="Footer">
-        <a href="#download">Download beta</a>
+        <a href={`${linkPrefix}#download`}>Download beta</a>
         <a href={site.repo} target="_blank" rel="noreferrer">GitHub</a>
         <a href={site.privacyPolicy}>Privacy policy</a>
         <a href={cloakyardUrl} target="_blank" rel="noreferrer">

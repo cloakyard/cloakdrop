@@ -1,6 +1,7 @@
 ---
 import { Content as PrivacyDocument } from '../../../../PRIVACY.md';
-import Brand from '../components/Brand.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
 import Icon from '../components/Icon.astro';
 import { site } from '../data/site';
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -11,177 +12,164 @@ const description =
 ---
 
 <BaseLayout title={title} description={description}>
-  <header class="policy-header">
-    <div class="container header-inner">
-      <Brand size={40} />
-      <a class="back-link" href="/">
-        <Icon name="arrow" size={15} />
-        Back to CloakDrop
-      </a>
-    </div>
-  </header>
+  <Header linkPrefix="/" />
 
   <main id="main" class="policy-page">
-    <div class="container policy-grid">
-      <aside class="policy-aside" aria-label="Privacy policy overview">
-        <p class="eyebrow">App privacy · Plain language</p>
-        <p>
-          A plain-language account of what stays on your Mac and every category of
-          network activity the app can create.
+    <article class="container policy-shell" aria-labelledby="privacy-title">
+      <header class="policy-intro">
+        <p class="policy-kicker">
+          <Icon name="shield" size={16} />
+          CloakDrop / Privacy document
+        </p>
+        <h1 id="privacy-title">Privacy policy.</h1>
+        <p class="policy-lede">
+          CloakDrop is a free, open-source download manager for macOS. App state stays on your Mac;
+          network requests happen only for transfers and features you initiate or configure.
         </p>
 
-        <nav aria-label="Privacy policy contents">
-          <a href="#data-stored-on-your-mac">Local data</a>
-          <a href="#network-activity">Network activity</a>
-          <a href="#your-controls">Your controls</a>
-          <a href="#questions-and-policy-changes">Questions</a>
-        </nav>
+        <dl class="policy-facts">
+          <div>
+            <dt>Last updated</dt>
+            <dd><time datetime="2026-08-10">August 10, 2026</time></dd>
+          </div>
+          <div>
+            <dt>Accounts</dt>
+            <dd>None</dd>
+          </div>
+          <div>
+            <dt>Telemetry</dt>
+            <dd>None</dd>
+          </div>
+        </dl>
+      </header>
 
-      </aside>
-
-      <article class="policy-document">
+      <div class="policy-document">
         <PrivacyDocument />
-      </article>
-    </div>
+      </div>
+    </article>
   </main>
 
-  <footer class="policy-footer">
-    <div class="container footer-inner">
-      <p>© {new Date().getFullYear()} Sumit Sahoo · MIT License</p>
-      <p><a href={site.repo} rel="noopener">View source</a></p>
-    </div>
-  </footer>
+  <Footer linkPrefix="/" />
 </BaseLayout>
 
 <style>
-  .policy-header {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    border-bottom: 1px solid var(--line);
-    background: color-mix(in srgb, var(--bg) 82%, transparent);
-    -webkit-backdrop-filter: saturate(180%) blur(24px);
-    backdrop-filter: saturate(180%) blur(24px);
+  .policy-page {
+    padding-block: clamp(3.5rem, 8vw, 6.5rem);
   }
 
-  .header-inner,
-  .footer-inner {
+  .policy-shell {
+    width: min(calc(100% - (2 * var(--gutter))), 48rem);
+  }
+
+  .policy-intro {
+    padding-bottom: clamp(3rem, 6vw, 4rem);
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  .policy-kicker {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 1rem 2rem;
-  }
-
-  .header-inner {
-    min-height: 4.25rem;
-  }
-
-  .back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    min-height: 44px;
-    color: var(--ink-2);
-    font-size: 0.875rem;
-    font-weight: 700;
-    white-space: nowrap;
-  }
-
-  .back-link :global(svg) {
+    gap: 0.5rem;
+    margin: 0;
     color: var(--accent-ink);
-    transform: rotate(180deg);
-    transition: transform 0.16s ease;
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
-  .back-link:hover :global(svg) {
-    transform: rotate(180deg) translateX(3px);
+  .policy-intro h1 {
+    max-width: 11ch;
+    margin-top: 1.5rem;
+    color: var(--ink);
+    font-size: clamp(3.25rem, 10vw, 6.5rem);
+    font-weight: 760;
+    letter-spacing: -0.065em;
+    line-height: 0.91;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
   }
 
-  .policy-page {
-    padding-block: clamp(4rem, 9vw, 8rem);
-  }
-
-  .policy-grid {
-    display: grid;
-    grid-template-columns: minmax(210px, 250px) minmax(0, 820px);
-    justify-content: center;
-    gap: clamp(3rem, 8vw, 7.5rem);
-    align-items: start;
-  }
-
-  .policy-aside {
-    position: sticky;
-    top: 7rem;
-    display: grid;
-    gap: 1.4rem;
-    color: var(--ink-3);
-    font-size: 0.9rem;
-  }
-
-  .policy-aside > p:not(.eyebrow) {
+  .policy-lede {
+    max-width: 40rem;
+    margin-top: 2rem;
+    color: var(--ink-2);
+    font-size: clamp(1.1rem, 2vw, 1.3rem);
     line-height: 1.65;
   }
 
-  .policy-aside nav {
+  .policy-facts {
     display: grid;
-    border-top: 1px solid var(--line-2);
-  }
-
-  .policy-aside nav a {
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid var(--line);
-    color: var(--ink-2);
-    font-size: 0.84rem;
-    font-weight: 700;
-    transition:
-      color 0.15s ease,
-      padding-left 0.15s ease;
-  }
-
-  .policy-aside nav a:hover {
-    padding-left: 0.25rem;
-    color: var(--accent-ink);
-  }
-
-  .policy-document {
-    min-width: 0;
-    padding-top: clamp(1.5rem, 3vw, 2.5rem);
-    border-top: 1px solid var(--line-2);
-  }
-
-  .policy-document :global(h1) {
-    max-width: 12ch;
-    font-size: clamp(3rem, 1.35rem + 5.5vw, 6rem);
-    font-weight: 760;
-    letter-spacing: -0.055em;
-    line-height: 0.92;
-  }
-
-  .policy-document :global(h1 + p) {
-    margin-top: 1.2rem;
-    color: var(--ink-4);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem 1.5rem;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
     font-family: var(--font-mono);
     font-size: var(--t-mono);
-    font-style: normal;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
+  }
+
+  .policy-facts dt {
+    color: var(--ink-4);
+  }
+
+  .policy-facts dd {
+    margin-top: 0.35rem;
+    color: var(--ink);
+  }
+
+  .policy-document :global(h1),
+  .policy-document :global(h1 + p) {
+    display: none;
   }
 
   .policy-document :global(h2) {
     scroll-margin-top: 6.5rem;
-    margin-top: clamp(2.5rem, 6vw, 4rem);
-    padding-top: clamp(2rem, 5vw, 3rem);
-    border-top: 1px solid var(--line-2);
-    font-size: clamp(1.45rem, 1.15rem + 1.25vw, 2rem);
+    margin-top: 0;
+    padding-block: clamp(2.5rem, 6vw, 3.5rem) 0;
+    border-top: 1px solid var(--line);
+    color: var(--ink);
+    font-size: clamp(1.55rem, 3vw, 2.15rem);
+    font-weight: 720;
+    letter-spacing: -0.035em;
     line-height: 1.08;
+    text-wrap: balance;
   }
+
+  .policy-document :global(h2:first-of-type) {
+    border-top: 0;
+  }
+
+  .policy-document :global(h2::before) {
+    display: block;
+    margin-bottom: 0.75rem;
+    color: var(--accent-ink);
+    font-family: var(--font-mono);
+    font-size: var(--t-mono);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .policy-document :global(h2:nth-of-type(1)::before) { content: '01 / Summary'; }
+  .policy-document :global(h2:nth-of-type(2)::before) { content: '02 / Local data'; }
+  .policy-document :global(h2:nth-of-type(3)::before) { content: '03 / Network'; }
+  .policy-document :global(h2:nth-of-type(4)::before) { content: '04 / Recipients'; }
+  .policy-document :global(h2:nth-of-type(5)::before) { content: '05 / Bundled tools'; }
+  .policy-document :global(h2:nth-of-type(6)::before) { content: '06 / File access'; }
+  .policy-document :global(h2:nth-of-type(7)::before) { content: '07 / Controls'; }
+  .policy-document :global(h2:nth-of-type(8)::before) { content: '08 / Source'; }
+  .policy-document :global(h2:nth-of-type(9)::before) { content: '09 / Revisions'; }
 
   .policy-document :global(p),
   .policy-document :global(ul) {
     margin-top: 1rem;
-    line-height: 1.75;
+    color: var(--ink-2);
+    font-size: 1rem;
+    line-height: 1.72;
   }
 
   .policy-document :global(ul) {
@@ -202,7 +190,7 @@ const description =
     color: var(--accent-ink);
     font-weight: 700;
     text-decoration: underline;
-    text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent);
+    text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
     text-underline-offset: 0.2em;
   }
 
@@ -213,98 +201,9 @@ const description =
     color: var(--ink);
   }
 
-  .policy-footer {
-    border-top: 1px solid var(--line-2);
-  }
-
-  .footer-inner {
-    min-height: 5.5rem;
-    flex-wrap: wrap;
-    padding-block: 1.25rem;
-    color: var(--ink-4);
-    font-family: var(--font-mono);
-    font-size: var(--t-mono);
-  }
-
-  .footer-inner a {
-    color: var(--ink-2);
-  }
-
-  @media (max-width: 820px) {
-    .policy-grid {
-      grid-template-columns: minmax(0, 760px);
-      gap: 2rem;
-    }
-
-    .policy-aside {
-      position: static;
-      grid-template-columns: 1fr auto;
-      align-items: start;
-    }
-
-    .policy-aside .eyebrow,
-    .policy-aside nav {
-      grid-column: 1 / -1;
-    }
-
-    .policy-aside nav {
-      grid-template-columns: repeat(4, 1fr);
-    }
-
-    .policy-aside nav a {
-      justify-content: center;
-      border-right: 1px solid var(--line);
-      text-align: center;
-    }
-
-    .policy-aside nav a:last-child {
-      border-right: 0;
-    }
-
-    .policy-aside nav a:hover {
-      padding-left: 0;
-    }
-
-  }
-
-  @media (max-width: 560px) {
-    .header-inner {
-      min-height: 4rem;
-    }
-
-    .back-link {
-      font-size: 0.78rem;
-    }
-
-    .policy-page {
-      padding-block: 2.25rem 3rem;
-    }
-
-    .policy-aside {
-      grid-template-columns: 1fr;
-    }
-
-    .policy-aside nav {
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .policy-aside > p {
-      grid-column: 1 / -1;
-    }
-
-    .policy-document {
-      padding-top: 1.4rem;
-    }
-
-    .footer-inner {
-      align-items: flex-start;
-      flex-direction: column;
-    }
-  }
-
-  @media (max-width: 360px) {
-    .header-inner :global(.brand-name) {
-      display: none;
+  @media (min-width: 40rem) {
+    .policy-facts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 </style>

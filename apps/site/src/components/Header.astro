@@ -2,6 +2,14 @@
 import { site, nav } from '../data/site';
 import Icon from './Icon.astro';
 import Brand from './Brand.astro';
+
+interface Props {
+  /** Prefix in-page anchors when the header is rendered on a secondary route. */
+  linkPrefix?: string;
+}
+
+const { linkPrefix = '' } = Astro.props;
+const resolveNavHref = (href: string) => (href.startsWith('#') ? `${linkPrefix}${href}` : href);
 ---
 
 <header class="header" data-site-header>
@@ -9,7 +17,7 @@ import Brand from './Brand.astro';
     <Brand size={40} />
 
     <nav class="nav nav--desktop" aria-label="Primary">
-      {nav.map((link) => <a href={link.href} data-nav-link>{link.label}</a>)}
+      {nav.map((link) => <a href={resolveNavHref(link.href)} data-nav-link>{link.label}</a>)}
     </nav>
 
     <div class="actions">
@@ -50,7 +58,7 @@ import Brand from './Brand.astro';
     </div>
     <nav aria-label="Mobile navigation">
       {nav.map((link, index) => (
-        <a href={link.href} data-nav-link>
+        <a href={resolveNavHref(link.href)} data-nav-link>
           <span>{String(index + 1).padStart(2, '0')}</span>
           {link.label}
         </a>
