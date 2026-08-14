@@ -48,9 +48,9 @@
   --band-accent: #7fbdd1;
   --positive: #14814b;
 
-  --shadow-window: 0 42px 110px -48px rgba(5, 18, 24, 0.5);
-  --shadow-card: 0 24px 70px -46px rgba(5, 18, 24, 0.32);
-  --shadow-btn: 0 14px 32px -18px color-mix(in srgb, var(--accent) 68%, transparent);
+  --shadow-window: none;
+  --shadow-card: none;
+  --shadow-btn: none;
 
   --font-sans: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
     'Helvetica Neue', Arial, sans-serif;
@@ -63,16 +63,16 @@
   --t-h3: clamp(1.12rem, 1rem + 0.5vw, 1.38rem);
   --t-h3-lg: clamp(1.4rem, 1.1rem + 1.1vw, 1.9rem);
   --t-h2-band: clamp(2.2rem, 1.35rem + 3.4vw, 4.25rem);
-  --t-h2: clamp(2.45rem, 1.35rem + 4.5vw, 5.2rem);
-  --t-h1: clamp(3.25rem, 1.2rem + 8.1vw, 7.7rem);
+  --t-h2: clamp(2.15rem, 4.7vw, 4.9rem);
+  --t-h1: clamp(2.75rem, 5.5vw, 5.6rem);
 
   /* Content column — matches CloakPDF's site-frame exactly: an 88rem cap with
      1rem page margins on phones and 1.5rem from the sm breakpoint upward. */
   --page-max: 88rem;
   --gutter: 1rem;
-  --radius: 12px;
-  --radius-lg: 14px;
-  --radius-xl: 22px;
+  --radius: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -101,8 +101,8 @@
     --band-accent: #7fbdd1;
     --positive: #35c980;
 
-    --shadow-window: 0 30px 80px -30px rgba(0, 0, 0, 0.8);
-    --shadow-card: 0 24px 60px -30px rgba(0, 0, 0, 0.75);
+    --shadow-window: none;
+    --shadow-card: none;
   }
 }
 
@@ -149,7 +149,7 @@ h1,
 h2,
 h3 {
   color: var(--ink);
-  font-weight: 770;
+  font-weight: 720;
   letter-spacing: -0.045em;
   line-height: 0.98;
   text-wrap: balance;
@@ -157,10 +157,11 @@ h3 {
 
 h1 {
   font-size: var(--t-h1);
+  font-weight: 760;
 }
 h2 {
   font-size: var(--t-h2);
-  line-height: 1;
+  line-height: 0.98;
 }
 h3 {
   font-size: var(--t-h3);
@@ -266,9 +267,10 @@ svg {
   align-items: center;
   justify-content: center;
   gap: 0.55rem;
-  font: inherit;
+  font-family: var(--font-mono);
   font-weight: 650;
-  font-size: var(--t-body);
+  font-size: 0.72rem;
+  letter-spacing: 0.035em;
   line-height: 1;
   padding: 0.85rem 1.35rem;
   border-radius: var(--radius);
@@ -277,16 +279,13 @@ svg {
   color: var(--ink);
   cursor: pointer;
   white-space: nowrap;
-  min-height: 44px;
+  min-height: 48px;
+  text-transform: uppercase;
   transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
 }
 
-.btn:hover {
-  transform: translateY(-1px);
-}
-
 .btn:active {
-  transform: translateY(0);
+  transform: translateY(1px);
 }
 
 .btn--primary {
@@ -328,7 +327,7 @@ svg {
   background: var(--accent);
   color: #fff;
   padding: 0.6rem 1rem;
-  border-radius: 10px;
+  border-radius: var(--radius);
   transition: top 0.2s ease;
 }
 

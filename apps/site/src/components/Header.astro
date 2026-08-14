@@ -6,7 +6,7 @@ import Brand from './Brand.astro';
 
 <header class="header" data-site-header>
   <div class="container bar">
-    <Brand size={44} />
+    <Brand size={40} />
 
     <nav class="nav nav--desktop" aria-label="Primary">
       {nav.map((link) => <a href={link.href} data-nav-link>{link.label}</a>)}
@@ -16,7 +16,8 @@ import Brand from './Brand.astro';
       <a
         class="source-link"
         href={site.repo}
-        rel="noopener"
+        target="_blank"
+        rel="noreferrer"
         aria-label="View CloakDrop source on GitHub"
       >
         <Icon name="github" size={16} />
@@ -66,32 +67,38 @@ import Brand from './Brand.astro';
     position: sticky;
     top: 0;
     z-index: 50;
-    background: color-mix(in srgb, var(--bg) 84%, transparent);
-    -webkit-backdrop-filter: saturate(150%) blur(18px);
-    backdrop-filter: saturate(150%) blur(18px);
+    height: 4.5rem;
+    background: var(--bg);
     border-bottom: 1px solid var(--line);
   }
 
   .bar {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
-    gap: clamp(1rem, 2.5vw, 2.5rem);
-    min-height: 4.5rem;
+    gap: 1.5rem;
+    height: 100%;
   }
 
   .nav {
     display: flex;
     align-items: center;
-    gap: clamp(1rem, 2vw, 1.75rem);
-    margin-left: auto;
+    justify-content: center;
+    gap: 0.25rem;
     color: var(--ink-3);
-    font-size: 0.8125rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
     font-weight: 600;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
   }
 
   .nav a {
     position: relative;
-    padding-block: 0.45rem;
+    min-height: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+    padding-inline: 0.75rem;
     transition: color 0.18s ease;
   }
 
@@ -122,6 +129,7 @@ import Brand from './Brand.astro';
   }
 
   .actions {
+    justify-self: end;
     display: flex;
     align-items: center;
     gap: 0.35rem;
@@ -132,10 +140,10 @@ import Brand from './Brand.astro';
     align-items: center;
     justify-content: center;
     gap: 0.45rem;
-    min-height: 36px;
+    min-height: 2.5rem;
     padding-inline: 0.75rem;
     border: 1px solid var(--line-2);
-    border-radius: 9px;
+    border-radius: 6px;
     color: var(--ink-3);
     font-family: var(--font-mono);
     font-size: 0.6875rem;
@@ -162,7 +170,7 @@ import Brand from './Brand.astro';
     height: 44px;
     padding: 0;
     border: 0;
-    border-radius: 10px;
+    border-radius: var(--radius);
     color: var(--ink-2);
     background: transparent;
     cursor: pointer;
@@ -223,20 +231,17 @@ import Brand from './Brand.astro';
     width: min(30rem, calc(100vw - (var(--gutter) * 2)));
     max-width: 30rem;
     margin: 0;
-    padding: 0.9rem;
+    padding: 0.75rem;
+    overscroll-behavior: contain;
     border: 1px solid var(--line-2);
-    border-radius: 18px;
+    border-radius: 8px;
     color: var(--ink-2);
-    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    background: var(--surface);
     box-shadow: 0 28px 80px -30px rgba(12, 17, 20, 0.48);
-    -webkit-backdrop-filter: saturate(170%) blur(28px);
-    backdrop-filter: saturate(170%) blur(28px);
   }
 
   .mobile-panel::backdrop {
-    background: color-mix(in srgb, var(--band) 24%, transparent);
-    -webkit-backdrop-filter: blur(3px);
-    backdrop-filter: blur(3px);
+    background: color-mix(in srgb, var(--band) 58%, transparent);
   }
 
   .mobile-panel:popover-open {
@@ -315,17 +320,21 @@ import Brand from './Brand.astro';
   }
 
   @media (max-width: 900px) {
+    .bar {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
     .nav--desktop {
       display: none;
     }
 
     .actions {
-      margin-left: auto;
+      justify-self: end;
     }
 
     .source-link {
       min-height: 44px;
-      border-radius: 10px;
+      border-radius: var(--radius);
     }
 
     .menu-toggle {
@@ -336,7 +345,6 @@ import Brand from './Brand.astro';
   @media (max-width: 520px) {
     .bar {
       gap: 0.35rem;
-      min-height: 4.25rem;
     }
 
     .source-link {
@@ -350,7 +358,7 @@ import Brand from './Brand.astro';
     }
 
     .mobile-panel {
-      top: 4.7rem;
+      top: 5rem;
     }
   }
 

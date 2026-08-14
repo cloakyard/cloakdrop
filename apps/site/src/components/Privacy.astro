@@ -225,16 +225,14 @@ import Icon from './Icon.astro';
     padding: 0.95rem;
     background: color-mix(in srgb, var(--surface) 94%, transparent);
     border: 1px solid var(--line-2);
-    border-radius: 9px;
-    box-shadow: 0 10px 28px -24px rgba(12, 17, 20, 0.5);
+    border-radius: var(--radius-lg);
+    box-shadow: none;
   }
 
   .route-node--app {
     padding-top: 2.7rem;
     border-color: color-mix(in srgb, var(--accent) 42%, var(--line-2));
-    box-shadow:
-      0 12px 30px -24px color-mix(in srgb, var(--accent) 60%, transparent),
-      inset 0 0 0 1px color-mix(in srgb, var(--accent) 7%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 7%, transparent);
   }
 
   .route-node--destination + .route-node--destination {
@@ -351,7 +349,7 @@ import Icon from './Icon.astro';
     overflow: hidden;
     background: color-mix(in srgb, var(--surface) 94%, transparent);
     border: 1px solid var(--line-2);
-    border-radius: 9px;
+    border-radius: var(--radius-lg);
   }
 
   .absent-head {
@@ -542,7 +540,7 @@ import Icon from './Icon.astro';
   @media (max-width: 520px) {
     .privacy-frame {
       padding: 1.25rem;
-      border-radius: 18px;
+      border-radius: var(--radius-lg);
     }
 
     .privacy-frame::before {

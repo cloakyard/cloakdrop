@@ -443,7 +443,7 @@ const lanes = [
     border: 1px solid var(--line-2);
     border-radius: var(--radius-xl);
     background: var(--surface);
-    box-shadow: 0 38px 90px -64px rgba(12, 17, 20, 0.7);
+    box-shadow: none;
     overflow: hidden;
   }
 
@@ -634,7 +634,7 @@ const lanes = [
   .transfer-machine {
     align-self: end;
     border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--line-2));
-    border-radius: 18px;
+    border-radius: var(--radius-lg);
     background: color-mix(in srgb, var(--surface) 92%, transparent);
     box-shadow: var(--shadow-card);
     overflow: hidden;
@@ -667,7 +667,7 @@ const lanes = [
     place-items: center;
     width: 34px;
     height: 34px;
-    border-radius: 9px;
+    border-radius: var(--radius);
     color: #fff;
     background: linear-gradient(145deg, var(--accent), var(--accent-strong));
     font-family: var(--font-mono);
@@ -936,13 +936,15 @@ const lanes = [
     min-height: 44px;
     padding: 0.72rem 1rem;
     border: 1px solid var(--line-2);
-    border-radius: 10px;
+    border-radius: var(--radius);
     color: var(--ink);
     background: var(--surface);
-    font: inherit;
-    font-size: 0.73rem;
-    font-weight: 700;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 650;
+    letter-spacing: 0.035em;
     line-height: 1;
+    text-transform: uppercase;
     cursor: pointer;
     transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
   }
@@ -955,7 +957,6 @@ const lanes = [
 
   .simulate-button:hover:not(:disabled) {
     background: color-mix(in srgb, var(--accent-strong) 90%, #000);
-    transform: translateY(-1px);
   }
 
   .reset-button:hover:not(:disabled) {
@@ -998,9 +999,9 @@ const lanes = [
   .queue-column,
   .finish-column {
     border: 1px solid var(--line-2);
-    border-radius: 16px;
+    border-radius: var(--radius-lg);
     background: color-mix(in srgb, var(--surface) 92%, transparent);
-    box-shadow: 0 16px 38px -34px rgba(12, 17, 20, 0.7);
+    box-shadow: none;
   }
 
   .capture-card {
@@ -1017,7 +1018,7 @@ const lanes = [
     width: 34px;
     height: 34px;
     border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
-    border-radius: 10px;
+    border-radius: var(--radius);
     color: var(--accent-ink);
     background: var(--accent-soft);
     font-family: var(--font-mono);
@@ -1181,7 +1182,7 @@ const lanes = [
     margin-top: 1rem;
     padding: 0.75rem;
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     background: var(--surface-2);
   }
 
@@ -1192,7 +1193,7 @@ const lanes = [
     place-items: center;
     width: 34px;
     height: 34px;
-    border-radius: 9px;
+    border-radius: var(--radius);
     color: #fff;
     background: var(--accent-strong);
     font-family: var(--font-mono);
@@ -1288,7 +1289,7 @@ const lanes = [
     gap: 0.65rem;
     padding: 0.65rem;
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: var(--radius);
     background: var(--surface-2);
   }
 
@@ -1641,7 +1642,7 @@ const lanes = [
 
   @media (prefers-color-scheme: dark) {
     .theatre-shell {
-      box-shadow: 0 38px 90px -64px rgba(0, 0, 0, 0.92);
+      box-shadow: none;
     }
 
     .simulate-button {

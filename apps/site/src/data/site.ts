@@ -53,10 +53,9 @@ export const hero = {
   titleLead: 'Built to resume.',
   titleAccent: 'Finished with a record.',
   lead:
-    'A native transfer engine that plans parallel ranges from file size and proven ' +
-    'range support, lets you choose the connection count, recovers saved progress ' +
-    'after relaunch, and—when verification is enabled—checks available checksums ' +
-    'locally before the final file appears.',
+    'Plan parallel ranges automatically or choose the connection count. CloakDrop ' +
+    'restores saved progress after relaunch and verifies available checksums locally ' +
+    'before the finished file appears.',
   micro: 'MIT licensed · No account required',
   figLabel: 'NATIVE APP PREVIEW · ADAPTIVE RANGE TRANSFER',
   shotAlt:
