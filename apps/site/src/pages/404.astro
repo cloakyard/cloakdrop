@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Brand from '../components/Brand.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
 import Icon from '../components/Icon.astro';
 ---
 
@@ -9,56 +10,206 @@ import Icon from '../components/Icon.astro';
   description="The requested CloakDrop page does not exist."
   noindex
 >
-  <header class="not-found-header">
-    <div class="container"><Brand size={40} /></div>
-  </header>
+  <Header linkPrefix="/" />
+
   <main id="main" class="not-found">
-    <div class="container">
-      <p class="kicker">404 — Not found</p>
-      <h1>This link went missing.</h1>
-      <p>The page may have moved. Return home to continue exploring CloakDrop.</p>
-      <a class="btn btn--primary" href="/">
-        Back to CloakDrop
-        <Icon name="arrow" size={17} />
-      </a>
-    </div>
+    <section class="container not-found__hero" aria-labelledby="not-found-title">
+      <div>
+        <p class="kicker">404 — Route unavailable</p>
+        <h1 id="not-found-title">This link went missing.</h1>
+      </div>
+
+      <div class="not-found__aside">
+        <p>
+          The page may have moved or never existed. Return to the CloakDrop workbench to continue
+          exploring the product, its privacy model, and the current beta.
+        </p>
+        <a class="btn btn--primary" href="/">
+          Back to CloakDrop
+          <Icon name="arrow" size={17} />
+        </a>
+      </div>
+    </section>
+
+    <section class="not-found__receipt" aria-label="Navigation receipt">
+      <div class="container not-found__receipt-inner">
+        <div class="not-found__receipt-head">
+          <span>Navigation receipt</span>
+          <span>Local site state</span>
+        </div>
+
+        <dl class="not-found__routes">
+          <div>
+            <dt>01 / Requested route</dt>
+            <dd>No matching page</dd>
+            <span>Nothing was submitted</span>
+          </div>
+          <div>
+            <dt>02 / Safe route</dt>
+            <dd>CloakDrop home</dd>
+            <span>Product · receipt · privacy</span>
+          </div>
+          <div>
+            <dt>03 / Recovery</dt>
+            <dd>One click</dd>
+            <span>No account or session required</span>
+          </div>
+        </dl>
+      </div>
+    </section>
   </main>
+
+  <Footer linkPrefix="/" />
 </BaseLayout>
 
 <style>
-  .not-found-header {
-    border-bottom: 1px solid var(--line);
-  }
-
-  .not-found-header .container {
-    display: flex;
-    align-items: center;
-    min-height: 4.25rem;
-  }
-
   .not-found {
-    display: grid;
-    min-height: calc(100vh - 4.25rem);
-    place-items: center;
-    padding-block: 4rem;
+    min-height: calc(100svh - 4.5rem);
   }
 
-  .not-found .container {
-    max-width: 48rem;
+  .not-found__hero {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(18rem, 5fr);
+    align-items: end;
+    gap: clamp(3rem, 8vw, 8rem);
+    padding-block: clamp(5.5rem, 12vw, 10rem);
   }
 
   h1 {
     max-width: 10ch;
     margin-top: 1.5rem;
+    text-wrap: balance;
   }
 
-  .not-found p:not(.kicker) {
-    max-width: 42rem;
-    margin-top: 1.5rem;
+  .not-found__aside {
+    padding-top: 1.35rem;
+    border-top: 1px solid var(--line-2);
+  }
+
+  .not-found__aside p {
+    max-width: 34rem;
+    color: var(--ink-2);
     font-size: var(--t-lead);
+    line-height: 1.65;
   }
 
-  .not-found .btn {
+  .not-found__aside .btn {
     margin-top: 2rem;
+  }
+
+  .not-found__receipt {
+    color: var(--band-ink);
+    background: var(--band);
+    border-block: 1px solid color-mix(in srgb, var(--band-ink-2) 30%, transparent);
+  }
+
+  .not-found__receipt-inner {
+    padding-block: clamp(2rem, 5vw, 4.5rem);
+  }
+
+  .not-found__receipt-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    color: var(--band-ink-2);
+    border-bottom: 1px solid color-mix(in srgb, var(--band-ink-2) 32%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.075em;
+    text-transform: uppercase;
+  }
+
+  .not-found__routes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+  }
+
+  .not-found__routes > div {
+    min-width: 0;
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    border-right: 1px solid color-mix(in srgb, var(--band-ink-2) 24%, transparent);
+  }
+
+  .not-found__routes > div:first-child {
+    padding-left: 0;
+  }
+
+  .not-found__routes > div:last-child {
+    padding-right: 0;
+    border-right: 0;
+  }
+
+  .not-found__routes dt,
+  .not-found__routes span {
+    color: var(--band-ink-2);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.055em;
+    line-height: 1.45;
+    text-transform: uppercase;
+  }
+
+  .not-found__routes dd {
+    margin: clamp(2.5rem, 5vw, 4.5rem) 0 0;
+    color: var(--band-ink);
+    font-size: clamp(1.3rem, 2.4vw, 2rem);
+    font-weight: 720;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+  }
+
+  .not-found__routes span {
+    display: block;
+    margin-top: 0.65rem;
+  }
+
+  @media (max-width: 860px) {
+    .not-found__hero {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+
+    .not-found__aside {
+      max-width: 42rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .not-found__hero {
+      padding-block: 4.5rem 5rem;
+    }
+
+    .not-found__aside .btn {
+      width: 100%;
+    }
+
+    .not-found__receipt-head {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .not-found__routes {
+      grid-template-columns: 1fr;
+    }
+
+    .not-found__routes > div,
+    .not-found__routes > div:first-child,
+    .not-found__routes > div:last-child {
+      padding: 1.5rem 0;
+      border-right: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--band-ink-2) 24%, transparent);
+    }
+
+    .not-found__routes > div:last-child {
+      border-bottom: 0;
+    }
+
+    .not-found__routes dd {
+      margin-top: 1.5rem;
+    }
   }
 </style>
