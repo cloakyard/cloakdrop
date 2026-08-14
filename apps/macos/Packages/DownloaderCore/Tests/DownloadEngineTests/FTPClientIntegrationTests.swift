@@ -32,6 +32,23 @@ struct FTPClientIntegrationTests {
         #expect(body == payload)
     }
 
+    @Test("A server without REST is not advertised as resumable")
+    func probeRejectsServerWithoutREST() async throws {
+        let payload = Data((0..<10_000).map { UInt8($0 % 251) })
+        let server = try LoopbackFTPServer(payload: payload, supportsREST: false)
+        try await server.start()
+        defer { server.stop() }
+
+        let client = FTPClient()
+        let request = HTTPDownloadRequest(url: server.baseURL)
+        let head = try await client.probe(request)
+        #expect(head.totalBytes == Int64(payload.count))
+        #expect(!head.acceptsRanges)
+
+        let (_, stream) = try await client.stream(request)
+        #expect(try await collect(stream) == payload)
+    }
+
     @Test("Resumes from a byte offset via REST and reports 206 (what the engine's range guard requires)")
     func restResume() async throws {
         let payload = Data((0..<40_000).map { UInt8(($0 * 7) % 251) })

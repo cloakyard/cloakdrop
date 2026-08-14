@@ -12,9 +12,9 @@ import Icon from './Icon.astro';
       <div class="status"><i aria-hidden="true"></i><span>Public beta status</span></div>
       <h2>Follow the beta at the source.</h2>
       <p class="body">
-        {downloads.status} GitHub Releases is the source of truth for builds,
-        checksums, release notes, and current installation guidance—without an updater
-        account or mailing-list gate.
+        {downloads.status} GitHub Releases lists each available build, its checksum,
+        release notes, and current installation guidance—without an updater account or
+        mailing-list gate.
       </p>
 
       <div class="requirements" aria-label="System requirements">
@@ -156,18 +156,21 @@ import Icon from './Icon.astro';
     align-items: center;
     justify-content: center;
     gap: 0.65rem;
-    min-height: 54px;
+    min-height: 48px;
     padding: 0 1.35rem;
     border: 1px solid #f4f8f9;
-    border-radius: 12px;
+    border-radius: var(--radius);
     color: #071014;
     background: #f4f8f9;
-    font-weight: 720;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 650;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
     transition: transform .16s ease, background .16s ease;
   }
 
   .download-action:hover {
-    transform: translateY(-2px);
     background: #dfecef;
   }
 

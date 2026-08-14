@@ -1,5 +1,3 @@
-import Foundation
-
 /// Evaluates a prospective download against the user's `SmartRule`s and folds the winning rule's
 /// actions into the request. Pure and I/O-free: it reasons over values only, so it runs on the main
 /// actor at add time and is exhaustively unit-tested. This is the crown of the on-device intake —

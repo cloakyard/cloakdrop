@@ -24,6 +24,21 @@ struct LoopbackIntegrationTests {
         #expect(head.acceptsRanges == true)
     }
 
+    @Test("A real 416 range probe identifies a valid empty resource")
+    func emptyProbe() async throws {
+        let server = try LoopbackHTTPServer(payload: Data(), acceptsRanges: true)
+        try await server.start()
+        defer { server.stop() }
+
+        let client = URLSessionHTTPClient()
+        let head = try await client.probe(HTTPDownloadRequest(
+            url: server.baseURL.appendingPathComponent("empty.bin")
+        ))
+        #expect(head.statusCode == 416)
+        #expect(head.totalBytes == 0)
+        #expect(head.acceptsRanges == false)
+    }
+
     @Test("Multi-segment download over real HTTP reassembles byte-perfectly")
     func multiSegment() async throws {
         let payload = makePayload(256_000)
@@ -68,5 +83,58 @@ struct LoopbackIntegrationTests {
         #expect(finished.segments.count > 1)
         let bytes = try Data(contentsOf: URL(fileURLWithPath: finished.destinationFilePath))
         #expect(bytes == payload)
+    }
+
+    @Test("A slow body consumer receives every byte through the bounded URLSession stream")
+    func boundedStreamBackpressurePreservesBytes() async throws {
+        let payload = makePayload(4 * 1024 * 1024)
+        let server = try LoopbackHTTPServer(payload: payload, acceptsRanges: true)
+        try await server.start()
+        defer { server.stop() }
+
+        let client = URLSessionHTTPClient()
+        let requested = Int64(0)...Int64(payload.count - 1)
+        let (head, stream) = try await client.stream(HTTPDownloadRequest(
+            url: server.baseURL.appendingPathComponent("backpressure.bin"),
+            byteRange: requested
+        ))
+        #expect(head.contentRange == requested)
+
+        var received = Data()
+        received.reserveCapacity(payload.count)
+        for try await chunk in stream {
+            received.append(chunk)
+            // Deliberately consume behind the producer so its eight-chunk high-water mark is hit.
+            try await Task.sleep(for: .milliseconds(2))
+        }
+        #expect(received == payload)
+    }
+
+    @Test("Cancellation while waiting for response headers cancels the URLSession task promptly")
+    func responseHeadWaitIsCancellationAware() async throws {
+        let server = try LoopbackHTTPServer(
+            payload: Data(repeating: 1, count: 1_024),
+            stallsBeforeResponse: true
+        )
+        try await server.start()
+        defer { server.stop() }
+
+        let client = URLSessionHTTPClient()
+        let clock = ContinuousClock()
+        let started = clock.now
+        let requestTask = Task {
+            _ = try await client.stream(HTTPDownloadRequest(
+                url: server.baseURL.appendingPathComponent("stall.bin")
+            ))
+        }
+        try await Task.sleep(for: .milliseconds(50))
+        requestTask.cancel()
+        do {
+            try await requestTask.value
+            Issue.record("expected the stalled request to be canceled")
+        } catch {
+            // Any cancellation-shaped transport error is acceptable; latency is the invariant.
+        }
+        #expect(started.duration(to: clock.now) < .seconds(1))
     }
 }

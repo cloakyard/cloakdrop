@@ -26,4 +26,25 @@ struct RequestBuilderTests {
         #expect(req.value(forHTTPHeaderField: "Range") == "bytes=100-199")
         #expect(req.value(forHTTPHeaderField: "User-Agent") == URLSessionHTTPClient.defaultUserAgent)
     }
+
+    @Test("Every transfer uses identity encoding so probe, ranges, and fallback address the same bytes")
+    func transferRequestUsesIdentityEncoding() {
+        let request = HTTPDownloadRequest(
+            url: URL(string: "https://example.com/archive.zip")!,
+            byteRange: 100...199
+        )
+        let built = URLSessionHTTPClient.makeURLRequest(request)
+        #expect(built.value(forHTTPHeaderField: "Accept-Encoding") == "identity")
+        let whole = HTTPDownloadRequest(url: request.url)
+        #expect(URLSessionHTTPClient.makeURLRequest(whole)
+            .value(forHTTPHeaderField: "Accept-Encoding") == "identity")
+
+        let callerOverride = HTTPDownloadRequest(
+            url: request.url,
+            headers: ["accept-encoding": "custom"],
+            byteRange: request.byteRange
+        )
+        #expect(URLSessionHTTPClient.makeURLRequest(callerOverride)
+            .value(forHTTPHeaderField: "Accept-Encoding") == "custom")
+    }
 }

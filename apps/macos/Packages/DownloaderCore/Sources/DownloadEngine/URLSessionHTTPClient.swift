@@ -1,5 +1,4 @@
 import Foundation
-import CFNetwork
 import DownloadModels
 
 /// `HTTPClient` backed by `URLSession`.
@@ -32,13 +31,24 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
         self._streamSession = Self.makeStreamSession(configuration: configuration, delegate: self)
     }
 
+    /// Cancel outstanding work and break URLSession's delegate-retention cycle. Long-lived engine
+    /// clients do not need to call this; transient clients should invalidate when their request ends.
+    public func invalidate() {
+        sessionLock.withLock {
+            _probeSession.invalidateAndCancel()
+            _streamSession.invalidateAndCancel()
+        }
+    }
+
     public static func defaultConfiguration() -> URLSessionConfiguration {
         let config = URLSessionConfiguration.ephemeral
         config.httpShouldUsePipelining = false
         config.requestCachePolicy = .reloadIgnoringLocalCacheData
         config.timeoutIntervalForRequest = 60
         config.waitsForConnectivity = false
-        config.httpMaximumConnectionsPerHost = 16
+        // Match the user-visible hard ceiling. Automatic mode remains conservative (16 by default),
+        // while an explicit 17...32 override must not be silently queued behind a lower URLSession cap.
+        config.httpMaximumConnectionsPerHost = 32
         return config
     }
 
@@ -77,31 +87,58 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
             throw DownloadError.underlying(reason: "Server returned a non-HTTP response.")
         }
         let head = Self.parseHead(http)
+        // An empty representation has no satisfiable byte range. Standards-compliant servers answer
+        // our 0-0 probe with 416 + `Content-Range: bytes */0`; that is a successful zero-byte probe.
+        if head.statusCode == 416, head.totalBytes == 0 { return head }
         guard head.isSuccess || head.statusCode == 206 else {
             throw DownloadError.httpStatus(code: head.statusCode)
         }
-        return head
+        // The request definitely carried Range: 0-0. Only an exact 206 response proves the server
+        // honored it; `200 + Accept-Ranges: bytes` is merely an unfulfilled advertisement.
+        let provedRanges = head.statusCode == 206 && head.contentRange == 0...0
+        return HTTPResponseHead(
+            statusCode: head.statusCode,
+            totalBytes: head.totalBytes,
+            acceptsRanges: provedRanges,
+            suggestedFilename: head.suggestedFilename,
+            etag: head.etag,
+            finalURL: head.finalURL,
+            mimeType: head.mimeType,
+            contentRange: head.contentRange
+        )
     }
 
     public func stream(_ request: HTTPDownloadRequest) async throws -> (HTTPResponseHead, AsyncThrowingStream<Data, Error>) {
         registerCredentials(for: request)
         let urlRequest = Self.makeURLRequest(request)
         let task = streamSession.dataTask(with: urlRequest)
-        let (stream, continuation) = AsyncThrowingStream<Data, Error>.makeStream()
+        // Keep only a small number of network chunks ahead of the disk/rate-limited consumer. The
+        // registry suspends the URLSession task if this fills and resumes it as space reappears.
+        let (stream, continuation) = AsyncThrowingStream<Data, Error>.makeStream(
+            bufferingPolicy: .bufferingOldest(8)
+        )
         let taskID = task.taskIdentifier
 
-        let head: HTTPResponseHead = try await withCheckedThrowingContinuation { headContinuation in
-            registry.register(
-                taskID: taskID,
-                handler: TaskHandler(data: continuation, head: headContinuation)
-            )
-            continuation.onTermination = { [weak self] reason in
-                if case .cancelled = reason {
-                    task.cancel()
+        let head: HTTPResponseHead = try await withTaskCancellationHandler {
+            try Task.checkCancellation()
+            return try await withCheckedThrowingContinuation { headContinuation in
+                registry.register(
+                    taskID: taskID,
+                    handler: TaskHandler(data: continuation, head: headContinuation)
+                )
+                continuation.onTermination = { [weak self] reason in
+                    if case .cancelled = reason {
+                        task.cancel()
+                    }
+                    self?.registry.remove(taskID: taskID)
                 }
-                self?.registry.remove(taskID: taskID)
+                task.resume()
             }
-            task.resume()
+        } onCancel: {
+            // Cancellation can arrive before the body stream is returned, while the caller is still
+            // awaiting response headers. Cancel the underlying request immediately instead of making
+            // pause/cancel wait for the 60-second request timeout.
+            task.cancel()
         }
         return (head, stream)
     }
@@ -119,7 +156,7 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
                 )
             }
 
-            let config = Self.applyingProxy(proxy, to: baseConfiguration)
+            let config = ProxyRouting.applying(proxy, to: baseConfiguration)
             _probeSession.invalidateAndCancel()
             _streamSession.invalidateAndCancel()
             _probeSession = URLSession(configuration: config, delegate: probeDelegate, delegateQueue: nil)
@@ -163,8 +200,7 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
 
     /// A stock desktop-Safari User-Agent, used only when the caller (a browser capture) didn't supply
     /// one. Many CDNs — googlevideo especially — throttle or reject a generic/non-browser UA.
-    static let defaultUserAgent =
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
+    static let defaultUserAgent = DesktopUserAgent.safari()
 
     static func makeURLRequest(_ request: HTTPDownloadRequest) -> URLRequest {
         var urlRequest = URLRequest(url: request.url)
@@ -181,6 +217,12 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
         if let user = request.username, !user.isEmpty, let password = request.password {
             urlRequest.setValue(basicAuthorizationValue(user: user, password: password), forHTTPHeaderField: "Authorization")
         }
+        // Probe, ranged segments, and any whole-stream safety fallback must address the same identity
+        // representation. Transparent gzip/brotli can otherwise change both length and byte offsets
+        // between those requests. A caller-supplied encoding remains authoritative.
+        if !request.headers.keys.contains(where: { $0.caseInsensitiveCompare("Accept-Encoding") == .orderedSame }) {
+            urlRequest.setValue("identity", forHTTPHeaderField: "Accept-Encoding")
+        }
         if let range = request.byteRange {
             urlRequest.setValue("bytes=\(range.lowerBound)-\(range.upperBound)", forHTTPHeaderField: "Range")
         }
@@ -191,65 +233,19 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
         "Basic " + Data("\(user):\(password)".utf8).base64EncodedString()
     }
 
-    // MARK: Proxy configuration
-
-    /// Internal so the speed-test transport applies the same proxy routing as the engine.
-    static func applyingProxy(_ proxy: ProxyConfiguration, to base: URLSessionConfiguration) -> URLSessionConfiguration {
-        guard let config = base.copy() as? URLSessionConfiguration else { return base }
-        switch proxy.mode {
-        case .system:
-            config.connectionProxyDictionary = nil          // default: macOS system proxy
-        case .direct:
-            config.connectionProxyDictionary = [
-                kCFNetworkProxiesHTTPEnable as String: 0,
-                kCFNetworkProxiesHTTPSEnable as String: 0,
-                kCFNetworkProxiesSOCKSEnable as String: 0
-            ]
-        case .manual where proxy.isUsableManualProxy:
-            config.connectionProxyDictionary = manualProxyDictionary(proxy)
-        case .manual:
-            config.connectionProxyDictionary = nil           // incomplete config → fall back to system
-        }
-        return config
-    }
-
-    private static func manualProxyDictionary(_ proxy: ProxyConfiguration) -> [String: Any] {
-        switch proxy.type {
-        case .http:
-            return [
-                kCFNetworkProxiesHTTPEnable as String: 1,
-                kCFNetworkProxiesHTTPProxy as String: proxy.host,
-                kCFNetworkProxiesHTTPPort as String: proxy.port
-            ]
-        case .https:
-            return [
-                kCFNetworkProxiesHTTPSEnable as String: 1,
-                kCFNetworkProxiesHTTPSProxy as String: proxy.host,
-                kCFNetworkProxiesHTTPSPort as String: proxy.port
-            ]
-        case .socks5:
-            return [
-                kCFNetworkProxiesSOCKSEnable as String: 1,
-                kCFNetworkProxiesSOCKSProxy as String: proxy.host,
-                kCFNetworkProxiesSOCKSPort as String: proxy.port
-            ]
-        }
-    }
-
     // MARK: Response parsing
 
     private static func parseHead(_ http: HTTPURLResponse) -> HTTPResponseHead {
         let status = http.statusCode
         var total: Int64?
         var acceptsRanges = false
+        var returnedRange: ClosedRange<Int64>?
 
-        if status == 206, let contentRange = http.value(forHTTPHeaderField: "Content-Range") {
-            // Format: "bytes 0-0/12345"
-            acceptsRanges = true
-            if let slash = contentRange.lastIndex(of: "/") {
-                let totalString = contentRange[contentRange.index(after: slash)...]
-                if totalString != "*" { total = Int64(totalString) }
-            }
+        if let value = http.value(forHTTPHeaderField: "Content-Range") {
+            let parsed = parseContentRange(value)
+            total = parsed.total
+            returnedRange = parsed.range
+            acceptsRanges = status == 206 && returnedRange != nil
         } else {
             if let accept = http.value(forHTTPHeaderField: "Accept-Ranges") {
                 acceptsRanges = accept.lowercased().contains("bytes")
@@ -267,8 +263,24 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
             // `http.url` is the URL the request finally resolved to (URLSession follows redirects
             // by default); `http.mimeType` is the Content-Type with parameters already stripped.
             finalURL: http.url,
-            mimeType: http.mimeType?.lowercased()
+            mimeType: http.mimeType?.lowercased(),
+            contentRange: returnedRange
         )
+    }
+
+    /// Parse both satisfied (`bytes 10-19/100`) and unsatisfied (`bytes */0`) Content-Range forms.
+    private static func parseContentRange(_ value: String) -> (range: ClosedRange<Int64>?, total: Int64?) {
+        let pieces = value.trimmingCharacters(in: .whitespacesAndNewlines).split(separator: " ", maxSplits: 1)
+        guard pieces.count == 2, pieces[0].lowercased() == "bytes" else { return (nil, nil) }
+        let rangeAndTotal = pieces[1].split(separator: "/", maxSplits: 1, omittingEmptySubsequences: false)
+        guard rangeAndTotal.count == 2 else { return (nil, nil) }
+        let total = rangeAndTotal[1] == "*" ? nil : Int64(rangeAndTotal[1])
+        guard rangeAndTotal[0] != "*" else { return (nil, total) }
+        let bounds = rangeAndTotal[0].split(separator: "-", maxSplits: 1, omittingEmptySubsequences: false)
+        guard bounds.count == 2,
+              let lower = Int64(bounds[0]), let upper = Int64(bounds[1]),
+              lower >= 0, upper >= lower else { return (nil, total) }
+        return (lower...upper, total)
     }
 }
 
@@ -300,7 +312,10 @@ extension URLSessionHTTPClient: URLSessionDataDelegate {
     }
 
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        registry.yield(taskID: dataTask.taskIdentifier, data: data)
+        if registry.yield(taskID: dataTask.taskIdentifier, data: data) {
+            dataTask.suspend()
+            registry.drainPending(taskID: dataTask.taskIdentifier, task: dataTask)
+        }
     }
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
@@ -349,79 +364,5 @@ final class CredentialBox: @unchecked Sendable {
     func credential(for host: String) -> URLCredential? {
         lock.lock(); defer { lock.unlock() }
         return byHost[host]
-    }
-}
-
-// MARK: - Task registry
-
-/// One in-flight task's continuations.
-private struct TaskHandler {
-    let data: AsyncThrowingStream<Data, Error>.Continuation
-    var head: CheckedContinuation<HTTPResponseHead, Error>?
-}
-
-/// Lock-guarded map from `URLSessionTask.taskIdentifier` to its handler. Bridges the
-/// delegate's serial queue to the async callers.
-private final class TaskRegistry: @unchecked Sendable {
-    private let lock = NSLock()
-    private var handlers: [Int: TaskHandler] = [:]
-
-    func register(taskID: Int, handler: TaskHandler) {
-        lock.lock(); defer { lock.unlock() }
-        handlers[taskID] = handler
-    }
-
-    func remove(taskID: Int) {
-        lock.lock(); defer { lock.unlock() }
-        handlers[taskID] = nil
-    }
-
-    /// Resolve the head continuation exactly once.
-    func completeHead(taskID: Int, with result: Result<HTTPResponseHead, Error>) {
-        lock.lock()
-        guard var handler = handlers[taskID], let head = handler.head else { lock.unlock(); return }
-        handler.head = nil
-        handlers[taskID] = handler
-        lock.unlock()
-        head.resume(with: result)
-    }
-
-    func yield(taskID: Int, data: Data) {
-        lock.lock()
-        let continuation = handlers[taskID]?.data
-        lock.unlock()
-        continuation?.yield(data)
-    }
-
-    func finish(taskID: Int, error: (any Error)?) {
-        lock.lock()
-        let handler = handlers[taskID]
-        handlers[taskID] = nil
-        lock.unlock()
-        guard let handler else { return }
-        // If the response never arrived, surface the failure to the awaiting head call too.
-        if let head = handler.head {
-            head.resume(throwing: error ?? DownloadError.canceled)
-        }
-        if let error {
-            handler.data.finish(throwing: Self.classify(error))
-        } else {
-            handler.data.finish()
-        }
-    }
-
-    private static func classify(_ error: any Error) -> any Error {
-        let nsError = error as NSError
-        if nsError.domain == NSURLErrorDomain {
-            switch nsError.code {
-            case NSURLErrorCancelled:
-                return DownloadError.canceled
-            case NSURLErrorNotConnectedToInternet, NSURLErrorNetworkConnectionLost, NSURLErrorTimedOut:
-                return DownloadError.networkLost
-            default:
-                break
-            }
-        }
-        return error
     }
 }

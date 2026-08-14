@@ -51,10 +51,10 @@ public struct DuplicateMatch: Sendable, Hashable {
     }
 }
 
-/// Content-addressed duplicate detection: decides whether a prospective download already exists in
-/// the catalog, by exact URL, by same-origin `ETag`, or by an already-completed file of the same
-/// name and size. Pure and I/O-free — it reasons purely over `Download` values, so it's exhaustively
-/// unit-tested and runs on the main actor without touching the network or disk.
+/// Catalog duplicate detection: decides whether a prospective download already exists by exact URL,
+/// by same-origin `ETag`, or by an already-completed file of the same name and size. It does not yet
+/// maintain a content-hash index. Pure and I/O-free, it reasons only over `Download` values, so it is
+/// exhaustively unit-tested and runs on the main actor without touching the network or disk.
 public enum DuplicateDetector {
 
     /// The strongest duplicate match for `candidate` among `downloads`, or `nil` if it's genuinely
@@ -65,14 +65,14 @@ public enum DuplicateDetector {
             return DuplicateMatch(existing: existing, reason: .sameURL)
         }
 
-        // 2) Same origin + same ETag — content-identical per the server, even via a different URL.
-        //    Constrained to the same host (an ETag is only meaningful within its origin) and, when
+        // 2) Same host + same ETag — content-identical per the server, even via a different URL.
+        //    Constrained to the same host and, when
         //    both sizes are known, a matching size, to keep the signal tight.
-        if let etag = candidate.etag, !etag.isEmpty, let host = normalizedHost(candidate.url) {
+        if let etag = candidate.etag, !etag.isEmpty, let origin = normalizedOrigin(candidate.url) {
             if let existing = downloads.first(where: {
                 isPresent($0)
                     && $0.etag == etag
-                    && normalizedHost($0.url) == host
+                    && normalizedOrigin($0.url) == origin
                     && sizesCompatible(candidate.totalBytes, $0.totalBytes)
             }) {
                 return DuplicateMatch(existing: existing, reason: .sameETag)
@@ -103,8 +103,28 @@ public enum DuplicateDetector {
         }
     }
 
-    private static func normalizedHost(_ url: URL) -> String? {
-        url.host()?.lowercased()
+    private struct Origin: Equatable {
+        var scheme: String
+        var host: String
+        var port: Int?
+    }
+
+    /// RFC-style origin identity: scheme + host + effective port. Explicit default ports normalize
+    /// to their implicit equivalents, while a different scheme or non-default port remains isolated.
+    private static func normalizedOrigin(_ url: URL) -> Origin? {
+        guard let scheme = url.scheme?.lowercased(), let host = url.host()?.lowercased() else { return nil }
+        let port = url.port ?? defaultPort(for: scheme)
+        return Origin(scheme: scheme, host: host, port: port)
+    }
+
+    private static func defaultPort(for scheme: String) -> Int? {
+        switch scheme {
+        case "http": 80
+        case "https": 443
+        case "ftp": 21
+        case "ftps": 990
+        default: nil
+        }
     }
 
     /// Two sizes are "compatible" when they're equal, or at least one is unknown (so an absent size

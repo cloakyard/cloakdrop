@@ -1,5 +1,3 @@
-import Foundation
-
 /// What the app should do once every download has finished. Kept deliberately sandbox-friendly:
 /// nothing here needs Apple Events or system-sleep entitlements. `quit` terminates the app; `notify`
 /// posts a local "all done" notification; `runShortcut` opens a user-chosen Shortcut via the

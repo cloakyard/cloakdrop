@@ -244,38 +244,124 @@ actor FTPDataConnection {
     /// runs once the stream ends or is cancelled, so the control connection can read the 226 and close.
     nonisolated func bodyStream(byteLimit: Int64?, onFinish: @escaping @Sendable () -> Void) -> AsyncThrowingStream<Data, Error> {
         let connection = self.connection
-        return AsyncThrowingStream { continuation in
-            let delivered = DeliveredCounter()
-            // A boxed, self-referential @Sendable closure: FTP has no per-message framing, so we keep
-            // re-arming `receive` until EOF or the segment's byte limit is hit.
-            let pump = RecursivePump()
-            pump.body = { @Sendable in
-                connection.receive(minimumIncompleteLength: 1, maximumLength: 256 * 1024) { data, _, isComplete, error in
-                    if let error { continuation.finish(throwing: error); return }
-                    if let data, !data.isEmpty {
-                        let (chunk, reachedLimit) = delivered.take(data, limit: byteLimit)
-                        if !chunk.isEmpty { continuation.yield(chunk) }
-                        if reachedLimit { continuation.finish(); return }
-                    }
-                    if isComplete { continuation.finish(); return }
-                    pump.body?()
-                }
-            }
-            continuation.onTermination = { _ in
-                connection.cancel()
-                pump.body = nil   // break the self-referential closure so pump/continuation/connection deallocate.
-                onFinish()
-            }
-            // The connection was already started (and awaited ready) in `open` — just begin reading.
-            pump.body?()
+        let (stream, continuation) = AsyncThrowingStream<Data, Error>.makeStream(
+            bufferingPolicy: .bufferingOldest(4)
+        )
+        // FTP has no per-message framing, so a pump re-arms `receive` until EOF or the byte limit.
+        // It pauses when the four-chunk stream buffer fills, providing bounded backpressure.
+        let pump = FTPBodyStreamPump(
+            connection: connection,
+            byteLimit: byteLimit,
+            continuation: continuation
+        )
+        continuation.onTermination = { [weak pump] _ in
+            connection.cancel()
+            pump?.stop()
+            onFinish()
         }
+        // The connection was already started (and awaited ready) in `open` — just begin reading.
+        pump.start()
+        return stream
     }
 }
 
-/// Holds a self-referential `@Sendable` receive closure so an FTP data pump can re-arm itself without
-/// a nested local function (which strict concurrency rejects as non-`Sendable`).
-private final class RecursivePump: @unchecked Sendable {
-    var body: (@Sendable () -> Void)?
+/// Demand-aware bridge from `NWConnection.receive` into the bounded async body stream. Each receive
+/// callback owns the pump until it hands off to the next receive (or a retry task), avoiding stored
+/// self-referential closures while keeping the pump alive for the transfer's duration.
+private final class FTPBodyStreamPump: @unchecked Sendable {
+    private let connection: NWConnection
+    private let byteLimit: Int64?
+    private let continuation: AsyncThrowingStream<Data, Error>.Continuation
+    private let delivered = DeliveredCounter()
+    private let stateLock = NSLock()
+    private var stopped = false
+
+    init(
+        connection: NWConnection,
+        byteLimit: Int64?,
+        continuation: AsyncThrowingStream<Data, Error>.Continuation
+    ) {
+        self.connection = connection
+        self.byteLimit = byteLimit
+        self.continuation = continuation
+    }
+
+    func start() {
+        receiveNext()
+    }
+
+    func stop() {
+        stateLock.withLock { stopped = true }
+    }
+
+    private var isStopped: Bool {
+        stateLock.withLock { stopped }
+    }
+
+    private func receiveNext() {
+        guard !isStopped else { return }
+        connection.receive(minimumIncompleteLength: 1, maximumLength: 256 * 1024) { [self] data, _, isComplete, error in
+            handleReceive(data: data, isComplete: isComplete, error: error)
+        }
+    }
+
+    private func handleReceive(data: Data?, isComplete: Bool, error: NWError?) {
+        guard !isStopped else { return }
+        if let error { continuation.finish(throwing: error); return }
+        if let data, !data.isEmpty {
+            let (chunk, reachedLimit) = delivered.take(data, limit: byteLimit)
+            if !chunk.isEmpty {
+                enqueue(chunk, reachedLimit: reachedLimit)
+                return
+            }
+            if reachedLimit { continuation.finish(); return }
+        }
+        if isComplete { continuation.finish(); return }
+        receiveNext()
+    }
+
+    private func enqueue(_ chunk: Data, reachedLimit: Bool) {
+        guard !isStopped else { return }
+        switch continuation.yield(chunk) {
+        case .enqueued:
+            finishOrReceiveNext(reachedLimit: reachedLimit)
+        case .dropped(let rejected):
+            retryEnqueue(rejected, reachedLimit: reachedLimit)
+        case .terminated:
+            stop()
+        @unknown default:
+            stop()
+        }
+    }
+
+    private func retryEnqueue(_ chunk: Data, reachedLimit: Bool) {
+        Task { [self] in
+            while !isStopped {
+                try? await Task.sleep(for: .milliseconds(5))
+                switch continuation.yield(chunk) {
+                case .enqueued:
+                    finishOrReceiveNext(reachedLimit: reachedLimit)
+                    return
+                case .dropped:
+                    continue
+                case .terminated:
+                    stop()
+                    return
+                @unknown default:
+                    stop()
+                    return
+                }
+            }
+        }
+    }
+
+    private func finishOrReceiveNext(reachedLimit: Bool) {
+        if reachedLimit {
+            continuation.finish()
+        } else {
+            receiveNext()
+        }
+    }
 }
 
 // MARK: - Support

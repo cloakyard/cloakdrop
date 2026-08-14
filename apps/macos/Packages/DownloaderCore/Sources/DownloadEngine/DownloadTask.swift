@@ -17,14 +17,14 @@ enum StopReason: Sendable {
 actor DownloadTask {
     var download: Download
     let httpClient: any HTTPClient
-    private let store: any DownloadStore
-    private let globalLimiter: BandwidthLimiter
+    let store: any DownloadStore
+    let globalLimiter: BandwidthLimiter
     let settings: EngineSettings
     let remuxer: any Remuxer
-    private let signatureInspector: any CodeSignatureInspecting
+    let signatureInspector: any CodeSignatureInspecting
     let emit: @Sendable (EngineEvent) -> Void
 
-    private var stopReason: StopReason?
+    var stopReason: StopReason?
     let clock = ContinuousClock()
     var speedSampler = SpeedSampler()
     var lastEmit: ContinuousClock.Instant
@@ -32,7 +32,7 @@ actor DownloadTask {
     /// Chains the fire-and-forget snapshot saves so they hit the store in issue order, and so the
     /// awaited `persist()` drains them — a stale mid-transfer snapshot landing after the terminal
     /// save would mark a finished download `.downloading` and re-run it on relaunch.
-    private var pendingSave: Task<Void, Never>?
+    var pendingSave: Task<Void, Never>?
     /// Timestamp of the last forward-progress sample, for accumulating active-transfer time.
     var lastStatSample: ContinuousClock.Instant?
     /// Live byte tallies of the *in-flight* media segments (keyed by part-file path) — the
@@ -43,6 +43,9 @@ actor DownloadTask {
     /// response head / seeded from completed files on disk. Once every segment is present the sum
     /// becomes the grab's byte total, giving the UI a real fraction and ETA.
     var mediaExpected: [String: Int64] = [:]
+    /// Bytes claimed by a worker but not yet committed to its sparse-file range. Tail stealing reads
+    /// this actor-isolated ledger so it never reassigns an interval while a disk write is in flight.
+    private var segmentWriteReservations: [Int: Int64] = [:]
 
     init(
         download: Download,
@@ -67,8 +70,6 @@ actor DownloadTask {
         self.lastPersist = now
     }
 
-    var snapshot: Download { download }
-
     /// Request a stop. The manager cancels this task's enclosing `Task` immediately after.
     func requestStop(_ reason: StopReason) {
         stopReason = reason
@@ -76,7 +77,6 @@ actor DownloadTask {
 
     /// Run the transfer to a terminal or paused state, returning the final record.
     func run() async -> Download {
-        stopReason = nil
         await transition(to: .downloading)
         if download.startedAt == nil { download.startedAt = Date() }
 
@@ -97,7 +97,7 @@ actor DownloadTask {
                 try await transferMedia()
             } else {
                 try await prepareIfNeeded()
-                try await transferSegments()
+                try await transferSegmentsRecoveringFromInvalidRanges()
             }
             try await finalize()
             download.status = .completed
@@ -169,11 +169,17 @@ actor DownloadTask {
             }
             guard let head = probed else { throw probeError ?? DownloadError.networkLost }
             download.totalBytes = head.totalBytes
-            download.supportsResume = head.acceptsRanges && head.totalBytes != nil
+            download.supportsResume = head.acceptsRanges && (head.totalBytes ?? 0) > 0
             download.etag = head.etag
 
-            if let total = head.totalBytes, head.acceptsRanges, total >= settings.minimumSegmentSizeBytes * 2 {
-                let requested = min(settings.maxSegmentCount, max(1, segmentCountForThisDownload()))
+            if let total = head.totalBytes, total == 0 {
+                // An advertised empty resource is a valid empty file. It needs no synthetic byte
+                // range (there is no valid inclusive range for zero bytes), so transferSegments()
+                // simply has no work and finalize moves the prepared empty part file into place.
+                download.segments = []
+            } else if let total = head.totalBytes, head.acceptsRanges,
+                      total / max(1, settings.minimumSegmentSizeBytes) >= 2 {
+                let requested = segmentCountForThisDownload(totalBytes: total)
                 download.segments = SegmentPlanner.plan(
                     totalBytes: total,
                     requestedSegments: requested,
@@ -203,8 +209,14 @@ actor DownloadTask {
         try SegmentedFileWriter.prepare(partPath: download.partFilePath, totalBytes: download.totalBytes)
     }
 
-    private func segmentCountForThisDownload() -> Int {
-        settings.defaultSegmentCount
+    private func segmentCountForThisDownload(totalBytes: Int64) -> Int {
+        SegmentPlanner.recommendedSegmentCount(
+            totalBytes: totalBytes,
+            requestedSegments: download.requestedSegmentCount,
+            preferredSegments: settings.defaultSegmentCount,
+            maximumSegments: settings.maxSegmentCount,
+            minimumSegmentSize: settings.minimumSegmentSizeBytes
+        )
     }
 
     /// Best-effort check that the remote resource is still the one we began downloading. Returns
@@ -245,8 +257,50 @@ actor DownloadTask {
 
     // MARK: Transfer
 
+    /// Range support can change behind a CDN/proxy, and some origins advertise it without honoring
+    /// the actual interval. A worker reports that before writing any dubious bytes. Restart the whole
+    /// resource once as a single request: slower than segmentation for this origin, but byte-safe and
+    /// far more useful than exhausting retries on every nonzero segment.
+    private func transferSegmentsRecoveringFromInvalidRanges() async throws {
+        do {
+            try await transferSegments()
+        } catch let mismatch as SegmentResponseError {
+            SegmentedFileWriter.discardPartData(for: download)
+
+            if case .resourceChanged = mismatch {
+                // Refresh identity/size before the clean restart. Positive evidence from a new probe
+                // describes the version the following whole-body request should deliver.
+                if let head = try? await httpClient.probe(HTTPDownloadRequest(
+                    url: download.url,
+                    headers: download.requestHeaders,
+                    username: download.username,
+                    password: download.password
+                )) {
+                    download.totalBytes = head.totalBytes
+                    download.etag = head.etag
+                }
+            }
+
+            download.supportsResume = false
+            if let total = download.totalBytes {
+                download.segments = total > 0
+                    ? [DownloadSegment(id: 0, start: 0, end: total - 1)]
+                    : []
+            } else {
+                download.segments = [DownloadSegment(id: 0, start: 0, end: Int64.max - 1)]
+            }
+            download.startedAt = Date()
+            await persist()
+            emit(.downloadUpdated(download))
+
+            try await prepareIfNeeded()
+            try await transferSegments()
+        }
+    }
+
     private func transferSegments() async throws {
-        let incomplete = download.segments.enumerated().filter { !$0.element.isComplete || download.totalBytes == nil }
+        segmentWriteReservations.removeAll(keepingCapacity: true)
+        let incomplete = download.segments.filter { !$0.isComplete || download.totalBytes == nil }
         guard !incomplete.isEmpty else { return }
 
         let sources = download.transferSources
@@ -257,12 +311,25 @@ actor DownloadTask {
         let supportsRanges = download.supportsResume
         let totalKnown = download.totalBytes != nil
         let expectedTotal = download.totalBytes
+        let expectedETag = download.etag
         let limiters = perDownloadLimiters()
         let settings = self.settings
+        // A previous run may have persisted extra tails created by work stealing. Never relaunch all
+        // of them at once: keep active requests within today's configured/manual budget and feed the
+        // remainder through a rolling queue.
+        let connectionLimit: Int = if let total = download.totalBytes {
+            min(settings.maxSegmentCount, segmentCountForThisDownload(totalBytes: total))
+        } else {
+            1
+        }
 
-        try await withThrowingTaskGroup(of: Void.self) { group in
+        try await withThrowingTaskGroup(of: Int.self) { group in
+            var nextPendingIndex = 0
+            var activeSegmentIDs = Set<Int>()
+
             func spawn(_ segment: DownloadSegment) {
                 let segmentID = segment.id
+                activeSegmentIDs.insert(segmentID)
                 group.addTask { [httpClient] in
                     try await runSegment(
                         segment: segment,
@@ -275,15 +342,26 @@ actor DownloadTask {
                         supportsRanges: supportsRanges,
                         totalKnown: totalKnown,
                         expectedTotal: expectedTotal,
+                        expectedETag: expectedETag,
                         httpClient: httpClient,
                         limiters: limiters,
                         settings: settings,
+                        reserveBytes: { count in
+                            await self.reserveBytes(segmentID: segmentID, requestedCount: count)
+                        },
+                        releaseBytes: { count in
+                            await self.releaseReservedBytes(segmentID: segmentID, count: count)
+                        },
                         onBytes: { delta in await self.recordBytes(segmentID: segmentID, delta: delta) }
                     )
+                    return segmentID
                 }
             }
 
-            for (_, segment) in incomplete { spawn(segment) }
+            while nextPendingIndex < incomplete.count, activeSegmentIDs.count < max(1, connectionLimit) {
+                spawn(incomplete[nextPendingIndex])
+                nextPendingIndex += 1
+            }
 
             // Work-stealing: as each connection finishes, hand it the unfinished tail of the segment
             // with the most bytes left, so a slow straggler doesn't leave the other connections idle
@@ -291,8 +369,14 @@ actor DownloadTask {
             // returns the new tail; the victim learns its reduced end via its next progress callback
             // and stops there, so the two halves never overlap. Returns nil once nothing is worth
             // splitting, at which point the group simply drains.
-            while try await group.next() != nil {
-                if let stolen = stealWork() { spawn(stolen) }
+            while let completedID = try await group.next() {
+                activeSegmentIDs.remove(completedID)
+                if nextPendingIndex < incomplete.count {
+                    spawn(incomplete[nextPendingIndex])
+                    nextPendingIndex += 1
+                } else if let stolen = stealWork(among: activeSegmentIDs) {
+                    spawn(stolen)
+                }
             }
         }
     }
@@ -301,7 +385,7 @@ actor DownloadTask {
     /// tail into a fresh segment. Returns the new tail segment, or nil when no in-flight segment has
     /// enough left to be worth splitting (each half must clear the minimum segment size) or the
     /// transfer can't be range-resumed. Runs on the actor, so it observes a consistent segment table.
-    private func stealWork() -> DownloadSegment? {
+    private func stealWork(among activeSegmentIDs: Set<Int>) -> DownloadSegment? {
         // Only a range-resumable, known-size transfer can be safely re-split; an open-ended or
         // non-resumable stream has no offsets to divide.
         guard download.supportsResume, download.totalBytes != nil else { return nil }
@@ -311,12 +395,14 @@ actor DownloadTask {
         // A worthwhile split leaves both halves at or above the minimum segment size; the resulting
         // gap between the victim's write head and the split point (≥ half the remaining bytes) also
         // dwarfs the sub-chunk lag in the victim's reported progress, so the halves can't overlap.
-        let minRemaining = 2 * settings.minimumSegmentSizeBytes
+        let minimum = max(1, settings.minimumSegmentSizeBytes)
         var victimIndex: Int?
         var mostRemaining: Int64 = 0
-        for (index, segment) in download.segments.enumerated() {
-            let remaining = segment.end - segment.currentOffset + 1
-            if remaining >= minRemaining, remaining > mostRemaining {
+        for (index, segment) in download.segments.enumerated() where activeSegmentIDs.contains(segment.id) {
+            let reserved = segmentWriteReservations[segment.id] ?? 0
+            let reservedOffset = segment.currentOffset + reserved
+            let remaining = segment.end - reservedOffset + 1
+            if remaining / 2 >= minimum, remaining > mostRemaining {
                 victimIndex = index
                 mostRemaining = remaining
             }
@@ -324,7 +410,9 @@ actor DownloadTask {
         guard let victimIndex else { return nil }
 
         let victim = download.segments[victimIndex]
-        let mid = victim.currentOffset + (victim.end - victim.currentOffset + 1) / 2
+        let reserved = segmentWriteReservations[victim.id] ?? 0
+        let reservedOffset = victim.currentOffset + reserved
+        let mid = reservedOffset + (victim.end - reservedOffset + 1) / 2
         let oldEnd = victim.end
         // Shrink the victim to [start, mid]; the freed worker takes the tail [mid + 1, oldEnd].
         download.segments[victimIndex] = DownloadSegment(
@@ -338,12 +426,28 @@ actor DownloadTask {
     /// A fresh, unused segment id (ids only ever grow, so splits never collide with existing ones).
     private func nextSegmentID() -> Int { (download.segments.map(\.id).max() ?? -1) + 1 }
 
-    func perDownloadLimiters() -> [BandwidthLimiter] {
-        var limiters = [globalLimiter]
-        if let perDownload = download.speedLimitBytesPerSecond {
-            limiters.append(BandwidthLimiter(bytesPerSecond: perDownload))
+    /// Atomically claim a writable prefix against the latest segment boundary. Claimed bytes count
+    /// as unavailable to work stealing but do not become persisted progress until `recordBytes` runs
+    /// after the file write succeeds.
+    private func reserveBytes(segmentID: Int, requestedCount: Int) -> SegmentWriteReservation {
+        guard requestedCount > 0,
+              let index = download.segments.firstIndex(where: { $0.id == segmentID }) else {
+            return SegmentWriteReservation(byteCount: 0, end: .max)
         }
-        return limiters
+        let segment = download.segments[index]
+        let alreadyReserved = segmentWriteReservations[segmentID] ?? 0
+        let available = max(0, segment.remainingBytes - alreadyReserved)
+        let allowed = min(Int64(requestedCount), available)
+        if allowed > 0 {
+            segmentWriteReservations[segmentID] = alreadyReserved + allowed
+        }
+        return SegmentWriteReservation(byteCount: Int(allowed), end: segment.end)
+    }
+
+    private func releaseReservedBytes(segmentID: Int, count: Int) {
+        guard count > 0 else { return }
+        let remaining = max(0, (segmentWriteReservations[segmentID] ?? 0) - Int64(count))
+        segmentWriteReservations[segmentID] = remaining == 0 ? nil : remaining
     }
 
     /// Apply a worker's byte delta to the authoritative record and stream throttled progress, then
@@ -351,6 +455,9 @@ actor DownloadTask {
     /// last checked, telling it to stop early. `Int64.max` for an unknown segment id means "keep going".
     private func recordBytes(segmentID: Int, delta: Int) -> Int64 {
         guard let index = download.segments.firstIndex(where: { $0.id == segmentID }) else { return .max }
+        if delta > 0 {
+            releaseReservedBytes(segmentID: segmentID, count: delta)
+        }
         download.segments[index].downloadedBytes = max(0, download.segments[index].downloadedBytes + Int64(delta))
 
         let now = clock.now
@@ -380,117 +487,4 @@ actor DownloadTask {
         return download.segments[index].end
     }
 
-    // MARK: Finalize
-
-    private func finalize() async throws {
-        if download.mediaPlan != nil {
-            try await finalizeMedia()
-            return
-        }
-        // For unknown-size single streams, the total is whatever we transferred.
-        if download.totalBytes == nil {
-            // A server that never advertised a size and then delivered zero bytes (an empty or
-            // truncated response that ended without erroring) is not a real download — fail instead
-            // of presenting a bogus completed 0-byte file. A genuinely empty resource advertises
-            // `Content-Length: 0`, which reaches finalize with a non-nil `totalBytes` and is kept.
-            guard download.downloadedBytes > 0 else {
-                throw DownloadError.underlying(reason: "The server sent no data for this download.")
-            }
-            download.totalBytes = download.downloadedBytes
-            if !download.segments.isEmpty {
-                download.segments[0] = DownloadSegment(
-                    id: download.segments[0].id,
-                    start: 0,
-                    end: max(0, download.downloadedBytes - 1),
-                    downloadedBytes: download.downloadedBytes
-                )
-            }
-        }
-
-        // Capture the part file's location before any destination remapping.
-        let partPath = download.partFilePath
-
-        // Auto-categorization: file the finished download into a per-type subfolder.
-        if settings.autoCategorize {
-            let categoryDir = (download.destinationDirectoryPath as NSString)
-                .appendingPathComponent(download.category.displayName)
-            download.destinationDirectoryPath = categoryDir
-        }
-
-        try SegmentedFileWriter.finalize(partPath: partPath, destinationPath: download.destinationFilePath)
-
-        // Stamp it like a browser download so Gatekeeper vets it on first open.
-        if settings.applyQuarantine {
-            Quarantine.apply(toPath: download.destinationFilePath,
-                             sourceURL: download.url,
-                             originURL: download.requestHeaders["Referer"].flatMap(URL.init(string:)))
-        }
-
-        // Verify against a supplied checksum, or one auto-discovered next to the download.
-        let checksum = try await DownloadChecksum.resolveAndVerify(
-            for: download, settings: settings, httpClient: httpClient
-        )
-        download.checksum = checksum.expectation
-        download.checksumVerified = checksum.verified
-
-        // Extract only AFTER integrity is established — never unpack an archive whose checksum failed.
-        await autoExtractIfArchive()
-
-        // Assess the code signature of installable downloads (.app/.dmg) on-device — reads the
-        // signature already in the file; no network, no Gatekeeper round-trip. Best-effort: an
-        // unrecognized code object records no signature rather than a misleading "unsigned".
-        if settings.assessSignatures, SignatureAssessment.isAssessable(fileName: download.fileName) {
-            // Validating a large bundle's seal can take a moment; run it off the actor so this task
-            // stays responsive to pause/cancel while the check completes.
-            let inspector = signatureInspector
-            let fileURL = URL(fileURLWithPath: download.destinationFilePath)
-            download.signature = await Task.detached { inspector.assess(fileURL: fileURL) }.value
-        }
-
-        if settings.generateProvenanceReceipts {
-            download.provenance = await buildProvenanceReceipt(precomputedSHA256: checksum.sha256)
-        }
-    }
-
-    // MARK: Stop / persistence helpers
-
-    private func handleStop() async -> Download {
-        switch stopReason ?? .pause {
-        case .cancel:
-            download.status = .canceled
-            SegmentedFileWriter.discardPartData(for: download)
-        case .pause:
-            download.status = .paused
-        }
-        await persist()
-        emit(.downloadUpdated(download))
-        return download
-    }
-
-    private func transition(to status: DownloadStatus) async {
-        download.status = status
-        await persist()
-        emit(.downloadUpdated(download))
-    }
-
-    /// Persist a throttled mid-transfer snapshot after any save already queued (fire-and-forget).
-    func enqueueSave(_ snapshot: Download) {
-        pendingSave = Task { [store, previous = pendingSave] in
-            await previous?.value
-            try? await store.save(snapshot)
-        }
-    }
-
-    func persist() async {
-        enqueueSave(download)
-        await pendingSave?.value
-    }
-
-    static func seconds(from start: ContinuousClock.Instant, to end: ContinuousClock.Instant) -> Double {
-        start.seconds(to: end)
-    }
-
-    private static func message(for error: any Error) -> String {
-        (error as? DownloadError)?.userMessage ?? error.localizedDescription
-    }
 }

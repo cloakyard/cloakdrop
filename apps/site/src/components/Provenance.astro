@@ -106,9 +106,7 @@ const streams = Array.from({ length: 6 }, (_, index) => index + 1);
     border: 1px solid rgba(255, 255, 255, 0.13);
     border-radius: var(--radius-xl);
     padding: clamp(1.5rem, 4.4vw, 4rem);
-    box-shadow:
-      0 40px 100px -44px rgba(0, 0, 0, 0.9),
-      inset 0 1px rgba(255, 255, 255, 0.05);
+    box-shadow: none;
   }
 
   .chamber-grid {
@@ -198,8 +196,8 @@ const streams = Array.from({ length: 6 }, (_, index) => index + 1);
     padding: clamp(1rem, 2vw, 1.5rem);
     background: rgba(0, 0, 0, 0.22);
     border: 1px solid var(--carbon-line);
-    border-radius: calc(var(--radius-lg) + 2px);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+    border-radius: var(--radius-lg);
+    box-shadow: none;
   }
 
   .sr-only {
@@ -316,12 +314,10 @@ const streams = Array.from({ length: 6 }, (_, index) => index + 1);
     background: #f3f6f7;
     color: #14191c;
     border: 1px solid rgba(255, 255, 255, 0.72);
-    border-radius: 10px;
+    border-radius: var(--radius-lg);
     padding: clamp(1.15rem, 2.4vw, 1.7rem);
     font-family: var(--font-mono);
-    box-shadow:
-      0 32px 70px -22px rgba(0, 0, 0, 0.72),
-      inset 0 0 0 1px rgba(20, 25, 28, 0.035);
+    box-shadow: inset 0 0 0 1px rgba(20, 25, 28, 0.035);
   }
 
   .receipt-cut {
@@ -535,7 +531,7 @@ const streams = Array.from({ length: 6 }, (_, index) => index + 1);
   @media (max-width: 430px) {
     .chamber {
       padding: 1.25rem;
-      border-radius: 18px;
+      border-radius: var(--radius-lg);
     }
 
     .chamber-head {

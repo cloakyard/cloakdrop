@@ -61,4 +61,14 @@ struct PageLinkExtractorTests {
         #expect(exts.contains("png"))
         #expect(exts.contains("iso"))
     }
+
+    @Test("Extraction stops at the caller's result ceiling")
+    func resultCeiling() {
+        let noise = (0..<30).map { "<a href='/page-\($0).html'>x</a>" }.joined()
+        let matches = (0..<20).map { "<a href='/file-\($0).zip'>x</a>" }.joined()
+        let html = noise + matches
+        let urls = PageLinkExtractor.extract(html: html, baseURL: base, extensions: ["zip"], maximumCount: 5)
+        #expect(urls.count == 5)
+        #expect(urls.last?.absoluteString == "https://example.com/file-4.zip")
+    }
 }

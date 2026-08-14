@@ -1,5 +1,3 @@
-import Foundation
-
 /// Pure decision helper for the destination-disk free-space preflight. The actual capacity query
 /// (`URLResourceValues.volumeAvailableCapacityForImportantUsage`) lives in the engine; this keeps
 /// the "is there room?" rule I/O-free and unit-tested.

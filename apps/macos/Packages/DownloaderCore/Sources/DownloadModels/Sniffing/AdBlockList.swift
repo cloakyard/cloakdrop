@@ -3,9 +3,9 @@ import Foundation
 /// The content-blocking ruleset for the built-in browser, expressed as a WebKit **content rule
 /// list** (the same JSON format Safari content blockers use). WebKit compiles this to bytecode and
 /// enforces it in its networking process, so ad/tracker requests are dropped *before* they leave the
-/// device — robust across virtually every site, with no per-page scripting and no third-party
-/// dependency. This type is pure data (no WebKit import) so the ruleset is unit-tested here; the app
-/// layer compiles and applies it (see `BrowserStore`).
+/// device. It applies across page loads without per-page scripting; coverage varies with the active
+/// rules and each site's behavior. This type is pure data (no WebKit import) so the ruleset is
+/// unit-tested here; the app layer compiles and applies it (see `BrowserStore`).
 ///
 /// Three layers, mirroring how real blockers work:
 ///  1. **Network block** — a rule per known ad/tracker host, anchored so `notdoubleclick.net` and a
@@ -106,10 +106,13 @@ public enum AdBlockList {
     /// charset validation guarantees each domain is inert in the `url-filter` regex — the only
     /// metacharacter is the dot, escaped here.
     public static func externalRulesJSON(blocking domains: [String]) -> String {
-        encode(domains.map { Rule(
-            trigger: Trigger(urlFilter: hostFilter($0), loadType: nil),
-            action: Action(type: "block", selector: nil)
-        ) })
+        makeExternalRulesJSON(blocking: domains) {}
+    }
+
+    /// Off-main app entry point. Checks cooperative cancellation throughout generation so replacing
+    /// a large external list does not leave an obsolete multi-megabyte JSON build running.
+    public static func externalRulesJSONCancellable(blocking domains: [String]) throws -> String {
+        try makeExternalRulesJSON(blocking: domains) { try Task.checkCancellation() }
     }
 
     /// Identifier prefix for compiled *external* rule lists. Shares `identifierPrefix` (eviction
@@ -144,6 +147,39 @@ public enum AdBlockList {
     /// hosts/fragments contain).
     private static func escapeForFilter(_ literal: String) -> String {
         literal.replacingOccurrences(of: ".", with: "\\.")
+    }
+
+    /// Streams the fixed rule shape directly into JSON. Parser output is restricted to ASCII host
+    /// characters, so dots are the only bytes that need regex/JSON escaping. This avoids holding a
+    /// second 145,000-element `Rule` array beside the final multi-megabyte string.
+    private static func makeExternalRulesJSON(
+        blocking domains: [String],
+        checkCancellation: () throws -> Void
+    ) rethrows -> String {
+        try checkCancellation()
+        var json = "["
+        let estimatedRuleBytes = 112
+        if domains.count <= (Int.max - 2) / estimatedRuleBytes {
+            json.reserveCapacity(domains.count * estimatedRuleBytes + 2)
+        }
+        let prefix = #"{"action":{"type":"block"},"trigger":{"url-filter":"^https?://([^/]+\\.)?"#
+        let suffix = #"[:/]"}}"#
+        for (index, domain) in domains.enumerated() {
+            if index.isMultiple(of: 256) { try checkCancellation() }
+            if index > 0 { json.append(",") }
+            json.append(contentsOf: prefix)
+            for character in domain {
+                if character == "." {
+                    json.append(contentsOf: #"\\."#)
+                } else {
+                    json.append(character)
+                }
+            }
+            json.append(contentsOf: suffix)
+        }
+        try checkCancellation()
+        json.append("]")
+        return json
     }
 
     /// Encode rules with sorted keys — always-valid, byte-for-byte stable JSON (identifiers hash it).

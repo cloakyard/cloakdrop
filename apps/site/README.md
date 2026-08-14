@@ -2,15 +2,19 @@
 
 The marketing site for **CloakDrop**, hosted at **[drop.cloakyard.com](https://drop.cloakyard.com)**.
 
-- **Stack:** [Astro](https://astro.build) 7 — fully static output, zero client-side JS.
+- **Stack:** [Astro](https://astro.build) 7 — fully static output, with a small first-party
+  script for progressive motion and the interactive transfer demonstration.
 - **Host:** Cloudflare **Workers static assets** (`wrangler.jsonc` → serves `dist/` from the edge).
 - **Design:** editorial / magazine layout — numbered sections, hairline rules, self-hosted **Archivo** (heavy display) + **JetBrains Mono** (labels & data) on CloakDrop's deep-ocean accent (`#2A7B9B`). Follows the OS light/dark theme via `prefers-color-scheme`. Fonts are self-hosted (no Google Fonts request) to keep the privacy story intact.
 
 Part of the CloakDrop monorepo — the macOS app lives in [`../macos`](../macos). Shared brand
-assets (logo, favicons, OG card, hero screenshot) are **not** stored here — they live in the
-repo-root [`/assets`](../../assets) folder and are copied into `public/` at build time by
-`scripts/sync-assets.mjs` (runs automatically via the `prebuild` npm hook). See
+assets (logo, favicons, OG card, hero screenshot) live in the repo-root
+[`/assets`](../../assets) folder and are copied into `public/` at build time by the root
+`scripts/sync-assets.mjs` script (run automatically by the `prebuild` hook). See
 [`/assets/README.md`](../../assets/README.md).
+
+The landing-page copy describes the current source tree. Published beta builds can lag behind it;
+GitHub Releases remains the source of truth for the contents and installation status of each build.
 
 ## Develop
 
@@ -40,16 +44,19 @@ apps/site/
 │   └── cloakdrop-mark.svg, icons/favicon.svg, *.png …
 │                           # brand assets — GENERATED from /assets by sync-assets (git-ignored)
 └── src/
-    ├── data/site.ts        # ← all copy, links, section content (single source of truth)
+    ├── data/site.ts        # shared product copy, links, and structured section content
     ├── layouts/BaseLayout  # <head>, SEO/OG, JSON-LD, theme-color, font preloads
-    ├── components/         # Header · Hero · SpecStrip · Engine · Provenance · Capture ·
-    │                       #   Details · Privacy · UnderTheHood · Suite · Footer
-    │                       #   + shared: Icon · Kicker (numbered label) · Brand (logo lockup)
-    ├── pages/index.astro   # the one page — composes the sections in order
+    ├── components/         # Landing sections plus shared Brand · Icon · Kicker components
+    ├── pages/index.astro   # landing page — composes the sections in order
+    ├── pages/privacy.astro # renders the repo-root privacy policy for the web
+    ├── pages/404.astro     # static not-found page used by Cloudflare
+    ├── scripts/motion.ts   # progressive enhancement for reveal/count/scroll motion
     └── styles/global.css   # @font-face + design tokens (light/dark) + shared primitives
 ```
 
-Edit copy in [`src/data/site.ts`](src/data/site.ts); components read from it. Brand assets
+Edit shared product copy and links in [`src/data/site.ts`](src/data/site.ts). Labels and
+annotations that belong to a specific visual demonstration live beside that component's markup.
+Brand assets
 (the `cloakdrop-mark.svg` mark, favicons, `og.png`, `hero.webp`/`hero.png`) are the **generated** copies
 of the sources in [`/assets`](../../assets) — edit them there, not in `public/`, then rerun
 `npm run build` (or `npm run sync:assets`). The web logo is the circular
@@ -72,7 +79,8 @@ pointed at this subdirectory:
    already satisfies it.)*
 2. **Root directory:** `apps/site`
 3. **Build command:** `npm run build` · **Deploy command:** `npx wrangler deploy`
-4. **Build watch paths:** `apps/site/*` — so a Swift-only commit never rebuilds the site.
+4. **Build watch include paths:** `apps/site/*`, `assets/*`, `scripts/sync-assets.mjs` — site and
+   shared-asset changes deploy, while a Swift-only commit does not rebuild the site.
 
 Push to the connected branch → production deploy; pull requests → preview URLs.
 

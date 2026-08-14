@@ -40,7 +40,10 @@ let package = Package(
         ),
         .testTarget(
             name: "DownloadPersistenceTests",
-            dependencies: ["DownloadPersistence"],
+            dependencies: [
+                "DownloadPersistence",
+                .product(name: "GRDB", package: "GRDB.swift")
+            ],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
 

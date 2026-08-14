@@ -121,6 +121,11 @@ struct DownloadListView: View {
             }
         }
         .listStyle(.inset)
+        // macOS can reuse the compact system default while this List replaces the empty state,
+        // leaving freshly inserted download rows clipped until a scroll triggers remeasurement.
+        // The standard rendered row is 60 points tall (40-point icon, content padding, and List's
+        // row insets), so make that invariant part of List rather than relying on its first estimate.
+        .environment(\.defaultMinListRowHeight, 60)
         .focused($listFocused)
         // Tell the rows whether selection is drawn emphasized (accent) or unemphasized (gray),
         // mirroring AppKit's backgroundStyle: focused list in an active window.

@@ -1,5 +1,3 @@
-import Foundation
-
 /// The lifecycle state of a download.
 ///
 /// `failed` carries a user-presentable reason so the UI never has to guess why a

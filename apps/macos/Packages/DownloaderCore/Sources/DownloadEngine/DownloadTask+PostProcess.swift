@@ -31,7 +31,9 @@ extension DownloadTask {
             if usedPaths.contains(path) { path = "\(base).\(token)-\(index + 1).srt" }
             usedPaths.insert(path)
 
-            guard (try? srt.data(using: .utf8)?.write(to: URL(fileURLWithPath: path), options: .atomic)) != nil else { continue }
+            guard (try? srt.data(using: .utf8)?.write(
+                to: URL(fileURLWithPath: path), options: .withoutOverwriting
+            )) != nil else { continue }
             if settings.applyQuarantine { Quarantine.apply(toPath: path, sourceURL: subtitle.segments.first?.url ?? download.url) }
         }
     }
@@ -46,7 +48,8 @@ extension DownloadTask {
               download.checksumVerified != false else { return }
         let zipPath = download.destinationFilePath
         let folderName = (download.fileName as NSString).deletingPathExtension
-        let destination = (download.destinationDirectoryPath as NSString).appendingPathComponent(folderName)
+        let baseDestination = (download.destinationDirectoryPath as NSString).appendingPathComponent(folderName)
+        let destination = uniqueExtractionDirectory(baseDestination)
         let sourceURL = download.url
         let applyQuarantine = settings.applyQuarantine
         _ = await Task.detached {
@@ -55,6 +58,18 @@ extension DownloadTask {
                 for path in written { Quarantine.apply(toPath: path, sourceURL: sourceURL) }
             }
         }.value
+    }
+
+    /// Pick a fresh sibling for auto-extraction. `ZipArchive` also refuses replacement atomically, so
+    /// an existing user folder is never merged into or overwritten even if another process wins a race.
+    private func uniqueExtractionDirectory(_ basePath: String) -> String {
+        let fm = FileManager.default
+        guard fm.fileExists(atPath: basePath) else { return basePath }
+        for suffix in 2...9_999 {
+            let candidate = "\(basePath) (\(suffix))"
+            if !fm.fileExists(atPath: candidate) { return candidate }
+        }
+        return "\(basePath)-\(UUID().uuidString)"
     }
 
     /// Assemble the verified-download provenance record from the signals gathered during finalize.

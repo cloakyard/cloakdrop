@@ -1,9 +1,45 @@
-import Foundation
 import DownloadModels
 
 /// Pure segmentation math: splits a known-size resource into balanced, contiguous,
 /// non-overlapping byte ranges. Kept free of I/O so it can be exhaustively unit-tested.
 public enum SegmentPlanner {
+
+    /// Pick a connection count for a known-size, range-capable resource.
+    ///
+    /// An explicit per-download choice wins (subject to the hard limits). In automatic mode the
+    /// configured default remains the baseline for ordinary files, while very large resources ramp
+    /// toward `maximumSegments`. The size capacity is always authoritative, so no plan creates
+    /// segments smaller than `minimumSegmentSize`.
+    public static func recommendedSegmentCount(
+        totalBytes: Int64,
+        requestedSegments: Int?,
+        preferredSegments: Int,
+        maximumSegments: Int,
+        minimumSegmentSize: Int64
+    ) -> Int {
+        guard totalBytes > 0 else { return 1 }
+
+        let minimum = max(1, minimumSegmentSize)
+        let capacityBySize = max(1, Int(totalBytes / minimum))
+        let hardMaximum = max(1, min(maximumSegments, capacityBySize))
+
+        if let requestedSegments {
+            return min(hardMaximum, max(1, requestedSegments))
+        }
+
+        let preferred = min(hardMaximum, max(1, preferredSegments))
+
+        // Keep at least ~16 MiB (and at least 16 configured minimum-size units) behind each
+        // automatically-added connection. This avoids connection/TLS overhead on modest files but
+        // lets a large image, archive, or installer use the full configured ceiling.
+        let scaledMinimum = minimum > Int64.max / 16 ? Int64.max : minimum * 16
+        let targetBytesPerConnection = max(Int64(16 * 1024 * 1024), scaledMinimum)
+        let sizeDriven = Int(min(
+            Int64(hardMaximum),
+            1 + (totalBytes - 1) / targetBytesPerConnection
+        ))
+        return min(hardMaximum, max(preferred, sizeDriven))
+    }
 
     /// Plan the segments for a download.
     ///
@@ -48,8 +84,8 @@ public enum SegmentPlanner {
 
     /// Re-plan only the *unfinished* tail of a slow/stalled segment by splitting its
     /// remaining range in two, without disturbing bytes already written. A building block for
-    /// dynamic re-segmentation (Phase 4 work-stealing); not yet wired into the live transfer
-    /// path. Returns `nil` if the remainder is too small to split.
+    /// dynamic re-segmentation used by the live transfer's tail work-stealing path. Returns `nil`
+    /// if the remainder is too small to split.
     ///
     /// - Returns: `(updated, new)` where `updated` keeps the first half of the remaining
     ///   range and `new` (with id `newSegmentID`) takes the second half.
@@ -59,7 +95,9 @@ public enum SegmentPlanner {
         minimumSegmentSize: Int64
     ) -> (updated: DownloadSegment, new: DownloadSegment)? {
         let remaining = segment.remainingBytes
-        guard remaining >= max(1, minimumSegmentSize) * 2 else { return nil }
+        let minimum = max(1, minimumSegmentSize)
+        // Division avoids overflowing when a corrupt/hostile settings blob contains Int64.max.
+        guard remaining / 2 >= minimum else { return nil }
 
         let splitPoint = segment.currentOffset + remaining / 2
         // First half: from current offset up to splitPoint-1, plus the bytes already done.

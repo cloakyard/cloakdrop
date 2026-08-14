@@ -31,19 +31,19 @@ public final class GRDBDownloadStore: DownloadStore {
 
     private var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
-        // v1 — the complete initial schema in a single migration. The app is pre-release, so there
-        // are no databases in the wild to preserve: the whole v1 database is defined here as one
-        // rock-solid baseline. Once the app ships, evolve the schema by appending new
-        // `registerMigration("v2…")` blocks below — never edit this v1 block after release.
+        // v1 — the complete initial schema in a single migration. `ifNotExists` keeps this baseline
+        // compatible with development databases that recorded the former split migration names;
+        // GRDB applies it to generated indexes too. Once the app ships, evolve the schema by
+        // appending new `registerMigration("v2…")` blocks below — never edit this v1 block.
         migrator.registerMigration("v1") { db in
-            try db.create(table: "queue") { t in
+            try db.create(table: "queue", options: .ifNotExists) { t in
                 t.primaryKey("id", .text)
                 t.column("name", .text).notNull()
                 t.column("maxConcurrent", .integer).notNull()
                 t.column("orderIndex", .integer).notNull()
                 t.column("isDefault", .boolean).notNull()
             }
-            try db.create(table: "download") { t in
+            try db.create(table: "download", options: .ifNotExists) { t in
                 t.primaryKey("id", .text)
                 t.column("statusKind", .text).notNull().indexed()
                 t.column("queueID", .text).notNull().indexed()
@@ -52,11 +52,11 @@ public final class GRDBDownloadStore: DownloadStore {
                 t.column("orderIndex", .integer).notNull()
                 t.column("payload", .blob).notNull()
             }
-            try db.create(table: "settings") { t in
+            try db.create(table: "settings", options: .ifNotExists) { t in
                 t.primaryKey("id", .integer)
                 t.column("payload", .blob).notNull()
             }
-            try db.create(table: "rule") { t in
+            try db.create(table: "rule", options: .ifNotExists) { t in
                 t.primaryKey("id", .text)
                 t.column("orderIndex", .integer).notNull()
                 t.column("isEnabled", .boolean).notNull()
@@ -65,7 +65,7 @@ public final class GRDBDownloadStore: DownloadStore {
             // Lifetime download stats: one row per calendar day (key "yyyy-MM-dd", the user's local
             // day), so today / this-month / all-time totals are all derivable by SQL sum. Accumulated
             // once per completed download.
-            try db.create(table: "statsDaily") { t in
+            try db.create(table: "statsDaily", options: .ifNotExists) { t in
                 t.primaryKey("day", .text)
                 t.column("bytes", .integer).notNull().defaults(to: 0)
             }

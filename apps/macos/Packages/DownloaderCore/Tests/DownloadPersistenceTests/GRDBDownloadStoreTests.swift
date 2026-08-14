@@ -1,4 +1,5 @@
 import Foundation
+import GRDB
 import Testing
 @testable import DownloadModels
 @testable import DownloadPersistence
@@ -42,6 +43,77 @@ struct GRDBDownloadStoreTests {
         try await store.bootstrap()
         let queues = try await store.allQueues()
         #expect(queues.count == 1)
+    }
+
+    @Test(
+        "Bootstrap preserves partial and complete pre-consolidation schemas",
+        arguments: [false, true]
+    )
+    func bootstrapMigratesLegacySchema(completeLegacySchema: Bool) async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("GRDBDownloadStoreTests-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let path = directory.appendingPathComponent("legacy.sqlite").path
+
+        let legacy = try DatabaseQueue(path: path)
+        try await legacy.write { db in
+            try db.create(table: "grdb_migrations") { $0.primaryKey("identifier", .text) }
+            try db.create(table: "queue") { t in
+                t.primaryKey("id", .text)
+                t.column("name", .text).notNull()
+                t.column("maxConcurrent", .integer).notNull()
+                t.column("orderIndex", .integer).notNull()
+                t.column("isDefault", .boolean).notNull()
+            }
+            try db.create(table: "download") { t in
+                t.primaryKey("id", .text)
+                t.column("statusKind", .text).notNull().indexed()
+                t.column("queueID", .text).notNull().indexed()
+                t.column("category", .text).notNull().indexed()
+                t.column("createdAt", .double).notNull()
+                t.column("orderIndex", .integer).notNull()
+                t.column("payload", .blob).notNull()
+            }
+            try db.create(table: "settings") { t in
+                t.primaryKey("id", .integer)
+                t.column("payload", .blob).notNull()
+            }
+            try db.execute(sql: "INSERT INTO grdb_migrations VALUES ('v1.createTables')")
+            if completeLegacySchema {
+                try db.create(table: "rule") { t in
+                    t.primaryKey("id", .text)
+                    t.column("orderIndex", .integer).notNull()
+                    t.column("isEnabled", .boolean).notNull()
+                    t.column("payload", .blob).notNull()
+                }
+                try db.create(table: "statsDaily") { t in
+                    t.primaryKey("day", .text)
+                    t.column("bytes", .integer).notNull().defaults(to: 0)
+                }
+                try db.execute(sql: "INSERT INTO grdb_migrations VALUES ('v2.createRuleTable')")
+                try db.execute(sql: "INSERT INTO grdb_migrations VALUES ('v3.createStatsTable')")
+            }
+            try db.execute(
+                sql: "INSERT INTO queue VALUES (?, 'Legacy Queue', 2, 1, 0)",
+                arguments: [UUID().uuidString]
+            )
+        }
+
+        let store = try GRDBDownloadStore(path: path)
+        try await store.bootstrap()
+        let queues = try await store.allQueues()
+        #expect(queues.contains { $0.name == "Legacy Queue" })
+        #expect(queues.contains { $0.id == DownloadQueue.defaultQueueID })
+        #expect(try await store.allRules().isEmpty)
+        #expect(try await store.loadStats(asOf: Date()) == .empty)
+
+        let migrated = try DatabaseQueue(path: path)
+        let identifiers = try await migrated.read { db in
+            try Set(String.fetchAll(db, sql: "SELECT identifier FROM grdb_migrations"))
+        }
+        #expect(identifiers.contains("v1.createTables"))
+        #expect(identifiers.contains("v1"))
     }
 
     @Test("Save then fetch round-trips a download faithfully")

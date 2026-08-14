@@ -23,7 +23,6 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const MANIFEST = [
   { from: 'logo/cloakdrop-mark.svg', to: ['apps/site/public/cloakdrop-mark.svg'] },
   { from: 'logo/favicon.svg', to: ['apps/site/public/icons/favicon.svg'] },
-  { from: 'logo/icon.png', to: ['apps/site/public/icon.png'] },
   { from: 'logo/favicon.png', to: ['apps/site/public/favicon.png'] },
   { from: 'logo/apple-touch-icon.png', to: ['apps/site/public/apple-touch-icon.png'] },
   { from: 'social/og.png', to: ['apps/site/public/og.png'] },

@@ -17,6 +17,7 @@ struct AddDownloadSheet: View {
     @State private var lastAutoName = ""
     @State private var destinationURL = AppEnvironment.defaultDownloadsDirectory()
     @State private var destinationBookmark: Data?
+    @State private var automaticConnections = true
     @State private var segmentCount = 8
     @State private var checksumAlgorithm: ChecksumAlgorithm = .sha256
     @State private var checksumHex = ""
@@ -112,8 +113,16 @@ struct AddDownloadSheet: View {
                 // resolved video grab (the extractor plans its own segments and names from the title).
                 if detectedVideoPage == nil {
                     Section("Options") {
-                        Stepper(value: $segmentCount, in: 1...model.settings.maxSegmentCount) {
-                            LabeledContent("Connections", value: "\(segmentCount)")
+                        Toggle("Adjust connections automatically", isOn: $automaticConnections)
+                        if automaticConnections {
+                            if let preview, preview.isMultiSegment {
+                                LabeledContent("Planned connections", value: "\(preview.plannedSegmentCount)")
+                                    .foregroundStyle(.secondary)
+                            }
+                        } else {
+                            Stepper(value: $segmentCount, in: 1...model.settings.maxSegmentCount) {
+                                LabeledContent("Connections", value: "\(segmentCount)")
+                            }
                         }
                         Toggle("Start immediately", isOn: $startImmediately)
                             .disabled(scheduleEnabled)
@@ -395,6 +404,7 @@ struct AddDownloadSheet: View {
     // MARK: Actions
 
     private func prefill() {
+        segmentCount = min(model.settings.maxSegmentCount, max(1, model.settings.defaultSegmentCount))
         // A pending URL (from a clipboard banner or drop) wins over the live clipboard.
         if let pending = model.pendingAddURL {
             urlString = pending
@@ -459,7 +469,7 @@ struct AddDownloadSheet: View {
             suggestedFileName: fileName.isEmpty ? nil : fileName,
             destinationDirectoryPath: destinationURL.path,
             destinationBookmark: destinationBookmark,
-            segmentCount: segmentCount,
+            segmentCount: automaticConnections ? nil : segmentCount,
             checksum: checksum,
             scheduledStart: scheduleEnabled ? scheduledDate : nil,
             recurrence: scheduleEnabled ? recurrence : .none,

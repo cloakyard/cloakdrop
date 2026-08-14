@@ -1,4 +1,3 @@
-import Foundation
 import DownloadModels
 
 /// A playful "download tier" badge for **this month's** volume — a monthly challenge that resets, so

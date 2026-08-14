@@ -46,6 +46,22 @@ struct RootView: View {
         }
         .animation(.default, value: model.isResolvingMedia)
         .animation(.default, value: model.mediaExtractionError)
+        .disabled(!model.isNetworkReady)
+        .overlay {
+            if !model.isNetworkReady {
+                if let error = model.startupError {
+                    ContentUnavailableView {
+                        Label("Startup", systemImage: "exclamationmark.triangle")
+                    } description: {
+                        Text(error)
+                    } actions: {
+                        Button("Try Again") { model.retryBootstrap() }
+                    }
+                } else {
+                    ProgressView()
+                }
+            }
+        }
         // A download for the same URL already exists — confirm before adding a duplicate. Fires for
         // every intake path (sheet, batch, drop, clipboard, browser/`cloakdrop://` capture). The
         // buttons drive the FIFO, so the isPresented setter is intentionally a no-op.

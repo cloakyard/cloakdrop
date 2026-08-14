@@ -2,32 +2,9 @@
 import { product } from '../data/site';
 import Kicker from './Kicker.astro';
 
-const transferStory = product.stories.find((story) => story.visual === 'speed');
-const captureStory = product.stories.find((story) => story.visual === 'capture');
-const finishStory = product.stories.find((story) => story.visual === 'organize');
+const [transferStory, captureStory, finishStory] = product.stories;
 
-const chapters = [
-  {
-    id: 'transfer',
-    n: '01',
-    label: 'Transfer',
-    title: 'Adaptive ranges. One unbroken file.',
-  },
-  {
-    id: 'capture',
-    n: '02',
-    label: 'Capture',
-    title: 'Every way in, one native engine.',
-  },
-  {
-    id: 'finish',
-    n: '03',
-    label: 'Finish',
-    title: 'Route the work, then get out of the way.',
-  },
-] as const;
-
-/* The default eight-range configuration is used only as an inspectable example. */
+/* A manually configured eight-range transfer is used only as an inspectable example. */
 const lanes = [
   { n: '01', seed: 18, hold: 64, byte: '531,382,272' },
   { n: '02', seed: 11, hold: 49, byte: '1,253,949,440' },
@@ -56,7 +33,7 @@ const lanes = [
     <div class="theatre-shell" data-reveal>
       <nav class="chapter-switcher" role="tablist" aria-label="CloakDrop workflow">
         {
-          chapters.map((chapter, index) => (
+          product.stories.map((chapter, index) => (
             <button
               id={`theatre-tab-${chapter.id}`}
               class="chapter-tab"
@@ -91,14 +68,14 @@ const lanes = [
               <p>Transfer</p>
             </div>
             <div class="chapter-copy">
-              <p class="overline">DEFAULT EXAMPLE / 8 PLANNED RANGES</p>
+              <p class="overline">CONFIGURED EXAMPLE / 8 PLANNED RANGES</p>
               <h3>Close the app. Keep your place.</h3>
-              <p>{transferStory?.body}</p>
+              <p>{transferStory.body}</p>
             </div>
             <ul class="chapter-facts" aria-label="Transfer capabilities">
-              <li>Settings ceiling: 32</li>
-              <li>Adaptive range planning</li>
-              <li>Saved-offset recovery</li>
+              <li>Automatic or manual count</li>
+              <li>Validated range responses</li>
+              <li>Safe single-stream fallback</li>
             </ul>
           </header>
 
@@ -108,7 +85,7 @@ const lanes = [
                 <span class="file-mark" aria-hidden="true">CD</span>
                 <span>
                   <b>ubuntu-26.04.iso</b>
-                  <small>6.52 GB · default eight-range example</small>
+                  <small>6.52 GB · manual eight-connection example</small>
                 </span>
               </div>
               <p class="phase-pill">
@@ -126,7 +103,7 @@ const lanes = [
                 <span>SAVED BYTE</span>
                 <span>END</span>
               </div>
-              <ol class="lanes" aria-label="Eight byte ranges in this default example, each with an independent resume marker">
+              <ol class="lanes" aria-label="Eight byte ranges in this configured example, each with an independent resume marker">
                 {
                   lanes.map((lane) => (
                     <li
@@ -186,7 +163,7 @@ const lanes = [
             <div class="chapter-copy">
               <p class="overline">FOUR WAYS IN / ONE LOCAL PATH</p>
               <h3>Bring the link. Keep your flow.</h3>
-              <p>{captureStory?.body}</p>
+              <p>{captureStory.body}</p>
             </div>
             <ul class="chapter-facts" aria-label="Capture capabilities">
               <li>Built-in WebKit browser</li>
@@ -259,7 +236,7 @@ const lanes = [
             <div class="chapter-copy">
               <p class="overline">ROUTING / LIMITS / POST-PROCESSING</p>
               <h3>Set the rules once.</h3>
-              <p>{finishStory?.body}</p>
+              <p>{finishStory.body}</p>
             </div>
             <ul class="chapter-facts" aria-label="Finishing capabilities">
               <li>First-match routing rules</li>
@@ -311,8 +288,8 @@ const lanes = [
               <p class="board-label">AFTER TRANSFER</p>
               <ol>
                 <li><span>01</span><p><b>Combine media</b><small>Audio + video, no re-encode</small></p><i>READY</i></li>
-                <li><span>02</span><p><b>Guarded extraction</b><small>ZIP-Slip and bomb checks</small></p><i>ON MATCH</i></li>
-                <li><span>03</span><p><b>Run an action</b><small>Notify, quit, or a Shortcut</small></p><i>OPTIONAL</i></li>
+                <li><span>02</span><p><b>Guarded extraction</b><small>ZIP-Slip and bomb checks</small></p><i>OPTIONAL</i></li>
+                <li><span>03</span><p><b>Run an all-done action</b><small>When no unfinished work remains</small></p><i>OPTIONAL</i></li>
               </ol>
               <div class="destination">
                 <span aria-hidden="true">⌂</span>
@@ -334,7 +311,6 @@ const lanes = [
 
       const tabs = Array.from(root.querySelectorAll('[data-chapter-tab]'));
       const panels = Array.from(root.querySelectorAll('[data-chapter-panel]'));
-      const mobile = window.matchMedia('(max-width: 760px)');
       let activeKey = tabs.find((tab) => tab.getAttribute('aria-selected') === 'true')?.dataset.chapterTab ?? 'transfer';
 
       const showChapter = (key, moveFocus = false) => {
@@ -348,11 +324,6 @@ const lanes = [
         panels.forEach((panel) => {
           panel.hidden = panel.dataset.chapterPanel !== key;
         });
-      };
-
-      const syncLayout = () => {
-        root.classList.add('is-tabbed');
-        showChapter(activeKey);
       };
 
       tabs.forEach((tab, index) => {
@@ -369,8 +340,7 @@ const lanes = [
         });
       });
 
-      mobile.addEventListener?.('change', syncLayout);
-      syncLayout();
+      showChapter(activeKey);
 
       const simulation = root.querySelector('[data-simulation]');
       const simulate = root.querySelector('[data-simulate]');
@@ -473,7 +443,7 @@ const lanes = [
     border: 1px solid var(--line-2);
     border-radius: var(--radius-xl);
     background: var(--surface);
-    box-shadow: 0 38px 90px -64px rgba(12, 17, 20, 0.7);
+    box-shadow: none;
     overflow: hidden;
   }
 
@@ -664,7 +634,7 @@ const lanes = [
   .transfer-machine {
     align-self: end;
     border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--line-2));
-    border-radius: 18px;
+    border-radius: var(--radius-lg);
     background: color-mix(in srgb, var(--surface) 92%, transparent);
     box-shadow: var(--shadow-card);
     overflow: hidden;
@@ -697,7 +667,7 @@ const lanes = [
     place-items: center;
     width: 34px;
     height: 34px;
-    border-radius: 9px;
+    border-radius: var(--radius);
     color: #fff;
     background: linear-gradient(145deg, var(--accent), var(--accent-strong));
     font-family: var(--font-mono);
@@ -966,13 +936,15 @@ const lanes = [
     min-height: 44px;
     padding: 0.72rem 1rem;
     border: 1px solid var(--line-2);
-    border-radius: 10px;
+    border-radius: var(--radius);
     color: var(--ink);
     background: var(--surface);
-    font: inherit;
-    font-size: 0.73rem;
-    font-weight: 700;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 650;
+    letter-spacing: 0.035em;
     line-height: 1;
+    text-transform: uppercase;
     cursor: pointer;
     transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
   }
@@ -985,7 +957,6 @@ const lanes = [
 
   .simulate-button:hover:not(:disabled) {
     background: color-mix(in srgb, var(--accent-strong) 90%, #000);
-    transform: translateY(-1px);
   }
 
   .reset-button:hover:not(:disabled) {
@@ -1028,9 +999,9 @@ const lanes = [
   .queue-column,
   .finish-column {
     border: 1px solid var(--line-2);
-    border-radius: 16px;
+    border-radius: var(--radius-lg);
     background: color-mix(in srgb, var(--surface) 92%, transparent);
-    box-shadow: 0 16px 38px -34px rgba(12, 17, 20, 0.7);
+    box-shadow: none;
   }
 
   .capture-card {
@@ -1047,7 +1018,7 @@ const lanes = [
     width: 34px;
     height: 34px;
     border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
-    border-radius: 10px;
+    border-radius: var(--radius);
     color: var(--accent-ink);
     background: var(--accent-soft);
     font-family: var(--font-mono);
@@ -1211,7 +1182,7 @@ const lanes = [
     margin-top: 1rem;
     padding: 0.75rem;
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     background: var(--surface-2);
   }
 
@@ -1222,7 +1193,7 @@ const lanes = [
     place-items: center;
     width: 34px;
     height: 34px;
-    border-radius: 9px;
+    border-radius: var(--radius);
     color: #fff;
     background: var(--accent-strong);
     font-family: var(--font-mono);
@@ -1318,7 +1289,7 @@ const lanes = [
     gap: 0.65rem;
     padding: 0.65rem;
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: var(--radius);
     background: var(--surface-2);
   }
 
@@ -1671,7 +1642,7 @@ const lanes = [
 
   @media (prefers-color-scheme: dark) {
     .theatre-shell {
-      box-shadow: 0 38px 90px -64px rgba(0, 0, 0, 0.92);
+      box-shadow: none;
     }
 
     .simulate-button {

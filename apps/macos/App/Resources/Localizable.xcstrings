@@ -1366,67 +1366,67 @@
         }
       }
     },
-    "A proxy server, and only if you configure one in Network settings.": {
+    "Proxy routing for HTTP-based downloads and speed tests — the macOS system proxy by default, a manual proxy when selected, or Direct mode. FTP and FTPS stay direct; a selected manual proxy is also mirrored into the built-in browser.": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "خادم وكيل (بروكسي)، وفقط إذا قمت بإعداد واحد في إعدادات الشبكة."
+            "value": "توجيه الوكيل لتنزيلات HTTP واختبارات السرعة — وكيل نظام macOS افتراضيًا، أو وكيل يدوي عند تحديده، أو الوضع المباشر. يظل FTP وFTPS مباشرَين؛ ويُعكس الوكيل اليدوي المحدد أيضًا في المتصفح المدمج."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Einen Proxyserver, und nur wenn du in den Netzwerkeinstellungen einen einrichtest."
+            "value": "Proxy-Routing für HTTP-basierte Downloads und Geschwindigkeitstests – standardmäßig der macOS-Systemproxy, bei Auswahl ein manueller Proxy oder der Direktmodus. FTP und FTPS bleiben direkt; der gewählte manuelle Proxy wird auch in den integrierten Browser übernommen."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Un servidor proxy, y solo si configuras uno en los ajustes de Red."
+            "value": "Enrutamiento proxy para descargas basadas en HTTP y pruebas de velocidad: el proxy del sistema macOS de forma predeterminada, un proxy manual al seleccionarlo o el modo Directo. FTP y FTPS permanecen directos; el proxy manual seleccionado también se refleja en el navegador integrado."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Un serveur proxy, et uniquement si vous en configurez un dans les réglages Réseau."
+            "value": "Routage par proxy des téléchargements HTTP et tests de débit — proxy système de macOS par défaut, proxy manuel s’il est sélectionné ou mode Direct. FTP et FTPS restent directs ; le proxy manuel sélectionné est aussi répercuté dans le navigateur intégré."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "एक प्रॉक्सी सर्वर, और केवल तभी जब आप नेटवर्क सेटिंग्ज़ में कोई कॉन्फ़िगर करें।"
+            "value": "HTTP-आधारित डाउनलोड और स्पीड टेस्ट के लिए प्रॉक्सी रूटिंग — डिफ़ॉल्ट रूप से macOS सिस्टम प्रॉक्सी, चुने जाने पर मैन्युअल प्रॉक्सी, या डायरेक्ट मोड। FTP और FTPS सीधे रहते हैं; चुना गया मैन्युअल प्रॉक्सी अंतर्निहित ब्राउज़र में भी मिरर होता है।"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "プロキシサーバ。ただし「ネットワーク」設定で設定した場合のみ。"
+            "value": "HTTP ベースのダウンロードとスピードテストのプロキシ経路 — 既定では macOS システムプロキシ、選択時は手動プロキシ、またはダイレクトモード。FTP と FTPS は直接接続のままで、選択した手動プロキシは内蔵ブラウザにも反映されます。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "프록시 서버 — 네트워크 설정에서 직접 구성한 경우에만."
+            "value": "HTTP 기반 다운로드와 속도 테스트의 프록시 경로 — 기본값은 macOS 시스템 프록시이며, 선택 시 수동 프록시 또는 직접 모드를 사용합니다. FTP와 FTPS는 직접 연결을 유지하며 선택한 수동 프록시는 내장 브라우저에도 반영됩니다."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Um servidor proxy, e somente se você configurar um nas configurações de Rede."
+            "value": "Roteamento por proxy para downloads baseados em HTTP e testes de velocidade — proxy do sistema macOS por padrão, proxy manual quando selecionado ou modo Direto. FTP e FTPS permanecem diretos; o proxy manual selecionado também é espelhado no navegador integrado."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Прокси-сервер — и только если вы настроите его в разделе «Сеть»."
+            "value": "Маршрутизация через прокси для HTTP-загрузок и тестов скорости: системный прокси macOS по умолчанию, выбранный вручную прокси или прямой режим. FTP и FTPS подключаются напрямую; выбранный ручной прокси также применяется во встроенном браузере."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "代理服务器，且仅当你在“网络”设置中配置了代理时。"
+            "value": "基于 HTTP 的下载和测速可通过代理路由——默认使用 macOS 系统代理，也可选择手动代理或“直连”模式。FTP 和 FTPS 始终直连；选中的手动代理也会同步到内置浏览器。"
           }
         }
       }
@@ -5852,197 +5852,197 @@
         }
       }
     },
-    "CloakDrop does not collect, store, or transmit any personal information, including:": {
+    "The CloakDrop project has no accounts or analytics service and receives none of the following from the app:": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لا يجمع CloakDrop أو يخزّن أو ينقل أي معلومات شخصية، بما في ذلك:"
+            "value": "لا يملك مشروع CloakDrop حسابات أو خدمة تحليلات، ولا يتلقى من التطبيق أيًا مما يلي:"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop erhebt, speichert oder übermittelt keinerlei personenbezogene Daten, darunter:"
+            "value": "Das CloakDrop-Projekt hat weder Konten noch einen Analysedienst und erhält von der App keine der folgenden Daten:"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop no recopila, almacena ni transmite ninguna información personal, incluyendo:"
+            "value": "El proyecto CloakDrop no tiene cuentas ni servicio de análisis y no recibe de la aplicación ninguno de los siguientes datos:"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop ne collecte, ne stocke ni ne transmet aucune information personnelle, notamment :"
+            "value": "Le projet CloakDrop ne propose ni comptes ni service d’analyse et ne reçoit de l’app aucune des données suivantes :"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop कोई भी व्यक्तिगत जानकारी एकत्र, संग्रहीत या प्रसारित नहीं करता, जिसमें शामिल हैं:"
+            "value": "CloakDrop प्रोजेक्ट में कोई खाते या एनालिटिक्स सेवा नहीं है और इसे ऐप से निम्न में से कुछ भी प्राप्त नहीं होता:"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop は、以下を含むいかなる個人情報も収集・保存・送信しません："
+            "value": "CloakDrop プロジェクトにはアカウントも分析サービスもなく、アプリから次の情報を一切受け取りません："
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop은 다음을 포함한 어떠한 개인 정보도 수집·저장·전송하지 않습니다:"
+            "value": "CloakDrop 프로젝트에는 계정이나 분석 서비스가 없으며 앱에서 다음 정보를 전혀 받지 않습니다:"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O CloakDrop não coleta, armazena nem transmite nenhuma informação pessoal, incluindo:"
+            "value": "O projeto CloakDrop não tem contas nem serviço de análise e não recebe do aplicativo nenhum dos seguintes dados:"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop не собирает, не хранит и не передаёт никакую персональную информацию, в том числе:"
+            "value": "У проекта CloakDrop нет учётных записей или сервиса аналитики, и он не получает от приложения ничего из следующего:"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop 不会收集、存储或传输任何个人信息，包括："
+            "value": "CloakDrop 项目没有账户或分析服务，也不会从应用接收以下任何数据："
           }
         }
       }
     },
-    "CloakDrop has a browser built in: open it, visit any site, and grab the video, audio, or files on the page. It renders with the same WebKit engine as Safari and connects only to the sites you navigate to. It keeps no browsing history — only cookies and site data, so you stay signed in between launches — and one button in Browser settings wipes all of it. When you grab a file, the cookies scoped to that address ride along so downloads behind a login work; they go only to that site, exactly as your browsing already does. If you turn address-bar search off, nothing you type is ever sent to a search engine.": {
+    "CloakDrop has a browser built in: open it, visit any site, and grab the video, audio, or files on the page. WebKit loads the pages you visit and the resources they request, which can include third-party content; the optional blocker can reduce some requests. CloakDrop keeps no browsing-history list — only cookies and site data, so you stay signed in between launches — and one button in Browser settings wipes all of it. When you grab a file, cookies applicable to that address ride along so downloads behind a login work. If you turn address-bar search off, address-bar text is never sent to a search engine.": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يتضمّن CloakDrop متصفّحًا مدمجًا: افتحه، وزُر أي موقع، والتقط الفيديو أو الصوت أو الملفات الموجودة في الصفحة. يُعرَض بمحرّك WebKit نفسه الذي يستخدمه Safari، ويتّصل فقط بالمواقع التي تتصفّحها. لا يحتفظ بأي سِجِلّ تصفّح — فقط ملفات تعريف الارتباط وبيانات المواقع، لتبقى مسجَّل الدخول بين عمليات التشغيل — وزر واحد في إعدادات المتصفّح يمسح كل ذلك. عند التقاط ملف، تُرافقه ملفات تعريف الارتباط المخصَّصة لذلك العنوان لكي تعمل التنزيلات خلف تسجيل الدخول؛ وهي تذهب إلى ذلك الموقع فقط، تمامًا كما يفعل تصفّحك بالفعل. إذا أوقفت بحث شريط العنوان، فلن يُرسَل أي شيء تكتبه إلى محرّك بحث."
+            "value": "يحتوي CloakDrop على متصفح مدمج: افتحه وزُر أي موقع والتقط الفيديو أو الصوت أو الملفات في الصفحة. يحمّل WebKit الصفحات التي تزورها والموارد التي تطلبها، وقد تشمل محتوى من جهات خارجية؛ ويمكن للحاجب الاختياري تقليل بعض الطلبات. لا يحتفظ CloakDrop بقائمة لسجل التصفح، بل بملفات تعريف الارتباط وبيانات المواقع فقط لتبقى مسجّل الدخول بين مرات التشغيل، ويمكن لزر واحد في إعدادات المتصفح مسحها كلها. عند التقاط ملف، تُرسل معه ملفات تعريف الارتباط المنطبقة على ذلك العنوان لكي تعمل التنزيلات التي تتطلب تسجيل الدخول. وإذا عطلت البحث في شريط العنوان، فلن يُرسل نص شريط العنوان إلى محرك بحث."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop hat einen Browser eingebaut: Öffne ihn, besuche jede Website und schnapp dir das Video, das Audio oder die Dateien auf der Seite. Er wird mit derselben WebKit-Engine wie Safari dargestellt und verbindet sich nur mit den Websites, die du aufrufst. Er speichert keinen Browserverlauf – nur Cookies und Websitedaten, damit du zwischen den Starts angemeldet bleibst – und eine Schaltfläche in den Browsereinstellungen löscht alles. Wenn du eine Datei holst, kommen die auf diese Adresse beschränkten Cookies mit, damit Downloads hinter einer Anmeldung funktionieren; sie gehen nur an diese Website, genau wie es dein Surfen ohnehin tut. Wenn du die Adressleistensuche ausschaltest, wird nichts von dem, was du eingibst, an eine Suchmaschine gesendet."
+            "value": "CloakDrop hat einen integrierten Browser: Öffne ihn, besuche eine beliebige Website und greife Video, Audio oder Dateien auf der Seite ab. WebKit lädt die besuchten Seiten und die von ihnen angeforderten Ressourcen, darunter möglicherweise Inhalte von Drittanbietern; der optionale Blocker kann einige Anfragen reduzieren. CloakDrop führt keine Browserverlaufsliste – nur Cookies und Websitedaten, damit du zwischen Starts angemeldet bleibst – und eine Schaltfläche in den Browser-Einstellungen löscht alles. Wenn du eine Datei abgreifst, werden die für diese Adresse geltenden Cookies mitgesendet, damit Downloads hinter einer Anmeldung funktionieren. Wenn du die Adressleistensuche ausschaltest, wird Text aus der Adressleiste nie an eine Suchmaschine gesendet."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop lleva un navegador integrado: ábrelo, visita cualquier sitio y captura el vídeo, el audio o los archivos de la página. Se muestra con el mismo motor WebKit que Safari y solo se conecta a los sitios a los que navegas. No guarda historial de navegación, solo cookies y datos de sitios, para que sigas con la sesión iniciada entre inicios, y un botón en los ajustes del navegador lo borra todo. Cuando capturas un archivo, las cookies del ámbito de esa dirección lo acompañan para que las descargas tras un inicio de sesión funcionen; solo van a ese sitio, igual que ya hace tu navegación. Si desactivas la búsqueda en la barra de direcciones, nada de lo que escribes se envía a un motor de búsqueda."
+            "value": "CloakDrop tiene un navegador integrado: ábrelo, visita cualquier sitio y captura el vídeo, el audio o los archivos de la página. WebKit carga las páginas que visitas y los recursos que solicitan, que pueden incluir contenido de terceros; el bloqueador opcional puede reducir algunas solicitudes. CloakDrop no mantiene una lista de historial de navegación, solo cookies y datos de sitios para que sigas conectado entre aperturas, y un botón en los ajustes del navegador lo borra todo. Cuando capturas un archivo, las cookies aplicables a esa dirección lo acompañan para que funcionen las descargas tras un inicio de sesión. Si desactivas la búsqueda en la barra de direcciones, el texto de la barra nunca se envía a un buscador."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop intègre un navigateur : ouvrez-le, visitez n’importe quel site et capturez la vidéo, l’audio ou les fichiers de la page. Il s’affiche avec le même moteur WebKit que Safari et ne se connecte qu’aux sites que vous parcourez. Il ne conserve aucun historique de navigation — seulement les cookies et les données de sites, pour que vous restiez connecté d’un lancement à l’autre — et un bouton dans les réglages du navigateur efface tout. Lorsque vous capturez un fichier, les cookies liés à cette adresse l’accompagnent pour que les téléchargements derrière une connexion fonctionnent ; ils ne vont qu’à ce site, exactement comme le fait déjà votre navigation. Si vous désactivez la recherche dans la barre d’adresse, rien de ce que vous saisissez n’est envoyé à un moteur de recherche."
+            "value": "CloakDrop intègre un navigateur : ouvrez-le, visitez n’importe quel site et capturez la vidéo, l’audio ou les fichiers de la page. WebKit charge les pages visitées et les ressources qu’elles demandent, ce qui peut inclure du contenu tiers ; le bloqueur facultatif peut réduire certaines requêtes. CloakDrop ne conserve aucune liste d’historique de navigation — seulement les cookies et données de sites pour que vous restiez connecté entre les lancements — et un bouton dans les réglages du navigateur permet de tout effacer. Lorsque vous capturez un fichier, les cookies applicables à cette adresse l’accompagnent pour permettre les téléchargements après connexion. Si vous désactivez la recherche dans la barre d’adresse, son texte n’est jamais envoyé à un moteur de recherche."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop में एक ब्राउज़र अंतर्निहित है: इसे खोलें, किसी भी साइट पर जाएँ, और पेज पर मौजूद वीडियो, ऑडियो या फ़ाइलें लें। यह Safari के समान WebKit इंजन से रेंडर होता है और केवल उन्हीं साइटों से जुड़ता है जिन पर आप जाते हैं। यह कोई ब्राउज़िंग इतिहास नहीं रखता — केवल कुकीज़ और साइट डेटा, ताकि आप लॉन्च के बीच साइन-इन रहें — और ब्राउज़र सेटिंग्स में एक बटन यह सब मिटा देता है। जब आप कोई फ़ाइल लेते हैं, तो उस पते तक सीमित कुकीज़ साथ जाती हैं ताकि लॉगिन के पीछे के डाउनलोड काम करें; वे केवल उसी साइट पर जाती हैं, ठीक वैसे ही जैसे आपकी ब्राउज़िंग पहले से करती है। यदि आप पता-बार खोज बंद कर देते हैं, तो आप जो टाइप करते हैं वह किसी सर्च इंजन को कभी नहीं भेजा जाता।"
+            "value": "CloakDrop में एक अंतर्निहित ब्राउज़र है: इसे खोलें, किसी भी साइट पर जाएँ और पेज का वीडियो, ऑडियो या फ़ाइलें पकड़ें। WebKit आपके देखे पेज और उनके माँगे संसाधन लोड करता है, जिनमें तीसरे पक्ष की सामग्री हो सकती है; वैकल्पिक ब्लॉकर कुछ अनुरोध कम कर सकता है। CloakDrop कोई ब्राउज़िंग-इतिहास सूची नहीं रखता — केवल कुकीज़ और साइट डेटा, ताकि आप लॉन्च के बीच साइन इन रहें — और ब्राउज़र सेटिंग्स में एक बटन से यह सब मिट जाता है। जब आप फ़ाइल पकड़ते हैं, उस पते पर लागू कुकीज़ साथ जाती हैं ताकि लॉगिन के पीछे डाउनलोड काम करें। पता-बार खोज बंद करने पर पता-बार का टेक्स्ट कभी सर्च इंजन को नहीं भेजा जाता।"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop にはブラウザが内蔵されています。開いて任意のサイトを訪れ、ページ上の動画・音声・ファイルを取得できます。Safari と同じ WebKit エンジンで表示され、あなたが移動したサイトにのみ接続します。閲覧履歴は保存せず、Cookie とサイトデータのみを保持するため、起動をまたいでサインイン状態が保たれます。ブラウザ設定のボタン一つですべて消去できます。ファイルを取得する際は、そのアドレスに限定された Cookie が同行するため、ログイン後のダウンロードも機能します。それらはそのサイトにのみ送信され、通常の閲覧とまったく同じです。アドレスバー検索をオフにすれば、入力内容が検索エンジンに送信されることはありません。"
+            "value": "CloakDrop にはブラウザが内蔵されています。開いて任意のサイトにアクセスし、ページ上の動画、音声、ファイルを取得できます。WebKit は訪問したページと、そのページが要求するリソースを読み込みます。これには第三者のコンテンツが含まれる場合があり、任意のブロッカーで一部のリクエストを減らせます。CloakDrop は閲覧履歴の一覧を保持せず、起動をまたいでサインイン状態を保つための Cookie とサイトデータだけを保存します。「ブラウザ」設定のボタン 1 つですべて消去できます。ファイルを取得すると、そのアドレスに適用される Cookie が一緒に送られ、ログインが必要なダウンロードに使われます。アドレスバー検索をオフにすると、アドレスバーのテキストは検索エンジンへ送信されません。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop에는 브라우저가 내장되어 있습니다. 열어서 어떤 사이트든 방문하고 페이지의 동영상, 오디오 또는 파일을 가져오세요. Safari와 동일한 WebKit 엔진으로 렌더링되며 사용자가 이동한 사이트에만 연결합니다. 탐색 기록은 저장하지 않고 쿠키와 사이트 데이터만 유지하므로 실행 간에 로그인 상태가 유지되며, 브라우저 설정의 버튼 하나로 모두 지울 수 있습니다. 파일을 가져올 때 해당 주소로 범위가 지정된 쿠키가 함께 전송되어 로그인 뒤의 다운로드가 작동합니다. 쿠키는 그 사이트로만 전송되며, 이는 평소 탐색과 정확히 같습니다. 주소 표시줄 검색을 끄면 입력한 내용이 검색 엔진으로 전송되지 않습니다."
+            "value": "CloakDrop에는 브라우저가 내장되어 있습니다. 열어서 어떤 사이트든 방문하고 페이지의 동영상, 오디오 또는 파일을 가져오세요. WebKit은 방문한 페이지와 그 페이지가 요청한 리소스를 불러오며 여기에는 제3자 콘텐츠가 포함될 수 있습니다. 선택적 차단기는 일부 요청을 줄일 수 있습니다. CloakDrop은 탐색 기록 목록을 저장하지 않고 쿠키와 사이트 데이터만 유지하므로 실행 간에 로그인 상태가 유지되며, 브라우저 설정의 버튼 하나로 모두 지울 수 있습니다. 파일을 가져올 때 해당 주소에 적용되는 쿠키가 함께 전송되어 로그인 뒤의 다운로드가 작동합니다. 주소 표시줄 검색을 끄면 주소 표시줄 텍스트가 검색 엔진으로 전송되지 않습니다."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O CloakDrop tem um navegador integrado: abra-o, visite qualquer site e capture o vídeo, o áudio ou os arquivos da página. Ele é renderizado com o mesmo motor WebKit do Safari e conecta-se apenas aos sites que você acessa. Não mantém histórico de navegação — apenas cookies e dados de sites, para que você continue conectado entre as inicializações — e um botão nas configurações do navegador apaga tudo. Ao capturar um arquivo, os cookies restritos a esse endereço vão junto para que downloads atrás de um login funcionem; eles vão somente para esse site, exatamente como a sua navegação já faz. Se você desativar a pesquisa na barra de endereço, nada do que você digita é enviado a um mecanismo de busca."
+            "value": "O CloakDrop tem um navegador integrado: abra-o, visite qualquer site e capture o vídeo, o áudio ou os arquivos da página. O WebKit carrega as páginas visitadas e os recursos que elas solicitam, o que pode incluir conteúdo de terceiros; o bloqueador opcional pode reduzir algumas solicitações. O CloakDrop não mantém uma lista de histórico de navegação — apenas cookies e dados de sites, para que você continue conectado entre as inicializações — e um botão nas configurações do navegador apaga tudo. Ao capturar um arquivo, os cookies aplicáveis a esse endereço vão junto para que downloads após login funcionem. Se você desativar a pesquisa na barra de endereço, o texto da barra nunca é enviado a um mecanismo de busca."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "В CloakDrop встроен браузер: откройте его, зайдите на любой сайт и захватите видео, аудио или файлы на странице. Он отображается тем же движком WebKit, что и Safari, и подключается только к сайтам, на которые вы переходите. Он не хранит историю посещений — только файлы cookie и данные сайтов, чтобы вы оставались в системе между запусками, — а одна кнопка в настройках браузера стирает всё. Когда вы захватываете файл, привязанные к этому адресу cookie отправляются вместе с ним, чтобы работали загрузки за входом; они идут только на этот сайт, ровно как и при обычном просмотре. Если выключить поиск в адресной строке, ничего из введённого не отправляется в поисковую систему."
+            "value": "В CloakDrop встроен браузер: откройте его, зайдите на любой сайт и захватите видео, аудио или файлы на странице. WebKit загружает посещаемые страницы и запрашиваемые ими ресурсы, включая возможный сторонний контент; необязательный блокировщик может сократить часть запросов. CloakDrop не ведёт список истории посещений — хранит только файлы cookie и данные сайтов, чтобы вы оставались в системе между запусками, — а одна кнопка в настройках браузера стирает всё. При захвате файла применимые к адресу cookie отправляются вместе с ним, чтобы работали загрузки после входа. Если выключить поиск в адресной строке, её текст никогда не отправляется поисковой системе."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop 内置了一个浏览器：打开它，访问任意站点，抓取页面上的视频、音频或文件。它使用与 Safari 相同的 WebKit 引擎渲染，并且只连接你所访问的站点。它不保存浏览历史——只保存 Cookie 和网站数据，让你在两次启动之间保持登录状态——浏览器设置中的一个按钮即可清除全部。当你抓取文件时，作用于该地址的 Cookie 会一并携带，以便登录后的下载正常进行；它们只发送到该站点，与你的浏览行为完全一致。如果你关闭地址栏搜索，你输入的任何内容都不会发送到搜索引擎。"
+            "value": "CloakDrop 内置了一个浏览器：打开它，访问任意站点，抓取页面上的视频、音频或文件。WebKit 会加载你访问的页面及其请求的资源，其中可能包含第三方内容；可选拦截器可以减少部分请求。CloakDrop 不维护浏览历史列表，只保存 Cookie 和网站数据，让你在两次启动之间保持登录状态；浏览器设置中的一个按钮即可清除全部。当你抓取文件时，适用于该地址的 Cookie 会一并携带，以便登录后的下载正常进行。如果关闭地址栏搜索，地址栏文本绝不会发送到搜索引擎。"
           }
         }
       }
     },
-    "CloakDrop includes two open-source command-line tools: ffmpeg, to combine separate video and audio into one playable file, and yt-dlp, to read the list of formats a video page offers. Both run locally as sandboxed helpers and only read or transform data already on your Mac. CloakDrop's own engine performs every byte of downloading — neither tool opens a network connection of its own.": {
+    "CloakDrop includes two open-source, sandboxed command-line helpers. ffmpeg works locally to combine or transform media. yt-dlp may contact a video page you submit and related service endpoints to resolve metadata and formats, but it does not download the selected media payload. CloakDrop's own engine transfers the files and media you select.": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يتضمّن CloakDrop أداتين مفتوحتي المصدر تعملان بسطر الأوامر: ffmpeg لدمج الفيديو والصوت المنفصلين في ملف واحد قابل للتشغيل، و yt-dlp لقراءة قائمة الصيغ التي تعرضها صفحة الفيديو. تعمل كلتاهما محليًا كمساعدتين ضمن صندوق حماية، ولا تقومان إلا بقراءة أو تحويل بيانات موجودة مسبقًا على جهاز Mac. محرّك CloakDrop نفسه هو من ينفّذ كل بايت من التنزيل؛ ولا تفتح أي من الأداتين اتصالًا شبكيًا خاصًا بها."
+            "value": "يتضمن CloakDrop أداتين مساعدتين مفتوحتي المصدر تعملان بسطر الأوامر داخل صندوق حماية. يعمل ffmpeg محليًا لدمج الوسائط أو تحويلها. قد يتصل yt-dlp بصفحة فيديو ترسلها ونقاط نهاية الخدمة المرتبطة بها لحل البيانات الوصفية والصيغ، لكنه لا ينزّل حمولة الوسائط المحددة. ينقل محرك CloakDrop نفسه الملفات والوسائط التي تختارها."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop enthält zwei quelloffene Kommandozeilenwerkzeuge: ffmpeg, um getrenntes Video und Audio zu einer abspielbaren Datei zu vereinen, und yt-dlp, um die Liste der von einer Videoseite angebotenen Formate auszulesen. Beide laufen lokal als abgeschottete Helfer und lesen oder transformieren nur Daten, die bereits auf deinem Mac liegen. CloakDrops eigene Engine lädt jedes einzelne Byte selbst herunter; keines der beiden Werkzeuge öffnet eine eigene Netzwerkverbindung."
+            "value": "CloakDrop enthält zwei quelloffene, abgeschottete Kommandozeilenhelfer. ffmpeg arbeitet lokal, um Medien zusammenzuführen oder umzuwandeln. yt-dlp kann eine von dir eingereichte Videoseite und zugehörige Dienstendpunkte kontaktieren, um Metadaten und Formate aufzulösen, lädt aber nicht die gewählten Mediendaten herunter. CloakDrops eigene Engine überträgt die von dir gewählten Dateien und Medien."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop incluye dos herramientas de línea de comandos de código abierto: ffmpeg, para combinar vídeo y audio separados en un único archivo reproducible, y yt-dlp, para leer la lista de formatos que ofrece una página de vídeo. Ambas se ejecutan localmente como ayudantes aislados y solo leen o transforman datos que ya están en tu Mac. El propio motor de CloakDrop realiza cada byte de la descarga; ninguna de las dos herramientas abre una conexión de red por su cuenta."
+            "value": "CloakDrop incluye dos ayudantes de línea de comandos de código abierto y aislados. ffmpeg trabaja localmente para combinar o transformar medios. yt-dlp puede contactar una página de vídeo que envíes y endpoints de servicio relacionados para resolver metadatos y formatos, pero no descarga el contenido multimedia seleccionado. El propio motor de CloakDrop transfiere los archivos y medios que eliges."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop intègre deux outils en ligne de commande open source : ffmpeg, pour combiner une vidéo et un audio séparés en un seul fichier lisible, et yt-dlp, pour lire la liste des formats proposés par une page vidéo. Les deux s’exécutent localement en tant qu’assistants en bac à sable et se contentent de lire ou transformer des données déjà présentes sur votre Mac. Le moteur de CloakDrop effectue lui-même chaque octet du téléchargement ; aucun de ces outils n’ouvre de connexion réseau de son côté."
+            "value": "CloakDrop intègre deux assistants en ligne de commande open source et en bac à sable. ffmpeg fonctionne localement pour combiner ou transformer des médias. yt-dlp peut contacter une page vidéo que vous soumettez et les points de terminaison associés afin de résoudre métadonnées et formats, mais ne télécharge pas le contenu multimédia sélectionné. Le moteur de CloakDrop transfère lui-même les fichiers et médias que vous choisissez."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop में दो ओपन-सोर्स कमांड-लाइन उपकरण शामिल हैं: ffmpeg, जो अलग-अलग वीडियो और ऑडियो को एक चलाने योग्य फ़ाइल में जोड़ता है, और yt-dlp, जो किसी वीडियो पेज द्वारा प्रस्तुत फ़ॉर्मैट की सूची पढ़ता है। दोनों सैंडबॉक्स्ड सहायक के रूप में स्थानीय रूप से चलते हैं और केवल आपके Mac पर पहले से मौजूद डेटा को पढ़ते या रूपांतरित करते हैं। डाउनलोड का हर बाइट CloakDrop का अपना इंजन करता है; इनमें से कोई भी उपकरण अपना स्वयं का नेटवर्क कनेक्शन नहीं खोलता।"
+            "value": "CloakDrop में दो ओपन-सोर्स, सैंडबॉक्स्ड कमांड-लाइन सहायक शामिल हैं। ffmpeg मीडिया जोड़ने या बदलने के लिए स्थानीय रूप से काम करता है। yt-dlp मेटाडेटा और फ़ॉर्मैट हल करने के लिए आपके दिए वीडियो पेज और संबंधित सेवा एंडपॉइंट से संपर्क कर सकता है, लेकिन चुना हुआ मीडिया पेलोड डाउनलोड नहीं करता। CloakDrop का अपना इंजन आपकी चुनी फ़ाइलें और मीडिया ट्रांसफ़र करता है।"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop には 2 つのオープンソースのコマンドラインツールが同梱されています。別々の映像と音声を 1 つの再生可能なファイルにまとめる ffmpeg と、動画ページが提供するフォーマット一覧を読み取る yt-dlp です。どちらもサンドボックス化されたヘルパーとしてローカルで動作し、すでに Mac 上にあるデータを読み取るか変換するだけです。ダウンロードの 1 バイトごとは CloakDrop 自身のエンジンが行い、いずれのツールも独自にネットワーク接続を開くことはありません。"
+            "value": "CloakDrop には、オープンソースでサンドボックス化された 2 つのコマンドラインヘルパーが含まれます。ffmpeg はメディアの結合や変換をローカルで行います。yt-dlp はメタデータとフォーマットを解決するため、送信した動画ページと関連サービスのエンドポイントに接続する場合がありますが、選択したメディア本体はダウンロードしません。選択したファイルとメディアは CloakDrop 自身のエンジンが転送します。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop에는 두 개의 오픈소스 명령줄 도구가 포함되어 있습니다: 분리된 영상과 오디오를 하나의 재생 가능한 파일로 합치는 ffmpeg와, 동영상 페이지가 제공하는 형식 목록을 읽는 yt-dlp입니다. 둘 다 샌드박스화된 헬퍼로 로컬에서 실행되며 이미 Mac에 있는 데이터를 읽거나 변환할 뿐입니다. 다운로드의 모든 바이트는 CloakDrop 자체 엔진이 수행하며, 두 도구 모두 자체적으로 네트워크 연결을 열지 않습니다."
+            "value": "CloakDrop에는 오픈소스이며 샌드박스화된 두 개의 명령줄 헬퍼가 포함됩니다. ffmpeg는 미디어를 결합하거나 변환하는 작업을 로컬에서 수행합니다. yt-dlp는 메타데이터와 형식을 확인하기 위해 사용자가 제출한 동영상 페이지와 관련 서비스 엔드포인트에 연결할 수 있지만 선택한 미디어 페이로드는 다운로드하지 않습니다. 사용자가 선택한 파일과 미디어는 CloakDrop 자체 엔진이 전송합니다."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O CloakDrop inclui duas ferramentas de linha de comando de código aberto: o ffmpeg, para combinar vídeo e áudio separados em um único arquivo reproduzível, e o yt-dlp, para ler a lista de formatos que uma página de vídeo oferece. Ambas rodam localmente como auxiliares em sandbox e apenas leem ou transformam dados que já estão no seu Mac. O próprio motor do CloakDrop faz cada byte do download; nenhuma das ferramentas abre uma conexão de rede por conta própria."
+            "value": "O CloakDrop inclui dois auxiliares de linha de comando de código aberto e em sandbox. O ffmpeg trabalha localmente para combinar ou transformar mídia. O yt-dlp pode contatar uma página de vídeo enviada por você e endpoints de serviço relacionados para resolver metadados e formatos, mas não baixa o conteúdo de mídia selecionado. O próprio motor do CloakDrop transfere os arquivos e mídias que você escolhe."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop включает два инструмента командной строки с открытым исходным кодом: ffmpeg — чтобы объединить отдельные видео и аудио в один воспроизводимый файл, и yt-dlp — чтобы прочитать список форматов, предлагаемых страницей с видео. Оба работают локально как изолированные помощники и лишь читают или преобразуют данные, уже находящиеся на вашем Mac. Каждый байт загрузки выполняет собственный движок CloakDrop; ни один из инструментов не открывает собственных сетевых подключений."
+            "value": "CloakDrop включает два изолированных помощника командной строки с открытым исходным кодом. ffmpeg локально объединяет или преобразует медиа. yt-dlp может обращаться к отправленной вами странице с видео и связанным конечным точкам сервиса, чтобы определить метаданные и форматы, но не загружает выбранный медиаконтент. Собственный движок CloakDrop передаёт выбранные вами файлы и медиа."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop 内置两款开源命令行工具：ffmpeg，用于将分离的视频和音频合并为一个可播放的文件；yt-dlp，用于读取视频页面提供的格式列表。两者都在本地作为沙盒化的辅助程序运行，只读取或转换已经在你 Mac 上的数据。每一个字节的下载都由 CloakDrop 自己的引擎完成；这两个工具都不会自行建立网络连接。"
+            "value": "CloakDrop 内置了两个开源、沙盒化的命令行辅助程序。ffmpeg 在本地合并或转换媒体。yt-dlp 可能会联系你提交的视频页面及相关服务端点，以解析元数据和格式，但不会下载所选媒体负载。你选择的文件和媒体由 CloakDrop 自己的引擎传输。"
           }
         }
       }
@@ -9752,67 +9752,67 @@
         }
       }
     },
-    "Every part of what CloakDrop does — multi-segment downloading, pause and resume, checksum verification, code-signature checks, archive extraction, and media muxing — runs locally on your Mac. The files you download, your download history, and the addresses you fetch are never sent to us or to anyone else.": {
+    "Every part of what CloakDrop does — multi-segment downloading, pause and resume, checksum verification, code-signature checks, archive extraction, and media muxing — runs locally on your Mac. CloakDrop does not upload your files, download history, or addresses to the CloakDrop project for analytics, profiling, or telemetry. Requests still go to the services you choose, as described below.": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "كل ما يقوم به CloakDrop — التنزيل متعدد المقاطع، والإيقاف المؤقت والاستئناف، والتحقق من المجاميع الاختبارية، وفحص توقيع الشيفرة، واستخراج الأرشيفات، ودمج الوسائط — يعمل محليًا على جهاز Mac الخاص بك. الملفات التي تنزّلها وسجل تنزيلاتك والعناوين التي تطلبها لا تُرسل إلينا أو إلى أي جهة أخرى إطلاقًا."
+            "value": "كل ما يقوم به CloakDrop — التنزيل متعدد المقاطع، والإيقاف المؤقت والاستئناف، والتحقق من المجاميع الاختبارية، وفحص توقيع الشيفرة، واستخراج الأرشيفات، ودمج الوسائط — يعمل محليًا على جهاز Mac. لا يرفع CloakDrop ملفاتك أو سجل تنزيلاتك أو العناوين إلى مشروع CloakDrop لأغراض التحليلات أو إنشاء الملفات الشخصية أو القياس عن بُعد. وتظل الطلبات تُرسل إلى الخدمات التي تختارها، كما هو موضح أدناه."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alles, was CloakDrop tut – Download in mehreren Segmenten, Pause und Fortsetzen, Prüfsummenprüfung, Codesignatur-Prüfung, Archiventpackung und Medien-Muxing – läuft lokal auf deinem Mac. Die Dateien, die du herunterlädst, dein Download-Verlauf und die abgerufenen Adressen werden niemals an uns oder an jemand anderen gesendet."
+            "value": "Alles, was CloakDrop tut – Download in mehreren Segmenten, Pause und Fortsetzen, Prüfsummenprüfung, Codesignatur-Prüfung, Archiventpackung und Medien-Muxing – läuft lokal auf deinem Mac. CloakDrop lädt deine Dateien, deinen Download-Verlauf oder Adressen nicht für Analysen, Profilbildung oder Telemetrie zum CloakDrop-Projekt hoch. Anfragen gehen weiterhin an die von dir gewählten Dienste, wie unten beschrieben."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Todo lo que hace CloakDrop —descarga multisegmento, pausa y reanudación, verificación de sumas de comprobación, comprobación de firmas de código, extracción de archivos y muxing de medios— se ejecuta localmente en tu Mac. Los archivos que descargas, tu historial de descargas y las direcciones que solicitas nunca se envían a nosotros ni a nadie más."
+            "value": "Todo lo que hace CloakDrop —descarga multisegmento, pausa y reanudación, verificación de sumas de comprobación, comprobación de firmas de código, extracción de archivos y muxing de medios— se ejecuta localmente en tu Mac. CloakDrop no sube tus archivos, historial de descargas ni direcciones al proyecto CloakDrop para análisis, elaboración de perfiles o telemetría. Las solicitudes sí se envían a los servicios que elijas, como se describe a continuación."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tout ce que fait CloakDrop — téléchargement multi-segment, pause et reprise, vérification de sommes de contrôle, contrôle des signatures de code, extraction d’archives et muxing multimédia — s’exécute localement sur votre Mac. Les fichiers que vous téléchargez, votre historique de téléchargement et les adresses que vous demandez ne sont jamais envoyés à nous ni à quiconque."
+            "value": "Tout ce que fait CloakDrop — téléchargement multi-segment, pause et reprise, vérification de sommes de contrôle, contrôle des signatures de code, extraction d’archives et muxing multimédia — s’exécute localement sur votre Mac. CloakDrop n’envoie pas vos fichiers, votre historique de téléchargement ni vos adresses au projet CloakDrop à des fins d’analyse, de profilage ou de télémétrie. Les requêtes sont néanmoins envoyées aux services que vous choisissez, comme décrit ci-dessous."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop जो कुछ भी करता है — मल्टी-सेगमेंट डाउनलोडिंग, रोकना और फिर से शुरू करना, चेकसम सत्यापन, कोड-सिग्नेचर जाँच, आर्काइव निष्कर्षण और मीडिया मक्सिंग — वह सब आपके Mac पर स्थानीय रूप से चलता है। आप जो फ़ाइलें डाउनलोड करते हैं, आपका डाउनलोड इतिहास और आपके द्वारा माँगे गए पते कभी भी हमें या किसी और को नहीं भेजे जाते।"
+            "value": "CloakDrop जो कुछ भी करता है — मल्टी-सेगमेंट डाउनलोडिंग, रोकना और फिर से शुरू करना, चेकसम सत्यापन, कोड-सिग्नेचर जाँच, आर्काइव निष्कर्षण और मीडिया मक्सिंग — वह सब आपके Mac पर स्थानीय रूप से चलता है। CloakDrop आपकी फ़ाइलें, डाउनलोड इतिहास या पते एनालिटिक्स, प्रोफ़ाइलिंग या टेलीमेट्री के लिए CloakDrop प्रोजेक्ट पर अपलोड नहीं करता। अनुरोध फिर भी आपकी चुनी सेवाओं को जाते हैं, जैसा नीचे बताया गया है।"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop が行うすべて — マルチセグメントのダウンロード、一時停止と再開、チェックサム検証、コード署名チェック、アーカイブ展開、メディアの多重化 — は、あなたの Mac 上でローカルに動作します。ダウンロードしたファイル、ダウンロード履歴、取得したアドレスが、当社や他の誰かに送信されることは決してありません。"
+            "value": "CloakDrop が行うすべて — マルチセグメントのダウンロード、一時停止と再開、チェックサム検証、コード署名チェック、アーカイブ展開、メディアの多重化 — は Mac 上でローカルに動作します。CloakDrop は、分析、プロファイリング、テレメトリのためにファイル、ダウンロード履歴、アドレスを CloakDrop プロジェクトへアップロードしません。リクエストは以下の説明どおり、選択したサービスには送信されます。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop이 수행하는 모든 작업 — 다중 세그먼트 다운로드, 일시정지 및 재개, 체크섬 검증, 코드 서명 확인, 압축 해제, 미디어 먹싱 — 은 사용자의 Mac에서 로컬로 실행됩니다. 다운로드한 파일, 다운로드 기록, 요청한 주소는 우리에게도 다른 누구에게도 전송되지 않습니다."
+            "value": "CloakDrop이 수행하는 모든 작업 — 다중 세그먼트 다운로드, 일시정지 및 재개, 체크섬 검증, 코드 서명 확인, 압축 해제, 미디어 먹싱 — 은 Mac에서 로컬로 실행됩니다. CloakDrop은 분석, 프로파일링 또는 원격 측정을 위해 파일, 다운로드 기록이나 주소를 CloakDrop 프로젝트에 업로드하지 않습니다. 요청은 아래 설명대로 사용자가 선택한 서비스에는 전송됩니다."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tudo o que o CloakDrop faz — download multissegmento, pausar e retomar, verificação de checksum, verificação de assinatura de código, extração de arquivos e muxing de mídia — roda localmente no seu Mac. Os arquivos que você baixa, seu histórico de downloads e os endereços que você solicita nunca são enviados a nós nem a ninguém."
+            "value": "Tudo o que o CloakDrop faz — download multissegmento, pausar e retomar, verificação de checksum, verificação de assinatura de código, extração de arquivos e muxing de mídia — roda localmente no seu Mac. O CloakDrop não envia seus arquivos, histórico de downloads ou endereços ao projeto CloakDrop para análise, criação de perfil ou telemetria. As solicitações ainda vão para os serviços que você escolher, como descrito abaixo."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Всё, что делает CloakDrop, — многосегментная загрузка, пауза и возобновление, проверка контрольных сумм, проверка подписи кода, распаковка архивов и муксинг медиа — выполняется локально на вашем Mac. Файлы, которые вы скачиваете, история загрузок и запрашиваемые адреса никогда не отправляются нам или кому-либо ещё."
+            "value": "Всё, что делает CloakDrop, — многосегментная загрузка, пауза и возобновление, проверка контрольных сумм, проверка подписи кода, распаковка архивов и муксинг медиа — выполняется локально на вашем Mac. CloakDrop не загружает ваши файлы, историю загрузок или адреса в проект CloakDrop для аналитики, профилирования или телеметрии. Запросы по-прежнему отправляются выбранным вами сервисам, как описано ниже."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop 所做的一切——多段下载、暂停与续传、校验和验证、代码签名检查、归档解压以及媒体封装——都在你的 Mac 上本地运行。你下载的文件、下载历史以及你请求的地址，永远不会发送给我们或任何其他人。"
+            "value": "CloakDrop 所做的一切——多段下载、暂停与续传、校验和验证、代码签名检查、归档解压以及媒体封装——都在你的 Mac 上本地运行。CloakDrop 不会为分析、画像或遥测而将你的文件、下载历史或地址上传到 CloakDrop 项目。请求仍会发送给你选择的服务，具体如下。"
           }
         }
       }
@@ -15212,67 +15212,67 @@
         }
       }
     },
-    "No connections you didn't choose": {
+    "Only connections you initiate or configure": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لا اتصالات لم تخترها بنفسك"
+            "value": "اتصالات تبدأها أو تضبطها أنت فقط"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keine Verbindung, die du nicht selbst gewählt hast"
+            "value": "Nur Verbindungen, die du startest oder konfigurierst"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ninguna conexión que no hayas elegido"
+            "value": "Solo conexiones que inicias o configuras"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aucune connexion que vous n’avez pas choisie"
+            "value": "Uniquement les connexions que vous lancez ou configurez"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "कोई भी कनेक्शन आपकी पसंद के बिना नहीं"
+            "value": "केवल वे कनेक्शन जिन्हें आप शुरू या कॉन्फ़िगर करते हैं"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "自分で選んだ接続のみ"
+            "value": "開始または設定した接続だけ"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "직접 선택하지 않은 연결은 없음"
+            "value": "사용자가 시작하거나 구성한 연결만"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nenhuma conexão que você não escolheu"
+            "value": "Somente conexões que você inicia ou configura"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Только те подключения, которые выбрали вы"
+            "value": "Только подключения, которые вы запускаете или настраиваете"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "没有任何非你选择的连接"
+            "value": "仅建立由你发起或配置的连接"
           }
         }
       }
@@ -16057,67 +16057,67 @@
         }
       }
     },
-    "Off by default. When on, the built-in browser blocks ads, tracking scripts, and ad pop-ups on nearly every site — pages load faster and cleaner. Blocking happens entirely on your Mac, and never affects your downloads. If a site misbehaves, turn this off.": {
+    "Off by default. When on, the built-in browser blocks requests to known ad and tracker hosts and rejects known ad pop-ups. Coverage varies by list and site; turn it off if a site misbehaves. Blocking happens on your Mac and never affects downloads.": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "مُعطَّل افتراضيًا. عند تفعيله، يحظر المتصفّح المدمج الإعلانات ونصوص التتبّع والنوافذ الإعلانية المنبثقة في جميع المواقع تقريبًا — فتُحمَّل الصفحات بشكل أسرع وأنظف. تتم عملية الحظر بالكامل على جهاز Mac الخاص بك ولا تؤثّر أبدًا على تنزيلاتك. إذا لم يعمل أحد المواقع بشكل صحيح، فأوقف تشغيل هذا الخيار."
+            "value": "مُعطَّل افتراضيًا. عند تفعيله، يحظر المتصفّح المدمج الطلبات إلى مضيفي الإعلانات والتتبّع المعروفين ويرفض النوافذ الإعلانية المنبثقة المعروفة. تختلف التغطية حسب القائمة والموقع؛ أوقفه إذا لم يعمل موقع بشكل صحيح. تتم عملية الحظر على جهاز Mac ولا تؤثّر أبدًا على التنزيلات."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Standardmäßig aus. Wenn aktiviert, blockiert der integrierte Browser Werbung, Tracking-Skripte und Werbe-Pop-ups auf nahezu jeder Website – Seiten laden schneller und sauberer. Die Blockierung erfolgt vollständig auf deinem Mac und wirkt sich nie auf deine Downloads aus. Falls eine Website nicht richtig funktioniert, schalte dies aus."
+            "value": "Standardmäßig aus. Wenn aktiviert, blockiert der integrierte Browser Anfragen an bekannte Werbe- und Tracking-Hosts und weist bekannte Werbe-Pop-ups ab. Die Abdeckung variiert je nach Liste und Website; schalte die Funktion aus, wenn eine Website nicht richtig funktioniert. Die Blockierung erfolgt auf deinem Mac und wirkt sich nie auf Downloads aus."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Desactivado de forma predeterminada. Cuando está activado, el navegador integrado bloquea anuncios, scripts de rastreo y ventanas emergentes publicitarias en casi todos los sitios: las páginas se cargan más rápido y más limpias. El bloqueo ocurre por completo en tu Mac y nunca afecta a tus descargas. Si un sitio no funciona bien, desactívalo."
+            "value": "Desactivado de forma predeterminada. Cuando está activado, el navegador integrado bloquea solicitudes a hosts conocidos de anuncios y rastreo, y rechaza ventanas emergentes publicitarias conocidas. La cobertura varía según la lista y el sitio; desactívalo si un sitio no funciona bien. El bloqueo ocurre en tu Mac y nunca afecta a las descargas."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Désactivé par défaut. Une fois activé, le navigateur intégré bloque les publicités, les scripts de suivi et les fenêtres publicitaires sur presque tous les sites : les pages se chargent plus vite et plus proprement. Le blocage a lieu entièrement sur votre Mac et n’affecte jamais vos téléchargements. Si un site fonctionne mal, désactivez cette option."
+            "value": "Désactivé par défaut. Une fois activé, le navigateur intégré bloque les requêtes vers des hôtes publicitaires et de suivi connus, et refuse les fenêtres publicitaires connues. La couverture varie selon la liste et le site ; désactivez-le si un site fonctionne mal. Le blocage a lieu sur votre Mac et n’affecte jamais les téléchargements."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "डिफ़ॉल्ट रूप से बंद। चालू होने पर, अंतर्निहित ब्राउज़र लगभग हर साइट पर विज्ञापन, ट्रैकिंग स्क्रिप्ट और विज्ञापन पॉप-अप ब्लॉक करता है — पेज तेज़ी से और साफ़-सुथरे लोड होते हैं। ब्लॉकिंग पूरी तरह आपके Mac पर होती है और आपके डाउनलोड को कभी प्रभावित नहीं करती। यदि कोई साइट ठीक से काम न करे, तो इसे बंद कर दें।"
+            "value": "डिफ़ॉल्ट रूप से बंद। चालू होने पर, अंतर्निहित ब्राउज़र ज्ञात विज्ञापन और ट्रैकर होस्ट के अनुरोधों को ब्लॉक करता है और ज्ञात विज्ञापन पॉप-अप को रोकता है। कवरेज सूची और साइट के अनुसार बदलती है; यदि कोई साइट ठीक से काम न करे तो इसे बंद कर दें। ब्लॉकिंग आपके Mac पर होती है और डाउनलोड को कभी प्रभावित नहीं करती।"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "デフォルトはオフです。オンにすると、内蔵ブラウザがほぼすべてのサイトで広告、トラッキングスクリプト、広告ポップアップをブロックし、ページの読み込みが速く、すっきりします。ブロックはすべてお使いの Mac 上で行われ、ダウンロードに影響することはありません。サイトの動作がおかしい場合はオフにしてください。"
+            "value": "デフォルトはオフです。オンにすると、内蔵ブラウザは既知の広告・トラッカーホストへのリクエストと、既知の広告ポップアップをブロックします。対象範囲はリストやサイトによって異なるため、サイトの動作がおかしい場合はオフにしてください。ブロックは Mac 上で行われ、ダウンロードには影響しません。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "기본적으로 꺼져 있습니다. 켜면 내장 브라우저가 거의 모든 사이트에서 광고, 추적 스크립트, 광고 팝업을 차단하여 페이지가 더 빠르고 깔끔하게 로드됩니다. 차단은 전적으로 Mac에서 이루어지며 다운로드에는 전혀 영향을 주지 않습니다. 사이트가 제대로 작동하지 않으면 이 기능을 끄세요."
+            "value": "기본적으로 꺼져 있습니다. 켜면 내장 브라우저가 알려진 광고 및 추적 호스트에 대한 요청과 알려진 광고 팝업을 차단합니다. 차단 범위는 목록과 사이트에 따라 다르므로 사이트가 제대로 작동하지 않으면 끄세요. 차단은 Mac에서 이루어지며 다운로드에는 영향을 주지 않습니다."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Desativado por padrão. Quando ativado, o navegador integrado bloqueia anúncios, scripts de rastreamento e pop-ups publicitários em quase todos os sites — as páginas carregam mais rápido e mais limpas. O bloqueio acontece inteiramente no seu Mac e nunca afeta seus downloads. Se um site não funcionar bem, desative isto."
+            "value": "Desativado por padrão. Quando ativado, o navegador integrado bloqueia solicitações a hosts conhecidos de anúncios e rastreamento e rejeita pop-ups publicitários conhecidos. A cobertura varia conforme a lista e o site; desative se um site não funcionar bem. O bloqueio acontece no Mac e nunca afeta os downloads."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "По умолчанию выключено. Когда включено, встроенный браузер блокирует рекламу, отслеживающие скрипты и рекламные всплывающие окна почти на всех сайтах — страницы загружаются быстрее и чище. Блокировка выполняется полностью на вашем Mac и никогда не влияет на загрузки. Если сайт работает некорректно, отключите это."
+            "value": "По умолчанию выключено. Когда включено, встроенный браузер блокирует запросы к известным рекламным и отслеживающим хостам и отклоняет известные рекламные всплывающие окна. Покрытие зависит от списка и сайта; отключите функцию, если сайт работает некорректно. Блокировка выполняется на вашем Mac и не влияет на загрузки."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "默认关闭。开启后，内置浏览器会在几乎所有网站上拦截广告、跟踪脚本和广告弹窗——页面加载更快、更干净。拦截完全在你的 Mac 上进行，绝不影响你的下载。如果某个网站出现异常，请关闭此项。"
+            "value": "默认关闭。开启后，内置浏览器会拦截对已知广告和跟踪主机的请求，并拒绝已知广告弹窗。覆盖范围因列表和网站而异；如果网站出现异常，请关闭此项。拦截在你的 Mac 上进行，绝不影响下载。"
           }
         }
       }
@@ -18917,67 +18917,67 @@
         }
       }
     },
-    "Read this page with the bundled resolver (YouTube and 1800+ sites) and pick a quality": {
+    "Read this page with the bundled resolver (YouTube and other supported sites) and pick a quality": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "اقرأ هذه الصفحة باستخدام المحلّل المدمج (يوتيوب و1800+ موقع) واختر الجودة"
+            "value": "اقرأ هذه الصفحة باستخدام المحلّل المدمج (يوتيوب والمواقع الأخرى المدعومة) واختر الجودة"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diese Seite mit dem integrierten Resolver (YouTube und 1800+ Seiten) lesen und eine Qualität wählen"
+            "value": "Diese Seite mit dem integrierten Resolver (YouTube und andere unterstützte Websites) lesen und eine Qualität wählen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lee esta página con el resolutor integrado (YouTube y más de 1800 sitios) y elige una calidad"
+            "value": "Lee esta página con el resolutor integrado (YouTube y otros sitios compatibles) y elige una calidad"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Analysez cette page avec le résolveur intégré (YouTube et plus de 1800 sites) et choisissez une qualité"
+            "value": "Analysez cette page avec le résolveur intégré (YouTube et d’autres sites pris en charge) et choisissez une qualité"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "इस पेज को अंतर्निहित रिज़ॉल्वर (YouTube और 1800+ साइटें) से पढ़ें और गुणवत्ता चुनें"
+            "value": "इस पेज को अंतर्निहित रिज़ॉल्वर (YouTube और अन्य समर्थित साइटों) से पढ़ें और गुणवत्ता चुनें"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "内蔵のリゾルバ（YouTube と 1800 以上のサイト）でこのページを解析し、画質を選択"
+            "value": "内蔵のリゾルバ（YouTube とその他の対応サイト）でこのページを解析し、画質を選択"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "내장 리졸버(YouTube 및 1800개 이상 사이트)로 이 페이지를 읽고 화질을 선택하세요"
+            "value": "내장 리졸버(YouTube 및 기타 지원 사이트)로 이 페이지를 읽고 화질을 선택하세요"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leia esta página com o resolvedor integrado (YouTube e mais de 1800 sites) e escolha uma qualidade"
+            "value": "Leia esta página com o resolvedor integrado (YouTube e outros sites compatíveis) e escolha uma qualidade"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Прочитать эту страницу встроенным резолвером (YouTube и 1800+ сайтов) и выбрать качество"
+            "value": "Прочитать эту страницу встроенным резолвером (YouTube и другие поддерживаемые сайты) и выбрать качество"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用内置解析器（YouTube 及 1800 多个网站）读取此页面并选择画质"
+            "value": "使用内置解析器（YouTube 及其他受支持的网站）读取此页面并选择画质"
           }
         }
       }
@@ -25482,67 +25482,197 @@
         }
       }
     },
-    "The download links you choose — and any redirects or mirrors they point to.": {
+    "Download work you configure — URLs, redirects, mirrors, retries, schedules, repeating transfers, and automatic resumes.": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "روابط التنزيل التي تختارها — وأي عمليات إعادة توجيه أو مرايا تشير إليها."
+            "value": "مهام التنزيل التي تضبطها — عناوين URL وعمليات إعادة التوجيه والمرايا وإعادات المحاولة والجداول والتنزيلات المتكررة والاستئنافات التلقائية."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Download-Links, die du wählst – und alle Weiterleitungen oder Spiegel, auf die sie verweisen."
+            "value": "Von dir konfigurierte Download-Aufgaben – URLs, Weiterleitungen, Spiegel, Wiederholungsversuche, Zeitpläne, wiederkehrende Übertragungen und automatische Fortsetzungen."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los enlaces de descarga que eliges, y las redirecciones o réplicas a las que apunten."
+            "value": "El trabajo de descarga que configuras: URL, redirecciones, réplicas, reintentos, programaciones, transferencias repetidas y reanudaciones automáticas."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les liens de téléchargement que vous choisissez — et les redirections ou miroirs vers lesquels ils pointent."
+            "value": "Les téléchargements que vous configurez — URL, redirections, miroirs, nouvelles tentatives, programmations, transferts récurrents et reprises automatiques."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "आपके चुने हुए डाउनलोड लिंक — और वे जिन रीडायरेक्ट या मिरर की ओर इशारा करते हैं।"
+            "value": "आपके कॉन्फ़िगर किए डाउनलोड कार्य — URL, रीडायरेक्ट, मिरर, पुनः प्रयास, शेड्यूल, दोहराए जाने वाले ट्रांसफ़र और अपने-आप फिर शुरू होना।"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "あなたが選んだダウンロードリンク — およびそのリダイレクト先やミラー。"
+            "value": "設定したダウンロード処理 — URL、リダイレクト、ミラー、再試行、スケジュール、反復転送、自動再開。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "사용자가 선택한 다운로드 링크 — 그리고 해당 링크가 가리키는 리디렉션이나 미러."
+            "value": "사용자가 구성한 다운로드 작업 — URL, 리디렉션, 미러, 재시도, 예약, 반복 전송 및 자동 재개."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Os links de download que você escolhe — e quaisquer redirecionamentos ou espelhos para os quais eles apontem."
+            "value": "O trabalho de download que você configura — URLs, redirecionamentos, espelhos, novas tentativas, agendamentos, transferências recorrentes e retomadas automáticas."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ссылки для загрузки, которые вы выбираете, — и любые перенаправления или зеркала, на которые они указывают."
+            "value": "Настроенные вами загрузки — URL, перенаправления, зеркала, повторные попытки, расписания, повторяющиеся передачи и автоматическое возобновление."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你选择的下载链接，以及它们指向的重定向或镜像。"
+            "value": "你配置的下载工作——URL、重定向、镜像、重试、计划、重复传输和自动续传。"
+          }
+        }
+      }
+    },
+    "Same-origin checksum files (.sha256, .sha1, or .md5), when automatic checksum verification and discovery are enabled.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ملفات المجموع الاختباري من المصدر نفسه (.sha256 أو .sha1 أو .md5)، عند تفعيل التحقق والاكتشاف التلقائيين للمجاميع الاختبارية."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüfsummendateien desselben Ursprungs (.sha256, .sha1 oder .md5), wenn die automatische Prüfsummenprüfung und -suche aktiviert sind."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivos de suma de comprobación del mismo origen (.sha256, .sha1 o .md5), cuando la verificación y detección automáticas están activadas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les fichiers de somme de contrôle de même origine (.sha256, .sha1 ou .md5), lorsque leur vérification et leur détection automatiques sont activées."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "समान-ओरिजिन चेकसम फ़ाइलें (.sha256, .sha1 या .md5), जब स्वचालित चेकसम सत्यापन और खोज चालू हों।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "チェックサムの自動検証と検出がオンの場合の、同一オリジンにあるチェックサムファイル（.sha256、.sha1、.md5）。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "자동 체크섬 검증과 검색이 켜진 경우 동일 출처의 체크섬 파일(.sha256, .sha1 또는 .md5)."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arquivos de checksum da mesma origem (.sha256, .sha1 ou .md5), quando a verificação e a descoberta automáticas estiverem ativadas."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файлы контрольных сумм с того же источника (.sha256, .sha1 или .md5), когда включены их автоматическая проверка и поиск."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用自动校验和验证与发现时，同源的校验和文件（.sha256、.sha1 或 .md5）。"
+          }
+        }
+      }
+    },
+    "A video page and related service endpoints, when yt-dlp resolves formats for a page you submit.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "صفحة فيديو ونقاط نهاية الخدمة المرتبطة بها، عندما يحل yt-dlp الصيغ لصفحة ترسلها."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Videoseite und zugehörige Dienstendpunkte, wenn yt-dlp die Formate einer von dir eingereichten Seite auflöst."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una página de vídeo y los endpoints de servicio relacionados, cuando yt-dlp resuelve los formatos de una página que envías."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une page vidéo et les points de terminaison de service associés, lorsque yt-dlp résout les formats d’une page que vous soumettez."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एक वीडियो पेज और संबंधित सेवा एंडपॉइंट, जब yt-dlp आपके दिए पेज के फ़ॉर्मैट हल करता है।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送信したページのフォーマットを yt-dlp が解決する際の、動画ページと関連サービスのエンドポイント。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "yt-dlp가 사용자가 제출한 페이지의 형식을 확인할 때 해당 동영상 페이지와 관련 서비스 엔드포인트."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma página de vídeo e endpoints de serviço relacionados, quando o yt-dlp resolve os formatos de uma página enviada por você."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Страница с видео и связанные конечные точки сервиса, когда yt-dlp определяет форматы для отправленной вами страницы."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当 yt-dlp 为你提交的页面解析格式时，该视频页面及相关服务端点。"
           }
         }
       }
@@ -26197,67 +26327,67 @@
         }
       }
     },
-    "The sites you visit in the built-in browser — the pages you open, and (if address-bar search is on) the query you type when you press Return.": {
+    "Pages and subresources loaded by the built-in browser — plus your query to the selected search engine, if address-bar search is on, only when you press Return.": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "المواقع التي تزورها في المتصفّح المدمج — الصفحات التي تفتحها، و(إذا كان بحث شريط العنوان مفعَّلًا) الاستعلام الذي تكتبه عند الضغط على Return."
+            "value": "الصفحات والموارد الفرعية التي يحمّلها المتصفح المدمج — بالإضافة إلى استعلامك إلى محرك البحث المحدد، إذا كان بحث شريط العنوان مفعّلًا، وفقط عند الضغط على Return."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Websites, die du im integrierten Browser besuchst – die Seiten, die du öffnest, und (wenn die Adressleistensuche aktiviert ist) die Suchanfrage, die du bei Drücken der Eingabetaste eingibst."
+            "value": "Seiten und Unterressourcen, die der integrierte Browser lädt – sowie deine Anfrage an die gewählte Suchmaschine, falls die Adressleistensuche aktiviert ist, und nur wenn du die Eingabetaste drückst."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los sitios que visitas en el navegador integrado: las páginas que abres y (si la búsqueda en la barra de direcciones está activada) la consulta que escribes al pulsar Intro."
+            "value": "Páginas y subrecursos que carga el navegador integrado, además de tu consulta al buscador seleccionado, si la búsqueda en la barra de direcciones está activada, solo al pulsar Intro."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les sites que vous visitez dans le navigateur intégré — les pages que vous ouvrez et (si la recherche dans la barre d’adresse est activée) la requête que vous saisissez en appuyant sur Entrée."
+            "value": "Les pages et sous-ressources chargées par le navigateur intégré — ainsi que votre requête au moteur de recherche choisi, si la recherche dans la barre d’adresse est activée, uniquement lorsque vous appuyez sur Entrée."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "अंतर्निहित ब्राउज़र में आप जो साइटें देखते हैं — जो पेज आप खोलते हैं, और (यदि पता-बार खोज चालू है) जो क्वेरी आप Return दबाने पर टाइप करते हैं।"
+            "value": "अंतर्निहित ब्राउज़र द्वारा लोड किए गए पेज और उप-संसाधन — साथ ही चुने हुए सर्च इंजन को आपकी क्वेरी, यदि पता-बार खोज चालू है, केवल Return दबाने पर।"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "内蔵ブラウザで訪問するサイト——開いたページと、（アドレスバー検索がオンの場合は）Return キーを押したときに入力したクエリ。"
+            "value": "内蔵ブラウザが読み込むページとサブリソース — アドレスバー検索がオンの場合は、Return キーを押したときだけ選択した検索エンジンへ送るクエリも含みます。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "내장 브라우저에서 방문하는 사이트 — 여는 페이지, 그리고 (주소 표시줄 검색이 켜져 있으면) Return 키를 누를 때 입력한 검색어."
+            "value": "내장 브라우저가 불러오는 페이지와 하위 리소스 — 주소 표시줄 검색이 켜진 경우 Return 키를 누를 때만 선택한 검색 엔진으로 보내는 검색어 포함."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Os sites que você visita no navegador integrado — as páginas que você abre e (se a pesquisa na barra de endereço estiver ativada) a consulta que você digita ao pressionar Return."
+            "value": "Páginas e sub-recursos carregados pelo navegador integrado — além da sua consulta ao mecanismo de busca selecionado, se a pesquisa na barra de endereço estiver ativada, somente ao pressionar Return."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Сайты, которые вы посещаете во встроенном браузере, — открываемые страницы и (если включён поиск в адресной строке) запрос, который вы вводите при нажатии Return."
+            "value": "Страницы и подресурсы, загружаемые встроенным браузером, а также ваш запрос выбранной поисковой системе, если включён поиск в адресной строке, — только при нажатии Return."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你在内置浏览器中访问的站点——你打开的页面，以及（如果启用了地址栏搜索）你按下 Return 键时输入的查询。"
+            "value": "内置浏览器加载的页面和子资源；如果启用了地址栏搜索，还包括仅在你按下 Return 键时发送给所选搜索引擎的查询。"
           }
         }
       }
@@ -29512,6 +29642,136 @@
         }
       }
     },
+    "What contacted services can see": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ما يمكن للخدمات التي تتصل بها رؤيته"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was kontaktierte Dienste sehen können"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo que pueden ver los servicios contactados"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce que les services contactés peuvent voir"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "संपर्क की गई सेवाएँ क्या देख सकती हैं"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続先のサービスから見える情報"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연결한 서비스에서 볼 수 있는 정보"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O que os serviços contatados podem ver"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Что могут видеть сервисы, к которым вы обращаетесь"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你所联系的服务可以看到什么"
+          }
+        }
+      }
+    },
+    "Servers and proxies you choose to contact can receive ordinary request information, including your IP address, the requested URL or resource, and applicable headers, cookies, or credentials. The CloakDrop project does not receive or retain a separate copy of that information.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يمكن للخوادم والوكلاء الذين تختار الاتصال بهم تلقي معلومات الطلب العادية، بما في ذلك عنوان IP وعنوان URL أو المورد المطلوب والرؤوس أو ملفات تعريف الارتباط أو بيانات الاعتماد المنطبقة. لا يتلقى مشروع CloakDrop نسخة منفصلة من هذه المعلومات ولا يحتفظ بها."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server und Proxys, die du kontaktierst, können übliche Anfrageinformationen erhalten, darunter deine IP-Adresse, die angeforderte URL oder Ressource sowie geltende Header, Cookies oder Zugangsdaten. Das CloakDrop-Projekt erhält und speichert keine separate Kopie dieser Informationen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los servidores y proxies que decidas contactar pueden recibir información normal de la solicitud, incluida tu dirección IP, la URL o el recurso solicitado y los encabezados, cookies o credenciales aplicables. El proyecto CloakDrop no recibe ni conserva una copia separada de esa información."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les serveurs et proxys que vous choisissez de contacter peuvent recevoir les informations ordinaires de la requête, notamment votre adresse IP, l’URL ou la ressource demandée ainsi que les en-têtes, cookies ou identifiants applicables. Le projet CloakDrop ne reçoit ni ne conserve de copie distincte de ces informations."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जिन सर्वर और प्रॉक्सी से आप संपर्क करना चुनते हैं, वे सामान्य अनुरोध जानकारी पा सकते हैं, जिसमें आपका IP पता, माँगा गया URL या संसाधन और लागू हेडर, कुकी या क्रेडेंशियल शामिल हैं। CloakDrop प्रोजेक्ट को इस जानकारी की अलग प्रति प्राप्त नहीं होती और न वह इसे रखता है।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続先として選んだサーバやプロキシは、IP アドレス、要求された URL またはリソース、該当するヘッダ、Cookie、認証情報など、通常のリクエスト情報を受け取る場合があります。CloakDrop プロジェクトがその情報の別コピーを受け取ったり保持したりすることはありません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사용자가 연결하기로 선택한 서버와 프록시는 IP 주소, 요청한 URL 또는 리소스, 해당 헤더, 쿠키나 자격 증명 등 일반적인 요청 정보를 받을 수 있습니다. CloakDrop 프로젝트는 이 정보의 별도 사본을 받거나 보관하지 않습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Servidores e proxies que você escolhe contatar podem receber informações comuns da solicitação, incluindo seu endereço IP, a URL ou o recurso solicitado e cabeçalhos, cookies ou credenciais aplicáveis. O projeto CloakDrop não recebe nem mantém uma cópia separada dessas informações."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Серверы и прокси, к которым вы решаете обратиться, могут получать обычные данные запроса, включая ваш IP-адрес, запрошенный URL или ресурс и применимые заголовки, файлы cookie или учётные данные. Проект CloakDrop не получает и не хранит отдельную копию этой информации."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你选择联系的服务器和代理可以接收常规请求信息，包括你的 IP 地址、所请求的 URL 或资源，以及适用的标头、Cookie 或凭据。CloakDrop 项目不会接收或保留这些信息的单独副本。"
+          }
+        }
+      }
+    },
     "Where your data lives": {
       "extractionState": "manual",
       "localizations": {
@@ -29837,67 +30097,67 @@
         }
       }
     },
-    "Your download list and preferences are kept in a local database inside the app's sandbox. Passwords for websites, FTP servers, and proxies are stored in the macOS Keychain. CloakDrop runs fully sandboxed — it can reach only your Downloads folder and the destinations you explicitly pick (remembered as security-scoped bookmarks), never the rest of your disk. Everything stays on your Mac and can be deleted at any time; removing the app leaves nothing behind but the files you saved.": {
+    "Your download list, preferences, URLs, request data, per-download HTTP or FTP credentials, checksums, and receipts can be kept in the app's local sandbox database. Website credentials you choose to remember and manual-proxy secrets are stored in the macOS Keychain; an individual download credential can also be in its database record so the transfer can resume. Browser cookies and site data stay in WebKit's local store. CloakDrop can reach only its containers, your Downloads folder, and destinations you explicitly pick. Removing the app does not necessarily remove saved files outside its container or Keychain items; you can manage those items in macOS Keychain Access.": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تُحفظ قائمة تنزيلاتك وتفضيلاتك في قاعدة بيانات محلية داخل صندوق حماية التطبيق (sandbox). أما كلمات مرور المواقع وخوادم FTP والوكلاء فتُخزَّن في «سلسلة المفاتيح» (Keychain) في macOS. يعمل CloakDrop ضمن صندوق حماية بالكامل — فلا يمكنه الوصول إلا إلى مجلد «التنزيلات» والوجهات التي تختارها صراحةً (تُحفظ كإشارات مرجعية ذات نطاق أمني)، ولا يصل أبدًا إلى بقية القرص. يبقى كل شيء على جهاز Mac ويمكن حذفه في أي وقت؛ وإزالة التطبيق لا تترك شيئًا سوى الملفات التي حفظتها."
+            "value": "يمكن الاحتفاظ بقائمة تنزيلاتك وتفضيلاتك وعناوين URL وبيانات الطلب وبيانات اعتماد HTTP أو FTP الخاصة بكل تنزيل والمجاميع الاختبارية والإيصالات في قاعدة بيانات محلية داخل صندوق حماية التطبيق. تُخزَّن بيانات اعتماد المواقع التي تختار تذكّرها وأسرار الوكيل اليدوي في سلسلة مفاتيح macOS؛ ويمكن أيضًا أن تكون بيانات اعتماد تنزيل فردي في سجل قاعدة بياناته كي يُستأنف النقل. تبقى ملفات تعريف الارتباط وبيانات المواقع في مخزن WebKit المحلي. لا يستطيع CloakDrop الوصول إلا إلى حاوياته ومجلد التنزيلات والوجهات التي تختارها صراحةً. لا تؤدي إزالة التطبيق بالضرورة إلى إزالة الملفات المحفوظة خارج حاويته أو عناصر سلسلة المفاتيح؛ ويمكنك إدارة تلك العناصر في «الوصول إلى سلسلة المفاتيح» في macOS."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deine Download-Liste und Einstellungen werden in einer lokalen Datenbank innerhalb der Sandbox der App gespeichert. Passwörter für Websites, FTP-Server und Proxys liegen im macOS-Schlüsselbund. CloakDrop läuft vollständig in der Sandbox – es kann nur auf deinen Downloads-Ordner und die von dir ausdrücklich gewählten Ziele zugreifen (als sicherheitsbezogene Lesezeichen gespeichert), niemals auf den Rest deiner Festplatte. Alles bleibt auf deinem Mac und kann jederzeit gelöscht werden; das Entfernen der App hinterlässt nichts außer den von dir gespeicherten Dateien."
+            "value": "Deine Download-Liste, Einstellungen, URLs, Anfragedaten, HTTP- oder FTP-Zugangsdaten einzelner Downloads, Prüfsummen und Belege können in der lokalen Sandbox-Datenbank der App gespeichert werden. Website-Zugangsdaten, die du merken lässt, und Geheimnisse eines manuellen Proxys liegen im macOS-Schlüsselbund; Zugangsdaten eines einzelnen Downloads können zusätzlich in dessen Datenbankeintrag stehen, damit die Übertragung fortgesetzt werden kann. Browser-Cookies und Websitedaten bleiben im lokalen WebKit-Speicher. CloakDrop kann nur seine Container, deinen Downloads-Ordner und ausdrücklich gewählte Ziele erreichen. Das Entfernen der App löscht nicht zwangsläufig gespeicherte Dateien außerhalb ihres Containers oder Schlüsselbundobjekte; diese kannst du in der macOS-Schlüsselbundverwaltung verwalten."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tu lista de descargas y tus preferencias se guardan en una base de datos local dentro del entorno aislado (sandbox) de la aplicación. Las contraseñas de sitios web, servidores FTP y proxies se almacenan en el Llavero de macOS. CloakDrop se ejecuta completamente aislado: solo puede acceder a tu carpeta de Descargas y a los destinos que elijas explícitamente (recordados como marcadores con ámbito de seguridad), nunca al resto de tu disco. Todo permanece en tu Mac y puede eliminarse en cualquier momento; al quitar la aplicación no queda nada salvo los archivos que guardaste."
+            "value": "Tu lista de descargas, preferencias, URL, datos de solicitud, credenciales HTTP o FTP por descarga, sumas de comprobación y recibos pueden guardarse en la base de datos local aislada de la aplicación. Las credenciales de sitios web que decidas recordar y los secretos del proxy manual se almacenan en el Llavero de macOS; una credencial de descarga individual también puede estar en su registro de la base de datos para que la transferencia pueda reanudarse. Las cookies y los datos de sitios del navegador permanecen en el almacén local de WebKit. CloakDrop solo puede acceder a sus contenedores, tu carpeta Descargas y los destinos que elijas explícitamente. Quitar la aplicación no elimina necesariamente los archivos guardados fuera de su contenedor ni los elementos del Llavero; puedes gestionarlos en Acceso a Llaveros de macOS."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Votre liste de téléchargements et vos préférences sont conservées dans une base de données locale au sein du bac à sable (sandbox) de l’application. Les mots de passe des sites web, serveurs FTP et proxys sont stockés dans le Trousseau de macOS. CloakDrop s’exécute entièrement en bac à sable : il n’accède qu’à votre dossier Téléchargements et aux destinations que vous choisissez explicitement (mémorisées sous forme de signets à portée de sécurité), jamais au reste de votre disque. Tout reste sur votre Mac et peut être supprimé à tout moment ; supprimer l’application ne laisse rien d’autre que les fichiers que vous avez enregistrés."
+            "value": "Votre liste de téléchargements, vos préférences, URL, données de requête, identifiants HTTP ou FTP propres à chaque téléchargement, sommes de contrôle et reçus peuvent être conservés dans la base locale du bac à sable de l’app. Les identifiants de sites que vous choisissez de mémoriser et les secrets du proxy manuel sont stockés dans le Trousseau macOS ; l’identifiant d’un téléchargement peut aussi figurer dans son enregistrement local afin de permettre la reprise. Les cookies et données de sites du navigateur restent dans le stockage WebKit local. CloakDrop n’accède qu’à ses conteneurs, à votre dossier Téléchargements et aux destinations que vous choisissez explicitement. Supprimer l’app ne supprime pas nécessairement les fichiers enregistrés hors de son conteneur ni les éléments du Trousseau ; vous pouvez gérer ces éléments dans Trousseaux d’accès de macOS."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "आपकी डाउनलोड सूची और प्राथमिकताएँ ऐप के सैंडबॉक्स के भीतर एक स्थानीय डेटाबेस में रखी जाती हैं। वेबसाइटों, FTP सर्वरों और प्रॉक्सी के पासवर्ड macOS Keychain में संग्रहीत होते हैं। CloakDrop पूरी तरह सैंडबॉक्स में चलता है — यह केवल आपके Downloads फ़ोल्डर और आपके स्पष्ट रूप से चुने गए गंतव्यों (सुरक्षा-दायरे वाले बुकमार्क के रूप में याद रखे गए) तक पहुँच सकता है, आपकी डिस्क के बाकी हिस्से तक कभी नहीं। सब कुछ आपके Mac पर रहता है और किसी भी समय हटाया जा सकता है; ऐप हटाने पर आपके सहेजे गए फ़ाइलों के अलावा कुछ नहीं बचता।"
+            "value": "आपकी डाउनलोड सूची, प्राथमिकताएँ, URL, अनुरोध डेटा, हर डाउनलोड के HTTP या FTP क्रेडेंशियल, चेकसम और रसीदें ऐप के स्थानीय सैंडबॉक्स डेटाबेस में रखी जा सकती हैं। आपके द्वारा याद रखे गए वेबसाइट क्रेडेंशियल और मैन्युअल प्रॉक्सी रहस्य macOS Keychain में संग्रहीत होते हैं; ट्रांसफ़र फिर शुरू हो सके इसलिए किसी डाउनलोड का क्रेडेंशियल उसके डेटाबेस रिकॉर्ड में भी हो सकता है। ब्राउज़र कुकीज़ और साइट डेटा WebKit के स्थानीय स्टोर में रहते हैं। CloakDrop केवल अपने कंटेनर, आपके Downloads फ़ोल्डर और आपके चुने गंतव्यों तक पहुँच सकता है। ऐप हटाने से उसके कंटेनर के बाहर की सहेजी फ़ाइलें या Keychain आइटम आवश्यक रूप से नहीं हटते; आप इन आइटम को macOS Keychain Access में प्रबंधित कर सकते हैं।"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ダウンロード一覧と設定は、アプリのサンドボックス内のローカルデータベースに保存されます。ウェブサイト、FTP サーバ、プロキシのパスワードは macOS の「キーチェーン」に保存されます。CloakDrop は完全にサンドボックス内で動作し、アクセスできるのは「ダウンロード」フォルダと、あなたが明示的に選んだ保存先（セキュリティスコープ付きブックマークとして記憶）だけで、ディスクの他の部分には決してアクセスしません。すべてはあなたの Mac 内にとどまり、いつでも削除できます。アプリを削除しても、保存したファイル以外は何も残りません。"
+            "value": "ダウンロード一覧、設定、URL、リクエストデータ、ダウンロードごとの HTTP または FTP 認証情報、チェックサム、レシートは、アプリのローカルなサンドボックスデータベースに保存されることがあります。記憶するよう選択したウェブサイト認証情報と手動プロキシの秘密情報は macOS キーチェーンに保存されます。転送を再開できるよう、個別のダウンロード認証情報がそのデータベースレコードにも含まれる場合があります。ブラウザの Cookie とサイトデータは WebKit のローカルストアに残ります。CloakDrop がアクセスできるのは自身のコンテナ、「ダウンロード」フォルダ、明示的に選んだ保存先だけです。アプリを削除しても、コンテナ外の保存済みファイルやキーチェーン項目が必ず削除されるわけではありません。これらは macOS の「キーチェーンアクセス」で管理できます。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "다운로드 목록과 환경설정은 앱 샌드박스 내부의 로컬 데이터베이스에 보관됩니다. 웹사이트, FTP 서버, 프록시의 비밀번호는 macOS 키체인에 저장됩니다. CloakDrop은 완전히 샌드박스에서 실행되며, 다운로드 폴더와 사용자가 명시적으로 선택한 대상(보안 범위 북마크로 기억됨)에만 접근할 수 있고 디스크의 나머지 부분에는 결코 접근하지 않습니다. 모든 것은 사용자의 Mac에 남아 있으며 언제든지 삭제할 수 있습니다. 앱을 제거해도 저장한 파일 외에는 아무것도 남지 않습니다."
+            "value": "다운로드 목록, 환경설정, URL, 요청 데이터, 다운로드별 HTTP 또는 FTP 자격 증명, 체크섬과 영수증은 앱의 로컬 샌드박스 데이터베이스에 저장될 수 있습니다. 기억하도록 선택한 웹사이트 자격 증명과 수동 프록시 비밀 정보는 macOS 키체인에 저장되며, 전송 재개를 위해 개별 다운로드 자격 증명이 해당 데이터베이스 기록에도 포함될 수 있습니다. 브라우저 쿠키와 사이트 데이터는 WebKit의 로컬 저장소에 남습니다. CloakDrop은 자체 컨테이너, 다운로드 폴더와 사용자가 명시적으로 선택한 대상에만 접근할 수 있습니다. 앱을 제거해도 컨테이너 외부의 저장 파일이나 키체인 항목이 반드시 삭제되는 것은 아니며, 해당 항목은 macOS 키체인 접근에서 관리할 수 있습니다."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sua lista de downloads e preferências ficam em um banco de dados local dentro do sandbox do aplicativo. As senhas de sites, servidores FTP e proxies são armazenadas no Keychain do macOS. O CloakDrop roda totalmente em sandbox — ele só pode acessar sua pasta Downloads e os destinos que você escolhe explicitamente (lembrados como marcadores com escopo de segurança), nunca o resto do seu disco. Tudo permanece no seu Mac e pode ser excluído a qualquer momento; remover o aplicativo não deixa nada além dos arquivos que você salvou."
+            "value": "Sua lista de downloads, preferências, URLs, dados de solicitação, credenciais HTTP ou FTP por download, checksums e recibos podem ficar no banco de dados local em sandbox do aplicativo. Credenciais de sites que você escolhe lembrar e segredos do proxy manual ficam no Keychain do macOS; a credencial de um download individual também pode estar no registro do banco de dados para permitir a retomada da transferência. Cookies e dados de sites do navegador permanecem no armazenamento local do WebKit. O CloakDrop só acessa seus contêineres, sua pasta Downloads e destinos escolhidos explicitamente. Remover o aplicativo não remove necessariamente arquivos salvos fora do contêiner nem itens do Keychain; você pode gerenciá-los no Acesso às Chaves do macOS."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Список загрузок и настройки хранятся в локальной базе данных внутри песочницы приложения. Пароли для сайтов, FTP-серверов и прокси хранятся в связке ключей macOS. CloakDrop работает полностью в песочнице — он имеет доступ только к папке «Загрузки» и к местам, которые вы явно выбрали (запоминаются как закладки с ограниченной областью безопасности), и никогда к остальной части диска. Всё остаётся на вашем Mac и может быть удалено в любой момент; после удаления приложения не остаётся ничего, кроме сохранённых вами файлов."
+            "value": "Список загрузок, настройки, URL, данные запросов, учётные данные HTTP или FTP для отдельных загрузок, контрольные суммы и квитанции могут храниться в локальной базе данных песочницы приложения. Учётные данные сайтов, которые вы решили запомнить, и секреты ручного прокси хранятся в связке ключей macOS; данные отдельной загрузки могут также находиться в её записи базы данных, чтобы передачу можно было возобновить. Файлы cookie и данные сайтов браузера остаются в локальном хранилище WebKit. CloakDrop имеет доступ только к своим контейнерам, папке «Загрузки» и явно выбранным местам. Удаление приложения не обязательно удаляет сохранённые вне его контейнера файлы или объекты связки ключей; ими можно управлять в приложении «Связка ключей» macOS."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的下载列表和偏好设置保存在应用沙盒内的本地数据库中。网站、FTP 服务器和代理的密码存储在 macOS 钥匙串中。CloakDrop 完全在沙盒中运行——它只能访问你的“下载”文件夹以及你明确选择的目标位置（以安全范围书签的形式记住），永远不会访问磁盘上的其他内容。所有内容都留在你的 Mac 上，并可随时删除；卸载应用后，除了你保存的文件外不会留下任何东西。"
+            "value": "你的下载列表、偏好设置、URL、请求数据、每项下载的 HTTP 或 FTP 凭据、校验和与收据可能保存在应用沙盒内的本地数据库中。你选择记住的网站凭据和手动代理密钥存储在 macOS 钥匙串中；为了恢复传输，单项下载凭据也可能存在于其数据库记录中。浏览器 Cookie 和网站数据留在 WebKit 的本地存储中。CloakDrop 只能访问自己的容器、你的“下载”文件夹和你明确选择的目标位置。卸载应用不一定会移除容器外保存的文件或钥匙串项目；你可以在 macOS“钥匙串访问”中管理这些项目。"
           }
         }
       }

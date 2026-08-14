@@ -78,6 +78,19 @@ struct DownloadTests {
         let d = makeDownload(total: 10, segments: [])
         #expect(d.category == .archive)
     }
+
+    @Test("Older persisted downloads decode with automatic connection selection")
+    func legacyDecodeDefaultsToAutomaticConnections() throws {
+        var download = makeDownload(total: 1_000, segments: [])
+        download.requestedSegmentCount = 3
+        let encoded = try JSONEncoder().encode(download)
+        var object = try #require(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object.removeValue(forKey: "requestedSegmentCount")
+
+        let legacy = try JSONSerialization.data(withJSONObject: object)
+        let decoded = try JSONDecoder().decode(Download.self, from: legacy)
+        #expect(decoded.requestedSegmentCount == nil)
+    }
 }
 
 @Suite("Checksum expectation")

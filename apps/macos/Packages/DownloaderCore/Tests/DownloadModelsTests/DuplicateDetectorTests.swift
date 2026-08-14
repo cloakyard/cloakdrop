@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import DownloadModels
 
-@Suite("Content-addressed duplicate detection")
+@Suite("Catalog duplicate detection")
 struct DuplicateDetectorTests {
 
     private func make(
@@ -51,7 +51,7 @@ struct DuplicateDetectorTests {
 
     // MARK: Same-origin ETag
 
-    @Test("Same host + same ETag is a duplicate even via a different URL")
+    @Test("Same origin + same ETag is a duplicate even via a different URL")
     func matchesSameETag() {
         let existing = make(url: "https://cdn.example/file?sig=1", etag: "\"v7\"", size: 1000)
         let candidate = DuplicateCandidate(
@@ -63,12 +63,34 @@ struct DuplicateDetectorTests {
     }
 
     @Test("Same ETag on a different host is not a duplicate (an ETag is per-origin)")
-    func etagRequiresSameHost() {
+    func etagRequiresSameOriginHost() {
         let existing = make(url: "https://cdn-a.example/file", etag: "\"v7\"", size: 1000)
         let candidate = DuplicateCandidate(
             url: URL(string: "https://cdn-b.example/file")!, etag: "\"v7\"", totalBytes: 1000, fileName: "other"
         )
         #expect(DuplicateDetector.findDuplicate(of: candidate, in: [existing]) == nil)
+    }
+
+    @Test("Same host and ETag across schemes or non-default ports is not a duplicate")
+    func etagRequiresSameOriginSchemeAndPort() {
+        let existing = make(url: "https://cdn.example/file", etag: "\"v7\"", size: 1000)
+        let httpCandidate = DuplicateCandidate(
+            url: URL(string: "http://cdn.example/file?new")!, etag: "\"v7\"", totalBytes: 1000, fileName: "other"
+        )
+        let portCandidate = DuplicateCandidate(
+            url: URL(string: "https://cdn.example:8443/file")!, etag: "\"v7\"", totalBytes: 1000, fileName: "other"
+        )
+        #expect(DuplicateDetector.findDuplicate(of: httpCandidate, in: [existing]) == nil)
+        #expect(DuplicateDetector.findDuplicate(of: portCandidate, in: [existing]) == nil)
+    }
+
+    @Test("An explicit default port belongs to the same origin")
+    func etagNormalizesDefaultPort() {
+        let existing = make(url: "https://cdn.example/file?a", etag: "\"v7\"", size: 1000)
+        let candidate = DuplicateCandidate(
+            url: URL(string: "https://cdn.example:443/file?b")!, etag: "\"v7\"", totalBytes: 1000, fileName: "other"
+        )
+        #expect(DuplicateDetector.findDuplicate(of: candidate, in: [existing])?.reason == .sameETag)
     }
 
     @Test("Same ETag but a different known size is not a duplicate")

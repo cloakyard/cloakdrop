@@ -12,7 +12,7 @@ import { stats } from '../data/site';
     <ul class="specs">
       {
         stats.map((stat, index) => (
-          <li class:list={['cell', { 'cell--accent': stat.accent }] }>
+          <li class:list={['cell', { 'cell--accent': 'accent' in stat && stat.accent }] }>
             <a href={stat.href} rel={stat.href?.startsWith('http') ? 'noopener' : undefined}>
               <span class="index">{String(index + 1).padStart(2, '0')}</span>
               <span class="val">{stat.value}</span>

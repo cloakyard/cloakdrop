@@ -26,7 +26,7 @@ import Icon from './Icon.astro';
           <div class="route-node route-node--input">
             <span class="node-tag">01 / INPUT</span>
             <strong>Initiated or configured</strong>
-            <small>Transfer, browser, checksum, speed test</small>
+            <small>Transfer · browser · resolver · speed test · blocklist</small>
           </div>
 
           <div class="connector connector--in" aria-hidden="true">
@@ -46,14 +46,14 @@ import Icon from './Icon.astro';
 
           <div class="destinations">
             <div class="route-node route-node--destination">
-              <span class="node-tag">03A / FILE</span>
-              <strong>Chosen file</strong>
-              <code>/selected-destination</code>
+              <span class="node-tag">03A / NETWORK</span>
+              <strong>Chosen service</strong>
+              <code>origin · page · proxy · provider</code>
             </div>
             <div class="route-node route-node--destination">
               <span class="node-tag">03B / LOCAL</span>
-              <strong>Local app storage</strong>
-              <code>SQLite · WebKit · Keychain</code>
+              <strong>Selected destination & app storage</strong>
+              <code>file · SQLite · WebKit · Keychain</code>
             </div>
           </div>
         </div>
@@ -78,9 +78,9 @@ import Icon from './Icon.astro';
         </div>
 
         <figcaption id="boundary-caption" class="sr-only">
-          Network activity is limited to transfers and features the user initiates or
-          configures. App data stays on the Mac, while telemetry, account, automatic crash
-          upload, and update-ping routes are absent.
+          Requests go only to services selected by a user-started or configured feature.
+          Files and app data stay on the Mac, while telemetry, account, automatic crash-upload,
+          and update-ping routes are absent.
         </figcaption>
       </figure>
     </div>
@@ -225,16 +225,14 @@ import Icon from './Icon.astro';
     padding: 0.95rem;
     background: color-mix(in srgb, var(--surface) 94%, transparent);
     border: 1px solid var(--line-2);
-    border-radius: 9px;
-    box-shadow: 0 10px 28px -24px rgba(12, 17, 20, 0.5);
+    border-radius: var(--radius-lg);
+    box-shadow: none;
   }
 
   .route-node--app {
     padding-top: 2.7rem;
     border-color: color-mix(in srgb, var(--accent) 42%, var(--line-2));
-    box-shadow:
-      0 12px 30px -24px color-mix(in srgb, var(--accent) 60%, transparent),
-      inset 0 0 0 1px color-mix(in srgb, var(--accent) 7%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 7%, transparent);
   }
 
   .route-node--destination + .route-node--destination {
@@ -351,7 +349,7 @@ import Icon from './Icon.astro';
     overflow: hidden;
     background: color-mix(in srgb, var(--surface) 94%, transparent);
     border: 1px solid var(--line-2);
-    border-radius: 9px;
+    border-radius: var(--radius-lg);
   }
 
   .absent-head {
@@ -542,7 +540,7 @@ import Icon from './Icon.astro';
   @media (max-width: 520px) {
     .privacy-frame {
       padding: 1.25rem;
-      border-radius: 18px;
+      border-radius: var(--radius-lg);
     }
 
     .privacy-frame::before {

@@ -22,18 +22,19 @@ public enum SegmentedFileWriter {
                 throw DownloadError.fileSystem(reason: "Could not create \(partPath).")
             }
         }
-        if let totalBytes, totalBytes > 0 {
+        if let totalBytes, totalBytes >= 0 {
             let handle = try FileHandle(forWritingTo: URL(fileURLWithPath: partPath))
             defer { try? handle.close() }
-            let currentSize = (try? handle.seekToEnd()) ?? 0
-            if currentSize < UInt64(totalBytes) {
-                try handle.truncate(atOffset: UInt64(totalBytes))
-            }
+            // A predictable sibling staging name may have been left by an older build or an
+            // interrupted catalog entry. Exact sizing is required in both directions: merely growing
+            // it leaves stale trailing bytes that would otherwise be promoted into the final file.
+            try handle.truncate(atOffset: UInt64(totalBytes))
         }
     }
 
-    /// Atomically move the finished part file to `destinationPath`, replacing any existing
-    /// file there. Creates the destination directory if needed.
+    /// Atomically move the finished part file to an unoccupied `destinationPath`. Name allocation is
+    /// normally handled by `DownloadManager`; this final guard closes the race with another process or
+    /// a file created after the download was queued. Existing files and directories are never removed.
     public static func finalize(partPath: String, destinationPath: String) throws {
         let fm = FileManager.default
         let directory = (destinationPath as NSString).deletingLastPathComponent
@@ -41,9 +42,19 @@ public enum SegmentedFileWriter {
             try fm.createDirectory(atPath: directory, withIntermediateDirectories: true)
         }
         if fm.fileExists(atPath: destinationPath) {
-            try fm.removeItem(atPath: destinationPath)
+            throw DownloadError.fileSystem(
+                reason: "A file or folder already exists at \(destinationPath). Choose another name."
+            )
         }
-        try fm.moveItem(atPath: partPath, toPath: destinationPath)
+        do {
+            // `moveItem` itself also refuses replacement, preserving the invariant if another process
+            // wins the narrow race after the existence check above.
+            try fm.moveItem(atPath: partPath, toPath: destinationPath)
+        } catch let error as DownloadError {
+            throw error
+        } catch {
+            throw DownloadError.fileSystem(reason: error.localizedDescription)
+        }
     }
 
     /// Remove the part file (e.g. on cancel with "discard partial data").

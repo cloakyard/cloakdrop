@@ -119,6 +119,10 @@ struct MediaPlanTests {
             encryption: MediaEncryption(method: .sampleAES, keyURL: URL(string: "skd://x")))])
         #expect(sample.hasUnsupportedEncryption)
         #expect(sample.keyURLs.isEmpty) // only AES-128 keys are fetched
+
+        let missingKey = MediaPlan(format: .hls, segments: [segment(0, "https://x/0.ts",
+            encryption: MediaEncryption(method: .aes128))])
+        #expect(missingKey.hasUnsupportedEncryption) // ciphertext must never be mistaken for cleartext
     }
 
     @Test("pairedFiles builds a video+separate-audio plan that triggers muxing")

@@ -42,6 +42,7 @@ struct SettingsView: View {
         // Wide enough for all eight tab buttons (narrower overflows into a "»" menu) and tall
         // enough that the Speed Test dials fit without scrolling.
         .frame(width: 640, height: 600)
+        .disabled(!model.isNetworkReady)
         // Settings always reopens on the first page (General); About is reached via its own
         // "About CloakDrop" command, which sets the tab just before opening the window. Reset
         // on close so a later plain ⌘, doesn't reopen on whatever tab was last viewed.
@@ -62,7 +63,7 @@ struct SettingsView: View {
             } header: {
                 Text("Connections")
             } footer: {
-                Text("Files download in parallel segments. More connections can be faster on high-latency links.")
+                Text("Automatic mode uses the default for ordinary files and adds connections for very large files, up to the maximum.")
             }
 
             Section {

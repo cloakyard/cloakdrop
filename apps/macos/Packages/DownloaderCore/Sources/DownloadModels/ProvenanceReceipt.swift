@@ -1,10 +1,10 @@
 import Foundation
 
-/// A local, verifiable record of *where a download came from and what it is* — assembled entirely
-/// from signals CloakDrop already observes while transferring (source + redirects, the mirrors that
-/// served bytes, transport security, the file's own SHA-256, any checksum match, and the code-signing
-/// verdict) and rolled into a single trust verdict. No download manager produces this; it's built with
-/// zero bundled tools and never leaves the Mac unless the user exports it.
+/// A local evidence record for an ordinary file download, assembled from signals CloakDrop actually
+/// persists: the requested source and configured mirrors, encrypted-transport flag, the file's own
+/// SHA-256, any checksum match, and an available code-signing verdict. The receipt's trust verdict is
+/// derived specifically from checksum and signature status; the other fields are evidence only. The
+/// receipt remains on the Mac unless the user exports it; it is not itself signed or tamper-evident.
 ///
 /// A `Sendable`, `Codable` value so it persists on the `Download` and can be written out verbatim.
 public struct ProvenanceReceipt: Sendable, Hashable, Codable {
@@ -26,7 +26,7 @@ public struct ProvenanceReceipt: Sendable, Hashable, Codable {
     public let checksumVerified: Bool?
     /// The code-signature verdict for installable types (`.app`/`.dmg`).
     public let signature: SignatureAssessment?
-    /// The single rolled-up trust verdict (mirrors `Download.trustLevel`).
+    /// The checksum/signature-derived trust verdict (mirrors `Download.trustLevel`).
     public let trustLevel: TrustLevel
     public let generatedAt: Date
 

@@ -1,18 +1,17 @@
 ---
 import { resolve } from 'node:path';
 import { hero, downloads } from '../data/site';
-import { measureHero } from '../lib/heroGeometry';
+import { readPngDimensions } from '../lib/heroGeometry';
 import Icon from './Icon.astro';
 
 const titleLead = hero.titleLead.replace(/\n/g, ' ');
 const titleAccent = hero.titleAccent.replace(/\n/g, ' ');
 
-// Measure the shipped image so its intrinsic dimensions always match the source
-// asset, even when a new product capture replaces it.
-const shot = measureHero(resolve(process.cwd(), 'public/hero.png'));
+const shot = readPngDimensions(resolve(process.cwd(), 'public/hero.png'));
 
-// This product capture uses the default eight-range plan as an example. The
-// number itself is configurable and the engine may plan fewer ranges.
+// This product capture uses a configured eight-range plan as an example. Automatic
+// mode may plan fewer or more ranges (within the user's ceiling), and manual mode can
+// request this exact connection count.
 const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
 ---
 
@@ -129,10 +128,10 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
   .lede h1 {
     margin-top: clamp(1.5rem, 3vw, 2.75rem);
     max-width: 11.5ch;
-    font-size: clamp(4rem, 7.4vw, 7.25rem);
-    font-weight: 850;
+    font-size: var(--t-h1);
+    font-weight: 760;
     letter-spacing: -0.065em;
-    line-height: 0.88;
+    line-height: 0.91;
     text-wrap: balance;
   }
 
@@ -218,9 +217,9 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
     grid-template-columns: minmax(11.5rem, 0.21fr) minmax(0, 1fr);
     overflow: hidden;
     border: 1px solid var(--line-2);
-    border-radius: clamp(18px, 2vw, 26px);
+    border-radius: var(--radius-lg);
     background: var(--surface);
-    box-shadow: 0 30px 80px -46px rgba(12, 17, 20, 0.5);
+    box-shadow: none;
   }
 
   .range-map {
@@ -423,7 +422,7 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
     }
 
     .lede h1 {
-      font-size: clamp(3.8rem, 8vw, 5.5rem);
+      font-size: clamp(3.4rem, 9vw, 4.8rem);
     }
 
     .instrument {
@@ -465,7 +464,7 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
 
     .lede h1 {
       max-width: 10.5ch;
-      font-size: clamp(3.55rem, 16vw, 5.25rem);
+      font-size: clamp(3.4rem, 9vw, 4.8rem);
     }
 
     .aside {
@@ -508,9 +507,9 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
     .lede h1 {
       margin-top: 1.65rem;
       max-width: 9.8ch;
-      font-size: clamp(3.35rem, 16.5vw, 4.6rem);
-      letter-spacing: -0.06em;
-      line-height: 0.89;
+      font-size: clamp(2.75rem, 14vw, 4.4rem);
+      letter-spacing: -0.065em;
+      line-height: 0.91;
     }
 
     .top {
@@ -518,7 +517,7 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
     }
 
     .cta {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       width: 100%;
     }
 
@@ -564,14 +563,6 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
   @media (max-width: 350px) {
     .lede h1 {
       font-size: 3.15rem;
-    }
-
-    .cta {
-      grid-template-columns: 1fr;
-    }
-
-    .cta .btn {
-      justify-self: stretch;
     }
   }
 </style>

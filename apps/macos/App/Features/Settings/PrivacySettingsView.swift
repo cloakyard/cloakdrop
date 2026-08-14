@@ -55,7 +55,7 @@ struct PrivacySettingsView: View {
                 .font(.subheadline.weight(.semibold))
             guarantee("Everything runs on-device")
             guarantee("No accounts, analytics, or telemetry")
-            guarantee("No connections you didn't choose")
+            guarantee("Only connections you initiate or configure")
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -78,8 +78,9 @@ struct PrivacySettingsView: View {
             section("Your downloads stay on your Mac", """
             Every part of what CloakDrop does — multi-segment downloading, pause and resume, \
             checksum verification, code-signature checks, archive extraction, and media muxing — \
-            runs locally on your Mac. The files you download, your download history, and the \
-            addresses you fetch are never sent to us or to anyone else.
+            runs locally on your Mac. CloakDrop does not upload your files, download history, or \
+            addresses to the CloakDrop project for analytics, profiling, or telemetry. Requests \
+            still go to the services you choose, as described below.
             """)
 
             bulletedSection(
@@ -89,10 +90,14 @@ struct PrivacySettingsView: View {
                 does. It connects only to:
                 """,
                 bullets: [
-                    "The download links you choose — and any redirects or mirrors they point to.",
                     // swiftlint:disable:next line_length
-                    "The sites you visit in the built-in browser — the pages you open, and (if address-bar search is on) the query you type when you press Return.",
-                    "A proxy server, and only if you configure one in Network settings.",
+                    "Download work you configure — URLs, redirects, mirrors, retries, schedules, repeating transfers, and automatic resumes.",
+                    "Same-origin checksum files (.sha256, .sha1, or .md5), when automatic checksum verification and discovery are enabled.",
+                    "A video page and related service endpoints, when yt-dlp resolves formats for a page you submit.",
+                    // swiftlint:disable:next line_length
+                    "Pages and subresources loaded by the built-in browser — plus your query to the selected search engine, if address-bar search is on, only when you press Return.",
+                    // swiftlint:disable:next line_length
+                    "Proxy routing for HTTP-based downloads and speed tests — the macOS system proxy by default, a manual proxy when selected, or Direct mode. FTP and FTPS stay direct; a selected manual proxy is also mirrored into the built-in browser.",
                     "A speed-test provider (Cloudflare or Ookla), and only while a test you started is running.",
                     // swiftlint:disable:next line_length
                     "The ad blocker's open-source blocklist, if you pick one in Browser settings — fetched only when you choose it or press Update Now, never on its own."
@@ -105,7 +110,7 @@ struct PrivacySettingsView: View {
 
             bulletedSection(
                 "No personal data collected",
-                intro: "CloakDrop does not collect, store, or transmit any personal information, including:",
+                intro: "The CloakDrop project has no accounts or analytics service and receives none of the following from the app:",
                 bullets: [
                     "Names, email addresses, or account details — there are no accounts.",
                     "IP addresses or device identifiers.",
@@ -116,31 +121,39 @@ struct PrivacySettingsView: View {
             )
 
             section("Where your data lives", """
-            Your download list and preferences are kept in a local database inside the app's \
-            sandbox. Passwords for websites, FTP servers, and proxies are stored in the macOS \
-            Keychain. CloakDrop runs fully sandboxed — it can reach only your Downloads folder and \
-            the destinations you explicitly pick (remembered as security-scoped bookmarks), never \
-            the rest of your disk. Everything stays on your Mac and can be deleted at any time; \
-            removing the app leaves nothing behind but the files you saved.
+            Your download list, preferences, URLs, request data, per-download HTTP or FTP \
+            credentials, checksums, and receipts can be kept in the app's local sandbox database. \
+            Website credentials you choose to remember and manual-proxy secrets are stored in the \
+            macOS Keychain; an individual download credential can also be in its database record so \
+            the transfer can resume. Browser cookies and site data stay in WebKit's local store. \
+            CloakDrop can reach only its containers, your Downloads folder, and destinations you \
+            explicitly pick. Removing the app does not necessarily remove saved files outside its \
+            container or Keychain items; you can manage those items in macOS Keychain Access.
             """)
 
             section("Bundled tools", """
-            CloakDrop includes two open-source command-line tools: ffmpeg, to combine separate \
-            video and audio into one playable file, and yt-dlp, to read the list of formats a \
-            video page offers. Both run locally as sandboxed helpers and only read or transform \
-            data already on your Mac. CloakDrop's own engine performs every byte of downloading — \
-            neither tool opens a network connection of its own.
+            CloakDrop includes two open-source, sandboxed command-line helpers. ffmpeg works locally \
+            to combine or transform media. yt-dlp may contact a video page you submit and related \
+            service endpoints to resolve metadata and formats, but it does not download the \
+            selected media payload. CloakDrop's own engine transfers the files and media you select.
             """)
 
             section("The built-in browser", """
             CloakDrop has a browser built in: open it, visit any site, and grab the video, audio, \
-            or files on the page. It renders with the same WebKit engine as Safari and connects \
-            only to the sites you navigate to. It keeps no browsing history — only cookies and \
-            site data, so you stay signed in between launches — and one button in Browser settings \
-            wipes all of it. When you grab a file, the cookies scoped to that address ride along \
-            so downloads behind a login work; they go only to that site, exactly as your browsing \
-            already does. If you turn address-bar search off, nothing you type is ever sent to a \
+            or files on the page. WebKit loads the pages you visit and the resources they request, \
+            which can include third-party content; the optional blocker can reduce some requests. \
+            CloakDrop keeps no browsing-history list — only cookies and site data, so you stay \
+            signed in between launches — and one button in Browser settings wipes all of it. When \
+            you grab a file, cookies applicable to that address ride along so downloads behind a \
+            login work. If you turn address-bar search off, address-bar text is never sent to a \
             search engine.
+            """)
+
+            section("What contacted services can see", """
+            Servers and proxies you choose to contact can receive ordinary request information, \
+            including your IP address, the requested URL or resource, and applicable headers, \
+            cookies, or credentials. The CloakDrop project does not receive or retain a separate \
+            copy of that information.
             """)
 
             section("Open source and licensing", """
@@ -235,8 +248,8 @@ struct PrivacySettingsView: View {
     private static let revisionDate: Date = {
         var components = DateComponents()
         components.year = 2026
-        components.month = 7
-        components.day = 8
+        components.month = 8
+        components.day = 10
         return Calendar.current.date(from: components) ?? Date()
     }()
 }

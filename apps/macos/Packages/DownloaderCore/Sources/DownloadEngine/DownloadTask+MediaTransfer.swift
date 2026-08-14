@@ -11,6 +11,12 @@ extension DownloadTask {
     /// file path relies on, so it survives force-quit and reboot.
     func transferMedia() async throws {
         guard let plan = download.mediaPlan else { return }
+        guard !plan.segments.isEmpty else {
+            throw DownloadError.underlying(reason: "The media plan contains no downloadable segments.")
+        }
+        guard !plan.hasUnsupportedEncryption else {
+            throw DownloadError.underlying(reason: "This stream uses an unsupported or incomplete encryption method.")
+        }
         let partDir = download.mediaPartDirectoryPath
         try FileManager.default.createDirectory(atPath: partDir, withIntermediateDirectories: true)
         let headers = download.requestHeaders
@@ -22,7 +28,11 @@ extension DownloadTask {
 
         var keys: [URL: Data] = [:]
         for keyURL in plan.keyURLs {
-            keys[keyURL] = try await fetchResource(url: keyURL, byteRange: nil, headers: headers)
+            let key = try await fetchResource(url: keyURL, byteRange: nil, headers: headers, maxBytes: 16)
+            guard key.count == 16 else {
+                throw DownloadError.underlying(reason: "An AES-128 media key was not 16 bytes long.")
+            }
+            keys[keyURL] = key
         }
 
         syncMediaProgressFromDisk(plan: plan, partDir: partDir)
@@ -34,32 +44,56 @@ extension DownloadTask {
         guard !remaining.isEmpty else { return }
 
         let limiters = perDownloadLimiters()
-        let concurrency = max(1, min(settings.maxSegmentCount, settings.defaultSegmentCount))
+        let requestedConcurrency = max(1, min(
+            settings.maxSegmentCount,
+            download.requestedSegmentCount ?? settings.defaultSegmentCount
+        ))
+        // Clear media writes straight to disk and can use the requested window. AES-CBC must retain
+        // each complete ciphertext while producing a same-sized plaintext buffer, so a separate hard
+        // ceiling bounds this transfer's aggregate heap use even when the user requests many segments.
+        let hasBufferedSegments = remaining.contains { $0.segment.encryption.method == .aes128 }
+        let concurrency = hasBufferedSegments
+            ? min(requestedConcurrency, maximumConcurrentBufferedMediaSegments)
+            : requestedConcurrency
         let settings = self.settings
 
-        for batch in remaining.chunked(into: concurrency) {
-            try await withThrowingTaskGroup(of: (String, Int).self) { group in
-                for item in batch {
-                    let path = item.path
-                    let segment = item.segment
-                    let key = segment.encryption.method == .aes128 ? segment.encryption.keyURL.flatMap { keys[$0] } : nil
-                    group.addTask { [httpClient] in
-                        let bytes = try await runMediaSegment(
-                            segment: segment,
-                            filePath: path,
-                            key: key,
-                            headers: headers,
-                            httpClient: httpClient,
-                            limiters: limiters,
-                            settings: settings,
-                            onExpectedBytes: { total in await self.recordMediaExpected(path: path, bytes: total) },
-                            onBytes: { delta in await self.recordMediaBytes(path: path, delta: delta) }
-                        )
-                        return (path, bytes)
-                    }
+        // Keep a rolling window full instead of waiting for fixed batches. With batch barriers, one
+        // slow segment held every later segment behind it even after the other connections in its
+        // batch had gone idle. Refill one slot whenever any child finishes so useful work continues
+        // while preserving the same hard concurrency bound.
+        try await withThrowingTaskGroup(of: (String, Int).self) { group in
+            var nextIndex = 0
+
+            func enqueue(_ item: MediaWorkItem) {
+                let path = item.path
+                let segment = item.segment
+                let key = segment.encryption.method == .aes128 ? segment.encryption.keyURL.flatMap { keys[$0] } : nil
+                group.addTask { [httpClient] in
+                    let bytes = try await runMediaSegment(
+                        segment: segment,
+                        filePath: path,
+                        key: key,
+                        headers: headers,
+                        httpClient: httpClient,
+                        limiters: limiters,
+                        settings: settings,
+                        onExpectedBytes: { total in await self.recordMediaExpected(path: path, bytes: total) },
+                        onBytes: { delta in await self.recordMediaBytes(path: path, delta: delta) }
+                    )
+                    return (path, bytes)
                 }
-                for try await (path, bytes) in group {
-                    markMediaSegmentComplete(path: path, bytes: Int64(bytes), plan: plan)
+            }
+
+            while nextIndex < min(concurrency, remaining.count) {
+                enqueue(remaining[nextIndex])
+                nextIndex += 1
+            }
+
+            while let (path, bytes) = try await group.next() {
+                markMediaSegmentComplete(path: path, bytes: Int64(bytes), plan: plan)
+                if nextIndex < remaining.count {
+                    enqueue(remaining[nextIndex])
+                    nextIndex += 1
                 }
             }
         }
@@ -194,15 +228,17 @@ extension DownloadTask {
             container = result.fileExtension
         }
 
-        download.fileName = (download.fileName as NSString).deletingPathExtension + ".\(container)"
-        download.category = FileCategory.classify(fileName: download.fileName)
-        if settings.autoCategorize {
-            let categoryDirectory = (download.destinationDirectoryPath as NSString)
-                .appendingPathComponent(download.category.displayName)
-            download.destinationDirectoryPath = categoryDirectory
-        }
+        let finalFileName = (download.fileName as NSString).deletingPathExtension + ".\(container)"
+        let finalCategory = FileCategory.classify(fileName: finalFileName)
+        let finalDirectory = categorizedDirectory(
+            download.destinationDirectoryPath, category: finalCategory
+        )
+        let finalPath = (finalDirectory as NSString).appendingPathComponent(finalFileName)
 
-        try SegmentedFileWriter.finalize(partPath: sourcePath, destinationPath: download.destinationFilePath)
+        try SegmentedFileWriter.finalize(partPath: sourcePath, destinationPath: finalPath)
+        download.fileName = finalFileName
+        download.category = finalCategory
+        download.destinationDirectoryPath = finalDirectory
         try? FileManager.default.removeItem(atPath: partDir)
 
         if settings.applyQuarantine {
@@ -276,10 +312,31 @@ extension DownloadTask {
         (try? FileManager.default.attributesOfItem(atPath: path)[.size] as? NSNumber)?.int64Value
     }
 
-    func fetchResource(url: URL, byteRange: ClosedRange<Int64>?, headers: [String: String]) async throws -> Data {
-        let (_, stream) = try await httpClient.stream(HTTPDownloadRequest(url: url, headers: headers, byteRange: byteRange))
+    func fetchResource(
+        url: URL, byteRange: ClosedRange<Int64>?, headers: [String: String],
+        maxBytes: Int = 64 * 1024 * 1024
+    ) async throws -> Data {
+        let (head, stream) = try await httpClient.stream(
+            HTTPDownloadRequest(url: url, headers: headers, byteRange: byteRange)
+        )
+        if let byteRange { try validateExactMediaRange(head, requested: byteRange) }
+        let expected = byteRange.map { $0.upperBound - $0.lowerBound + 1 } ?? head.totalBytes
+        if let expected, expected > Int64(maxBytes) {
+            throw DownloadError.underlying(reason: "The media resource exceeded its safe size limit.")
+        }
         var data = Data()
-        for try await chunk in stream { data.append(chunk) }
+        for try await chunk in stream {
+            guard chunk.count <= maxBytes - data.count else {
+                throw DownloadError.underlying(reason: "The media resource exceeded its safe size limit.")
+            }
+            if let expected, Int64(data.count + chunk.count) > expected {
+                throw DownloadError.underlying(reason: "The media resource was larger than the server advertised.")
+            }
+            data.append(chunk)
+        }
+        if let expected, Int64(data.count) != expected {
+            throw DownloadError.networkLost
+        }
         return data
     }
 }

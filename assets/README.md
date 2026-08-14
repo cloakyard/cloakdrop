@@ -12,7 +12,6 @@ assets/
 │   ├── cloakdrop-mark.svg     # canonical 64×64 circular web mark
 │   ├── favicon.svg            # circular mark with a favicon-specific title
 │   ├── macos-layers/          # editable 1024×1024 sources imported by Icon Composer
-│   ├── icon.png               # circular web mark, 256×256
 │   ├── favicon.png            # circular web mark, 180×180
 │   └── apple-touch-icon.png   # circular web mark, 512×512
 ├── social/

@@ -29,6 +29,10 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     public var etag: String?
     /// The segments composing this download. A single element means single-stream.
     public var segments: [DownloadSegment]
+    /// A user-selected connection count for this download. `nil` means the engine chooses
+    /// automatically from the resource size and current connection limits. Persisting the choice
+    /// is essential: planning may happen after a scheduled start or a full app relaunch.
+    public var requestedSegmentCount: Int?
 
     public var status: DownloadStatus
     public var category: FileCategory
@@ -96,6 +100,7 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
         supportsResume: Bool = false,
         etag: String? = nil,
         segments: [DownloadSegment] = [],
+        requestedSegmentCount: Int? = nil,
         status: DownloadStatus = .queued,
         category: FileCategory? = nil,
         queueID: UUID = DownloadQueue.defaultQueueID,
@@ -129,6 +134,7 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
         self.supportsResume = supportsResume
         self.etag = etag
         self.segments = segments
+        self.requestedSegmentCount = requestedSegmentCount
         self.status = status
         self.category = category ?? FileCategory.classify(fileName: fileName)
         self.queueID = queueID

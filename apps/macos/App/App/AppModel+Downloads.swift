@@ -81,13 +81,19 @@ extension AppModel {
     // MARK: Download intake
 
     func add(_ request: DownloadRequest, preview: LinkPreview? = nil) {
-        let fileName = request.suggestedFileName ?? FileNaming.fileName(url: request.url)
-        let candidate = DuplicateCandidate(request: request.url, fileName: fileName, preview: preview)
-        if let match = DuplicateDetector.findDuplicate(of: candidate, in: downloads) {
+        if let match = duplicateMatch(for: request, preview: preview) {
             pendingDuplicateAdds.append(DuplicateAdd(request: request, match: match))
         } else {
             commitAdd(request, preview: preview)
         }
+    }
+
+    private func duplicateMatch(for request: DownloadRequest, preview: LinkPreview? = nil) -> DuplicateMatch? {
+        let fileName = request.suggestedFileName ?? FileNaming.fileName(url: request.url)
+        return DuplicateDetector.findDuplicate(
+            of: DuplicateCandidate(request: request.url, fileName: fileName, preview: preview),
+            in: downloads
+        )
     }
 
     private func commitAdd(_ request: DownloadRequest, preview: LinkPreview? = nil) {
@@ -153,13 +159,34 @@ extension AppModel {
     }
 
     func extractPageLinks(from pageURL: URL, extensions: Set<String> = []) async -> [URL] {
-        var request = URLRequest(url: pageURL)
-        request.timeoutInterval = 20
-        request.setValue("text/html,application/xhtml+xml", forHTTPHeaderField: "Accept")
-        guard let (data, _) = try? await URLSession.shared.data(for: request) else { return [] }
-        let capped = data.prefix(10 * 1024 * 1024)
-        let html = String(bytes: capped, encoding: .utf8) ?? String(bytes: capped, encoding: .isoLatin1) ?? ""
-        return PageLinkExtractor.extract(html: html, baseURL: pageURL, extensions: extensions)
+        let maximumPageBytes = 10 * 1024 * 1024
+        guard let data = try? await BoundedHTTPFetcher.get(
+            pageURL,
+            headers: ["Accept": "text/html,application/xhtml+xml"],
+            maximumBytes: maximumPageBytes,
+            requestTimeout: 20,
+            resourceTimeout: 20,
+            proxies: BrowserStore.shared.browsingProxyConfigurations
+        ) else { return [] }
+        let work = Task.detached(priority: .userInitiated) { () -> [URL] in
+            guard !Task.isCancelled else { return [] }
+            let html = String(bytes: data, encoding: .utf8)
+                ?? String(bytes: data, encoding: .isoLatin1)
+                ?? ""
+            guard !Task.isCancelled else { return [] }
+            let links = PageLinkExtractor.extract(
+                html: html,
+                baseURL: pageURL,
+                extensions: extensions,
+                maximumCount: URLBatch.expansionLimit
+            )
+            return Task.isCancelled ? [] : links
+        }
+        return await withTaskCancellationHandler {
+            await work.value
+        } onCancel: {
+            work.cancel()
+        }
     }
 
     func addURLs(
@@ -167,8 +194,23 @@ extension AppModel {
         into directory: URL = AppEnvironment.defaultDownloadsDirectory(),
         bookmark: Data? = nil
     ) {
+        var requests: [DownloadRequest] = []
+        requests.reserveCapacity(urls.count)
         for url in urls {
-            add(DownloadRequest(url: url, destinationDirectoryPath: directory.path, destinationBookmark: bookmark))
+            let request = DownloadRequest(
+                url: url,
+                destinationDirectoryPath: directory.path,
+                destinationBookmark: bookmark
+            )
+            if let match = duplicateMatch(for: request) {
+                pendingDuplicateAdds.append(DuplicateAdd(request: request, match: match))
+            } else {
+                requests.append(request)
+            }
+        }
+        guard !requests.isEmpty else { return }
+        Task { [manager] in
+            for request in requests { await manager.add(request) }
         }
     }
 
@@ -200,6 +242,12 @@ extension AppModel {
     // MARK: External capture
 
     func handleIncomingURL(_ url: URL) {
+        guard isNetworkReady else {
+            guard !pendingIncomingURLs.contains(url) else { return }
+            if pendingIncomingURLs.count == Self.pendingIntakeLimit { pendingIncomingURLs.removeFirst() }
+            pendingIncomingURLs.append(url)
+            return
+        }
         if url.isFileURL {
             if Self.isMetalink(url) { openMetalink(url) }
             return
@@ -214,6 +262,12 @@ extension AppModel {
     }
 
     func enqueueCapture(_ capture: CapturedDownload) {
+        guard isNetworkReady else {
+            guard !pendingCaptures.contains(capture) else { return }
+            if pendingCaptures.count == Self.pendingIntakeLimit { pendingCaptures.removeFirst() }
+            pendingCaptures.append(capture)
+            return
+        }
         let request = capture.toRequest(destinationDirectoryPath: AppEnvironment.defaultDownloadsDirectory().path)
         if capture.extractFromPage == true {
             grabFromPage(capture)
@@ -236,7 +290,6 @@ extension AppModel {
 
     func pause(_ id: UUID) { Task { await manager.pause(id: id) } }
     func resume(_ id: UUID) { Task { await manager.resume(id: id) } }
-    func cancel(_ id: UUID) { Task { await manager.cancel(id: id) } }
     func remove(_ id: UUID, deleteFile: Bool) { Task { await manager.remove(id: id, deleteFile: deleteFile) } }
     func removeSelected(deleteFile: Bool) { selectedDownloadIDs.forEach { remove($0, deleteFile: deleteFile) } }
     func pauseAll() { Task { await manager.pauseAll() } }

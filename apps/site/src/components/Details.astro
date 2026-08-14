@@ -20,7 +20,7 @@ import Icon from './Icon.astro';
           <article class="cell">
             <div class="cell-head">
               <span class="index">{String(index + 1).padStart(2, '0')}</span>
-              <Icon name={d.icon as any} size={22} />
+              <Icon name={d.icon} size={22} />
             </div>
             <h3>{d.title}</h3>
             <p>{d.body}</p>

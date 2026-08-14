@@ -7,7 +7,8 @@
 #
 #   • is LGPL-only (`--disable-gpl --disable-nonfree`) — no x264/x265/libfdk, which are the
 #     GPL/nonfree *encoders* we never call — so the binary is safe to ship in a Developer-ID app;
-#   • disables all encoders (`--disable-encoders`) — nothing to encode when copying;
+#   • disables encoders, decoders, hardware acceleration, and every nonessential filter —
+#     stream-copy only needs demuxers, muxers, and the CLI's small required filter primitives;
 #   • disables network and non-file protocols — a privacy-first app's helper must not be able to
 #     open a socket. It reads local part files and writes a local `.mkv`, nothing else;
 #   • is fully static (`--disable-shared`) — no third-party dylibs, so it passes Library Validation
@@ -26,14 +27,14 @@
 set -euo pipefail
 
 # --- Pinned source -----------------------------------------------------------------------------
-# Pin a specific release so the build is reproducible. Verify the checksum against the value
-# published at https://ffmpeg.org/download.html (and ideally the GPG signature) before trusting it.
-FFMPEG_VERSION="8.1.2"
+# Pin a specific release so the build is reproducible. Verify its detached PGP signature with the
+# release key published at https://ffmpeg.org/download.html before trusting and pinning its hash.
+FFMPEG_VERSION="9.0"
 FFMPEG_URL="https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.xz"
-# Pinned SHA-256 of ffmpeg-8.1.2.tar.xz, cross-checked against the identical value Homebrew pins for
-# the same ffmpeg.org tarball. Override per-run with the FFMPEG_SHA256 env var; set it to "" to have
-# the script print the downloaded hash and stop (how a new version gets verified).
-FFMPEG_SHA256="${FFMPEG_SHA256:-464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c}"
+# Pinned SHA-256 of the PGP-verified ffmpeg-9.0.tar.xz from ffmpeg.org. Override per-run with the
+# FFMPEG_SHA256 env var; set it to "" to have the script print the downloaded hash and stop (how a
+# new version gets verified).
+FFMPEG_SHA256="${FFMPEG_SHA256:-7f607a00dd0d28a729d5a4811205812eef01cf6ef6155025febb6f36a9062d52}"
 
 # --- Paths -------------------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -63,9 +64,9 @@ if [ -z "${FFMPEG_SHA256}" ]; then
 $(info "Downloaded tarball SHA-256:")
     ${ACTUAL_SHA}
 
-Verify this against the checksum/signature published at https://ffmpeg.org/download.html, then pin
-it — set FFMPEG_SHA256 at the top of this script (or export it) — and re-run. Refusing to build an
-unverified source tarball.
+Verify the tarball against its detached signature and the release key published at
+https://ffmpeg.org/download.html, then pin this hash — set FFMPEG_SHA256 at the top of this script
+(or export it) — and re-run. Refusing to build an unverified source tarball.
 EOF
   exit 1
 fi
@@ -78,8 +79,9 @@ info "Extracting"
 tar -xf "${TARBALL}" -C "${BUILD_DIR}"
 
 # --- Configure flags (shared across architectures) ---------------------------------------------
-# Minimal, LGPL, remux-only, no network. Decoders/avfilter are kept (the ffmpeg CLI links avfilter;
-# decoders cost little and keep probing robust) — they're all LGPL. Only file/pipe/fd protocols.
+# Minimal, LGPL, remux-only, no network. Probing is handled by demuxers, so stream-copy needs no
+# codecs or hardware accelerators; ffmpeg retains only its CLI-required filter primitives. Only
+# file/pipe/fd protocols are available.
 COMMON_FLAGS=(
   --disable-gpl --disable-nonfree           # LGPL only — no GPL/nonfree components in the binary
   --disable-doc
@@ -87,7 +89,13 @@ COMMON_FLAGS=(
   --disable-network                         # privacy: the helper cannot open a socket
   --disable-protocols --enable-protocol=file,pipe,fd
   --disable-avdevice --disable-devices      # no capture/render devices
-  --disable-encoders                        # we only stream-copy — never encode
+  --disable-encoders --disable-decoders     # we only stream-copy — never transform media payloads
+  --disable-filters                         # retain only the primitives the ffmpeg CLI selects
+  --disable-hwaccels                        # hardware acceleration only pulls decoders back in
+  # These legacy demuxers/parser are irrelevant to supported web-media containers and emit warnings
+  # under the current Apple Clang. Keeping them out also trims dead format code from the helper.
+  --disable-demuxer=jv --disable-demuxer=nsp --disable-demuxer=nuv
+  --disable-parser=lcevc
   --enable-static --disable-shared          # no third-party dylibs → passes Library Validation
   --enable-small
   --disable-debug

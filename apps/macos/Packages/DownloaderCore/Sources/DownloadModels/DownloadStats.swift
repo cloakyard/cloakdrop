@@ -1,5 +1,3 @@
-import Foundation
-
 /// Lifetime download totals the app shows in Settings ▸ Stats. Pure counters — the playful tier
 /// names, icons, and thresholds are a presentation concern and live in the app layer, not here.
 ///

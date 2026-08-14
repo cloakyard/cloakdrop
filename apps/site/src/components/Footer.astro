@@ -1,136 +1,197 @@
 ---
-import { site, suite } from '../data/site';
-import Brand from './Brand.astro';
+import { site } from '../data/site';
 import Icon from './Icon.astro';
+
+const authorUrl = 'https://github.com/sumitsahoo';
+const cloakyardUrl = 'https://cloakyard.com';
+const licenseUrl = `${site.repo}/blob/main/LICENSE`;
+
+interface Props {
+  /** Prefix in-page anchors when the footer is rendered on a secondary route. */
+  linkPrefix?: string;
+}
+
+const { linkPrefix = '' } = Astro.props;
 ---
 
 <footer class="footer">
-  <div class="container top">
-    <div class="about">
-      <Brand size={34} />
-      <p>A native, privacy-first download manager with no CloakDrop cloud account.</p>
+  <div class="container inner">
+    <div class="statement-row">
+      <div>
+        <p class="eyebrow" translate="no">CloakDrop / Cloakyard</p>
+        <p class="statement">Resume a download. <span>Keep it local.</span></p>
+      </div>
+
+      <nav class="index" aria-label="Footer">
+        <a href={`${linkPrefix}#download`}>Download beta</a>
+        <a href={site.repo} target="_blank" rel="noreferrer">GitHub</a>
+        <a href={site.privacyPolicy}>Privacy policy</a>
+        <a href={cloakyardUrl} target="_blank" rel="noreferrer">
+          Cloakyard <Icon name="arrow" size={13} />
+        </a>
+      </nav>
     </div>
 
-    <nav aria-label="Cloakyard apps">
-      <p>Cloakyard</p>
-      {
-        suite.apps.filter((app) => !app.self).map((app) => (
-          <a href={app.href} rel="noopener">{app.name}<Icon name="arrow" size={14} /></a>
-        ))
-      }
-    </nav>
-
-  </div>
-
-  <div class="container bottom">
-    <p>© {new Date().getFullYear()} Sumit Sahoo · MIT License</p>
-    <p>
-      <a href={site.privacyPolicy}>Privacy</a> ·
-      <a href={site.repo} rel="noopener">Source</a>
-    </p>
+    <div class="meta">
+      <div class="identity">
+        <span translate="no">CloakDrop beta</span>
+        <span aria-hidden="true">/</span>
+        <span>
+          Built by <a href={authorUrl} target="_blank" rel="noreferrer">Sumit Sahoo</a>
+        </span>
+      </div>
+      <div class="actions">
+        <a href={site.privacyPolicy}><Icon name="shield" size={14} />Privacy</a>
+        <a href={licenseUrl} target="_blank" rel="noreferrer">MIT licensed</a>
+      </div>
+    </div>
   </div>
 </footer>
 
 <style>
   .footer {
-    color: #8da0a8;
-    background: #071014;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--band-ink-2);
+    background: var(--band);
+    border-top: 1px solid var(--night-rule, rgba(255, 255, 255, 0.08));
   }
 
-  .top {
+  .inner {
+    padding-block: 2rem;
+  }
+
+  .statement-row {
     display: grid;
-    grid-template-columns: minmax(260px, 1fr) auto;
-    gap: clamp(2rem, 6vw, 6rem);
-    padding-block: clamp(2.5rem, 5vw, 4rem);
+    grid-template-columns: minmax(0, 1fr);
+    align-items: end;
+    gap: 2rem;
+    padding-bottom: 2.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
-  .about p {
-    max-width: 38ch;
-    margin-top: 0.9rem;
-    color: #7f939b;
-    font-size: 0.88rem;
+  .eyebrow {
+    margin-bottom: 1rem;
+    color: var(--band-accent);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    line-height: 1.4;
+    text-transform: uppercase;
   }
 
-  .about :global(.brand-name) {
-    color: #eef6f8;
+  .statement {
+    max-width: 13ch;
+    color: var(--band-ink);
+    font-size: clamp(2.4rem, 5vw, 5.2rem);
+    font-weight: 720;
+    letter-spacing: -0.055em;
+    line-height: 0.96;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
   }
 
-  .about :global(.brand-accent) {
+  .statement span {
     color: var(--band-accent);
   }
 
-  nav {
+  .index {
     display: grid;
-    align-content: start;
-    gap: 0.55rem;
-  }
-
-  nav > p {
-    margin-bottom: 0.2rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: end;
+    gap: 0.75rem 1.5rem;
+    color: var(--band-ink-2);
     font-family: var(--font-mono);
-    font-size: 0.68rem;
-    letter-spacing: 0.06em;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: #647b84;
   }
 
-  nav a {
+  .index a,
+  .meta a {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    min-height: 32px;
-    color: #aebfc5;
-    font-size: 0.86rem;
-    font-weight: 600;
+    min-height: 44px;
+    color: inherit;
+    transition: color 0.16s ease;
   }
 
-  nav a :global(svg) {
-    color: #70b6ca;
+  .index a :global(svg) {
+    flex: none;
+    color: var(--band-accent);
     transition: transform 0.16s ease;
   }
 
-  nav a:hover :global(svg) {
+  .index a:hover :global(svg) {
     transform: translateX(3px);
   }
 
-  .bottom {
+  .meta {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-top: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .identity,
+  .actions {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 1rem 2rem;
-    flex-wrap: wrap;
-    padding-block: 1.25rem 1.8rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    font-family: var(--font-mono);
-    font-size: var(--t-mono);
-    color: #617780;
+    gap: 1rem;
   }
 
-  .bottom a {
-    color: #9fb2b9;
+  .identity {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
-  @media (max-width: 700px) {
-    .top {
-      grid-template-columns: 1fr;
+  .identity > span[aria-hidden='true'] {
+    display: none;
+  }
+
+  .actions a {
+    gap: 0.5rem;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .index a:hover,
+    .meta a:hover {
+      color: var(--band-accent);
     }
-    .about {
-      grid-column: auto;
+  }
+
+  @media (min-width: 860px) {
+    .statement-row {
+      grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
+      gap: 5rem;
     }
 
-    nav a,
-    .bottom a {
-      display: inline-flex;
+    .meta {
       align-items: center;
-      min-height: 44px;
+      flex-direction: row;
     }
-  }
 
-  @media (max-width: 420px) {
-    .bottom {
-      align-items: flex-start;
-      flex-direction: column;
+    .identity {
+      align-items: center;
+      flex-direction: row;
+      gap: 1rem;
+    }
+
+    .identity > span[aria-hidden='true'] {
+      display: inline;
+    }
+
+    .actions {
+      margin-left: auto;
     }
   }
 </style>

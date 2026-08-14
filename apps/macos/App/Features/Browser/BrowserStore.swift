@@ -1,6 +1,7 @@
 import WebKit
 import Network
 import DownloadModels
+import DownloadEngine
 
 /// Process-wide browsing environment shared by every browser window: one persistent, identified
 /// `WKWebsiteDataStore` (cookies/logins survive relaunch and are wiped by "Clear Browsing Data"),
@@ -31,6 +32,10 @@ final class BrowserStore {
     var externalDomains: Set<String> = []
     /// Metadata of the active external list (what Settings shows), `nil` when none is active.
     var externalInfo: BlocklistInfo?
+    /// The latest external-rule JSON build. A source switch cancels it before starting replacement
+    /// work so obsolete multi-megabyte generation cannot overlap the current source.
+    var externalRulesJSONTask: Task<String, Error>?
+    var externalRulesGeneration = 0
     /// The source the app currently *wants* active. Async loads re-check it after every await so a
     /// mid-flight source switch can never install a stale list.
     var activeBlocklistSource: BlocklistSource = .builtIn
@@ -49,9 +54,10 @@ final class BrowserStore {
     func makeConfiguration() -> WKWebViewConfiguration {
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = dataStore
-        // Complete the UA to Safari's own ("… Version/26.0 Safari/605.1.15") — sites sniff for it
-        // and serve their standard players/streams; a bare WebKit UA gets fallback experiences.
-        configuration.applicationNameForUserAgent = "Version/26.0 Safari/605.1.15"
+        // Complete the UA to Safari's own product token — sites sniff for it and serve their
+        // standard players/streams; a bare WebKit UA gets fallback experiences. Safari's public
+        // version follows macOS, so derive it instead of baking the current release into the app.
+        configuration.applicationNameForUserAgent = DesktopUserAgent.safariProduct()
         configuration.preferences.isElementFullscreenEnabled = true
         configuration.mediaTypesRequiringUserActionForPlayback = []
         // The sniffing collector: page world (it must wrap the page's own fetch/XHR/MSE), every
@@ -134,24 +140,9 @@ final class BrowserStore {
     /// same host the downloads use; otherwise the browser follows the system configuration
     /// (WebKit's default when no explicit proxies are set).
     func applyProxy(_ proxy: DownloadModels.ProxyConfiguration) {
-        guard proxy.mode == .manual, !proxy.host.isEmpty, let port = NWEndpoint.Port(rawValue: UInt16(clamping: proxy.port)) else {
-            browsingProxyConfigurations = []
-            dataStore.proxyConfigurations = []
-            return
-        }
-        let endpoint = NWEndpoint.hostPort(host: .init(proxy.host), port: port)
-        var configuration: Network.ProxyConfiguration
-        switch proxy.type {
-        case .http, .https:
-            configuration = Network.ProxyConfiguration(httpCONNECTProxy: endpoint)
-        case .socks5:
-            configuration = Network.ProxyConfiguration(socksv5Proxy: endpoint)
-        }
-        if !proxy.username.isEmpty {
-            configuration.applyCredential(username: proxy.username, password: proxy.password)
-        }
-        browsingProxyConfigurations = [configuration]
-        dataStore.proxyConfigurations = [configuration]
+        let configurations = ProxyRouting.networkConfigurations(for: proxy)
+        browsingProxyConfigurations = configurations
+        dataStore.proxyConfigurations = configurations
     }
 
     // MARK: - Cookie exports

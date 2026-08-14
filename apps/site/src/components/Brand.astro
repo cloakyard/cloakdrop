@@ -22,7 +22,7 @@ const nameAccent = wordmark?.[2] ?? '';
     loading="eager"
     decoding="async"
   />
-  <span class="brand-name">{nameLead}<span class="brand-accent">{nameAccent}</span></span>
+  <span class="brand-name" translate="no">{nameLead}<span class="brand-accent">{nameAccent}</span></span>
 </a>
 
 <style>
@@ -35,8 +35,6 @@ const nameAccent = wordmark?.[2] ?? '';
   .brand-mark {
     flex: 0 0 auto;
     border-radius: 50%;
-    /* Whisper of a shadow only — the mark carries its own shared family lighting. */
-    filter: drop-shadow(0 1px 3px rgba(15, 42, 60, 0.14));
   }
 
   .brand-name {

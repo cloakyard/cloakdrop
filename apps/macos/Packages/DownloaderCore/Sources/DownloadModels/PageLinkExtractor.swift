@@ -9,6 +9,8 @@ import Foundation
 /// URL, keeps only http(s)/ftp(s) resources, and dedupes — optionally narrowing to a set of file
 /// extensions so "all the PDFs" or "all the images" is one filter away.
 public enum PageLinkExtractor {
+    private static let maximumExaminedCandidates = 100_000
+
     /// Extract downloadable links from `html` relative to `baseURL`.
     ///
     /// - Parameters:
@@ -16,18 +18,36 @@ public enum PageLinkExtractor {
     ///   - baseURL: the page's URL, used to resolve relative links.
     ///   - extensions: when non-empty, keep only links whose path ends in one of these (lowercased,
     ///     without the dot — e.g. `["pdf", "zip"]`).
-    public static func extract(html: String, baseURL: URL, extensions: Set<String> = []) -> [URL] {
+    public static func extract(
+        html: String,
+        baseURL: URL,
+        extensions: Set<String> = [],
+        maximumCount: Int = URLBatch.expansionLimit
+    ) -> [URL] {
+        guard maximumCount > 0 else { return [] }
+        let pattern = #"(?:href|src)\s*=\s*(?:"([^"]*)"|'([^']*)')"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return [] }
         var seen = Set<URL>()
         var results: [URL] = []
-        for raw in rawValues(in: html) {
-            guard let resolved = resolve(raw, against: baseURL) else { continue }
-            guard let scheme = resolved.scheme?.lowercased(),
-                  ["http", "https", "ftp", "ftps"].contains(scheme) else { continue }
-            if !extensions.isEmpty {
-                let ext = resolved.pathExtension.lowercased()
-                guard extensions.contains(ext) else { continue }
+        let range = NSRange(html.startIndex..<html.endIndex, in: html)
+        var examined = 0
+        regex.enumerateMatches(in: html, range: range) { match, _, stop in
+            guard let match else { return }
+            for group in 1...2 where results.count < maximumCount {
+                guard let rawRange = Range(match.range(at: group), in: html) else { continue }
+                examined += 1
+                guard examined <= maximumExaminedCandidates else {
+                    stop.pointee = true
+                    return
+                }
+                let raw = html[rawRange].trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !raw.isEmpty, let resolved = resolve(raw, against: baseURL),
+                      let scheme = resolved.scheme?.lowercased(),
+                      ["http", "https", "ftp", "ftps"].contains(scheme) else { continue }
+                if !extensions.isEmpty, !extensions.contains(resolved.pathExtension.lowercased()) { continue }
+                if seen.insert(resolved).inserted { results.append(resolved) }
             }
-            if seen.insert(resolved).inserted { results.append(resolved) }
+            if results.count == maximumCount { stop.pointee = true }
         }
         return results
     }
@@ -45,24 +65,6 @@ public enum PageLinkExtractor {
     }
 
     // MARK: Parsing
-
-    /// Every `href="…"` / `src="…"` attribute value (single or double quoted).
-    private static func rawValues(in html: String) -> [String] {
-        let pattern = #"(?:href|src)\s*=\s*(?:"([^"]*)"|'([^']*)')"#
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return [] }
-        let range = NSRange(html.startIndex..<html.endIndex, in: html)
-        var values: [String] = []
-        regex.enumerateMatches(in: html, range: range) { match, _, _ in
-            guard let match else { return }
-            for group in 1...2 {
-                if let r = Range(match.range(at: group), in: html) {
-                    let value = String(html[r]).trimmingCharacters(in: .whitespacesAndNewlines)
-                    if !value.isEmpty { values.append(value) }
-                }
-            }
-        }
-        return values
-    }
 
     private static func resolve(_ raw: String, against baseURL: URL) -> URL? {
         // Skip in-page and non-resource references.

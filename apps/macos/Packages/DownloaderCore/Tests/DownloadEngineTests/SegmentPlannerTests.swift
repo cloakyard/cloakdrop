@@ -45,6 +45,65 @@ struct SegmentPlannerTests {
         assertContiguous(segments, total: 8_000_000)
     }
 
+    @Test("Automatic connection count grows for very large files but respects every cap")
+    func adaptiveRecommendation() {
+        let mib: Int64 = 1024 * 1024
+        #expect(SegmentPlanner.recommendedSegmentCount(
+            totalBytes: 8 * mib,
+            requestedSegments: nil,
+            preferredSegments: 8,
+            maximumSegments: 16,
+            minimumSegmentSize: mib
+        ) == 8)
+        #expect(SegmentPlanner.recommendedSegmentCount(
+            totalBytes: 512 * mib,
+            requestedSegments: nil,
+            preferredSegments: 8,
+            maximumSegments: 16,
+            minimumSegmentSize: mib
+        ) == 16)
+        // Only three minimum-size ranges fit, regardless of the preferred/maximum values.
+        #expect(SegmentPlanner.recommendedSegmentCount(
+            totalBytes: 3 * mib,
+            requestedSegments: nil,
+            preferredSegments: 8,
+            maximumSegments: 16,
+            minimumSegmentSize: mib
+        ) == 3)
+    }
+
+    @Test("A manual connection override wins in automatic planning and is still safely clamped")
+    func manualRecommendation() {
+        let mib: Int64 = 1024 * 1024
+        #expect(SegmentPlanner.recommendedSegmentCount(
+            totalBytes: 512 * mib,
+            requestedSegments: 3,
+            preferredSegments: 8,
+            maximumSegments: 16,
+            minimumSegmentSize: mib
+        ) == 3)
+        #expect(SegmentPlanner.recommendedSegmentCount(
+            totalBytes: 2 * mib,
+            requestedSegments: 99,
+            preferredSegments: 8,
+            maximumSegments: 16,
+            minimumSegmentSize: mib
+        ) == 2)
+    }
+
+    @Test("Extreme minimum sizes never overflow adaptive or split math")
+    func extremeMinimumIsSafe() {
+        #expect(SegmentPlanner.recommendedSegmentCount(
+            totalBytes: Int64.max,
+            requestedSegments: nil,
+            preferredSegments: 8,
+            maximumSegments: 16,
+            minimumSegmentSize: Int64.max
+        ) == 1)
+        let segment = DownloadSegment(id: 0, start: 0, end: 100)
+        #expect(SegmentPlanner.split(segment, newSegmentID: 1, minimumSegmentSize: Int64.max) == nil)
+    }
+
     @Test("Always at least one segment, even for tiny files")
     func atLeastOne() {
         let segments = SegmentPlanner.plan(totalBytes: 1, requestedSegments: 8, minimumSegmentSize: 1)

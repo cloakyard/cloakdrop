@@ -1,5 +1,3 @@
-import Foundation
-
 /// Engine-wide tunables. These are persisted and editable from Settings.
 ///
 /// Defaults match the brief: 8 segments, sensible retry/backoff, no global speed cap.
@@ -86,7 +84,8 @@ public struct EngineSettings: Sendable, Hashable, Codable {
         self.maxRetryAttempts = max(0, maxRetryAttempts)
         self.retryBaseDelaySeconds = retryBaseDelaySeconds
         self.retryMaxDelaySeconds = retryMaxDelaySeconds
-        self.minimumSegmentSizeBytes = max(0, minimumSegmentSizeBytes)
+        // Zero makes a one-byte remainder "splittable", which can produce an invalid empty tail.
+        self.minimumSegmentSizeBytes = max(1, minimumSegmentSizeBytes)
         self.verifyChecksumsAutomatically = verifyChecksumsAutomatically
         self.autoDiscoverChecksums = autoDiscoverChecksums
         self.assessSignatures = assessSignatures

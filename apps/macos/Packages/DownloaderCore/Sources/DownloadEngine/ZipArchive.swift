@@ -1,5 +1,6 @@
 import Foundation
 import Compression
+import Darwin
 
 /// A native, dependency-free ZIP extractor built on `Compression.framework` — no bundled `unzip`, no
 /// third-party library, fully sandbox-clean. It parses the ZIP central directory and inflates each
@@ -14,15 +15,17 @@ enum ZipArchive {
         case unsupportedMethod(UInt16)
         case corrupt(String)
         case pathEscape(String)
+        case destinationExists(String)
         /// An entry declared an implausible uncompressed size / compression ratio — a likely zip bomb.
         case suspiciousEntry(String)
     }
 
     /// DEFLATE's theoretical best is ~1032:1; anything far past that is a decompression bomb, not data.
     private static let maxCompressionRatio = 1100.0
-    /// Hard ceiling on a single entry's in-memory decode buffer, so a bogus size can't demand a giant
-    /// allocation even at a plausible ratio.
-    private static let maxEntryBytes = 2 * 1024 * 1024 * 1024   // 2 GB
+    /// Hard ceiling on both a single entry's compressed body and its in-memory decode buffer. Archive
+    /// extraction is optional post-processing; keeping one entry below 256 MiB protects the app from
+    /// memory pressure while retaining ample headroom for ordinary documents and application bundles.
+    static let maximumInMemoryEntryBytes = 256 * 1024 * 1024
 
     private struct Entry {
         let name: String
@@ -39,8 +42,14 @@ enum ZipArchive {
         let data = try Data(contentsOf: URL(fileURLWithPath: zipPath), options: .mappedIfSafe)
         let entries = try readCentralDirectory(data)
         let fm = FileManager.default
-        try fm.createDirectory(atPath: destinationDirectory, withIntermediateDirectories: true)
-        let destRoot = URL(fileURLWithPath: destinationDirectory).standardizedFileURL
+        let requestedRoot = URL(fileURLWithPath: destinationDirectory).standardizedFileURL
+        try fm.createDirectory(at: requestedRoot.deletingLastPathComponent(), withIntermediateDirectories: true)
+        guard Darwin.mkdir(requestedRoot.path, 0o777) == 0 else {
+            let code = errno
+            if code == EEXIST { throw ExtractionError.destinationExists(requestedRoot.path) }
+            throw POSIXError(POSIXErrorCode(rawValue: code) ?? .EIO)
+        }
+        let destRoot = requestedRoot.resolvingSymlinksInPath()
 
         var written: [String] = []
         for entry in entries {
@@ -49,6 +58,7 @@ enum ZipArchive {
             // extraction. One bad entry must not sink the rest of the archive.
             guard !entry.name.isEmpty else { continue }
             let target = destRoot.appendingPathComponent(entry.name).standardizedFileURL
+                .resolvingSymlinksInPath()
             // Zip Slip guard: the resolved path must stay inside the destination root.
             guard target.path == destRoot.path || target.path.hasPrefix(destRoot.path + "/") else {
                 throw ExtractionError.pathEscape(entry.name)
@@ -59,7 +69,9 @@ enum ZipArchive {
             }
             try fm.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
             let bytes = try inflate(entry: entry, from: data)
-            try bytes.write(to: target)
+            // Refuse replacement atomically. Besides preserving user files, this rejects duplicate
+            // archive entries that otherwise overwrite an earlier entry with the same path.
+            try bytes.write(to: target, options: .withoutOverwriting)
             written.append(target.path)
         }
         return written
@@ -125,13 +137,22 @@ enum ZipArchive {
         let nameLength = Int(readU16(data, base + 26))
         let extraLength = Int(readU16(data, base + 28))
         let dataStart = base + 30 + nameLength + extraLength
+        guard entry.compressedSize <= Self.maximumInMemoryEntryBytes,
+              entry.uncompressedSize <= Self.maximumInMemoryEntryBytes else {
+            throw ExtractionError.suspiciousEntry(entry.name)
+        }
         guard dataStart + entry.compressedSize <= data.count else {
             throw ExtractionError.corrupt("data range for \(entry.name)")
         }
-        let compressed = data.subdata(in: dataStart..<dataStart + entry.compressedSize)
+        // A slice retains the archive's mapped backing instead of copying the compressed body into a
+        // second heap buffer. DEFLATE then allocates only the explicitly bounded output buffer.
+        let compressed = data[dataStart..<dataStart + entry.compressedSize]
 
         switch entry.method {
         case 0:   // STORE
+            guard entry.compressedSize == entry.uncompressedSize else {
+                throw ExtractionError.corrupt("stored size mismatch for \(entry.name)")
+            }
             return compressed
         case 8:   // DEFLATE
             // Decompression-bomb guard: reject an absurd ratio (tiny input claiming a huge output) or an
@@ -139,7 +160,7 @@ enum ZipArchive {
             let ratio = entry.compressedSize > 0
                 ? Double(entry.uncompressedSize) / Double(entry.compressedSize)
                 : Double(entry.uncompressedSize)
-            guard ratio <= Self.maxCompressionRatio, entry.uncompressedSize <= Self.maxEntryBytes else {
+            guard ratio <= Self.maxCompressionRatio else {
                 throw ExtractionError.suspiciousEntry(entry.name)
             }
             return try rawInflate(compressed, expectedSize: entry.uncompressedSize, name: entry.name)

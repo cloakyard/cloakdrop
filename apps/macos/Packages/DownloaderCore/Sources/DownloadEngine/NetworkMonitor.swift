@@ -1,4 +1,3 @@
-import Foundation
 import Network
 
 /// Reachability source for the engine. A protocol so production uses `NWPathMonitor` while
