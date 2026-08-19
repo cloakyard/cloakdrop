@@ -114,6 +114,31 @@ struct MediaExtractionParseTests {
         #expect(media.downloadHeaders["Referer"] == "https://www.acfun.cn/")
     }
 
+    @Test("Complete HLS wins when direct video renditions have no audio to pair")
+    func unpairedDirectVideoFallsBackToCompleteManifest() throws {
+        let json = #"""
+        { "title": "Player clip", "formats": [
+          { "format_id": "http-480p", "url": "https://direct.example/480.mp4", "ext": "mp4",
+            "protocol": "https", "vcodec": "h264", "height": 480 },
+          { "format_id": "http-720p", "url": "https://direct.example/720.mp4", "ext": "mp4",
+            "protocol": "https", "vcodec": "h264", "height": 720 },
+          { "format_id": "hls-video-only", "url": "https://media.example/720-av1.m3u8", "ext": "mp4",
+            "protocol": "m3u8_native", "vcodec": "av1", "height": 720, "width": 1280, "tbr": 1500 },
+          { "format_id": "hls-complete", "url": "https://media.example/720-h264.m3u8", "ext": "mp4",
+            "protocol": "m3u8_native", "vcodec": "h264", "acodec": "aac",
+            "height": 720, "width": 1280, "tbr": 1000,
+            "http_headers": { "Referer": "https://player.example/watch/1" } }
+        ] }
+        """#
+        let media = try ExtractedMedia.parse(json: Data(json.utf8))
+
+        #expect(media.preferredManifestFormat?.formatID == "hls-complete",
+                "a complete rendition beats a same-resolution silent rendition")
+        #expect(media.toMediaStream(pageURL: URL(string: "https://player.example/watch/1")!) == nil,
+                "the app should resolve the complete HLS rendition instead of downloading silent direct video")
+        #expect(media.preferredManifestFormat?.httpHeaders["Referer"] == "https://player.example/watch/1")
+    }
+
     @Test func invalidOutputThrows() {
         #expect(throws: MediaExtractionError.invalidOutput) {
             try ExtractedMedia.parse(json: Data("not json at all".utf8))

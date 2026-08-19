@@ -161,10 +161,22 @@ public extension ExtractedMedia {
     /// cheapest-to-assemble codec kept), each paired with its container-matched audio via
     /// `audioGroupID`. Every variant is *already resolved* (its single direct-URL segment is set, no
     /// `playlistURL`), so `MediaStream.plan(for:audio:)` produces a paired video+audio plan with no
-    /// further network. Returns `nil` when nothing grabbable remains (e.g. only SABR/ciphered streams).
+    /// further network. Returns `nil` when nothing direct is grabbable or a complete adaptive stream
+    /// should be resolved instead (e.g. only SABR/ciphered streams, or unpaired direct video).
     func toMediaStream(pageURL: URL) -> MediaStream? {
         let direct = directFormats
         let audioOnly = direct.filter(\.isAudioOnly)
+
+        // Some extractors advertise direct MP4 renditions that contain video only, with no separate
+        // audio resource to pair, alongside complete HLS renditions. Building direct tiers here would
+        // produce a silent file (and those secondary direct URLs are often less reliable than the
+        // authored player stream). Returning nil hands the complete manifest to CloakDrop's own HLS
+        // resolver in `grabFromPage`, preserving audio and the normal segmented-media path.
+        let hasUnpairedDirectVideo = direct.contains(where: \.isVideoOnly)
+            && !direct.contains(where: \.isProgressive)
+            && audioOnly.isEmpty
+        if hasUnpairedDirectVideo, preferredManifestFormat?.isProgressive == true { return nil }
+
         var tiers: [Int: Tier] = [:]
 
         for format in direct where format.isProgressive {
