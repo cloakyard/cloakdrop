@@ -62,8 +62,8 @@ public struct ExtractedMedia: Sendable, Hashable {
     /// manifest sub-protocol or DASH-segment stream).
     public var directFormats: [ExtractedFormat] { formats.filter(\.isDirectFile) }
 
-    /// One adaptive manifest to hand back to the app's own HLS/DASH resolver when an extractor has
-    /// no direct-file formats. yt-dlp often expands a master into several per-quality playlists;
+    /// One adaptive manifest to hand back to the app's own HLS/DASH resolver when direct formats
+    /// cannot produce complete media. yt-dlp often expands a master into several per-quality playlists;
     /// choosing the highest known resolution/bitrate keeps the page grab a single deterministic
     /// item. A master with no dimensions remains the fallback when it is the only manifest.
     public var preferredManifestFormat: ExtractedFormat? {
@@ -78,6 +78,7 @@ public struct ExtractedMedia: Sendable, Hashable {
             let right = (rhs.height ?? 0, rhs.width ?? 0, rhs.tbr ?? 0)
             if left.0 != right.0 { return left.0 < right.0 }
             if left.1 != right.1 { return left.1 < right.1 }
+            if lhs.hasAudio != rhs.hasAudio { return !lhs.hasAudio }
             return left.2 < right.2
         }
     }
