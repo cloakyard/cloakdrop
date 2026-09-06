@@ -6,7 +6,7 @@ import DownloadModels
 /// Segment transfers use a delegate-driven session so body bytes arrive as `Data` chunks
 /// (efficient, and cancellable mid-flight). Lightweight probes use a separate session and the
 /// async convenience API. Both sessions answer authentication challenges from a shared,
-/// lock-guarded per-host credential store, so HTTP Basic/Digest (and proxy) auth work on
+/// lock-guarded per-origin credential store, so HTTP Basic/Digest (and proxy) auth work on
 /// probe and stream alike; TLS trust is left to the system's default handling.
 ///
 /// The class is `@unchecked Sendable`: its mutable state (the task registry, the credential
@@ -117,7 +117,7 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
         let (stream, continuation) = AsyncThrowingStream<Data, Error>.makeStream(
             bufferingPolicy: .bufferingOldest(8)
         )
-        let taskID = task.taskIdentifier
+        let taskID = ObjectIdentifier(task)
 
         let head: HTTPResponseHead = try await withTaskCancellationHandler {
             try Task.checkCancellation()
@@ -132,12 +132,21 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
                     }
                     self?.registry.remove(taskID: taskID)
                 }
-                task.resume()
+                // Cancellation can race registration: a cancelled, not-yet-resumed URLSession task
+                // can deliver its only completion before the handler exists. Check again after
+                // registering so that race cannot strand the checked head continuation.
+                if Task.isCancelled {
+                    registry.finish(taskID: taskID, error: CancellationError())
+                    task.cancel()
+                } else {
+                    task.resume()
+                }
             }
         } onCancel: {
             // Cancellation can arrive before the body stream is returned, while the caller is still
             // awaiting response headers. Cancel the underlying request immediately instead of making
             // pause/cancel wait for the 60-second request timeout.
+            self.registry.finish(taskID: taskID, error: CancellationError())
             task.cancel()
         }
         return (head, stream)
@@ -148,11 +157,11 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
             guard proxy != currentProxy else { return }
             currentProxy = proxy
 
-            // Proxy credentials answer 407 challenges, keyed by the proxy host like server creds.
+            // Proxy and origin credentials have separate scopes, even when hosts coincide.
             if proxy.isUsableManualProxy && proxy.requiresCredentials {
                 credentials.set(
                     URLCredential(user: proxy.username, password: proxy.password, persistence: .forSession),
-                    for: proxy.host
+                    proxyHost: proxy.host, port: proxy.port
                 )
             }
 
@@ -168,8 +177,8 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
 
     private func registerCredentials(for request: HTTPDownloadRequest) {
         guard let user = request.username, !user.isEmpty,
-              let password = request.password, let host = request.url.host else { return }
-        credentials.set(URLCredential(user: user, password: password, persistence: .forSession), for: host)
+              let password = request.password else { return }
+        credentials.set(URLCredential(user: user, password: password, persistence: .forSession), for: request.url)
     }
 
     fileprivate func resolveChallenge(_ challenge: URLAuthenticationChallenge) -> (URLSession.AuthChallengeDisposition, URLCredential?) {
@@ -187,7 +196,7 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
              NSURLAuthenticationMethodHTTPDigest,
              NSURLAuthenticationMethodNTLM:
             if challenge.previousFailureCount == 0,
-               let credential = credentials.credential(for: challenge.protectionSpace.host) {
+               let credential = credentials.credential(for: challenge.protectionSpace) {
                 return (.useCredential, credential)
             }
             return (.performDefaultHandling, nil)
@@ -231,6 +240,16 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
 
     static func basicAuthorizationValue(user: String, password: String) -> String {
         "Basic " + Data("\(user):\(password)".utf8).base64EncodedString()
+    }
+
+    static func redirectedRequest(_ request: URLRequest, from source: URL?) -> URLRequest {
+        guard let source, let destination = request.url,
+              !HTTPDownloadRequest.sameOrigin(source, destination) else { return request }
+        var redirected = request
+        for header in HTTPDownloadRequest.sensitiveHeaderNames {
+            redirected.setValue(nil, forHTTPHeaderField: header)
+        }
+        return redirected
     }
 
     // MARK: Response parsing
@@ -288,13 +307,20 @@ public final class URLSessionHTTPClient: NSObject, HTTPClient, @unchecked Sendab
 
 extension URLSessionHTTPClient: URLSessionDataDelegate {
     public func urlSession(
+        _ session: URLSession, task: URLSessionTask,
+        willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest
+    ) async -> URLRequest? {
+        Self.redirectedRequest(request, from: response.url)
+    }
+
+    public func urlSession(
         _ session: URLSession,
         dataTask: URLSessionDataTask,
         didReceive response: URLResponse
     ) async -> URLSession.ResponseDisposition {
         guard let http = response as? HTTPURLResponse else {
             registry.completeHead(
-                taskID: dataTask.taskIdentifier,
+                taskID: ObjectIdentifier(dataTask),
                 with: .failure(DownloadError.underlying(reason: "Non-HTTP response."))
             )
             return .cancel
@@ -302,24 +328,24 @@ extension URLSessionHTTPClient: URLSessionDataDelegate {
         let head = Self.parseHead(http)
         guard head.isSuccess || head.statusCode == 206 else {
             registry.completeHead(
-                taskID: dataTask.taskIdentifier,
+                taskID: ObjectIdentifier(dataTask),
                 with: .failure(DownloadError.httpStatus(code: head.statusCode))
             )
             return .cancel
         }
-        registry.completeHead(taskID: dataTask.taskIdentifier, with: .success(head))
+        registry.completeHead(taskID: ObjectIdentifier(dataTask), with: .success(head))
         return .allow
     }
 
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        if registry.yield(taskID: dataTask.taskIdentifier, data: data) {
+        if registry.yield(taskID: ObjectIdentifier(dataTask), data: data) {
             dataTask.suspend()
-            registry.drainPending(taskID: dataTask.taskIdentifier, task: dataTask)
+            registry.drainPending(taskID: ObjectIdentifier(dataTask), task: dataTask)
         }
     }
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
-        registry.finish(taskID: task.taskIdentifier, error: error)
+        registry.finish(taskID: ObjectIdentifier(task), error: error)
     }
 
     public func urlSession(
@@ -341,6 +367,13 @@ private final class AuthResponder: NSObject, URLSessionTaskDelegate, @unchecked 
     init(credentials: CredentialBox) { self.credentials = credentials }
 
     func urlSession(
+        _ session: URLSession, task: URLSessionTask,
+        willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest
+    ) async -> URLRequest? {
+        URLSessionHTTPClient.redirectedRequest(request, from: response.url)
+    }
+
+    func urlSession(
         _ session: URLSession,
         task: URLSessionTask,
         didReceive challenge: URLAuthenticationChallenge
@@ -351,18 +384,41 @@ private final class AuthResponder: NSObject, URLSessionTaskDelegate, @unchecked 
 
 // MARK: - Credential store
 
-/// Lock-guarded per-host credential store shared by both sessions' challenge handlers.
+/// Lock-guarded per-origin credential store shared by both sessions' challenge handlers. A host-only
+/// key would send a HTTPS password to an HTTP downgrade or a different service on the same host.
 final class CredentialBox: @unchecked Sendable {
+    private struct Scope: Hashable {
+        let host: String
+        let port: Int
+        let scheme: String
+        let isProxy: Bool
+    }
     private let lock = NSLock()
-    private var byHost: [String: URLCredential] = [:]
+    private var byScope: [Scope: URLCredential] = [:]
 
-    func set(_ credential: URLCredential, for host: String) {
+    func set(_ credential: URLCredential, for url: URL) {
+        guard let host = url.host else { return }
+        let scheme = url.scheme?.lowercased() ?? ""
+        let scope = Scope(host: host.lowercased(), port: url.port ?? Self.defaultPort(scheme), scheme: scheme, isProxy: false)
         lock.lock(); defer { lock.unlock() }
-        byHost[host] = credential
+        byScope[scope] = credential
     }
 
-    func credential(for host: String) -> URLCredential? {
+    func set(_ credential: URLCredential, proxyHost: String, port: Int) {
         lock.lock(); defer { lock.unlock() }
-        return byHost[host]
+        byScope[Scope(host: proxyHost.lowercased(), port: port, scheme: "", isProxy: true)] = credential
+    }
+
+    func credential(for protectionSpace: URLProtectionSpace) -> URLCredential? {
+        let isProxy = protectionSpace.isProxy()
+        let scheme = isProxy ? "" : protectionSpace.protocol?.lowercased() ?? ""
+        let port = protectionSpace.port > 0 ? protectionSpace.port : Self.defaultPort(scheme)
+        let scope = Scope(host: protectionSpace.host.lowercased(), port: port, scheme: scheme, isProxy: isProxy)
+        lock.lock(); defer { lock.unlock() }
+        return byScope[scope]
+    }
+
+    private static func defaultPort(_ scheme: String) -> Int {
+        scheme == "https" ? 443 : 80
     }
 }

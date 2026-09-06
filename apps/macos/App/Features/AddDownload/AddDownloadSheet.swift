@@ -39,12 +39,24 @@ struct AddDownloadSheet: View {
     @State private var preview: LinkPreview?
     @State private var isInspecting = false
     @State private var previewFailed = false
-    /// The URL a preview was last resolved (or attempted) for, so re-typing the same link doesn't reprobe.
-    @State private var lastInspectedURL: URL?
-    @State private var inspectionTask: Task<Void, Never>?
-
     private var resolvedURL: URL? { AppModel.normalizedURL(urlString) }
-    private var canAdd: Bool { resolvedURL != nil }
+    private var canAdd: Bool { resolvedURL != nil && (detectedVideoPage != nil || !checksumIsMalformed) }
+
+    /// Authentication changes can turn a failed preview into a valid one without changing its URL.
+    /// SwiftUI cancels the old inspection whenever any request input changes or the sheet closes.
+    private struct InspectionInput: Hashable {
+        let url: URL
+        let referrer: String?
+        let cookies: String?
+        let username: String?
+        let password: String?
+    }
+
+    private var inspectionInput: InspectionInput? {
+        guard let url = resolvedURL, detectedVideoPage == nil else { return nil }
+        return InspectionInput(url: url, referrer: trimmedOrNil(referrer), cookies: trimmedOrNil(cookies),
+                               username: trimmedOrNil(username), password: password.isEmpty ? nil : password)
+    }
 
     /// The video site this URL belongs to, when it's a recognized page the bundled extractor can
     /// resolve (and extraction is available) — a YouTube link, etc. When set, the sheet offers to grab
@@ -80,7 +92,7 @@ struct AddDownloadSheet: View {
                         .textFieldStyle(.roundedBorder)
                         .onChange(of: urlString) { _, _ in
                             deriveFileNameIfNeeded()
-                            scheduleInspection()
+                            if let url = resolvedURL { autofillSavedCredentials(for: url) }
                         }
                     if let site = detectedVideoPage {
                         videoPageRow(site)
@@ -171,7 +183,7 @@ struct AddDownloadSheet: View {
                                 .textFieldStyle(.roundedBorder)
                                 .font(.callout.monospaced())
                             if checksumIsMalformed {
-                                Label("Not a valid \(checksumAlgorithm.displayName) digest — this file won’t be verified.",
+                                Label("Enter a valid \(checksumAlgorithm.displayName) digest, or clear the field to continue.",
                                       systemImage: "exclamationmark.triangle.fill")
                                     .font(.caption)
                                     .foregroundStyle(.orange)
@@ -200,7 +212,7 @@ struct AddDownloadSheet: View {
         }
         .frame(width: 520, height: 600)
         .onAppear(perform: prefill)
-        .onDisappear { inspectionTask?.cancel() }
+        .task(id: inspectionInput) { await inspectLink(inspectionInput) }
     }
 
     // MARK: Video page
@@ -329,44 +341,23 @@ struct AddDownloadSheet: View {
         return parts.joined(separator: " · ")
     }
 
-    /// Debounced pre-flight: wait for typing to settle, then probe the (valid) URL once. Cancels any
-    /// in-flight probe when the URL changes, and skips re-probing a URL already inspected.
-    private func scheduleInspection() {
-        inspectionTask?.cancel()
-        guard let url = resolvedURL else {
-            withAnimation(.smooth(duration: 0.2)) { preview = nil; isInspecting = false; previewFailed = false }
-            lastInspectedURL = nil
-            return
+    /// Clear stale metadata immediately, then inspect only after the complete request settles.
+    private func inspectLink(_ input: InspectionInput?) async {
+        preview = nil
+        previewFailed = false
+        isInspecting = false
+        guard let input else { return }
+        do { try await Task.sleep(for: .milliseconds(500)) } catch { return }
+        isInspecting = true
+        let result = await model.preview(url: input.url, referrer: input.referrer, cookies: input.cookies,
+                                         username: input.username, password: input.password)
+        guard !Task.isCancelled else { return }
+        withAnimation(.smooth(duration: 0.2)) {
+            isInspecting = false
+            preview = result
+            previewFailed = (result == nil)
         }
-        // A recognized video page is resolved by the extractor on Add — probing it as a file would just
-        // show a misleading "watch.html · Not resumable" card, so skip the pre-flight for it.
-        if detectedVideoPage != nil {
-            withAnimation(.smooth(duration: 0.2)) { preview = nil; isInspecting = false; previewFailed = false }
-            lastInspectedURL = url
-            return
-        }
-        guard url != lastInspectedURL else { return }   // already have (or attempted) this exact URL
-        autofillSavedCredentials(for: url)
-        inspectionTask = Task {
-            try? await Task.sleep(for: .milliseconds(500))   // debounce keystrokes
-            guard !Task.isCancelled else { return }
-            withAnimation(.smooth(duration: 0.2)) { isInspecting = true; previewFailed = false }
-            let result = await model.preview(
-                url: url,
-                referrer: trimmedOrNil(referrer),
-                cookies: trimmedOrNil(cookies),
-                username: trimmedOrNil(username),
-                password: password.isEmpty ? nil : password
-            )
-            guard !Task.isCancelled else { return }
-            lastInspectedURL = url
-            withAnimation(.smooth(duration: 0.2)) {
-                isInspecting = false
-                preview = result
-                previewFailed = (result == nil)
-            }
-            if let result { adoptPreviewFileName(result) }
-        }
+        if let result { adoptPreviewFileName(result) }
     }
 
     /// Adopt the server's file name when the user hasn't typed their own — the pre-flight often
@@ -443,7 +434,7 @@ struct AddDownloadSheet: View {
     }
 
     private func add() {
-        guard let url = resolvedURL else { return }
+        guard canAdd, let url = resolvedURL else { return }
         // A recognized video page routes through the extractor: it resolves the real formats, then
         // downloads the best tier or opens the quality picker (per "Ask me quality").
         if detectedVideoPage != nil {

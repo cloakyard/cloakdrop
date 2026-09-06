@@ -27,6 +27,40 @@ public struct HTTPDownloadRequest: Sendable, Hashable {
     }
 }
 
+extension HTTPDownloadRequest {
+    static let sensitiveHeaderNames = ["Authorization", "Proxy-Authorization", "Cookie"]
+
+    /// Mirrors are independent origins. A primary URL's flattened cookies and authentication must
+    /// not accompany its body/probe to another server, port, or protocol.
+    func forSource(_ source: URL) -> HTTPDownloadRequest {
+        var result = self
+        result.url = source
+        guard !Self.sameOrigin(url, source) else { return result }
+        result.username = nil
+        result.password = nil
+        result.headers = headers.filter { key, _ in
+            !Self.sensitiveHeaderNames.contains { key.caseInsensitiveCompare($0) == .orderedSame }
+        }
+        return result
+    }
+
+    static func sameOrigin(_ lhs: URL, _ rhs: URL) -> Bool {
+        func port(_ url: URL) -> Int? {
+            if let port = url.port { return port }
+            switch url.scheme?.lowercased() {
+            case "https": return 443
+            case "http": return 80
+            case "ftp": return 21
+            case "ftps": return 990
+            default: return nil
+            }
+        }
+        return lhs.scheme?.lowercased() == rhs.scheme?.lowercased()
+            && lhs.host?.lowercased() == rhs.host?.lowercased()
+            && port(lhs) == port(rhs)
+    }
+}
+
 /// The metadata the engine needs from a server's response before/while transferring.
 public struct HTTPResponseHead: Sendable, Hashable {
     public let statusCode: Int

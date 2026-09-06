@@ -6,6 +6,65 @@ import Testing
 
 @Suite("FTP client (loopback server)")
 struct FTPClientIntegrationTests {
+    @Test("PASV falls back through the control host when the server advertises another address")
+    func passiveNATFallback() async throws {
+        let payload = Data(repeating: 7, count: 4_096)
+        let server = try LoopbackFTPServer(payload: payload, supportsEPSV: false)
+        try await server.start()
+        defer { server.stop() }
+        let (_, stream) = try await FTPClient(operationTimeout: .seconds(2))
+            .stream(HTTPDownloadRequest(url: server.baseURL))
+        #expect(try await collect(stream) == payload)
+    }
+
+    @Test("An idle FTP body times out instead of occupying a queue slot forever")
+    func stalledBodyTimesOut() async throws {
+        let server = try LoopbackFTPServer(payload: Data(repeating: 1, count: 1_024), stallsDuringTransfer: true)
+        try await server.start()
+        defer { server.stop() }
+        let client = FTPClient(operationTimeout: .milliseconds(250))
+        let (_, stream) = try await client.stream(HTTPDownloadRequest(url: server.baseURL))
+        let started = ContinuousClock().now
+        let consumer = Task { try await collect(stream) }
+        // Bound the test if the receive-timeout regression returns.
+        let deadline = Task {
+            try? await Task.sleep(for: .seconds(3))
+            if !Task.isCancelled { consumer.cancel() }
+        }
+        defer { deadline.cancel() }
+        do {
+            _ = try await consumer.value
+            Issue.record("Expected a stalled FTP body to fail")
+        } catch { #expect(error as? DownloadError == .networkLost) }
+        #expect(started.duration(to: ContinuousClock().now) < .seconds(2))
+    }
+
+    @Test("An invalid FTP port fails without crashing", arguments: [0, 65_536, 99_999])
+    func invalidPortRejected(port: Int) async throws {
+        let url = try #require(URL(string: "ftp://127.0.0.1:\(port)/file.bin"))
+        await #expect(throws: DownloadError.invalidURL(url.absoluteString)) {
+            _ = try await FTPClient().probe(HTTPDownloadRequest(url: url))
+        }
+    }
+
+    @Test("FTP credentials cannot inject additional protocol commands")
+    func commandInjectionRejected() async throws {
+        let server = try LoopbackFTPServer(payload: Data([1]))
+        try await server.start()
+        defer { server.stop() }
+        do {
+            _ = try await FTPClient().probe(HTTPDownloadRequest(
+                url: server.baseURL, username: "user\r\nDELE file.bin", password: "password"
+            ))
+            Issue.record("Expected line-break credentials to be rejected")
+        } catch {
+            guard case .underlying = error as? DownloadError else {
+                Issue.record("Unexpected error: \(error)")
+                return
+            }
+        }
+    }
+
     private func collect(_ stream: AsyncThrowingStream<Data, Error>) async throws -> Data {
         var out = Data()
         for try await chunk in stream { out.append(chunk) }

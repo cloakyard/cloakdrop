@@ -10,13 +10,13 @@ enum Format {
 
     /// e.g. "3.4 MB/s".
     static func speed(_ bytesPerSecond: Double) -> String {
-        guard bytesPerSecond >= 1 else { return "—" }
+        guard bytesPerSecond.isFinite, bytesPerSecond >= 1, bytesPerSecond < Double(Int64.max) else { return "—" }
         return Int64(bytesPerSecond).formatted(.byteCount(style: .file)) + "/s"
     }
 
     /// e.g. "1m 23s", "45s", "2h 5m". Returns "—" when unknown.
     static func eta(_ seconds: TimeInterval?) -> String {
-        guard let seconds, seconds.isFinite, seconds >= 0 else { return "—" }
+        guard let seconds, seconds.isFinite, seconds >= 0, seconds < Double(Int.max) else { return "—" }
         if seconds < 1 { return "<1s" }
         let total = Int(seconds.rounded())
         let h = total / 3600

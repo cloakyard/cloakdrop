@@ -854,6 +854,48 @@ struct MediaTransferTests {
         #expect(!plan.hasSeparateAudio)
     }
 
+    @Test("Audio-only HLS skips an in-band default and resolves the downloadable alternate")
+    func audioOnlySkipsInBandDefault() async throws {
+        // Apple's bipbop master lists default Audio1 without a URI and same-language Audio2
+        // with a URI. In-band Audio1 is correct for video; Audio2 is the standalone download.
+        let master = """
+        #EXTM3U
+        #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="bipbop_audio",NAME="Audio1",LANGUAGE="eng",DEFAULT=YES,AUTOSELECT=YES
+        #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="bipbop_audio",NAME="Audio2",LANGUAGE="eng",DEFAULT=NO,AUTOSELECT=YES,URI="alternate.m3u8"
+        #EXT-X-STREAM-INF:BANDWIDTH=1400000,RESOLUTION=1280x720,AUDIO="bipbop_audio"
+        video.m3u8
+        """
+        let base = URL(string: "https://cdn.example/bipbop/master.m3u8")!
+        let stream = try HLSParser.parse(master, baseURL: base)
+        #expect(stream.defaultAudioTrack?.name == "Audio1")
+        #expect(stream.standaloneAudioTracks.map(\.name) == ["Audio2"])
+        #expect(stream.defaultStandaloneAudioTrack?.name == "Audio2")
+        #expect(stream.hasGrabbableAudio)
+
+        let mock = MockHTTPClient()
+        mock.setResource(.init(data: Data("#EXTM3U\n#EXTINF:6,\naudio.aac\n#EXT-X-ENDLIST".utf8)),
+                         for: URL(string: "https://cdn.example/bipbop/alternate.m3u8")!)
+        mock.setResource(.init(data: Data("#EXTM3U\n#EXTINF:6,\nvideo.ts\n#EXT-X-ENDLIST".utf8)),
+                         for: URL(string: "https://cdn.example/bipbop/video.m3u8")!)
+        let manager = try await makeManager(store: GRDBDownloadStore.inMemory(), mock: mock)
+        for selectedID in [nil, stream.defaultAudioTrack?.id] {
+            let audio = try await manager.resolveAudioOnlyPlan(from: stream, trackID: selectedID)
+            #expect(audio.segments.first?.url.lastPathComponent == "audio.aac")
+            #expect(!audio.hasSeparateAudio)
+        }
+        let video = try await manager.resolveMediaPlan(from: stream, variantID: "0")
+        #expect(video.segments.first?.url.lastPathComponent == "video.ts")
+        #expect(!video.hasSeparateAudio, "video keeps its in-band default rather than downloading alternate sound")
+
+        var inBandOnly = stream
+        inBandOnly.audioTracks.removeAll { $0.playlistURL != nil }
+        #expect(!inBandOnly.hasGrabbableAudio)
+        #expect(inBandOnly.defaultStandaloneAudioTrack == nil)
+        await #expect(throws: MediaParseError.noContent) {
+            _ = try await manager.resolveAudioOnlyPlan(from: inBandOnly, trackID: nil)
+        }
+    }
+
     @Test("resolveMediaPlan pairs the chosen audio language, not just the default")
     func resolveMediaPlanHonorsAudioTrackChoice() async throws {
         // HLS master with two audio renditions (English default, Spanish); the grab must pair Spanish.

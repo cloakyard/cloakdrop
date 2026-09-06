@@ -37,7 +37,7 @@ enum FTPProtocol {
 
         // Multi-line: scan for the terminating "NNN " line.
         let terminator = codeString + " "
-        for index in 1..<lines.count where lines[index].hasPrefix(terminator) {
+        for index in 1..<(lines.count - 1) where lines[index].hasPrefix(terminator) {
             let block = lines[0...index].joined(separator: "\r\n")
             let remainder = lines[(index + 1)...].joined(separator: "\r\n")
             return (Reply(code: code, text: block), remainder)
@@ -50,10 +50,12 @@ enum FTPProtocol {
     static func parsePassiveAddress(_ text: String) -> (host: String, port: Int)? {
         guard let open = text.firstIndex(of: "("), let close = text.firstIndex(of: ")"), open < close else { return nil }
         let inner = text[text.index(after: open)..<close]
-        let parts = inner.split(separator: ",").compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
-        guard parts.count == 6, parts.allSatisfy({ (0...255).contains($0) }) else { return nil }
+        let fields = inner.split(separator: ",", omittingEmptySubsequences: false)
+        let parts = fields.compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
+        guard fields.count == 6, parts.count == 6, parts.allSatisfy({ (0...255).contains($0) }) else { return nil }
         let host = "\(parts[0]).\(parts[1]).\(parts[2]).\(parts[3])"
         let port = parts[4] * 256 + parts[5]
+        guard port > 0 else { return nil }
         return (host, port)
     }
 
@@ -63,15 +65,20 @@ enum FTPProtocol {
         guard let open = text.firstIndex(of: "("), let close = text.firstIndex(of: ")"), open < close else { return nil }
         let inner = text[text.index(after: open)..<close]
         // Format: (<d><d><d>port<d>) where <d> is a delimiter char (conventionally '|').
-        let fields = inner.split(separator: inner.first ?? "|", omittingEmptySubsequences: true)
-        guard let portField = fields.last, let port = Int(portField) else { return nil }
+        guard let delimiter = inner.first, delimiter.isASCII,
+              let scalar = delimiter.unicodeScalars.first, (33...126).contains(scalar.value) else { return nil }
+        let fields = inner.split(separator: delimiter, omittingEmptySubsequences: false)
+        guard fields.count == 5, fields[0].isEmpty, fields[1].isEmpty,
+              fields[2].isEmpty, fields[4].isEmpty,
+              fields[3].allSatisfy({ $0.isASCII && $0.isNumber }),
+              let port = Int(fields[3]), (1...65_535).contains(port) else { return nil }
         return port
     }
 
     /// Parse the byte size from a `213 <size>` reply to `SIZE`.
     static func parseSize(_ text: String) -> Int64? {
         let parts = text.split(separator: " ", maxSplits: 1)
-        guard parts.count == 2, let size = Int64(parts[1].trimmingCharacters(in: .whitespaces)) else { return nil }
+        guard parts.count == 2, let size = Int64(parts[1].trimmingCharacters(in: .whitespaces)), size >= 0 else { return nil }
         return size
     }
 

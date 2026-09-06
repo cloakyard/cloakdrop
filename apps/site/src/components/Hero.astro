@@ -45,7 +45,7 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
       </div>
     </div>
 
-    <figure class="shot">
+    <figure class="shot" data-hero-arrival>
       <figcaption class="fig">
         <span>{hero.figLabel}</span>
         <span class="fig-status"><i aria-hidden="true"></i> Example · 8 ranges planned</span>
@@ -106,7 +106,7 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
       <div class="instrument-foot" aria-hidden="true">
         <span>ubuntu-26.04-desktop-amd64.iso</span>
         <span>Configured example · 8 planned ranges</span>
-        <span>52% · 75.5 MB/s</span>
+        <span>Actual app window</span>
       </div>
     </figure>
   </div>
@@ -114,20 +114,20 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
 
 <style>
   .hero {
-    padding-top: clamp(3.5rem, 7vw, 6.5rem);
+    padding-top: clamp(3rem, 5vw, 4.5rem);
     padding-bottom: clamp(2.5rem, 5vw, 4.5rem);
   }
 
   .top {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.36fr);
+    grid-template-columns: minmax(0, 1.25fr) minmax(20rem, .8fr);
     gap: clamp(2.5rem, 6vw, 6.5rem);
     align-items: end;
   }
 
   .lede h1 {
     margin-top: clamp(1.5rem, 3vw, 2.75rem);
-    max-width: 11.5ch;
+    max-width: 13ch;
     font-size: var(--t-h1);
     font-weight: 760;
     letter-spacing: -0.065em;
@@ -157,9 +157,9 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
 
   .cta {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.7rem;
-    width: min(100%, 20rem);
+    width: 100%;
     margin-top: 1.65rem;
   }
 
@@ -173,7 +173,7 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
     margin-top: 0.9rem;
     color: var(--ink-4);
     font-family: var(--font-mono);
-    font-size: 0.6875rem;
+    font-size: .875rem;
     line-height: 1.55;
   }
 
@@ -182,7 +182,7 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
   }
 
   .shot {
-    margin-top: clamp(3.25rem, 7vw, 6.5rem);
+    margin-top: clamp(2.5rem, 5vw, 4.5rem);
   }
 
   .fig {
@@ -193,7 +193,7 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
     margin-bottom: 0.75rem;
     color: var(--ink-4);
     font-family: var(--font-mono);
-    font-size: 0.6875rem;
+    font-size: .875rem;
     letter-spacing: 0.045em;
     text-transform: uppercase;
   }
@@ -416,6 +416,7 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
   }
 
   @media (max-width: 960px) {
+    .cta { grid-template-columns: 1fr; }
     .top {
       grid-template-columns: minmax(0, 1fr) minmax(15rem, 0.42fr);
       gap: 3rem;
@@ -463,7 +464,7 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
     }
 
     .lede h1 {
-      max-width: 10.5ch;
+      max-width: 13ch;
       font-size: clamp(3.4rem, 9vw, 4.8rem);
     }
 
@@ -481,8 +482,8 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
       min-width: 0;
     }
 
-    .signature {
-      max-width: 18rem;
+    .range-map {
+      display: none;
     }
 
     .shot {
@@ -506,7 +507,7 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
 
     .lede h1 {
       margin-top: 1.65rem;
-      max-width: 9.8ch;
+      max-width: 13ch;
       font-size: clamp(2.75rem, 14vw, 4.4rem);
       letter-spacing: -0.065em;
       line-height: 0.91;
@@ -562,7 +563,7 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
 
   @media (max-width: 350px) {
     .lede h1 {
-      font-size: 3.15rem;
+      font-size: 2.75rem;
     }
   }
 </style>

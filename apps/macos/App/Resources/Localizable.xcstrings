@@ -1366,67 +1366,67 @@
         }
       }
     },
-    "Proxy routing for HTTP-based downloads and speed tests — the macOS system proxy by default, a manual proxy when selected, or Direct mode. FTP and FTPS stay direct; a selected manual proxy is also mirrored into the built-in browser.": {
+    "HTTP downloads and speed tests use system, direct or manual proxy routing. The browser uses the system configuration unless you select a manual proxy, even when downloads use Direct mode. FTP and FTPS connect directly. The app's proxy setting is not passed to yt-dlp.": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "توجيه الوكيل لتنزيلات HTTP واختبارات السرعة — وكيل نظام macOS افتراضيًا، أو وكيل يدوي عند تحديده، أو الوضع المباشر. يظل FTP وFTPS مباشرَين؛ ويُعكس الوكيل اليدوي المحدد أيضًا في المتصفح المدمج."
+            "value": "تستخدم تنزيلات HTTP واختبارات السرعة إعدادات وكيل النظام أو الاتصال المباشر أو الوكيل اليدوي. يستخدم المتصفح إعدادات النظام ما لم تحدد وكيلاً يدويًا، حتى عندما تستخدم التنزيلات الوضع المباشر. يتصل FTP وFTPS مباشرةً. لا يُمرَّر إعداد الوكيل في التطبيق إلى yt-dlp."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Proxy-Routing für HTTP-basierte Downloads und Geschwindigkeitstests – standardmäßig der macOS-Systemproxy, bei Auswahl ein manueller Proxy oder der Direktmodus. FTP und FTPS bleiben direkt; der gewählte manuelle Proxy wird auch in den integrierten Browser übernommen."
+            "value": "HTTP-Downloads und Geschwindigkeitstests verwenden die System-Proxykonfiguration, eine direkte Verbindung oder einen manuell konfigurierten Proxy. Der Browser verwendet die Systemkonfiguration, sofern du keinen manuellen Proxy auswählst – auch wenn Downloads den Direktmodus verwenden. FTP und FTPS stellen direkte Verbindungen her. Die Proxy-Einstellung der App wird nicht an yt-dlp übergeben."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enrutamiento proxy para descargas basadas en HTTP y pruebas de velocidad: el proxy del sistema macOS de forma predeterminada, un proxy manual al seleccionarlo o el modo Directo. FTP y FTPS permanecen directos; el proxy manual seleccionado también se refleja en el navegador integrado."
+            "value": "Las descargas HTTP y las pruebas de velocidad usan la configuración de proxy del sistema, una conexión directa o un proxy manual. El navegador usa la configuración del sistema salvo que selecciones un proxy manual, incluso cuando las descargas usan el modo Directo. FTP y FTPS se conectan directamente. La configuración de proxy de la app no se transmite a yt-dlp."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Routage par proxy des téléchargements HTTP et tests de débit — proxy système de macOS par défaut, proxy manuel s’il est sélectionné ou mode Direct. FTP et FTPS restent directs ; le proxy manuel sélectionné est aussi répercuté dans le navigateur intégré."
+            "value": "Les téléchargements HTTP et les tests de débit utilisent la configuration proxy du système, une connexion directe ou un proxy manuel. Le navigateur utilise la configuration du système, sauf si vous sélectionnez un proxy manuel, même lorsque les téléchargements utilisent le mode Direct. FTP et FTPS se connectent directement. Le réglage proxy de l’app n’est pas transmis à yt-dlp."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "HTTP-आधारित डाउनलोड और स्पीड टेस्ट के लिए प्रॉक्सी रूटिंग — डिफ़ॉल्ट रूप से macOS सिस्टम प्रॉक्सी, चुने जाने पर मैन्युअल प्रॉक्सी, या डायरेक्ट मोड। FTP और FTPS सीधे रहते हैं; चुना गया मैन्युअल प्रॉक्सी अंतर्निहित ब्राउज़र में भी मिरर होता है।"
+            "value": "HTTP डाउनलोड और स्पीड टेस्ट सिस्टम प्रॉक्सी, सीधे कनेक्शन या मैन्युअल प्रॉक्सी का उपयोग करते हैं। जब तक आप मैन्युअल प्रॉक्सी नहीं चुनते, ब्राउज़र सिस्टम कॉन्फ़िगरेशन का उपयोग करता है, भले ही डाउनलोड Direct मोड में हों। FTP और FTPS सीधे कनेक्ट होते हैं। ऐप की प्रॉक्सी सेटिंग yt-dlp को नहीं दी जाती।"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "HTTP ベースのダウンロードとスピードテストのプロキシ経路 — 既定では macOS システムプロキシ、選択時は手動プロキシ、またはダイレクトモード。FTP と FTPS は直接接続のままで、選択した手動プロキシは内蔵ブラウザにも反映されます。"
+            "value": "HTTP ダウンロードと速度テストは、システムのプロキシ設定、直接接続、または手動プロキシを使用します。手動プロキシを選択しない限り、ダウンロードが直接接続モードでも、ブラウザはシステム設定を使用します。FTP と FTPS は直接接続します。アプリのプロキシ設定は yt-dlp に渡されません。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "HTTP 기반 다운로드와 속도 테스트의 프록시 경로 — 기본값은 macOS 시스템 프록시이며, 선택 시 수동 프록시 또는 직접 모드를 사용합니다. FTP와 FTPS는 직접 연결을 유지하며 선택한 수동 프록시는 내장 브라우저에도 반영됩니다."
+            "value": "HTTP 다운로드와 속도 테스트는 시스템 프록시, 직접 연결 또는 수동 프록시를 사용합니다. 수동 프록시를 선택하지 않으면 다운로드가 직접 연결 모드여도 브라우저는 시스템 설정을 사용합니다. FTP와 FTPS는 직접 연결합니다. 앱의 프록시 설정은 yt-dlp에 전달되지 않습니다."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Roteamento por proxy para downloads baseados em HTTP e testes de velocidade — proxy do sistema macOS por padrão, proxy manual quando selecionado ou modo Direto. FTP e FTPS permanecem diretos; o proxy manual selecionado também é espelhado no navegador integrado."
+            "value": "Os downloads HTTP e os testes de velocidade usam a configuração de proxy do sistema, uma conexão direta ou um proxy manual. O navegador usa a configuração do sistema, a menos que você selecione um proxy manual, mesmo quando os downloads usam o modo Direto. FTP e FTPS se conectam diretamente. A configuração de proxy do app não é repassada ao yt-dlp."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Маршрутизация через прокси для HTTP-загрузок и тестов скорости: системный прокси macOS по умолчанию, выбранный вручную прокси или прямой режим. FTP и FTPS подключаются напрямую; выбранный ручной прокси также применяется во встроенном браузере."
+            "value": "Для HTTP-загрузок и тестов скорости используются системные настройки прокси, прямое подключение или прокси, настроенный вручную. Браузер использует системные настройки, если вы не выбрали ручной прокси, даже когда для загрузок выбран прямой режим. FTP и FTPS подключаются напрямую. Настройка прокси приложения не передаётся yt-dlp."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "基于 HTTP 的下载和测速可通过代理路由——默认使用 macOS 系统代理，也可选择手动代理或“直连”模式。FTP 和 FTPS 始终直连；选中的手动代理也会同步到内置浏览器。"
+            "value": "HTTP 下载和测速使用系统代理、直连或手动代理。除非你选择手动代理，否则浏览器使用系统配置，即使下载已设为直连模式也是如此。FTP 和 FTPS 直接连接。应用的代理设置不会传给 yt-dlp。"
           }
         }
       }
@@ -3836,67 +3836,67 @@
         }
       }
     },
-    "Because CloakDrop collects no personal data, there is nothing for us to disclose, correct, or delete on your behalf under GDPR, CCPA, or similar laws. If this policy ever changes, the updated version will appear here with a new date above; given CloakDrop's privacy-by-design nature, significant changes are unlikely.": {
+    "The CloakDrop project holds no server-side record of your app activity to disclose, correct, or delete. You control local records and website data in the app. Policy changes will appear here with a new revision date.": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "بما أن CloakDrop لا يجمع أي بيانات شخصية، فلا يوجد ما يمكننا الإفصاح عنه أو تصحيحه أو حذفه نيابةً عنك بموجب اللائحة العامة لحماية البيانات (GDPR) أو قانون خصوصية المستهلك في كاليفورنيا (CCPA) أو قوانين مماثلة. وإذا تغيّرت هذه السياسة يومًا، فستظهر النسخة المحدَّثة هنا مع تاريخ جديد في الأعلى؛ ونظرًا لطبيعة CloakDrop القائمة على الخصوصية بالتصميم، فإن حدوث تغييرات جوهرية أمر غير مرجّح."
+            "value": "لا يحتفظ مشروع CloakDrop بسجل على الخادم لنشاطك في التطبيق يمكن الإفصاح عنه أو تصحيحه أو حذفه. أنت تتحكم في السجلات المحلية وبيانات المواقع داخل التطبيق. ستظهر تغييرات السياسة هنا مع تاريخ مراجعة جديد."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Da CloakDrop keine personenbezogenen Daten erhebt, gibt es nichts, was wir in deinem Namen nach DSGVO, CCPA oder ähnlichen Gesetzen offenlegen, korrigieren oder löschen könnten. Sollte sich diese Richtlinie je ändern, erscheint die aktualisierte Fassung hier mit einem neuen Datum oben; angesichts der auf Datenschutz ausgelegten Natur von CloakDrop sind wesentliche Änderungen unwahrscheinlich."
+            "value": "Das CloakDrop-Projekt führt keine serverseitigen Aufzeichnungen über deine App-Aktivitäten, die offengelegt, berichtigt oder gelöscht werden könnten. Du verwaltest lokale Datensätze und Website-Daten in der App. Änderungen dieser Richtlinie werden hier mit einem neuen Überarbeitungsdatum veröffentlicht."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Como CloakDrop no recopila datos personales, no hay nada que podamos revelar, corregir ni eliminar en tu nombre conforme al RGPD, la CCPA o leyes similares. Si esta política llegara a cambiar, la versión actualizada aparecerá aquí con una nueva fecha arriba; dada la naturaleza de privacidad por diseño de CloakDrop, es poco probable que haya cambios significativos."
+            "value": "El proyecto CloakDrop no conserva registros en sus servidores sobre tu actividad en la app que pueda divulgar, corregir o eliminar. Tú controlas los registros locales y los datos de sitios web desde la app. Los cambios en esta política aparecerán aquí con una nueva fecha de revisión."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Comme CloakDrop ne collecte aucune donnée personnelle, il n’y a rien que nous puissions divulguer, corriger ou supprimer en votre nom au titre du RGPD, du CCPA ou de lois similaires. Si cette politique venait à changer, la version mise à jour apparaîtra ici avec une nouvelle date en haut ; étant donné la nature « confidentialité dès la conception » de CloakDrop, des changements importants sont peu probables."
+            "value": "Le projet CloakDrop ne détient aucun enregistrement côté serveur de votre activité dans l’app à communiquer, corriger ou supprimer. Vous contrôlez les enregistrements locaux et les données des sites web dans l’app. Les modifications de cette politique apparaîtront ici avec une nouvelle date de révision."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "चूँकि CloakDrop कोई व्यक्तिगत डेटा एकत्र नहीं करता, इसलिए GDPR, CCPA या इसी तरह के कानूनों के तहत आपकी ओर से प्रकट करने, सुधारने या हटाने के लिए हमारे पास कुछ भी नहीं है। यदि यह नीति कभी बदलती है, तो अद्यतन संस्करण यहाँ शीर्ष पर नई तारीख के साथ दिखाई देगा; CloakDrop की गोपनीयता-केंद्रित डिज़ाइन प्रकृति को देखते हुए, महत्वपूर्ण परिवर्तन की संभावना कम है।"
+            "value": "CloakDrop प्रोजेक्ट के सर्वर पर आपकी ऐप गतिविधि का कोई रिकॉर्ड नहीं है जिसे प्रकट, ठीक या मिटाया जा सके। स्थानीय रिकॉर्ड और वेबसाइट डेटा का नियंत्रण ऐप में आपके पास है। नीति में बदलाव यहाँ नई संशोधन तारीख के साथ दिखाई देंगे।"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop は個人データを一切収集しないため、GDPR や CCPA、類似の法律に基づいてあなたに代わって開示・訂正・削除するものは何もありません。このポリシーが変更される場合は、更新版が上部に新しい日付とともにここに掲載されます。CloakDrop のプライバシー・バイ・デザインの性質上、重大な変更が生じる可能性は低いです。"
+            "value": "CloakDrop プロジェクトは、開示、訂正、削除の対象となるアプリの利用記録をサーバー上に保持していません。ローカルの記録とウェブサイトのデータは、アプリ内でユーザーが管理できます。ポリシーが変更された場合は、新しい改定日とともにここに掲載します。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop은 개인 데이터를 수집하지 않으므로, GDPR, CCPA 또는 유사한 법률에 따라 사용자를 대신해 공개·정정·삭제할 것이 없습니다. 이 방침이 변경되면 갱신된 버전이 상단에 새로운 날짜와 함께 여기에 게시됩니다. CloakDrop의 프라이버시 중심 설계 특성상 중대한 변경 가능성은 낮습니다."
+            "value": "CloakDrop 프로젝트는 공개, 정정 또는 삭제할 수 있는 앱 활동 기록을 서버에 보관하지 않습니다. 로컬 기록과 웹사이트 데이터는 앱에서 사용자가 관리합니다. 방침이 변경되면 새로운 개정 날짜와 함께 여기에 표시됩니다."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Como o CloakDrop não coleta dados pessoais, não há nada que possamos divulgar, corrigir ou excluir em seu nome sob a LGPD, o GDPR, a CCPA ou leis semelhantes. Se esta política mudar, a versão atualizada aparecerá aqui com uma nova data no topo; dada a natureza de privacidade desde a concepção do CloakDrop, mudanças significativas são improváveis."
+            "value": "O projeto CloakDrop não mantém registros nos servidores sobre sua atividade no app que possam ser divulgados, corrigidos ou excluídos. Você controla os registros locais e os dados de sites no app. As alterações nesta política aparecerão aqui com uma nova data de revisão."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Поскольку CloakDrop не собирает персональные данные, нам нечего раскрывать, исправлять или удалять от вашего имени в соответствии с GDPR, CCPA или аналогичными законами. Если эта политика когда-либо изменится, обновлённая версия появится здесь с новой датой вверху; учитывая изначально конфиденциальную природу CloakDrop, существенные изменения маловероятны."
+            "value": "Проект CloakDrop не хранит на сервере записей о вашей активности в приложении, которые можно было бы предоставить, исправить или удалить. Вы управляете локальными записями и данными сайтов в приложении. Изменения политики будут опубликованы здесь с новой датой редакции."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "由于 CloakDrop 不收集任何个人数据，因此根据 GDPR、CCPA 或类似法律，我们没有任何内容可代你披露、更正或删除。如果本政策发生变更，更新后的版本将在此处显示，并在顶部标注新日期；鉴于 CloakDrop 隐私优先的设计本质，重大变更的可能性很小。"
+            "value": "CloakDrop 项目不会在服务器端保留可供披露、更正或删除的应用活动记录。你可以在应用中管理本地记录和网站数据。政策变更将在此处显示，并附上新的修订日期。"
           }
         }
       }
@@ -5917,262 +5917,262 @@
         }
       }
     },
-    "CloakDrop has a browser built in: open it, visit any site, and grab the video, audio, or files on the page. WebKit loads the pages you visit and the resources they request, which can include third-party content; the optional blocker can reduce some requests. CloakDrop keeps no browsing-history list — only cookies and site data, so you stay signed in between launches — and one button in Browser settings wipes all of it. When you grab a file, cookies applicable to that address ride along so downloads behind a login work. If you turn address-bar search off, address-bar text is never sent to a search engine.": {
+    "The built-in browser loads visited pages and their subresources, including third-party content. The optional blocker can reduce some requests. WebKit keeps cookies and site data for logins; CloakDrop keeps no browsing-history list. Browser settings can wipe that data. Supported media and file downloads can use applicable cookies; site and login requirements may still prevent a grab. For page resolution, a private temporary cookie file preserves domain and path rules and is removed when resolution finishes. Selected-download cookies or headers can remain in its local record for resume. Search queries are sent only on Return when address-bar search is enabled.": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يحتوي CloakDrop على متصفح مدمج: افتحه وزُر أي موقع والتقط الفيديو أو الصوت أو الملفات في الصفحة. يحمّل WebKit الصفحات التي تزورها والموارد التي تطلبها، وقد تشمل محتوى من جهات خارجية؛ ويمكن للحاجب الاختياري تقليل بعض الطلبات. لا يحتفظ CloakDrop بقائمة لسجل التصفح، بل بملفات تعريف الارتباط وبيانات المواقع فقط لتبقى مسجّل الدخول بين مرات التشغيل، ويمكن لزر واحد في إعدادات المتصفح مسحها كلها. عند التقاط ملف، تُرسل معه ملفات تعريف الارتباط المنطبقة على ذلك العنوان لكي تعمل التنزيلات التي تتطلب تسجيل الدخول. وإذا عطلت البحث في شريط العنوان، فلن يُرسل نص شريط العنوان إلى محرك بحث."
+            "value": "يحمّل المتصفح المدمج الصفحات التي تزورها ومواردها الفرعية، بما فيها محتوى الجهات الخارجية. يمكن للحاجب الاختياري تقليل بعض الطلبات. يحتفظ WebKit بملفات تعريف الارتباط وبيانات المواقع لتسجيل الدخول، ولا يحتفظ CloakDrop بقائمة لسجل التصفح. يمكنك مسح تلك البيانات من إعدادات المتصفح. يمكن لتنزيلات الوسائط والملفات المدعومة استخدام ملفات تعريف الارتباط المناسبة، لكن متطلبات الموقع وتسجيل الدخول قد تمنع الالتقاط. عند تحليل الصفحة، يحافظ ملف خاص ومؤقت لملفات تعريف الارتباط على قواعد النطاق والمسار، ويُحذف عند انتهاء التحليل. قد تبقى ملفات تعريف الارتباط أو الترويسات الخاصة بالتنزيل المحدد في سجله المحلي لاستئنافه. لا تُرسل استعلامات البحث إلا عند الضغط على Return إذا كان البحث من شريط العنوان مفعّلاً."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop hat einen integrierten Browser: Öffne ihn, besuche eine beliebige Website und greife Video, Audio oder Dateien auf der Seite ab. WebKit lädt die besuchten Seiten und die von ihnen angeforderten Ressourcen, darunter möglicherweise Inhalte von Drittanbietern; der optionale Blocker kann einige Anfragen reduzieren. CloakDrop führt keine Browserverlaufsliste – nur Cookies und Websitedaten, damit du zwischen Starts angemeldet bleibst – und eine Schaltfläche in den Browser-Einstellungen löscht alles. Wenn du eine Datei abgreifst, werden die für diese Adresse geltenden Cookies mitgesendet, damit Downloads hinter einer Anmeldung funktionieren. Wenn du die Adressleistensuche ausschaltest, wird Text aus der Adressleiste nie an eine Suchmaschine gesendet."
+            "value": "Der integrierte Browser lädt besuchte Seiten und deren Unterressourcen, einschließlich Inhalten von Drittanbietern. Der optionale Blocker kann einige Anfragen reduzieren. WebKit speichert Cookies und Website-Daten für Anmeldungen; CloakDrop führt keine Liste des Browserverlaufs. Diese Daten können in den Browsereinstellungen gelöscht werden. Unterstützte Medien- und Dateidownloads können passende Cookies verwenden; Anforderungen der Website oder der Anmeldung können die Erfassung dennoch verhindern. Bei der Auflösung einer Seite berücksichtigt eine private temporäre Cookie-Datei die Domain- und Pfadregeln und wird nach Abschluss der Auflösung gelöscht. Cookies oder Header des ausgewählten Downloads können zum Fortsetzen in dessen lokalem Datensatz verbleiben. Suchanfragen werden nur beim Drücken der Eingabetaste gesendet, wenn die Suche über die Adressleiste aktiviert ist."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop tiene un navegador integrado: ábrelo, visita cualquier sitio y captura el vídeo, el audio o los archivos de la página. WebKit carga las páginas que visitas y los recursos que solicitan, que pueden incluir contenido de terceros; el bloqueador opcional puede reducir algunas solicitudes. CloakDrop no mantiene una lista de historial de navegación, solo cookies y datos de sitios para que sigas conectado entre aperturas, y un botón en los ajustes del navegador lo borra todo. Cuando capturas un archivo, las cookies aplicables a esa dirección lo acompañan para que funcionen las descargas tras un inicio de sesión. Si desactivas la búsqueda en la barra de direcciones, el texto de la barra nunca se envía a un buscador."
+            "value": "El navegador integrado carga las páginas visitadas y sus subrecursos, incluido el contenido de terceros. El bloqueador opcional puede reducir algunas solicitudes. WebKit conserva cookies y datos de sitios web para los inicios de sesión; CloakDrop no guarda una lista del historial de navegación. Los ajustes del navegador permiten borrar esos datos. Las descargas de archivos y contenido multimedia compatibles pueden usar las cookies que correspondan; los requisitos del sitio o del inicio de sesión pueden impedir la captura aun así. Para resolver una página, se utiliza un archivo privado y temporal de cookies que conserva las reglas de dominio y ruta y se elimina al terminar la resolución. Las cookies o cabeceras de la descarga seleccionada pueden permanecer en su registro local para reanudarla. Las consultas de búsqueda solo se envían al pulsar Intro cuando la búsqueda desde la barra de direcciones está activada."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop intègre un navigateur : ouvrez-le, visitez n’importe quel site et capturez la vidéo, l’audio ou les fichiers de la page. WebKit charge les pages visitées et les ressources qu’elles demandent, ce qui peut inclure du contenu tiers ; le bloqueur facultatif peut réduire certaines requêtes. CloakDrop ne conserve aucune liste d’historique de navigation — seulement les cookies et données de sites pour que vous restiez connecté entre les lancements — et un bouton dans les réglages du navigateur permet de tout effacer. Lorsque vous capturez un fichier, les cookies applicables à cette adresse l’accompagnent pour permettre les téléchargements après connexion. Si vous désactivez la recherche dans la barre d’adresse, son texte n’est jamais envoyé à un moteur de recherche."
+            "value": "Le navigateur intégré charge les pages visitées et leurs sous-ressources, y compris le contenu de tiers. Le bloqueur facultatif peut réduire certaines requêtes. WebKit conserve les cookies et les données des sites pour les connexions aux comptes ; CloakDrop ne conserve aucune liste d’historique de navigation. Les réglages du navigateur permettent d’effacer ces données. Les téléchargements de médias et de fichiers pris en charge peuvent utiliser les cookies applicables ; les exigences du site ou de connexion peuvent toutefois empêcher la capture. Pour la résolution d’une page, un fichier de cookies temporaire privé préserve les règles de domaine et de chemin, puis est supprimé à la fin de la résolution. Les cookies ou en-têtes du téléchargement sélectionné peuvent rester dans son enregistrement local pour permettre sa reprise. Les requêtes de recherche ne sont envoyées qu’en appuyant sur Retour lorsque la recherche dans la barre d’adresse est activée."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop में एक अंतर्निहित ब्राउज़र है: इसे खोलें, किसी भी साइट पर जाएँ और पेज का वीडियो, ऑडियो या फ़ाइलें पकड़ें। WebKit आपके देखे पेज और उनके माँगे संसाधन लोड करता है, जिनमें तीसरे पक्ष की सामग्री हो सकती है; वैकल्पिक ब्लॉकर कुछ अनुरोध कम कर सकता है। CloakDrop कोई ब्राउज़िंग-इतिहास सूची नहीं रखता — केवल कुकीज़ और साइट डेटा, ताकि आप लॉन्च के बीच साइन इन रहें — और ब्राउज़र सेटिंग्स में एक बटन से यह सब मिट जाता है। जब आप फ़ाइल पकड़ते हैं, उस पते पर लागू कुकीज़ साथ जाती हैं ताकि लॉगिन के पीछे डाउनलोड काम करें। पता-बार खोज बंद करने पर पता-बार का टेक्स्ट कभी सर्च इंजन को नहीं भेजा जाता।"
+            "value": "अंतर्निहित ब्राउज़र देखे गए पृष्ठों और उनके उप-संसाधनों को लोड करता है, जिनमें तीसरे पक्ष की सामग्री भी शामिल है। वैकल्पिक ब्लॉकर कुछ अनुरोधों को कम कर सकता है। WebKit लॉगिन के लिए कुकी और साइट डेटा रखता है; CloakDrop ब्राउज़िंग इतिहास की सूची नहीं रखता। ब्राउज़र सेटिंग से यह डेटा मिटाया जा सकता है। समर्थित मीडिया और फ़ाइल डाउनलोड लागू कुकी का उपयोग कर सकते हैं; फिर भी साइट और लॉगिन की शर्तें कैप्चर को रोक सकती हैं। पृष्ठ से डाउनलोड विकल्प प्राप्त करने के लिए एक निजी अस्थायी कुकी फ़ाइल डोमेन और पाथ के नियम बनाए रखती है और प्रक्रिया पूरी होने पर हटा दी जाती है। चुने हुए डाउनलोड की कुकी या हेडर उसके स्थानीय रिकॉर्ड में बने रह सकते हैं ताकि डाउनलोड फिर शुरू हो सके। पता बार खोज चालू होने पर खोज अनुरोध केवल Return दबाने पर भेजे जाते हैं।"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop にはブラウザが内蔵されています。開いて任意のサイトにアクセスし、ページ上の動画、音声、ファイルを取得できます。WebKit は訪問したページと、そのページが要求するリソースを読み込みます。これには第三者のコンテンツが含まれる場合があり、任意のブロッカーで一部のリクエストを減らせます。CloakDrop は閲覧履歴の一覧を保持せず、起動をまたいでサインイン状態を保つための Cookie とサイトデータだけを保存します。「ブラウザ」設定のボタン 1 つですべて消去できます。ファイルを取得すると、そのアドレスに適用される Cookie が一緒に送られ、ログインが必要なダウンロードに使われます。アドレスバー検索をオフにすると、アドレスバーのテキストは検索エンジンへ送信されません。"
+            "value": "内蔵ブラウザは、アクセスしたページとそのサブリソースを、サードパーティのコンテンツも含めて読み込みます。オプションのブロッカーで一部のリクエストを減らせます。WebKit はログイン用の Cookie とサイトデータを保存しますが、CloakDrop は閲覧履歴の一覧を保存しません。ブラウザ設定からこのデータを消去できます。対応するメディアやファイルのダウンロードには適用可能な Cookie を使用できますが、サイトやログインの要件によって取得できない場合があります。ページの解析には、ドメインとパスの規則を保持する非公開の一時 Cookie ファイルを使用し、解析完了時に削除します。選択したダウンロードの Cookie やヘッダーは、再開のためにローカルの記録に残る場合があります。検索クエリは、アドレスバー検索が有効な場合に Return を押したときだけ送信されます。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop에는 브라우저가 내장되어 있습니다. 열어서 어떤 사이트든 방문하고 페이지의 동영상, 오디오 또는 파일을 가져오세요. WebKit은 방문한 페이지와 그 페이지가 요청한 리소스를 불러오며 여기에는 제3자 콘텐츠가 포함될 수 있습니다. 선택적 차단기는 일부 요청을 줄일 수 있습니다. CloakDrop은 탐색 기록 목록을 저장하지 않고 쿠키와 사이트 데이터만 유지하므로 실행 간에 로그인 상태가 유지되며, 브라우저 설정의 버튼 하나로 모두 지울 수 있습니다. 파일을 가져올 때 해당 주소에 적용되는 쿠키가 함께 전송되어 로그인 뒤의 다운로드가 작동합니다. 주소 표시줄 검색을 끄면 주소 표시줄 텍스트가 검색 엔진으로 전송되지 않습니다."
+            "value": "내장 브라우저는 방문한 페이지와 하위 리소스를 로드하며, 여기에는 타사 콘텐츠도 포함됩니다. 선택적 차단기는 일부 요청을 줄일 수 있습니다. WebKit은 로그인을 위해 쿠키와 사이트 데이터를 보관하지만 CloakDrop은 방문 기록 목록을 보관하지 않습니다. 브라우저 설정에서 이 데이터를 지울 수 있습니다. 지원되는 미디어와 파일 다운로드에 해당 쿠키를 사용할 수 있지만, 사이트 및 로그인 요구 사항으로 인해 캡처가 불가능할 수 있습니다. 페이지 분석에는 도메인과 경로 규칙을 보존하는 비공개 임시 쿠키 파일을 사용하며, 분석이 끝나면 삭제합니다. 선택한 다운로드의 쿠키나 헤더는 재개를 위해 로컬 기록에 남을 수 있습니다. 검색어는 주소 막대 검색이 켜져 있을 때 Return을 눌러야만 전송됩니다."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O CloakDrop tem um navegador integrado: abra-o, visite qualquer site e capture o vídeo, o áudio ou os arquivos da página. O WebKit carrega as páginas visitadas e os recursos que elas solicitam, o que pode incluir conteúdo de terceiros; o bloqueador opcional pode reduzir algumas solicitações. O CloakDrop não mantém uma lista de histórico de navegação — apenas cookies e dados de sites, para que você continue conectado entre as inicializações — e um botão nas configurações do navegador apaga tudo. Ao capturar um arquivo, os cookies aplicáveis a esse endereço vão junto para que downloads após login funcionem. Se você desativar a pesquisa na barra de endereço, o texto da barra nunca é enviado a um mecanismo de busca."
+            "value": "O navegador integrado carrega as páginas visitadas e seus sub-recursos, incluindo conteúdo de terceiros. O bloqueador opcional pode reduzir algumas solicitações. O WebKit mantém cookies e dados de sites para os logins; o CloakDrop não mantém uma lista do histórico de navegação. Os ajustes do navegador permitem apagar esses dados. Os downloads de mídia e arquivos compatíveis podem usar os cookies aplicáveis; os requisitos do site e de login ainda podem impedir a captura. Para resolver uma página, um arquivo de cookies privado e temporário preserva as regras de domínio e caminho e é removido quando a resolução termina. Os cookies ou cabeçalhos do download selecionado podem permanecer em seu registro local para permitir a retomada. As consultas de pesquisa são enviadas apenas ao pressionar Enter quando a pesquisa na barra de endereços está ativada."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "В CloakDrop встроен браузер: откройте его, зайдите на любой сайт и захватите видео, аудио или файлы на странице. WebKit загружает посещаемые страницы и запрашиваемые ими ресурсы, включая возможный сторонний контент; необязательный блокировщик может сократить часть запросов. CloakDrop не ведёт список истории посещений — хранит только файлы cookie и данные сайтов, чтобы вы оставались в системе между запусками, — а одна кнопка в настройках браузера стирает всё. При захвате файла применимые к адресу cookie отправляются вместе с ним, чтобы работали загрузки после входа. Если выключить поиск в адресной строке, её текст никогда не отправляется поисковой системе."
+            "value": "Встроенный браузер загружает посещаемые страницы и их подресурсы, включая сторонний контент. Необязательный блокировщик может сократить часть запросов. WebKit сохраняет файлы cookie и данные сайтов для входа в аккаунты; CloakDrop не ведёт список истории посещений. Эти данные можно удалить в настройках браузера. При загрузке поддерживаемых медиафайлов и других файлов могут использоваться применимые файлы cookie; при этом требования сайта и входа в аккаунт всё равно могут препятствовать захвату. Для обработки страницы используется закрытый временный файл cookie, сохраняющий правила доменов и путей; после завершения обработки он удаляется. Файлы cookie или заголовки выбранной загрузки могут оставаться в её локальной записи для возобновления. Поисковые запросы отправляются только по нажатию Return, если включён поиск из адресной строки."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop 内置了一个浏览器：打开它，访问任意站点，抓取页面上的视频、音频或文件。WebKit 会加载你访问的页面及其请求的资源，其中可能包含第三方内容；可选拦截器可以减少部分请求。CloakDrop 不维护浏览历史列表，只保存 Cookie 和网站数据，让你在两次启动之间保持登录状态；浏览器设置中的一个按钮即可清除全部。当你抓取文件时，适用于该地址的 Cookie 会一并携带，以便登录后的下载正常进行。如果关闭地址栏搜索，地址栏文本绝不会发送到搜索引擎。"
+            "value": "内置浏览器加载你访问的页面及其子资源，包括第三方内容。可选的拦截器可以减少部分请求。WebKit 为登录保留 Cookie 和网站数据；CloakDrop 不保存浏览历史列表。你可以在浏览器设置中清除这些数据。受支持的媒体和文件下载可以使用适用的 Cookie，但网站和登录要求仍可能阻止抓取。解析页面时，私有临时 Cookie 文件会保留域名和路径规则，并在解析结束后删除。选中下载的 Cookie 或请求头可能保留在其本地记录中，以便恢复下载。只有启用地址栏搜索并按下 Return 时，才会发送搜索查询。"
           }
         }
       }
     },
-    "CloakDrop includes two open-source, sandboxed command-line helpers. ffmpeg works locally to combine or transform media. yt-dlp may contact a video page you submit and related service endpoints to resolve metadata and formats, but it does not download the selected media payload. CloakDrop's own engine transfers the files and media you select.": {
+    "Builds can include two optional, sandboxed helpers. ffmpeg combines or repackages local media without re-encoding or network access. yt-dlp resolves metadata and format URLs for pages you submit; it does not transfer the selected media payload. It ignores external configuration and plugins. Its routing depends on its runtime and environment. CloakDrop's engine downloads the selected payload.": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يتضمن CloakDrop أداتين مساعدتين مفتوحتي المصدر تعملان بسطر الأوامر داخل صندوق حماية. يعمل ffmpeg محليًا لدمج الوسائط أو تحويلها. قد يتصل yt-dlp بصفحة فيديو ترسلها ونقاط نهاية الخدمة المرتبطة بها لحل البيانات الوصفية والصيغ، لكنه لا ينزّل حمولة الوسائط المحددة. ينقل محرك CloakDrop نفسه الملفات والوسائط التي تختارها."
+            "value": "قد تتضمن الإصدارات أداتين مساعدتين اختياريتين تعملان داخل بيئة معزولة. يدمج ffmpeg الوسائط المحلية أو يعيد تغليفها دون إعادة ترميز أو وصول إلى الشبكة. يستخرج yt-dlp البيانات الوصفية وعناوين URL للتنسيقات من الصفحات التي ترسلها، ولا ينقل بيانات الوسائط المحددة. ويتجاهل الإعدادات الخارجية والإضافات. يعتمد توجيه اتصالاته على وقت التشغيل والبيئة المحيطة. يتولى محرك CloakDrop تنزيل البيانات المحددة."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop enthält zwei quelloffene, abgeschottete Kommandozeilenhelfer. ffmpeg arbeitet lokal, um Medien zusammenzuführen oder umzuwandeln. yt-dlp kann eine von dir eingereichte Videoseite und zugehörige Dienstendpunkte kontaktieren, um Metadaten und Formate aufzulösen, lädt aber nicht die gewählten Mediendaten herunter. CloakDrops eigene Engine überträgt die von dir gewählten Dateien und Medien."
+            "value": "Builds können zwei optionale Hilfsprogramme enthalten, die in einer Sandbox ausgeführt werden. ffmpeg fügt lokale Medien zusammen oder verpackt sie neu, ohne sie neu zu codieren oder auf das Netzwerk zuzugreifen. yt-dlp ermittelt Metadaten und Format-URLs für von dir übermittelte Seiten; es überträgt nicht die ausgewählten Mediendaten. Externe Konfigurationen und Plugins werden ignoriert. Das Verbindungsrouting hängt von der Laufzeitumgebung und deren Einstellungen ab. Die Download-Engine von CloakDrop lädt die ausgewählten Daten herunter."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop incluye dos ayudantes de línea de comandos de código abierto y aislados. ffmpeg trabaja localmente para combinar o transformar medios. yt-dlp puede contactar una página de vídeo que envíes y endpoints de servicio relacionados para resolver metadatos y formatos, pero no descarga el contenido multimedia seleccionado. El propio motor de CloakDrop transfiere los archivos y medios que eliges."
+            "value": "Las compilaciones pueden incluir dos herramientas auxiliares opcionales que se ejecutan en un entorno aislado. ffmpeg combina o reempaqueta archivos multimedia locales sin volver a codificarlos ni acceder a la red. yt-dlp obtiene metadatos y URL de formatos de las páginas que envías; no transfiere los datos multimedia seleccionados. Ignora las configuraciones externas y los complementos. Su enrutamiento depende de su entorno de ejecución y del entorno en el que se ejecuta. El motor de CloakDrop descarga los datos seleccionados."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop intègre deux assistants en ligne de commande open source et en bac à sable. ffmpeg fonctionne localement pour combiner ou transformer des médias. yt-dlp peut contacter une page vidéo que vous soumettez et les points de terminaison associés afin de résoudre métadonnées et formats, mais ne télécharge pas le contenu multimédia sélectionné. Le moteur de CloakDrop transfère lui-même les fichiers et médias que vous choisissez."
+            "value": "Les versions compilées peuvent inclure deux outils auxiliaires facultatifs exécutés dans un environnement isolé. ffmpeg combine ou reconditionne des médias locaux sans réencodage ni accès au réseau. yt-dlp récupère les métadonnées et les URL des formats des pages que vous soumettez ; il ne transfère pas les données multimédias sélectionnées. Il ignore les configurations externes et les extensions. Son routage dépend de son moteur d’exécution et de son environnement. Le moteur de CloakDrop télécharge les données sélectionnées."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop में दो ओपन-सोर्स, सैंडबॉक्स्ड कमांड-लाइन सहायक शामिल हैं। ffmpeg मीडिया जोड़ने या बदलने के लिए स्थानीय रूप से काम करता है। yt-dlp मेटाडेटा और फ़ॉर्मैट हल करने के लिए आपके दिए वीडियो पेज और संबंधित सेवा एंडपॉइंट से संपर्क कर सकता है, लेकिन चुना हुआ मीडिया पेलोड डाउनलोड नहीं करता। CloakDrop का अपना इंजन आपकी चुनी फ़ाइलें और मीडिया ट्रांसफ़र करता है।"
+            "value": "बिल्ड में दो वैकल्पिक, सैंडबॉक्स में चलने वाले सहायक टूल शामिल हो सकते हैं। ffmpeg बिना दोबारा एन्कोड किए या नेटवर्क का उपयोग किए स्थानीय मीडिया को जोड़ता या नया कंटेनर देता है। yt-dlp आपके दिए गए पृष्ठों से मेटाडेटा और फ़ॉर्मैट के URL प्राप्त करता है; यह चुने हुए मीडिया का डेटा ट्रांसफ़र नहीं करता। यह बाहरी कॉन्फ़िगरेशन और प्लगइन को अनदेखा करता है। इसकी रूटिंग इसके रनटाइम और परिवेश पर निर्भर करती है। चुना हुआ डेटा CloakDrop का इंजन डाउनलोड करता है।"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop には、オープンソースでサンドボックス化された 2 つのコマンドラインヘルパーが含まれます。ffmpeg はメディアの結合や変換をローカルで行います。yt-dlp はメタデータとフォーマットを解決するため、送信した動画ページと関連サービスのエンドポイントに接続する場合がありますが、選択したメディア本体はダウンロードしません。選択したファイルとメディアは CloakDrop 自身のエンジンが転送します。"
+            "value": "ビルドには、サンドボックス内で動作する2つのオプションの補助ツールが含まれる場合があります。ffmpeg は再エンコードやネットワークアクセスを行わずに、ローカルのメディアを結合したりコンテナを変更したりします。yt-dlp は送信されたページのメタデータと形式ごとの URL を取得し、選択されたメディア本体は転送しません。外部の設定やプラグインは無視します。接続経路はランタイムと実行環境に依存します。選択されたデータのダウンロードは CloakDrop のエンジンが行います。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop에는 오픈소스이며 샌드박스화된 두 개의 명령줄 헬퍼가 포함됩니다. ffmpeg는 미디어를 결합하거나 변환하는 작업을 로컬에서 수행합니다. yt-dlp는 메타데이터와 형식을 확인하기 위해 사용자가 제출한 동영상 페이지와 관련 서비스 엔드포인트에 연결할 수 있지만 선택한 미디어 페이로드는 다운로드하지 않습니다. 사용자가 선택한 파일과 미디어는 CloakDrop 자체 엔진이 전송합니다."
+            "value": "빌드에는 샌드박스에서 실행되는 두 가지 선택적 보조 도구가 포함될 수 있습니다. ffmpeg는 재인코딩이나 네트워크 접근 없이 로컬 미디어를 합치거나 컨테이너를 변경합니다. yt-dlp는 사용자가 제출한 페이지의 메타데이터와 형식별 URL을 확인하며, 선택한 미디어 데이터 자체는 전송하지 않습니다. 외부 설정과 플러그인은 무시합니다. 연결 경로는 런타임과 실행 환경에 따라 달라집니다. 선택한 데이터는 CloakDrop 엔진이 다운로드합니다."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O CloakDrop inclui dois auxiliares de linha de comando de código aberto e em sandbox. O ffmpeg trabalha localmente para combinar ou transformar mídia. O yt-dlp pode contatar uma página de vídeo enviada por você e endpoints de serviço relacionados para resolver metadados e formatos, mas não baixa o conteúdo de mídia selecionado. O próprio motor do CloakDrop transfere os arquivos e mídias que você escolhe."
+            "value": "As compilações podem incluir duas ferramentas auxiliares opcionais executadas em sandbox. O ffmpeg combina ou reempacota mídias locais sem recodificação nem acesso à rede. O yt-dlp obtém metadados e URLs de formatos das páginas que você envia; ele não transfere os dados de mídia selecionados. Ele ignora configurações externas e plugins. Seu roteamento depende do runtime e do ambiente em que é executado. O mecanismo do CloakDrop baixa os dados selecionados."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop включает два изолированных помощника командной строки с открытым исходным кодом. ffmpeg локально объединяет или преобразует медиа. yt-dlp может обращаться к отправленной вами странице с видео и связанным конечным точкам сервиса, чтобы определить метаданные и форматы, но не загружает выбранный медиаконтент. Собственный движок CloakDrop передаёт выбранные вами файлы и медиа."
+            "value": "Сборки могут включать две необязательные вспомогательные программы, работающие в песочнице. ffmpeg объединяет локальные медиафайлы или меняет их контейнер без перекодирования и доступа к сети. yt-dlp получает метаданные и URL форматов для страниц, которые вы отправляете; он не передаёт выбранные медиаданные. Он игнорирует внешнюю конфигурацию и плагины. Его маршрутизация зависит от используемой среды выполнения и окружения. Выбранные данные скачивает движок CloakDrop."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop 内置了两个开源、沙盒化的命令行辅助程序。ffmpeg 在本地合并或转换媒体。yt-dlp 可能会联系你提交的视频页面及相关服务端点，以解析元数据和格式，但不会下载所选媒体负载。你选择的文件和媒体由 CloakDrop 自己的引擎传输。"
+            "value": "构建版本可包含两个在沙盒中运行的可选辅助工具。ffmpeg 合并本地媒体或更换其封装容器，不重新编码，也不访问网络。yt-dlp 获取你提交页面的元数据和各格式的 URL，不传输选中的媒体数据本身。它忽略外部配置和插件。其连接路由取决于运行时和环境。选中的数据由 CloakDrop 引擎下载。"
           }
         }
       }
     },
-    "CloakDrop is a free, open-source download manager that runs entirely on your Mac. This policy explains what personal data we collect (spoiler: none) and exactly which network connections the app makes.": {
+    "CloakDrop is a free, open-source download manager. This policy explains the data stored on your Mac, the requests made for work you initiate or configure, and the controls available to you.": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "‏CloakDrop هو مدير تنزيلات مجاني ومفتوح المصدر يعمل بالكامل على جهاز Mac الخاص بك. توضّح هذه السياسة البيانات الشخصية التي نجمعها (باختصار: لا شيء) والاتصالات الشبكية التي يجريها التطبيق بالتحديد."
+            "value": "CloakDrop مدير تنزيلات مجاني ومفتوح المصدر. تشرح هذه السياسة البيانات المخزنة على Mac، والطلبات اللازمة للمهام التي تبدأها أو تضبطها، وخيارات التحكم المتاحة لك."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop ist ein kostenloser, quelloffener Download-Manager, der vollständig auf deinem Mac läuft. Diese Richtlinie erklärt, welche personenbezogenen Daten wir erheben (Spoiler: keine) und welche Netzwerkverbindungen die App genau herstellt."
+            "value": "CloakDrop ist ein kostenloser, quelloffener Downloadmanager. Diese Richtlinie erklärt, welche Daten auf deinem Mac gespeichert werden, welche Anfragen für von dir gestartete oder konfigurierte Vorgänge gesendet werden und welche Einstellungen dir zur Verfügung stehen."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop es un gestor de descargas gratuito y de código abierto que se ejecuta por completo en tu Mac. Esta política explica qué datos personales recopilamos (adelanto: ninguno) y exactamente qué conexiones de red hace la aplicación."
+            "value": "CloakDrop es un gestor de descargas gratuito y de código abierto. Esta política explica qué datos se almacenan en tu Mac, qué solicitudes se realizan para las tareas que inicias o configuras y qué controles tienes a tu disposición."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop est un gestionnaire de téléchargement gratuit et open source qui s’exécute entièrement sur votre Mac. Cette politique explique quelles données personnelles nous collectons (en résumé : aucune) et précisément quelles connexions réseau l’application établit."
+            "value": "CloakDrop est un gestionnaire de téléchargements gratuit et open source. Cette politique explique quelles données sont stockées sur votre Mac, quelles requêtes sont effectuées pour les tâches que vous lancez ou configurez et quels contrôles sont à votre disposition."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop एक मुफ़्त, ओपन-सोर्स डाउनलोड मैनेजर है जो पूरी तरह आपके Mac पर चलता है। यह नीति बताती है कि हम कौन-सा व्यक्तिगत डेटा एकत्र करते हैं (संक्षेप में: कुछ भी नहीं) और ऐप वास्तव में कौन-से नेटवर्क कनेक्शन करता है।"
+            "value": "CloakDrop एक मुफ़्त, ओपन-सोर्स डाउनलोड मैनेजर है। यह नीति बताती है कि आपके Mac पर कौन-सा डेटा रखा जाता है, आपके शुरू या कॉन्फ़िगर किए गए काम के लिए कौन-से अनुरोध किए जाते हैं और आपके पास कौन-से नियंत्रण उपलब्ध हैं।"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop は無料でオープンソースのダウンロードマネージャで、すべての処理があなたの Mac 上で動作します。このポリシーでは、収集する個人データ（結論：ありません）と、アプリが行うネットワーク接続を正確に説明します。"
+            "value": "CloakDrop は無料のオープンソースのダウンロードマネージャです。このポリシーでは、Mac に保存されるデータ、ユーザーが開始または設定した処理に伴うリクエスト、利用できる管理機能について説明します。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop은 무료 오픈소스 다운로드 관리자로, 모든 작업이 사용자의 Mac에서 실행됩니다. 이 방침은 우리가 수집하는 개인 데이터(스포일러: 없음)와 앱이 정확히 어떤 네트워크 연결을 하는지 설명합니다."
+            "value": "CloakDrop은 무료 오픈 소스 다운로드 관리자입니다. 이 방침은 Mac에 저장되는 데이터, 사용자가 시작하거나 설정한 작업에 필요한 요청, 사용할 수 있는 제어 기능을 설명합니다."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O CloakDrop é um gerenciador de downloads gratuito e de código aberto que roda inteiramente no seu Mac. Esta política explica quais dados pessoais coletamos (spoiler: nenhum) e exatamente quais conexões de rede o aplicativo faz."
+            "value": "O CloakDrop é um gerenciador de downloads gratuito e de código aberto. Esta política explica quais dados são armazenados no seu Mac, quais solicitações são feitas para as tarefas que você inicia ou configura e quais controles estão disponíveis."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop — это бесплатный менеджер загрузок с открытым исходным кодом, работающий полностью на вашем Mac. Эта политика объясняет, какие персональные данные мы собираем (спойлер: никакие) и какие именно сетевые подключения выполняет приложение."
+            "value": "CloakDrop — бесплатный менеджер загрузок с открытым исходным кодом. Эта политика объясняет, какие данные хранятся на вашем Mac, какие запросы выполняются для действий, которые вы запускаете или настраиваете, и какие средства управления вам доступны."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop 是一款免费、开源的下载管理器，完全在你的 Mac 上运行。本政策说明我们收集哪些个人数据（剧透：没有），以及应用究竟会建立哪些网络连接。"
+            "value": "CloakDrop 是一款免费、开源的下载管理器。本政策说明储存在 Mac 上的数据、为你启动或配置的任务发出的请求，以及你可以使用的控制选项。"
           }
         }
       }
     },
-    "CloakDrop is open source under the MIT License. You can read the entire source code, verify every claim in this policy for yourself, and build your own copy — with no fees and no restrictions.": {
+    "CloakDrop source is available under the MIT License. Bundled third-party components retain their own licenses. You can inspect the code and build your own copy, subject to the applicable license terms.": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "‏CloakDrop مفتوح المصدر بموجب رخصة MIT. يمكنك قراءة الشيفرة المصدرية كاملةً، والتحقّق بنفسك من كل ادّعاء في هذه السياسة، وبناء نسختك الخاصة — دون رسوم أو قيود."
+            "value": "يتوفر الكود المصدري لـ CloakDrop بموجب ترخيص MIT. تحتفظ مكونات الجهات الخارجية المرفقة بتراخيصها الخاصة. يمكنك فحص الكود وبناء نسختك الخاصة وفق شروط التراخيص المنطبقة."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop ist quelloffen unter der MIT-Lizenz. Du kannst den gesamten Quellcode lesen, jede Aussage dieser Richtlinie selbst überprüfen und eine eigene Kopie erstellen – ohne Gebühren und ohne Einschränkungen."
+            "value": "Der Quellcode von CloakDrop ist unter der MIT-Lizenz verfügbar. Für mitgelieferte Komponenten von Drittanbietern gelten deren eigene Lizenzen. Du kannst den Code einsehen und unter den jeweils geltenden Lizenzbedingungen eine eigene Version erstellen."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop es de código abierto bajo la licencia MIT. Puedes leer todo el código fuente, verificar por ti mismo cada afirmación de esta política y crear tu propia copia, sin cuotas ni restricciones."
+            "value": "El código fuente de CloakDrop está disponible bajo la licencia MIT. Los componentes de terceros incluidos conservan sus propias licencias. Puedes examinar el código y compilar tu propia copia, de acuerdo con los términos de las licencias aplicables."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop est open source sous licence MIT. Vous pouvez lire l’intégralité du code source, vérifier vous-même chaque affirmation de cette politique et créer votre propre version — sans frais ni restrictions."
+            "value": "Le code source de CloakDrop est disponible sous licence MIT. Les composants tiers inclus conservent leurs propres licences. Vous pouvez consulter le code et compiler votre propre copie, sous réserve des conditions des licences applicables."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop, MIT लाइसेंस के तहत ओपन सोर्स है। आप पूरा सोर्स कोड पढ़ सकते हैं, इस नीति के हर दावे को स्वयं सत्यापित कर सकते हैं, और अपनी खुद की कॉपी बना सकते हैं — बिना किसी शुल्क या प्रतिबंध के।"
+            "value": "CloakDrop का स्रोत कोड MIT लाइसेंस के अंतर्गत उपलब्ध है। साथ शामिल तीसरे पक्ष के घटकों पर उनके अपने लाइसेंस लागू होते हैं। आप लागू लाइसेंस की शर्तों के अनुसार कोड देख सकते हैं और अपनी प्रति बना सकते हैं।"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop は MIT ライセンスのオープンソースです。ソースコードのすべてを読み、このポリシーのあらゆる主張を自分で検証し、独自のコピーをビルドできます — 料金も制限もありません。"
+            "value": "CloakDrop のソースコードは MIT ライセンスで公開されています。同梱のサードパーティ製コンポーネントには、それぞれのライセンスが適用されます。適用されるライセンス条件に従って、コードを確認し、自分用のコピーをビルドできます。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop은 MIT 라이선스의 오픈소스입니다. 전체 소스 코드를 읽고, 이 방침의 모든 주장을 직접 확인하고, 자신만의 사본을 빌드할 수 있습니다 — 비용도 제한도 없습니다."
+            "value": "CloakDrop 소스 코드는 MIT 라이선스로 제공됩니다. 번들에 포함된 타사 구성 요소에는 각자의 라이선스가 적용됩니다. 해당 라이선스 조건에 따라 코드를 살펴보고 직접 빌드할 수 있습니다."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O CloakDrop é de código aberto sob a licença MIT. Você pode ler todo o código-fonte, verificar por conta própria cada afirmação desta política e criar sua própria cópia — sem taxas nem restrições."
+            "value": "O código-fonte do CloakDrop está disponível sob a licença MIT. Os componentes de terceiros incluídos mantêm suas próprias licenças. Você pode examinar o código e compilar sua própria cópia, de acordo com os termos das licenças aplicáveis."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop имеет открытый исходный код под лицензией MIT. Вы можете прочитать весь исходный код, самостоятельно проверить каждое утверждение этой политики и собрать собственную копию — без платы и ограничений."
+            "value": "Исходный код CloakDrop доступен по лицензии MIT. Включённые сторонние компоненты сохраняют собственные лицензии. Вы можете изучать код и собирать собственную копию в соответствии с условиями применимых лицензий."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "CloakDrop 采用 MIT 许可证开源。你可以阅读全部源代码，亲自验证本政策中的每一项声明，并构建你自己的副本——没有任何费用或限制。"
+            "value": "CloakDrop 源代码按 MIT 许可证提供。随附的第三方组件仍适用各自的许可证。你可以在遵守适用许可条款的前提下查看代码并自行构建。"
           }
         }
       }
@@ -9817,67 +9817,67 @@
         }
       }
     },
-    "Everything runs on-device": {
+    "App data stays on your Mac": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "كل شيء يعمل على الجهاز"
+            "value": "تبقى بيانات التطبيق على Mac"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alles läuft auf dem Gerät"
+            "value": "App-Daten bleiben auf deinem Mac"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Todo se ejecuta en el dispositivo"
+            "value": "Los datos de la app permanecen en tu Mac"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tout fonctionne sur l’appareil"
+            "value": "Les données de l’app restent sur votre Mac"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "सब कुछ डिवाइस पर ही चलता है"
+            "value": "ऐप का डेटा आपके Mac पर रहता है"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "すべてデバイス上で処理"
+            "value": "アプリのデータは Mac 内に保存されます"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "모든 작업이 기기에서 실행됨"
+            "value": "앱 데이터는 Mac에 보관됩니다"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tudo é executado no dispositivo"
+            "value": "Os dados do app ficam no seu Mac"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Всё работает на устройстве"
+            "value": "Данные приложения остаются на вашем Mac"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "一切都在设备上运行"
+            "value": "应用数据保留在你的 Mac 上"
           }
         }
       }
@@ -15472,67 +15472,67 @@
         }
       }
     },
-    "No personal data collected": {
+    "No app data sent to the project": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لا يتم جمع أي بيانات شخصية"
+            "value": "لا تُرسل بيانات التطبيق إلى المشروع"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keine personenbezogenen Daten erhoben"
+            "value": "Keine App-Daten an das Projekt gesendet"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se recopilan datos personales"
+            "value": "No se envían datos de la app al proyecto"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aucune donnée personnelle collectée"
+            "value": "Aucune donnée de l’app envoyée au projet"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "कोई व्यक्तिगत डेटा एकत्र नहीं किया जाता"
+            "value": "ऐप का डेटा प्रोजेक्ट को नहीं भेजा जाता"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "個人データを収集しません"
+            "value": "アプリのデータをプロジェクトに送信しません"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "개인 데이터를 수집하지 않습니다"
+            "value": "앱 데이터를 프로젝트로 보내지 않습니다"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nenhum dado pessoal coletado"
+            "value": "Nenhum dado do app é enviado ao projeto"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Персональные данные не собираются"
+            "value": "Данные приложения не отправляются проекту"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "不收集个人数据"
+            "value": "不向项目发送应用数据"
           }
         }
       }
@@ -30227,67 +30227,67 @@
         }
       }
     },
-    "Your rights, and changes to this policy": {
+    "Questions and policy changes": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "حقوقك والتغييرات على هذه السياسة"
+            "value": "الأسئلة وتغييرات السياسة"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deine Rechte und Änderungen an dieser Richtlinie"
+            "value": "Fragen und Änderungen der Richtlinie"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tus derechos y los cambios en esta política"
+            "value": "Preguntas y cambios en la política"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vos droits et les modifications de cette politique"
+            "value": "Questions et modifications de la politique"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "आपके अधिकार, और इस नीति में परिवर्तन"
+            "value": "प्रश्न और नीति में बदलाव"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "あなたの権利と、このポリシーの変更"
+            "value": "質問とポリシーの変更"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "사용자의 권리 및 본 방침의 변경"
+            "value": "문의 및 방침 변경"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seus direitos e alterações nesta política"
+            "value": "Dúvidas e alterações na política"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ваши права и изменения в этой политике"
+            "value": "Вопросы и изменения политики"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的权利，以及本政策的变更"
+            "value": "问题与政策变更"
           }
         }
       }
@@ -31258,6 +31258,851 @@
           "stringUnit": {
             "state": "translated",
             "value": "编辑此规则"
+          }
+        }
+      }
+    },
+    "%@ of %@ · %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ من %@ · %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ von %@ · %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ de %@ · %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ sur %@ · %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ / %@ · %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ / %@ · %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ / %@ · %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ de %@ · %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ из %@ · %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ / %@ · %@"
+          }
+        }
+      }
+    },
+    "%@ · %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        }
+      }
+    },
+    "%lld Downloads Selected": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم تحديد %lld تنزيلات"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Downloads ausgewählt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld descargas seleccionadas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld téléchargements sélectionnés"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld डाउनलोड चुने गए"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld件のダウンロードを選択中"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다운로드 %lld개 선택됨"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld downloads selecionados"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрано загрузок: %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选择 %lld 项下载"
+          }
+        }
+      }
+    },
+    "%lld segments": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld مقاطع"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Segmente"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld segmentos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld segments"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld खंड"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld セグメント"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "세그먼트 %lld개"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld segmentos"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сегментов: %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个分段"
+          }
+        }
+      }
+    },
+    "Controls how HTTP downloads and speed tests connect. A manual proxy also applies to the built-in browser. FTP and FTPS connect directly.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يتحكم في كيفية اتصال تنزيلات HTTP واختبارات السرعة. ينطبق الوكيل اليدوي أيضًا على المتصفح المدمج. يتصل FTP وFTPS مباشرةً."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legt fest, wie HTTP-Downloads und Geschwindigkeitstests eine Verbindung herstellen. Ein manueller Proxy gilt auch für den integrierten Browser. FTP und FTPS stellen direkte Verbindungen her."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controla cómo se conectan las descargas HTTP y las pruebas de velocidad. Un proxy manual también se aplica al navegador integrado. FTP y FTPS se conectan directamente."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Définit le mode de connexion des téléchargements HTTP et des tests de débit. Un proxy manuel s’applique aussi au navigateur intégré. FTP et FTPS se connectent directement."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह नियंत्रित करता है कि HTTP डाउनलोड और स्पीड टेस्ट कैसे कनेक्ट होते हैं। मैनुअल प्रॉक्सी अंतर्निहित ब्राउज़र पर भी लागू होता है। FTP और FTPS सीधे कनेक्ट होते हैं।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HTTPダウンロードと速度テストの接続方法を設定します。手動プロキシは内蔵ブラウザにも適用されます。FTPとFTPSは直接接続します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HTTP 다운로드 및 속도 테스트의 연결 방식을 설정합니다. 수동 프록시는 내장 브라우저에도 적용됩니다. FTP와 FTPS는 직접 연결됩니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controla como downloads HTTP e testes de velocidade se conectam. Um proxy manual também se aplica ao navegador integrado. FTP e FTPS se conectam diretamente."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Определяет способ подключения для загрузок HTTP и тестов скорости. Ручная настройка прокси также применяется к встроенному браузеру. FTP и FTPS подключаются напрямую."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "控制 HTTP 下载和测速的连接方式。手动代理也适用于内置浏览器。FTP 和 FTPS 使用直接连接。"
+          }
+        }
+      }
+    },
+    "Download Audio": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تنزيل الصوت"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio laden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargar audio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Télécharger l’audio"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ऑडियो डाउनलोड करें"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音声をダウンロード"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오디오 다운로드"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baixar áudio"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Загрузить аудио"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载音频"
+          }
+        }
+      }
+    },
+    "Download format": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تنسيق التنزيل"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloadformat"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formato de descarga"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Format de téléchargement"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डाउनलोड फ़ॉर्मैट"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ダウンロード形式"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다운로드 형식"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formato do download"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Формат загрузки"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载格式"
+          }
+        }
+      }
+    },
+    "Enter a valid %@ digest, or clear the field to continue.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أدخل ملخّص %@ صالحًا، أو أفرغ الحقل للمتابعة."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib einen gültigen %@-Digest ein oder leere das Feld, um fortzufahren."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introduce un resumen %@ válido o borra el contenido del campo para continuar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez une empreinte %@ valide ou effacez le contenu du champ pour continuer."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जारी रखने के लिए मान्य %@ डाइजेस्ट दर्ज करें या फ़ील्ड खाली करें।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有効な %@ ダイジェストを入力するか、フィールドを空にして続けてください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계속하려면 유효한 %@ 다이제스트를 입력하거나 필드를 비우세요."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insira um resumo %@ válido ou limpe o campo para continuar."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Введите допустимый дайджест %@ или очистите поле, чтобы продолжить."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入有效的 %@ 摘要，或清空此字段以继续。"
+          }
+        }
+      }
+    },
+    "No supported download was found for this page. Try playing the video in the built-in browser.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لم يُعثر على تنزيل مدعوم لهذه الصفحة. جرّب تشغيل الفيديو في المتصفح المدمج."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für diese Seite wurde kein unterstützter Download gefunden. Versuche, das Video im integrierten Browser abzuspielen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se encontró ninguna descarga compatible en esta página. Prueba a reproducir el vídeo en el navegador integrado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun téléchargement pris en charge n’a été trouvé sur cette page. Essayez de lire la vidéo dans le navigateur intégré."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस पेज पर कोई समर्थित डाउनलोड नहीं मिला। अंतर्निहित ब्राउज़र में वीडियो चलाकर देखें।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このページには対応するダウンロードが見つかりませんでした。内蔵ブラウザでビデオを再生してみてください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 페이지에서 지원되는 다운로드를 찾지 못했습니다. 내장 브라우저에서 비디오를 재생해 보세요."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhum download compatível foi encontrado nesta página. Tente reproduzir o vídeo no navegador integrado."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "На этой странице не найдено поддерживаемых загрузок. Попробуйте воспроизвести видео во встроенном браузере."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此页面上未找到支持的下载内容。请尝试在内置浏览器中播放视频。"
+          }
+        }
+      }
+    },
+    "Paused · %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "متوقف مؤقتًا · %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angehalten · %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En pausa · %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suspendu · %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "रोका गया · %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一時停止中 · %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "일시정지됨 · %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausado · %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Приостановлено · %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已暂停 · %@"
+          }
+        }
+      }
+    },
+    "Progress": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التقدم"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortschritt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progreso"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progression"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "प्रगति"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "進行状況"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "진행률"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progresso"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ход выполнения"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进度"
+          }
+        }
+      }
+    },
+    "Select one download to see its details, or use the shortcut menu to manage your selection.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حدّد تنزيلًا واحدًا لعرض تفاصيله، أو استخدم القائمة المختصرة لإدارة العناصر المحددة."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle einen Download aus, um seine Details anzuzeigen, oder verwalte deine Auswahl über das Kontextmenü."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona una descarga para ver sus detalles o usa el menú contextual para gestionar la selección."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sélectionnez un téléchargement pour afficher ses détails ou utilisez le menu contextuel pour gérer votre sélection."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "विवरण देखने के लिए एक डाउनलोड चुनें या चुने गए डाउनलोड प्रबंधित करने के लिए शॉर्टकट मेनू का उपयोग करें।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "詳細を表示するにはダウンロードを1件選択してください。選択した項目はショートカットメニューで管理できます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다운로드 하나를 선택하여 세부사항을 보거나 단축 메뉴를 사용하여 선택한 항목을 관리하세요."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecione um download para ver os detalhes ou use o menu de atalho para gerenciar a seleção."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите одну загрузку, чтобы увидеть её сведения, или управляйте выбранными загрузками через контекстное меню."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择一项下载以查看其详细信息，或使用快捷菜单管理所选项目。"
+          }
+        }
+      }
+    },
+    "Yes": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نعم"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ja"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sí"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oui"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हाँ"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "対応"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "예"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sim"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Да"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支持"
           }
         }
       }

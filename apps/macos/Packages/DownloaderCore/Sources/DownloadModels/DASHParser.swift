@@ -43,7 +43,7 @@ public enum DASHParser {
                 let setBase = resolvedBaseURL(adaptationSet, periodBase)
                 for representation in adaptationSet.elements(forName: "Representation") {
                     let kind = classify(adaptationSet, representation)
-                    let resolved = buildRepresentation(
+                    let resolved = try buildRepresentation(
                         representation,
                         adaptationSet: adaptationSet,
                         base: resolvedBaseURL(representation, setBase),
@@ -119,12 +119,12 @@ public enum DASHParser {
         adaptationSet: XMLElement,
         base: URL,
         periodDuration: Double?
-    ) -> (segments: [MediaSegment], initSegment: MediaInitSegment?) {
+    ) throws -> (segments: [MediaSegment], initSegment: MediaInitSegment?) {
         let repID = representation.attribute(forName: "id")?.stringValue ?? ""
         let bandwidth = intAttr(representation, "bandwidth") ?? 0
 
         if let template = firstChild(representation, adaptationSet, "SegmentTemplate") {
-            return fromTemplate(template, base: base, repID: repID, bandwidth: bandwidth, periodDuration: periodDuration)
+            return try fromTemplate(template, base: base, repID: repID, bandwidth: bandwidth, periodDuration: periodDuration)
         }
         if let list = firstChild(representation, adaptationSet, "SegmentList") {
             return fromList(list, base: base)
@@ -139,10 +139,11 @@ public enum DASHParser {
         repID: String,
         bandwidth: Int,
         periodDuration: Double?
-    ) -> (segments: [MediaSegment], initSegment: MediaInitSegment?) {
+    ) throws -> (segments: [MediaSegment], initSegment: MediaInitSegment?) {
         let media = template.attribute(forName: "media")?.stringValue ?? ""
         let timescale = Double(intAttr(template, "timescale") ?? 1)
         let startNumber = intAttr(template, "startNumber") ?? 1
+        guard timescale > 0, startNumber >= 0 else { return ([], nil) }
 
         let initSegment = (template.attribute(forName: "initialization")?.stringValue).flatMap { initTemplate -> MediaInitSegment? in
             let expanded = expand(initTemplate, repID: repID, bandwidth: bandwidth, number: nil, time: nil)
@@ -158,6 +159,10 @@ public enum DASHParser {
             build: for (runIndex, segmentRun) in runs.enumerated() {
                 if let explicit = int64Attr(segmentRun, "t") { time = explicit }
                 let duration = int64Attr(segmentRun, "d") ?? 0
+                let segmentSeconds = Double(duration) / timescale
+                guard time >= 0, duration > 0, validDuration(segmentSeconds) else {
+                    throw MediaParseError.malformed("Invalid DASH timeline duration.")
+                }
                 let occurrences = occurrenceCount(
                     repeatCount: intAttr(segmentRun, "r") ?? 0,
                     time: time,
@@ -169,25 +174,33 @@ public enum DASHParser {
                     if segments.count >= Self.maxSegmentsPerRepresentation { break build }
                     let url = expand(media, repID: repID, bandwidth: bandwidth, number: number, time: time)
                     if let resolved = resolve(url, base) {
-                        segments.append(MediaSegment(id: index, url: resolved, duration: Double(duration) / timescale))
+                        segments.append(MediaSegment(id: index, url: resolved, duration: segmentSeconds))
                         index += 1
                     }
-                    number += 1
-                    time += duration
+                    let nextNumber = number.addingReportingOverflow(1)
+                    let nextTime = time.addingReportingOverflow(duration)
+                    guard !nextNumber.overflow, !nextTime.overflow else {
+                        throw MediaParseError.malformed("DASH timeline exceeds supported integer bounds.")
+                    }
+                    number = nextNumber.partialValue
+                    time = nextTime.partialValue
                 }
             }
         } else if let duration = int64Attr(template, "duration"), duration > 0, let periodDuration {
             let segmentSeconds = Double(duration) / timescale
-            guard segmentSeconds > 0 else { return (segments, initSegment) }
+            guard segmentSeconds > 0, validDuration(segmentSeconds) else { return (segments, initSegment) }
             // Clamp before converting to Int: a near-zero segment duration yields a huge (or
             // non-finite) count that would otherwise trap in `Int(_:)` or allocate unbounded.
             let rawCount = (periodDuration / segmentSeconds).rounded(.up)
             guard rawCount.isFinite, rawCount > 0 else { return (segments, initSegment) }
             let count = Int(min(rawCount, Double(Self.maxSegmentsPerRepresentation)))
             for index in 0..<count {
-                let number = startNumber + index
-                let time = Int64(index) * duration
-                let url = expand(media, repID: repID, bandwidth: bandwidth, number: number, time: time)
+                let number = startNumber.addingReportingOverflow(index)
+                let time = Int64(index).multipliedReportingOverflow(by: duration)
+                guard !number.overflow, !time.overflow else {
+                    throw MediaParseError.malformed("DASH segment addressing exceeds supported integer bounds.")
+                }
+                let url = expand(media, repID: repID, bandwidth: bandwidth, number: number.partialValue, time: time.partialValue)
                 if let resolved = resolve(url, base) {
                     segments.append(MediaSegment(id: index, url: resolved, duration: segmentSeconds))
                 }
@@ -220,6 +233,7 @@ public enum DASHParser {
     ) -> (segments: [MediaSegment], initSegment: MediaInitSegment?) {
         let timescale = Double(intAttr(list, "timescale") ?? 1)
         let duration = Double(int64Attr(list, "duration") ?? 0) / timescale
+        guard timescale > 0, validDuration(duration) else { return ([], nil) }
         let initSegment = list.elements(forName: "Initialization").first?
             .attribute(forName: "sourceURL")?.stringValue
             .flatMap { resolve($0, base) }
@@ -268,7 +282,9 @@ public enum DASHParser {
         var digits = match.output.2 == "d"
             ? String(value.magnitude)
             : String(value.magnitude, radix: 16, uppercase: match.output.2 == "X")
-        if let width = Int(match.output.1), digits.count < width {
+        // A formatting width comes from the remote manifest. 64 characters exceeds any practical
+        // numeric segment identifier without permitting a tiny template to allocate gigabytes.
+        if let rawWidth = Int(match.output.1), case let width = min(rawWidth, 64), digits.count < width {
             digits = String(repeating: "0", count: width - digits.count) + digits
         }
         return value < 0 ? "-" + digits : digits
@@ -276,9 +292,16 @@ public enum DASHParser {
 
     // MARK: Attribute & element helpers
 
+    /// Bound numeric metadata before it enters duration/ETA arithmetic. The ceiling allows over
+    /// 30,000 years, while sums over the bounded generated segment set still fit in a signed Int64.
+    private static func validDuration(_ value: Double) -> Bool {
+        value.isFinite && (0...1_000_000_000_000).contains(value)
+    }
+
     private static func resolution(_ representation: XMLElement, _ adaptationSet: XMLElement) -> MediaResolution? {
         guard let width = intAttr(representation, "width") ?? intAttr(adaptationSet, "width"),
-              let height = intAttr(representation, "height") ?? intAttr(adaptationSet, "height") else { return nil }
+              let height = intAttr(representation, "height") ?? intAttr(adaptationSet, "height"),
+              (1...100_000).contains(width), (1...100_000).contains(height) else { return nil }
         return MediaResolution(width: width, height: height)
     }
 
@@ -338,6 +361,6 @@ public enum DASHParser {
         let minutes = match.output.3.flatMap { Double($0) } ?? 0
         let seconds = match.output.4.flatMap { Double($0) } ?? 0
         let total = days * 86_400 + hours * 3_600 + minutes * 60 + seconds
-        return total > 0 ? total : nil
+        return total > 0 && validDuration(total) ? total : nil
     }
 }

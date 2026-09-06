@@ -14,6 +14,10 @@ struct CloakDropApp: App {
     init() {
         do {
             #if DEBUG
+            // Exercise native dark materials without changing the user's system appearance.
+            if ProcessInfo.processInfo.arguments.contains("--verify-dark-appearance") {
+                NSApplication.shared.appearance = NSAppearance(named: .darkAqua)
+            }
             let appModel = ProcessInfo.processInfo.arguments.contains("--hero-fixture")
                 ? try AppModel.heroFixture()
                 : try AppModel.live()

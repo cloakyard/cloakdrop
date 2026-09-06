@@ -11,24 +11,26 @@ struct TaskHandler {
     var finishError: (any Error)?
 }
 
-/// Lock-guarded map from `URLSessionTask.taskIdentifier` to its handler. Bridges the
-/// delegate's serial queue to async callers while enforcing bounded producer backpressure.
+/// Lock-guarded map from `ObjectIdentifier(URLSessionTask)` to its handler. Bridges the
+/// delegate's serial queue to async callers while enforcing bounded producer backpressure. Numeric
+/// task identifiers restart in each session; old callbacks after a proxy change must never resolve
+/// or cancel a replacement session's request with the same number.
 final class TaskRegistry: @unchecked Sendable {
     private let lock = NSLock()
-    private var handlers: [Int: TaskHandler] = [:]
+    private var handlers: [ObjectIdentifier: TaskHandler] = [:]
 
-    func register(taskID: Int, handler: TaskHandler) {
+    func register(taskID: ObjectIdentifier, handler: TaskHandler) {
         lock.lock(); defer { lock.unlock() }
         handlers[taskID] = handler
     }
 
-    func remove(taskID: Int) {
+    func remove(taskID: ObjectIdentifier) {
         lock.lock(); defer { lock.unlock() }
         handlers[taskID] = nil
     }
 
     /// Resolve the head continuation exactly once.
-    func completeHead(taskID: Int, with result: Result<HTTPResponseHead, Error>) {
+    func completeHead(taskID: ObjectIdentifier, with result: Result<HTTPResponseHead, Error>) {
         lock.lock()
         guard var handler = handlers[taskID], let head = handler.head else { lock.unlock(); return }
         handler.head = nil
@@ -39,7 +41,7 @@ final class TaskRegistry: @unchecked Sendable {
 
     /// Yield a body chunk. Returns true exactly once when the stream buffer fills and the caller must
     /// suspend its URLSession task; `drainPending` owns the matching resume.
-    func yield(taskID: Int, data: Data) -> Bool {
+    func yield(taskID: ObjectIdentifier, data: Data) -> Bool {
         lock.lock()
         guard var handler = handlers[taskID] else { lock.unlock(); return false }
         if handler.isSuspended {
@@ -74,7 +76,7 @@ final class TaskRegistry: @unchecked Sendable {
     /// Retry a chunk rejected by the bounded AsyncStream until the consumer frees capacity, then
     /// resume the underlying request. This is real producer backpressure: a speed cap or slow disk no
     /// longer lets URLSession buffer an entire large download in process memory.
-    func drainPending(taskID: Int, task dataTask: URLSessionDataTask) {
+    func drainPending(taskID: ObjectIdentifier, task dataTask: URLSessionDataTask) {
         Task { [weak self, weak dataTask] in
             guard let self, let dataTask else { return }
             while true {
@@ -113,7 +115,7 @@ final class TaskRegistry: @unchecked Sendable {
 
     /// Synchronous lock scope kept outside the async drain task (`NSLock.lock()` is intentionally
     /// unavailable directly from async contexts under Swift 6).
-    private func nextDrainAction(taskID: Int) -> DrainAction {
+    private func nextDrainAction(taskID: ObjectIdentifier) -> DrainAction {
         lock.withLock {
             guard var handler = handlers[taskID] else { return .stop }
             guard let next = handler.pendingData.first else {
@@ -129,7 +131,7 @@ final class TaskRegistry: @unchecked Sendable {
         }
     }
 
-    private func removeAcceptedPendingChunk(taskID: Int) {
+    private func removeAcceptedPendingChunk(taskID: ObjectIdentifier) {
         lock.withLock {
             guard var handler = handlers[taskID], !handler.pendingData.isEmpty else { return }
             handler.pendingData.removeFirst()
@@ -137,7 +139,7 @@ final class TaskRegistry: @unchecked Sendable {
         }
     }
 
-    func finish(taskID: Int, error: (any Error)?) {
+    func finish(taskID: ObjectIdentifier, error: (any Error)?) {
         lock.lock()
         guard var handler = handlers[taskID] else { lock.unlock(); return }
         let classifiedError = error.map(Self.classify)

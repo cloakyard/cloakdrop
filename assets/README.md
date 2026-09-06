@@ -40,7 +40,7 @@ The brand site runs it automatically before every build (and dev start):
 ```
 
 So on a fresh clone (or on Cloudflare) `npm run build` regenerates the site's copies from
-here. You can also run it by hand from anywhere in the repo:
+here. You can also run it by hand from the repository root:
 
 ```bash
 node scripts/sync-assets.mjs
@@ -59,7 +59,7 @@ shadow at the canvas edge.
 ## Updating an asset
 
 1. Replace the file **here**, under `assets/…`.
-2. Run `node scripts/sync-assets.mjs` (or just `npm run build` in `apps/site`).
+2. From the repository root, run `node scripts/sync-assets.mjs` (or run `npm run build` in `apps/site/`).
 
 That's it — every consumer picks it up. Renditions (extra sizes, WebP) are produced once by
 a human and committed here; the sync step only distributes them, it never resizes or
@@ -69,7 +69,7 @@ re-encodes.
 
 Debug builds include a deterministic, read-only hero catalog. It renders the Ubuntu transfer and
 the five completed reference rows without opening the user's database, creating partial files, or
-making a network request:
+making a network request. From the repository root, after a fresh Debug build:
 
 ```bash
 open -n apps/macos/build/Verify/Build/Products/Debug/CloakDrop.app --args --hero-fixture
@@ -79,9 +79,15 @@ The fixture is compiled only when `DEBUG` is set. Capture the main window at 109
 (2194 × 1356 Retina pixels), then produce the padded README rendition on a 2338 × 1500 transparent
 canvas. Keep the four files in `assets/screenshots/` synchronized before running the asset sync.
 
+Debug also accepts `--verify-dark-appearance` to inspect native dark materials without changing the
+system appearance. Keep audit screenshots in [`docs/audits/images/`](../docs/audits/images); do not
+replace the canonical hero with temporary test records or a personal download catalog. The fixture
+is illustrative, not a measured throughput benchmark. See the
+[verification guide](../.agents/skills/verify/SKILL.md) for app checks.
+
 ## The social card
 
-`social/og.png` is **rendered, not drawn** — edit [`social/og.html`](social/og.html) and run:
+`social/og.png` is **rendered, not drawn** — edit [`social/og.html`](social/og.html) and run from the repository root:
 
 ```bash
 scripts/make-og.sh            # headless Chrome screenshots og.html → og.png (1200×630)

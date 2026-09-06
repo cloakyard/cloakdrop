@@ -31,6 +31,7 @@ struct FTPProtocolTests {
     func multiLineIncomplete() {
         // Opens 150- but no closing "150 " line yet.
         #expect(FTPProtocol.parseReply(from: "150-Opening data connection\r\n") == nil)
+        #expect(FTPProtocol.parseReply(from: "150-Opening data connection\r\n150 Partial terminator") == nil)
     }
 
     @Test("Reply classes are categorized per RFC 959")
@@ -56,6 +57,8 @@ struct FTPProtocolTests {
     func pasvMalformed() {
         #expect(FTPProtocol.parsePassiveAddress("227 Entering Passive Mode (192,168,0,10,195)") == nil)
         #expect(FTPProtocol.parsePassiveAddress("227 no parens") == nil)
+        #expect(FTPProtocol.parsePassiveAddress("227 (127,0,0,1,invalid,20,30)") == nil)
+        #expect(FTPProtocol.parsePassiveAddress("227 (127,0,0,1,0,0)") == nil)
     }
 
     @Test("Parses an EPSV port")
@@ -63,10 +66,17 @@ struct FTPProtocolTests {
         #expect(FTPProtocol.parseExtendedPassivePort("229 Entering Extended Passive Mode (|||6446|)") == 6446)
     }
 
+    @Test("EPSV rejects out-of-range ports and malformed delimiters",
+          arguments: ["|||65536|", "|||-1|", "|||0|", "|6446|", "|||6446", "||6446||"])
+    func epsvMalformed(value: String) {
+        #expect(FTPProtocol.parseExtendedPassivePort("229 (\(value))") == nil)
+    }
+
     @Test("Parses a SIZE reply")
     func size() {
         #expect(FTPProtocol.parseSize("213 1048576") == 1_048_576)
         #expect(FTPProtocol.parseSize("213") == nil)
+        #expect(FTPProtocol.parseSize("213 -1") == nil)
     }
 
     @Test("Derives the RETR/SIZE path from an FTP URL, defaulting to /")

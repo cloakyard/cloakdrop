@@ -124,6 +124,14 @@ public extension MediaStream {
     /// already muxed / audio-only / the stream has no separate audio.
     func audioTrack(for variant: MediaVariant) -> MediaTrack? {
         guard variant.hasVideo, !audioTracks.isEmpty else { return nil }
+        // Page extraction uses explicit per-tier groups; a progressive direct file has no group
+        // because its sound is already muxed. Manifest-derived DASH variants instead infer their
+        // separate audio set, even when the manifest itself came from a page extractor fallback.
+        if variant.videoTrackPresent != nil {
+            guard let group = variant.audioGroupID else { return nil }
+            let inGroup = audioTracks.filter { $0.groupID == group }
+            return inGroup.first(where: \.isDefault) ?? inGroup.first
+        }
         switch format {
         case .hls:
             // Only an HLS variant that references an AUDIO rendition group is video-only; a variant

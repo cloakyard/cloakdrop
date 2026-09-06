@@ -65,8 +65,11 @@ struct CapsuleProgressBar: View {
             }
         }
         .frame(height: height)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Progress")
+        .accessibilityValue(Format.percent(min(1, max(0, fraction))))
         // Ease between the engine's ~10 Hz progress ticks so the fill glides instead of stepping.
-        .animation(.smooth(duration: 0.3), value: fraction)
+        .animation(reduceMotion ? nil : .smooth(duration: 0.3), value: fraction)
     }
 }
 

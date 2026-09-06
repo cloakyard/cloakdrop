@@ -12,6 +12,12 @@ struct InspectorView: View {
         ZStack {
             if let download = model.selectedDownload {
                 content(download)
+            } else if model.selectedDownloadIDs.count > 1 {
+                EmptyStateView("\(model.selectedDownloadIDs.count) Downloads Selected", systemImage: "doc.on.doc") {
+                    Text("Select one download to see its details, or use the shortcut menu to manage your selection.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
             } else {
                 EmptyStateView("No Selection", systemImage: "info.circle") {
                     Text("Select a download to see its details.")
@@ -20,8 +26,6 @@ struct InspectorView: View {
                 }
             }
         }
-        // A stable, full-bleed container so toggling the inspector or changing the selection
-        // doesn't shift the layout.
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
@@ -29,6 +33,13 @@ struct InspectorView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 header(download)
+                if case let .failed(reason) = download.status {
+                    Text(reason)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 chips(download)
                 overview(download)
                 if download.segments.count > 1 {
@@ -72,8 +83,6 @@ struct InspectorView: View {
         }
     }
 
-    /// A type-aware glyph: media, FTP, and Metalink downloads read at a glance; everything else
-    /// falls back to the by-extension file icon.
     private func headerSymbol(_ download: Download) -> String {
         if download.isMedia { return "film" }
         if let scheme = download.url.scheme?.lowercased(), scheme.hasPrefix("ftp") { return "server.rack" }
@@ -81,8 +90,6 @@ struct InspectorView: View {
         return FileIcon.symbol(forFileName: download.fileName)
     }
 
-    /// The status as a tinted capsule — more legible than a bare label, and consistent with the
-    /// list rows.
     private func statusPill(_ status: DownloadStatus) -> some View {
         Label(status.label, systemImage: status.systemImage)
             .font(.caption.weight(.medium))
@@ -94,8 +101,6 @@ struct InspectorView: View {
 
     // MARK: At-a-glance chips
 
-    /// A wrapping row of small facts tuned to the download's type — transport, connection count,
-    /// media format/quality, mirror count — so what *kind* of download this is reads instantly.
     private func chips(_ download: Download) -> some View {
         FlowLayout(spacing: 6) {
             if let scheme = download.url.scheme?.uppercased() {
@@ -107,7 +112,7 @@ struct InspectorView: View {
                     chip(Text(verbatim: "\(resolution.qualityHeight)p"), "display")
                 }
             } else if download.segments.count > 1 {
-                chip(Text("\(download.segments.count) connections"), "cable.connector")
+                chip(Text("\(download.segments.count) segments"), "cable.connector")
             }
             if let mirrors = download.mirrors, !mirrors.isEmpty {
                 chip(Text("\(download.transferSources.count) sources"), "square.stack.3d.up")
@@ -133,14 +138,13 @@ struct InspectorView: View {
     private func overview(_ download: Download) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             if let fraction = model.liveFraction(download), download.status != .completed {
-                // The same capsule bar as the list rows (not a linear `ProgressView`, whose platform
-                // rendering can override the tint with the window accent) — one progress language
-                // everywhere, always in the status color.
                 VStack(alignment: .leading, spacing: 5) {
                     HStack {
                         Text(Format.percent(fraction))
                         Spacer()
-                        Text(Format.speed(model.liveSpeed(download)))
+                        if download.status == .downloading {
+                            Text(Format.speed(model.liveSpeed(download)))
+                        }
                     }
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -154,18 +158,17 @@ struct InspectorView: View {
                 .accessibilityElement(children: .combine)
             }
 
-            // Size / progress, in a clean baseline-aligned key–value grid. A real multi-segment media
-            // grab (HLS/DASH) counts segments; a whole-file grab (progressive / paired video+audio) and
-            // plain files count bytes — for those the segment count is just 1–2 whole files, meaningless.
             Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 20, verticalSpacing: 8) {
                 if let plan = download.mediaPlan {
                     if plan.isMultiSegment {
-                        statRow("Segments", "\(download.mediaCompletedSegments) / \(plan.totalSegments)")
+                        let segments = model.liveMediaSegments(download)
+                        let completed = segments?.completed ?? download.mediaCompletedSegments
+                        statRow("Segments", "\(completed) / \(segments?.total ?? plan.totalSegments)")
                     } else if let total = model.liveTotalBytes(download), total > 0 {
                         statRow("Size", Format.bytes(total))
                     }
-                    if download.downloadedBytes > 0 {
-                        statRow("Downloaded", Format.bytes(download.downloadedBytes))
+                    if model.liveDownloadedBytes(download) > 0 {
+                        statRow("Downloaded", Format.bytes(model.liveDownloadedBytes(download)))
                     }
                 } else {
                     statRow("Size", Format.bytes(download.totalBytes))
@@ -176,7 +179,6 @@ struct InspectorView: View {
                 }
             }
 
-            // Per-download speed summary — live while transferring, the final figures once done.
             let peak = model.peakSpeed(download)
             let average = model.averageSpeed(download)
             if peak > 0 || average > 0 {
@@ -271,7 +273,7 @@ struct InspectorView: View {
             longRow("Destination", download.destinationFilePath)
             kvRow("Category", download.category.localizedName)
             kvRow("Resumable", download.supportsResume
-                  ? String(localized: "Yes (HTTP Range)")
+                  ? String(localized: "Yes")
                   : String(localized: "No"))
             kvRow("Added", download.createdAt.formatted(date: .abbreviated, time: .shortened))
             if let completed = download.completedAt {

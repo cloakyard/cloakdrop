@@ -79,11 +79,19 @@ public enum SegmentedFileWriter {
 final class SegmentFileHandle {
     private let handle: FileHandle
 
-    init(partPath: String, startingAtOffset offset: Int64) throws {
+    init(partPath: String, startingAtOffset offset: Int64, truncateBeforeWriting: Bool = false) throws {
         guard let handle = FileHandle(forWritingAtPath: partPath) else {
             throw DownloadError.fileSystem(reason: "Could not open \(partPath) for writing.")
         }
-        try handle.seek(toOffset: UInt64(offset))
+        do {
+            // A whole-body restart overwrites from zero. Unknown-length responses may finish
+            // earlier than a previous attempt, so seeking alone leaves a stale suffix in the file.
+            if truncateBeforeWriting { try handle.truncate(atOffset: 0) }
+            try handle.seek(toOffset: UInt64(offset))
+        } catch {
+            try? handle.close()
+            throw DownloadError.fileSystem(reason: error.localizedDescription)
+        }
         self.handle = handle
     }
 

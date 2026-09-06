@@ -28,9 +28,8 @@ private func jsonInt64(_ value: Any?) -> Int64? {
 }
 
 private func jsonDouble(_ value: Any?) -> Double? {
-    if let number = value as? NSNumber { return number.doubleValue }
-    if let string = value as? String { return Double(string) }
-    return nil
+    let number = (value as? NSNumber)?.doubleValue ?? (value as? String).flatMap(Double.init)
+    return number.flatMap { $0.isFinite && $0 >= 0 ? $0 : nil }
 }
 
 private func jsonHeaders(_ value: Any?) -> [String: String] {
@@ -54,7 +53,8 @@ public extension ExtractedMedia {
         // A few single-file extractions carry no `formats` array — the root object *is* the format.
         if rawFormats.isEmpty, jsonString(root["url"]) != nil { rawFormats = [root] }
 
-        let formats = rawFormats.compactMap(parseFormat)
+        let headers = jsonHeaders(root["http_headers"])
+        let formats = rawFormats.compactMap { parseFormat($0, inheritedHeaders: headers) }
         let subtitles = parseSubtitles(manual: root["subtitles"], automatic: root["automatic_captions"])
         return ExtractedMedia(
             title: sanitizeTitle(title), webpageURL: webpage,
@@ -87,7 +87,8 @@ public extension ExtractedMedia {
                     (convertibleSubtitleExts.firstIndex(of: (jsonString($0["ext"]) ?? "").lowercased()) ?? 99)
                         < (convertibleSubtitleExts.firstIndex(of: (jsonString($1["ext"]) ?? "").lowercased()) ?? 99)
                 }
-                guard let best = ranked.first, let url = jsonString(best["url"]).flatMap({ URL(string: $0) }) else { continue }
+                guard let best = ranked.first, let url = jsonString(best["url"]).flatMap({ URL(string: $0) }),
+                      ["http", "https"].contains(url.scheme?.lowercased() ?? ""), url.host != nil else { continue }
                 out.append(ExtractedSubtitle(
                     language: language, name: jsonString(best["name"]),
                     url: url, ext: (jsonString(best["ext"]) ?? "vtt").lowercased(), isAutomatic: isAutomatic
@@ -105,13 +106,15 @@ public extension ExtractedMedia {
         return authored.sorted { $0.language < $1.language } + auto.sorted { $0.language < $1.language }
     }
 
-    private static func parseFormat(_ raw: [String: Any]) -> ExtractedFormat? {
-        guard let urlString = jsonString(raw["url"]), let url = URL(string: urlString) else { return nil }
+    private static func parseFormat(_ raw: [String: Any], inheritedHeaders: [String: String]) -> ExtractedFormat? {
+        guard let urlString = jsonString(raw["url"]), let url = URL(string: urlString),
+              ["http", "https"].contains(url.scheme?.lowercased() ?? ""), url.host != nil else { return nil }
         let ext = jsonString(raw["ext"]) ?? (url.pathExtension.isEmpty ? "bin" : url.pathExtension)
         let formatID = jsonString(raw["format_id"]) ?? jsonString(raw["format"]) ?? url.lastPathComponent
         let proto = jsonString(raw["protocol"])
-        let width = jsonInt(raw["width"])
-        let height = jsonInt(raw["height"])
+        // Dimensions are untrusted extractor metadata and later participate in pixel arithmetic.
+        let width = jsonInt(raw["width"]).flatMap { (1...100_000).contains($0) ? $0 : nil }
+        let height = jsonInt(raw["height"]).flatMap { (1...100_000).contains($0) ? $0 : nil }
         var vcodec = jsonString(raw["vcodec"])
         var acodec = jsonString(raw["acodec"])
 
@@ -131,6 +134,21 @@ public extension ExtractedMedia {
             vcodec = "unknown"
             acodec = "unknown"
         }
+        // Audio sites (SoundCloud/Bandcamp/podcasts) can also omit codec metadata. A declared
+        // audio container supplies enough evidence to save its original bytes unchanged.
+        if vcodec == nil, acodec == nil,
+           directProtocols.contains((proto ?? "").lowercased()),
+           ["m4a", "aac", "mp3", "flac", "wav", "aiff", "opus", "ogg", "oga"].contains(ext.lowercased()) {
+            vcodec = "none"
+            acodec = "unknown"
+        }
+        var headers = inheritedHeaders
+        for (name, value) in jsonHeaders(raw["http_headers"]) {
+            for key in headers.keys where key.caseInsensitiveCompare(name) == .orderedSame {
+                headers.removeValue(forKey: key)
+            }
+            headers[name] = value
+        }
         return ExtractedFormat(
             formatID: formatID, url: url, ext: ext,
             vcodec: vcodec, acodec: acodec,
@@ -138,7 +156,9 @@ public extension ExtractedMedia {
             tbr: jsonDouble(raw["tbr"]), abr: jsonDouble(raw["abr"]),
             filesize: jsonInt64(raw["filesize"]) ?? jsonInt64(raw["filesize_approx"]),
             language: jsonString(raw["language"]),
-            proto: proto, httpHeaders: jsonHeaders(raw["http_headers"])
+            proto: proto, httpHeaders: headers,
+            manifestURL: jsonString(raw["manifest_url"]).flatMap { URL(string: $0) },
+            hasDRM: (raw["has_drm"] as? Bool) == true
         )
     }
 
@@ -175,7 +195,8 @@ public extension ExtractedMedia {
         let hasUnpairedDirectVideo = direct.contains(where: \.isVideoOnly)
             && !direct.contains(where: \.isProgressive)
             && audioOnly.isEmpty
-        if hasUnpairedDirectVideo, preferredManifestFormat?.isProgressive == true { return nil }
+        if hasUnpairedDirectVideo, let manifest = preferredManifestFormat,
+           manifest.isProgressive || manifest.manifestURL != nil { return nil }
 
         var tiers: [Int: Tier] = [:]
 
@@ -184,10 +205,16 @@ public extension ExtractedMedia {
         }
         for format in direct where format.isVideoOnly && format.height != nil {
             let audio = Self.bestAudio(forVideoExt: format.ext, from: audioOnly)
+            if audio == nil, direct.contains(where: \.isProgressive) { continue }
             let rank = Self.containerFamily(of: format.ext) == "mp4" ? 2 : 1   // mp4→AVFoundation, webm→ffmpeg
             merge(&tiers, candidate: Tier(video: format, audio: audio, rank: rank, height: format.height!))
         }
-        guard !tiers.isEmpty else { return nil }
+        if tiers.isEmpty {
+            guard let best = audioOnly.max(by: { ($0.abr ?? $0.tbr ?? 0) < ($1.abr ?? $1.tbr ?? 0) }) else { return nil }
+            let tier = Tier(video: best, audio: nil, rank: 0, height: 0)
+            return MediaStream(sourceURL: pageURL, format: .dash, variants: [makeVariant(tier)],
+                               subtitleTracks: subtitleTrackList)
+        }
 
         let ordered = tiers.values.sorted { $0.height > $1.height }
         let variants = ordered.map(makeVariant)
@@ -203,10 +230,15 @@ public extension ExtractedMedia {
     /// picker can choose among them. Otherwise (ordinary single-language content) expose just the
     /// audio each video tier pairs with, deduped by format id, so the picker isn't cluttered with
     /// container variants (m4a vs. webm) that aren't real language choices.
+    private func audioGroup(for format: ExtractedFormat) -> String {
+        directFormats.contains { $0.isAudioOnly && $0.language != nil }
+            ? (format.language ?? "und") : format.formatID
+    }
+
     private func audioTrackList(ordered: [Tier], audioOnly: [ExtractedFormat]) -> [MediaTrack] {
         func track(_ format: ExtractedFormat, isDefault: Bool) -> MediaTrack {
             MediaTrack(
-                id: format.formatID, kind: .audio, groupID: format.formatID,
+                id: format.formatID, kind: .audio, groupID: audioGroup(for: format),
                 name: format.ext.uppercased(), language: format.language, isDefault: isDefault,
                 segments: [MediaSegment(id: 0, url: format.url, duration: 0)]
             )
@@ -220,10 +252,10 @@ public extension ExtractedMedia {
                 if let existing = byLanguage[key], (existing.abr ?? existing.tbr ?? 0) >= (format.abr ?? format.tbr ?? 0) { continue }
                 byLanguage[key] = format
             }
-            let defaultID = ordered.first?.audio?.formatID
+            let defaultLanguage = ordered.first?.audio?.language ?? "und"
             return byLanguage.values
                 .sorted { ($0.language ?? "") < ($1.language ?? "") }
-                .map { track($0, isDefault: $0.formatID == defaultID) }
+                .map { track($0, isDefault: ($0.language ?? "und") == defaultLanguage) }
         }
 
         // Single-language: the distinct audio each tier references (deduped by format id).
@@ -274,14 +306,18 @@ public extension ExtractedMedia {
     private func makeVariant(_ tier: Tier) -> MediaVariant {
         let format = tier.video
         let resolution = (format.width).flatMap { width in (format.height).map { MediaResolution(width: width, height: $0) } }
-        let bandwidth = format.tbr.map { Int($0 * 1000) } ?? (tier.height * 2000)
+        let rate = format.tbr ?? format.abr
+        let bandwidth = rate.flatMap { value in
+            value.isFinite && value >= 0 ? Int(min(value, 1_000_000_000) * 1000) : nil
+        } ?? (min(max(tier.height, 0), 100_000) * 2000)
         let codecs = [format.vcodec, tier.audio?.acodec ?? format.acodec]
             .compactMap { $0 }.filter { $0.lowercased() != "none" }
         return MediaVariant(
             id: format.formatID, bandwidth: bandwidth, resolution: resolution,
             codecs: codecs, frameRate: format.fps,
-            audioGroupID: tier.audio?.formatID,          // nil for progressive (already has sound)
-            segments: [MediaSegment(id: 0, url: format.url, duration: 0)]
+            audioGroupID: tier.audio.map { audioGroup(for: $0) }, // nil for progressive (already has sound)
+            segments: [MediaSegment(id: 0, url: format.url, duration: 0)],
+            videoTrackPresent: format.hasVideo
         )
     }
 

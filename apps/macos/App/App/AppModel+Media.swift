@@ -107,10 +107,13 @@ extension AppModel {
                 // Some otherwise well-supported sites expose only HLS/DASH formats through yt-dlp
                 // (AcFun anime and Loom are current examples). yt-dlp remains a read-only oracle:
                 // choose one manifest, then let CloakDrop fetch/parse/download every media byte.
-                if let manifest = media.preferredManifestFormat {
-                    for (name, value) in manifest.httpHeaders { request.requestHeaders[name] = value }
+                if let manifest = media.preferredManifestFormat, let manifestURL = manifest.resolvedManifestURL {
+                    // The parent manifest retains rendition groups; the child video playlist can
+                    // omit every audio/subtitle URL. Keep its actual context for later resolution.
+                    request = Self.applyingExtractorHeaders(manifest.httpHeaders, to: request, resourceURL: manifestURL)
+                    request.url = manifestURL
                     let headers = Self.mediaHeaders(for: request)
-                    if let stream = try? await manager.resolveMediaStream(url: manifest.url, headers: headers),
+                    if let stream = try? await manager.resolveMediaStream(url: manifestURL, headers: headers),
                        !stream.variants.isEmpty {
                         routeStream(stream, request: request, extracted: media, forcePicker: forcePicker)
                         return
@@ -166,7 +169,7 @@ extension AppModel {
             let subtitleIDs = defaultSubtitleTrackIDs(for: stream)
             guard let plan = await buildPlan(from: stream, variantID: best.id, subtitleTrackIDs: subtitleIDs,
                                              audioOnly: false, audioTrackID: nil,
-                                             isExtracted: extracted != nil, request: request) else {
+                                             request: request) else {
                 // A manifest can still fall back to a plain download; a page URL cannot (it's HTML).
                 if extracted == nil { addManifestFallback(request) } else {
                     presentMediaError(String(localized: "Couldn’t prepare this download."))
@@ -204,7 +207,6 @@ extension AppModel {
             guard let plan = await buildPlan(from: selection.stream, variantID: variantID,
                                              subtitleTrackIDs: subtitleTrackIDs, audioOnly: audioOnly,
                                              audioTrackID: audioTrackID,
-                                             isExtracted: selection.extracted != nil,
                                              request: selection.request) else {
                 // The sheet is already dismissed — a silent no-op would read as a successful grab.
                 presentMediaError(String(localized: "Couldn’t prepare this download."))
@@ -225,7 +227,7 @@ extension AppModel {
     private func buildPlan(
         from stream: MediaStream, variantID: String,
         subtitleTrackIDs: [String], audioOnly: Bool, audioTrackID: String?,
-        isExtracted: Bool, request: DownloadRequest
+        request: DownloadRequest
     ) async -> MediaPlan? {
         if audioOnly {
             return await buildAudioOnlyPlan(from: stream, trackID: variantID,
@@ -240,18 +242,11 @@ extension AppModel {
                 subtitleTrackIDs: subtitleTrackIDs, headers: headers
             )
         }
-        // Pre-resolved (extractor / DASH / inline playlist): pair the chosen audio, else the variant's
-        // own rendition group, else the stream default. An extractor tier with no audio group is
-        // *progressive* — it already carries its sound, so pairing a separate track would download
-        // redundant audio and mux a mismatched codec over the tier's own.
+        // Pre-resolved (extractor / DASH / inline playlist): the model distinguishes a direct
+        // progressive tier from a DASH representation, including manifests found by the extractor.
         let audio: MediaTrack?
         if let audioTrackID, let chosen = stream.audioTracks.first(where: { $0.id == audioTrackID }) {
             audio = chosen
-        } else if let group = variant.audioGroupID {
-            let inGroup = stream.audioTracks.filter { $0.groupID == group }
-            audio = inGroup.first(where: \.isDefault) ?? inGroup.first ?? stream.audioTrack(for: variant)
-        } else if isExtracted {
-            audio = nil
         } else {
             audio = stream.audioTrack(for: variant)
         }
@@ -268,7 +263,7 @@ extension AppModel {
         from stream: MediaStream, trackID: String,
         subtitleTrackIDs: [String], request: DownloadRequest
     ) async -> MediaPlan? {
-        if let track = stream.audioTracks.first(where: { $0.id == trackID }) ?? stream.defaultAudioTrack {
+        if let track = stream.standaloneAudioTracks.first(where: { $0.id == trackID }) ?? stream.defaultStandaloneAudioTrack {
             if track.segments.isEmpty {
                 let headers = Self.mediaHeaders(for: request)
                 return try? await manager.resolveAudioOnlyPlan(
@@ -313,17 +308,37 @@ extension AppModel {
         // the chosen tier, not a representative top-tier header set. Also keep manually supplied
         // page cookies on their original host only; a flattened Cookie header has lost the browser
         // jar's domain/path metadata and is unsafe (and often rejected) on a media CDN.
-        for (name, value) in extracted.downloadHeaders(forFormatID: variantID) {
-            request.requestHeaders[name] = value
+        if let format = extracted.formats.first(where: { $0.formatID == variantID }), format.isDirectFile {
+            request = Self.applyingExtractorHeaders(format.httpHeaders, to: request, resourceURL: format.url)
         }
-        if let mediaHost = extracted.downloadURL(forFormatID: variantID)?.host?.lowercased(),
-           let pageHost = request.url.host?.lowercased(), mediaHost != pageHost {
+        request.suggestedFileName = extracted.downloadName(forFormatID: variantID)
+        return request
+    }
+
+    /// Replace headers case-insensitively and scope flattened page cookies before contacting a CDN.
+    /// Extractor headers must also override the capture's convenience referrer/cookie fields.
+    private static func applyingExtractorHeaders(
+        _ headers: [String: String], to original: DownloadRequest, resourceURL: URL
+    ) -> DownloadRequest {
+        var request = original
+        let crossesHost = resourceURL.host?.lowercased() != request.url.host?.lowercased()
+        if crossesHost {
             request.cookies = nil
             for key in request.requestHeaders.keys where key.caseInsensitiveCompare("Cookie") == .orderedSame {
                 request.requestHeaders.removeValue(forKey: key)
             }
         }
-        request.suggestedFileName = extracted.downloadName(forFormatID: variantID)
+        for (name, value) in headers {
+            // A global extractor Cookie header can originate from a flattened manual capture too;
+            // it carries no domain/path proof, so cannot safely cross into a new host.
+            if crossesHost, name.caseInsensitiveCompare("Cookie") == .orderedSame { continue }
+            for key in request.requestHeaders.keys where key.caseInsensitiveCompare(name) == .orderedSame {
+                request.requestHeaders.removeValue(forKey: key)
+            }
+            request.requestHeaders[name] = value
+            if name.caseInsensitiveCompare("Referer") == .orderedSame { request.referrer = nil }
+            if name.caseInsensitiveCompare("Cookie") == .orderedSame { request.cookies = nil }
+        }
         return request
     }
 
@@ -351,7 +366,7 @@ extension AppModel {
     static func friendlyExtractionMessage(_ error: MediaExtractionError) -> String {
         switch error {
         case .noGrabbableFormats:
-            return String(localized: "This video is protected — no downloadable stream is available.")
+            return String(localized: "No supported download was found for this page. Try playing the video in the built-in browser.")
         case .timedOut:
             return String(localized: "Reading the video timed out. Try again.")
         case .toolUnavailable, .invalidOutput:

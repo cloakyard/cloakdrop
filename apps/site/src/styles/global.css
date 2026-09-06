@@ -28,6 +28,7 @@
   --accent-strong: #175e76;
   --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent);
   --accent-ink: #17647d;
+  --button-ink: #fff;
 
   --bg: #f3f5f4;
   --surface: #fbfcfc;
@@ -57,8 +58,8 @@
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Menlo', monospace;
 
   /* Fluid type scale */
-  --t-mono: clamp(0.68rem, 0.65rem + 0.12vw, 0.75rem);
-  --t-body: clamp(0.96rem, 0.93rem + 0.12vw, 1.02rem);
+  --t-mono: .875rem;
+  --t-body: clamp(1rem, .98rem + .12vw, 1.0625rem);
   --t-lead: clamp(1.04rem, 0.98rem + 0.3vw, 1.2rem);
   --t-h3: clamp(1.12rem, 1rem + 0.5vw, 1.38rem);
   --t-h3-lg: clamp(1.4rem, 1.1rem + 1.1vw, 1.9rem);
@@ -81,6 +82,7 @@
     --accent-strong: #7fd0dc;
     --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
     --accent-ink: #6fc4d6;
+    --button-ink: #071014;
 
     --bg: #0a0f11;
     --surface: #11181b;
@@ -123,11 +125,11 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
-  scroll-padding-top: 5rem;
+  scroll-padding-top: 4.5rem;
 }
 
 [id] {
-  scroll-margin-top: 5rem;
+  scroll-margin-top: 1rem;
 }
 
 body {
@@ -139,6 +141,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  overflow-wrap: break-word;
   /* `clip` (not `hidden`) prevents sideways overflow WITHOUT turning <body> into
      a scroll container — `overflow-x: hidden` would force overflow-y to `auto`,
      nesting an unwanted scroll context. */
@@ -269,16 +272,16 @@ svg {
   gap: 0.55rem;
   font-family: var(--font-mono);
   font-weight: 650;
-  font-size: 0.72rem;
+  font-size: .875rem;
   letter-spacing: 0.035em;
-  line-height: 1;
+  line-height: 1.3;
   padding: 0.85rem 1.35rem;
   border-radius: var(--radius);
   border: 1px solid var(--line-2);
   background: var(--surface);
   color: var(--ink);
   cursor: pointer;
-  white-space: nowrap;
+  white-space: normal;
   min-height: 48px;
   text-transform: uppercase;
   transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
@@ -291,7 +294,7 @@ svg {
 .btn--primary {
   border-color: transparent;
   background: var(--accent);
-  color: #fff;
+  color: var(--button-ink);
   box-shadow: var(--shadow-btn);
 }
 
@@ -334,3 +337,5 @@ svg {
 .skip-link:focus {
   top: 1rem;
 }
+
+.btn svg { flex: none; }

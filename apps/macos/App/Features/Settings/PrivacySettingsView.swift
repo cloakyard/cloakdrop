@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// Settings ▸ Privacy: CloakDrop's full privacy policy, adapted for a native download manager
-/// from the Cloakyard suite's shared policy. The page scrolls; the summary card up top is the
-/// at-a-glance version, the sections below are the detail.
+/// Settings ▸ Privacy: the native version of the repository's PRIVACY.md. Keep the revision date,
+/// network/storage disclosures and localized copy aligned with that policy.
 struct PrivacySettingsView: View {
     var body: some View {
         ScrollView {
@@ -37,9 +36,9 @@ struct PrivacySettingsView: View {
                 }
             }
             Text("""
-            CloakDrop is a free, open-source download manager that runs entirely on your Mac. This \
-            policy explains what personal data we collect (spoiler: none) and exactly which network \
-            connections the app makes.
+            CloakDrop is a free, open-source download manager. This policy explains the data stored \
+            on your Mac, the requests made for work you initiate or configure, and the controls \
+            available to you.
             """)
                 .font(.callout)
                 .foregroundStyle(.secondary)
@@ -53,7 +52,7 @@ struct PrivacySettingsView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Private by design")
                 .font(.subheadline.weight(.semibold))
-            guarantee("Everything runs on-device")
+            guarantee("App data stays on your Mac")
             guarantee("No accounts, analytics, or telemetry")
             guarantee("Only connections you initiate or configure")
         }
@@ -97,7 +96,7 @@ struct PrivacySettingsView: View {
                     // swiftlint:disable:next line_length
                     "Pages and subresources loaded by the built-in browser — plus your query to the selected search engine, if address-bar search is on, only when you press Return.",
                     // swiftlint:disable:next line_length
-                    "Proxy routing for HTTP-based downloads and speed tests — the macOS system proxy by default, a manual proxy when selected, or Direct mode. FTP and FTPS stay direct; a selected manual proxy is also mirrored into the built-in browser.",
+                    "HTTP downloads and speed tests use system, direct or manual proxy routing. The browser uses the system configuration unless you select a manual proxy, even when downloads use Direct mode. FTP and FTPS connect directly. The app's proxy setting is not passed to yt-dlp.",
                     "A speed-test provider (Cloudflare or Ookla), and only while a test you started is running.",
                     // swiftlint:disable:next line_length
                     "The ad blocker's open-source blocklist, if you pick one in Browser settings — fetched only when you choose it or press Update Now, never on its own."
@@ -109,7 +108,7 @@ struct PrivacySettingsView: View {
             )
 
             bulletedSection(
-                "No personal data collected",
+                "No app data sent to the project",
                 intro: "The CloakDrop project has no accounts or analytics service and receives none of the following from the app:",
                 bullets: [
                     "Names, email addresses, or account details — there are no accounts.",
@@ -132,21 +131,22 @@ struct PrivacySettingsView: View {
             """)
 
             section("Bundled tools", """
-            CloakDrop includes two open-source, sandboxed command-line helpers. ffmpeg works locally \
-            to combine or transform media. yt-dlp may contact a video page you submit and related \
-            service endpoints to resolve metadata and formats, but it does not download the \
-            selected media payload. CloakDrop's own engine transfers the files and media you select.
+            Builds can include two optional, sandboxed helpers. ffmpeg combines or repackages local \
+            media without re-encoding or network access. yt-dlp resolves metadata and format URLs \
+            for pages you submit; it does not transfer the selected media payload. It ignores \
+            external configuration and plugins. Its routing depends on its runtime and environment. \
+            CloakDrop's engine downloads the selected payload.
             """)
 
             section("The built-in browser", """
-            CloakDrop has a browser built in: open it, visit any site, and grab the video, audio, \
-            or files on the page. WebKit loads the pages you visit and the resources they request, \
-            which can include third-party content; the optional blocker can reduce some requests. \
-            CloakDrop keeps no browsing-history list — only cookies and site data, so you stay \
-            signed in between launches — and one button in Browser settings wipes all of it. When \
-            you grab a file, cookies applicable to that address ride along so downloads behind a \
-            login work. If you turn address-bar search off, address-bar text is never sent to a \
-            search engine.
+            The built-in browser loads visited pages and their subresources, including third-party \
+            content. The optional blocker can reduce some requests. WebKit keeps cookies and site \
+            data for logins; CloakDrop keeps no browsing-history list. Browser settings can wipe \
+            that data. Supported media and file downloads can use applicable cookies; site and \
+            login requirements may still prevent a grab. For page resolution, a private temporary \
+            cookie file preserves domain and path rules and is removed when resolution finishes. \
+            Selected-download cookies or headers can remain in its local record for resume. Search \
+            queries are sent only on Return when address-bar search is enabled.
             """)
 
             section("What contacted services can see", """
@@ -157,16 +157,15 @@ struct PrivacySettingsView: View {
             """)
 
             section("Open source and licensing", """
-            CloakDrop is open source under the MIT License. You can read the entire source code, \
-            verify every claim in this policy for yourself, and build your own copy — with no fees \
-            and no restrictions.
+            CloakDrop source is available under the MIT License. Bundled third-party components \
+            retain their own licenses. You can inspect the code and build your own copy, subject \
+            to the applicable license terms.
             """)
 
-            section("Your rights, and changes to this policy", """
-            Because CloakDrop collects no personal data, there is nothing for us to disclose, \
-            correct, or delete on your behalf under GDPR, CCPA, or similar laws. If this policy \
-            ever changes, the updated version will appear here with a new date above; given \
-            CloakDrop's privacy-by-design nature, significant changes are unlikely.
+            section("Questions and policy changes", """
+            The CloakDrop project holds no server-side record of your app activity to disclose, \
+            correct, or delete. You control local records and website data in the app. Policy \
+            changes will appear here with a new revision date.
             """)
         }
     }
@@ -224,6 +223,7 @@ struct PrivacySettingsView: View {
     private var footer: some View {
         VStack(alignment: .leading, spacing: 10) {
             Divider()
+            linkRow("Privacy Policy", url: AppLinks.repository.appending(path: "blob/main/PRIVACY.md"))
             linkRow("View the source on GitHub", url: AppLinks.repository)
             linkRow("Ask a question or report an issue", url: AppLinks.reportBug)
         }
@@ -248,8 +248,8 @@ struct PrivacySettingsView: View {
     private static let revisionDate: Date = {
         var components = DateComponents()
         components.year = 2026
-        components.month = 8
-        components.day = 10
-        return Calendar.current.date(from: components) ?? Date()
+        components.month = 9
+        components.day = 6
+        return Calendar(identifier: .gregorian).date(from: components) ?? Date()
     }()
 }

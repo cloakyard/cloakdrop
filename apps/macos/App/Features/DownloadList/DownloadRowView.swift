@@ -207,10 +207,16 @@ struct DownloadRowView: View {
                 return String(localized: "\(segments.completed) of \(segments.total) segments · \(speed)")
             }
             let done = Format.bytes(model.liveDownloadedBytes(download))
-            let total = Format.bytes(model.liveTotalBytes(download))
             let speed = Format.speed(model.liveSpeed(download))
-            let eta = Format.eta(model.eta(download))
-            return String(localized: "\(done) of \(total) · \(speed) · \(eta) left")
+            guard let totalBytes = model.liveTotalBytes(download) else {
+                return String(localized: "\(done) · \(speed)")
+            }
+            let total = Format.bytes(totalBytes)
+            if let remaining = model.eta(download) {
+                let eta = Format.eta(remaining)
+                return String(localized: "\(done) of \(total) · \(speed) · \(eta) left")
+            }
+            return String(localized: "\(done) of \(total) · \(speed)")
         case .completed:
             // The checksum result is appended — and, for a mismatch, colored — in `statusSubtitle`.
             return String(localized: "\(Format.bytes(download.totalBytes)) · Completed")
@@ -221,7 +227,10 @@ struct DownloadRowView: View {
                 return String(localized: "Paused · \(segments.completed) of \(segments.total) segments")
             }
             let done = Format.bytes(model.liveDownloadedBytes(download))
-            let total = Format.bytes(download.totalBytes)
+            guard let totalBytes = model.liveTotalBytes(download) else {
+                return String(localized: "Paused · \(done)")
+            }
+            let total = Format.bytes(totalBytes)
             return String(localized: "Paused · \(done) of \(total)")
         case .queued:
             return String(localized: "Queued")
@@ -246,7 +255,7 @@ private struct MediaThumbnailImage: View {
                 if let image {
                     Image(nsImage: image)
                         .resizable()
-                        .aspectRatio(contentMode: .fill)
+                        .scaledToFill()
                 } else {
                     Image(systemName: "film")
                         .foregroundStyle(.secondary)

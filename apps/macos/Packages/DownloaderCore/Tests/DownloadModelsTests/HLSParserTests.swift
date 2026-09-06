@@ -180,12 +180,8 @@ struct HLSParserTests {
         b.mp4
         #EXT-X-ENDLIST
         """
-        let stream = try HLSParser.parse(media, baseURL: base)
-        let segments = try #require(stream.variants.first?.segments)
-        #expect(segments.count == 2)
-        // Both ranges are invalid → no byteRange attached, rather than an overflowing/out-of-range one.
-        #expect(segments[0].byteRange == nil)
-        #expect(segments[1].byteRange == nil)
+        // Dropping an invalid range would download a whole resource as a segment. Fail instead.
+        #expect(throws: MediaParseError.self) { _ = try HLSParser.parse(media, baseURL: base) }
     }
 
     @Test("EXT-X-MAP becomes the variant's fMP4 init segment")

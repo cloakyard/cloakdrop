@@ -2,11 +2,11 @@
 import { stats } from '../data/site';
 ---
 
-<section class="specs-wrap" aria-label="Product proof" data-reveal>
+<section class="specs-wrap" aria-label="At a glance" data-reveal>
   <div class="container ledger">
     <div class="ledger-key" aria-hidden="true">
-      <span>System proof</span>
-      <b>04 signals</b>
+      <span>At a glance</span>
+      <b>Made for Mac</b>
     </div>
 
     <ul class="specs">
@@ -31,6 +31,7 @@ import { stats } from '../data/site';
   }
 
   .ledger {
+    container-type: inline-size;
     display: grid;
     grid-template-columns: minmax(9rem, 0.65fr) minmax(0, 5fr);
   }
@@ -44,7 +45,7 @@ import { stats } from '../data/site';
     border-right: 1px solid var(--line-2);
     color: var(--ink-4);
     font-family: var(--font-mono);
-    font-size: 0.6875rem;
+    font-size: .875rem;
     letter-spacing: 0.045em;
     line-height: 1.35;
     text-transform: uppercase;
@@ -95,7 +96,7 @@ import { stats } from '../data/site';
     grid-column: 1;
     grid-row: 1;
     color: var(--ink);
-    font-size: clamp(2rem, 1.45rem + 1.5vw, 2.8rem);
+    font-size: clamp(1.85rem, 1.25rem + 1.4vw, 2.6rem);
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.045em;
@@ -130,6 +131,7 @@ import { stats } from '../data/site';
 
   @media (max-width: 900px) {
     .ledger {
+    container-type: inline-size;
       grid-template-columns: 1fr;
     }
 
@@ -152,7 +154,7 @@ import { stats } from '../data/site';
 
   @media (max-width: 640px) {
     .specs {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .cell:nth-child(3) {
@@ -179,6 +181,12 @@ import { stats } from '../data/site';
     }
   }
 
+  @container (max-width: 16rem) {
+    .specs { grid-template-columns: minmax(0, 1fr); }
+    .cell + .cell { border-left: 0; border-top: 1px solid var(--line); }
+    .cell a { padding-inline: 0; }
+  }
+
   @media (max-width: 360px) {
     .cell a {
       min-height: 7.35rem;
@@ -200,7 +208,7 @@ import { stats } from '../data/site';
     }
 
     .lbl {
-      font-size: 0.67rem;
+      font-size: .875rem;
     }
   }
 </style>

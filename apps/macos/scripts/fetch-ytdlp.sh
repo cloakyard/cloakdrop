@@ -32,7 +32,7 @@ YTDLP_VERSION="2026.08.19"
 YTDLP_URL="https://github.com/yt-dlp/yt-dlp/releases/download/${YTDLP_VERSION}/yt-dlp_macos.zip"
 # SHA-256 of the official yt-dlp_macos.zip (onedir) for the pinned version. Cross-check against the
 # release's SHA2-256SUMS before trusting a bump. Set YTDLP_SHA256="" to print the hash and stop.
-YTDLP_SHA256="${YTDLP_SHA256:-07e54b0865303c864006925913bce2604f8ee8cc6f18699bac9c309f9328a6d8}"
+YTDLP_SHA256="${YTDLP_SHA256-07e54b0865303c864006925913bce2604f8ee8cc6f18699bac9c309f9328a6d8}"
 
 # --- Paths -------------------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -40,6 +40,13 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 VENDOR_DIR="${REPO_ROOT}/Vendor/yt-dlp"
 BUILD_DIR="${VENDOR_DIR}/build"
 mkdir -p "${BUILD_DIR}"
+DOWNLOAD_TEMP=""
+STAGE=""
+cleanup() {
+  [ -z "${DOWNLOAD_TEMP}" ] || rm -f "${DOWNLOAD_TEMP}"
+  [ -z "${STAGE}" ] || rm -rf "${STAGE}"
+}
+trap cleanup EXIT
 
 info()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 fail()  { printf '\033[1;31merror:\033[0m %s\n' "$*" >&2; exit 1; }
@@ -51,7 +58,10 @@ command -v lipo >/dev/null 2>&1 || fail "lipo is required (Xcode Command Line To
 DL="${BUILD_DIR}/yt-dlp_macos-${YTDLP_VERSION}.zip"
 if [ ! -f "${DL}" ]; then
   info "Downloading yt-dlp ${YTDLP_VERSION} (onedir, ~51 MB)"
-  curl -fL --retry 3 -o "${DL}" "${YTDLP_URL}"
+  DOWNLOAD_TEMP="$(mktemp "${DL}.download.XXXXXX")"
+  curl --proto '=https' --proto-redir '=https' -fL --retry 3 -o "${DOWNLOAD_TEMP}" "${YTDLP_URL}"
+  mv "${DOWNLOAD_TEMP}" "${DL}"
+  DOWNLOAD_TEMP=""
 fi
 
 ACTUAL_SHA="$(shasum -a 256 "${DL}" | awk '{print $1}')"
@@ -72,31 +82,28 @@ info "Checksum verified"
 
 # --- Unpack ------------------------------------------------------------------------------------
 # The zip contains `yt-dlp_macos` (the executable) + `_internal/` (Python runtime + deps).
-STAGE="${BUILD_DIR}/unzipped"
-rm -rf "${STAGE}"; mkdir -p "${STAGE}"
+STAGE="$(mktemp -d "${BUILD_DIR}/unzipped.XXXXXX")"
 unzip -q "${DL}" -d "${STAGE}"
 [ -f "${STAGE}/yt-dlp_macos" ] && [ -d "${STAGE}/_internal" ] || fail "unexpected archive layout (no yt-dlp_macos + _internal)"
-rm -rf "${VENDOR_DIR}/yt-dlp" "${VENDOR_DIR}/_internal"
-mv "${STAGE}/yt-dlp_macos" "${VENDOR_DIR}/yt-dlp"
-mv "${STAGE}/_internal" "${VENDOR_DIR}/_internal"
-rm -rf "${STAGE}"
-chmod +x "${VENDOR_DIR}/yt-dlp"
+mv "${STAGE}/yt-dlp_macos" "${STAGE}/yt-dlp"
+chmod +x "${STAGE}/yt-dlp"
 
 # --- Thin universal2 → arm64 -------------------------------------------------------------------
-# CloakDrop bundles no x86_64, and thinning ~halves the vendored size. Best-effort: a missed file
-# just stays universal (still runs on arm64), so correctness never depends on it. `-type f` skips the
+# CloakDrop bundles no x86_64, and thinning ~halves the vendored size. Reject incompatible native
+# code rather than shipping a helper that fails only at runtime. `-type f` skips the
 # framework's symlinks (thinning one would replace the link with a file and break the structure).
 info "Thinning universal2 → arm64 (touches ~100 runtime files)"
 thin_one() {
   local f="$1" archs
   archs="$(lipo -archs "$f" 2>/dev/null)" || return 0
-  case "$archs" in *arm64*) ;; *) return 0 ;; esac
+  case "$archs" in *arm64*) ;; *) fail "native runtime file has no arm64 code: $f" ;; esac
   [ "$(echo "$archs" | wc -w)" -gt 1 ] || return 0
-  lipo -thin arm64 "$f" -output "$f.thin" 2>/dev/null && mv "$f.thin" "$f"
+  lipo -thin arm64 "$f" -output "$f.thin"
+  mv "$f.thin" "$f"
 }
-thin_one "${VENDOR_DIR}/yt-dlp"
+thin_one "${STAGE}/yt-dlp"
 while IFS= read -r -d '' f; do thin_one "$f"; done \
-  < <(find "${VENDOR_DIR}/_internal" -type f \( -name "*.so" -o -name "*.dylib" -o -name "Python" \) -print0)
+  < <(find "${STAGE}/_internal" -type f \( -name "*.so" -o -name "*.dylib" -o -name "Python" \) -print0)
 
 # --- Normalize framework layout ----------------------------------------------------------------
 # PyInstaller ships Python.framework with real files where a framework needs versioned SYMLINKS
@@ -115,17 +122,29 @@ fix_framework() {
   done
 }
 while IFS= read -r -d '' fw; do fix_framework "$fw"; done \
-  < <(find "${VENDOR_DIR}/_internal" -type d -name "*.framework" -print0)
+  < <(find "${STAGE}/_internal" -type d -name "*.framework" -print0)
 
 # --- Ad-hoc sign the tree ----------------------------------------------------------------------
 # For local (Debug) runs; the app's build phase re-signs with your identity for release. Deepest-first:
 # nested dylibs, then the Python framework, then the executable (thinning invalidated signatures, so
 # re-signing is required for the tree to load).
 info "Ad-hoc signing the vendored tree"
-find "${VENDOR_DIR}/_internal" -type f \( -name "*.so" -o -name "*.dylib" \) -exec codesign --force --sign - {} + 2>/dev/null || true
-[ -d "${VENDOR_DIR}/_internal/Python.framework" ] && codesign --force --deep --sign - "${VENDOR_DIR}/_internal/Python.framework" 2>/dev/null || true
-codesign --force --sign - "${VENDOR_DIR}/yt-dlp"
+find "${STAGE}/_internal" -type f \( -name "*.so" -o -name "*.dylib" \) -exec codesign --force --sign - {} +
+if [ -d "${STAGE}/_internal/Python.framework" ]; then
+  codesign --force --deep --sign - "${STAGE}/_internal/Python.framework"
+  codesign --verify --deep --strict "${STAGE}/_internal/Python.framework"
+fi
+codesign --force --sign - "${STAGE}/yt-dlp"
+codesign --verify --strict "${STAGE}/yt-dlp"
+[ "$(lipo -archs "${STAGE}/yt-dlp")" = "arm64" ] || fail "yt-dlp must contain only arm64 code."
+ACTUAL_VERSION="$("${STAGE}/yt-dlp" --ignore-config --version)"
+[ "${ACTUAL_VERSION}" = "${YTDLP_VERSION}" ] || fail "unexpected yt-dlp version: ${ACTUAL_VERSION}"
+
+# Preserve the working bundle until unpacking, thinning, signing, and launch verification succeed.
+rm -rf "${VENDOR_DIR}/yt-dlp" "${VENDOR_DIR}/_internal"
+mv "${STAGE}/yt-dlp" "${VENDOR_DIR}/yt-dlp"
+mv "${STAGE}/_internal" "${VENDOR_DIR}/_internal"
 
 info "Vendored $(du -sh "${VENDOR_DIR}" | grep -v build | awk '{print $1}') (arm64) → Vendor/yt-dlp/{yt-dlp,_internal}"
-info "Sanity check:"; "${VENDOR_DIR}/yt-dlp" --version 2>&1 | sed 's/^/    yt-dlp /'
+info "Verified yt-dlp ${ACTUAL_VERSION}"
 info "Done. Rebuild CloakDrop to bundle it (project.yml's \"Bundle & sign yt-dlp\" phase)."
