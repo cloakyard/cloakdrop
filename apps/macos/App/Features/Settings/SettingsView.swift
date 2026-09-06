@@ -215,8 +215,8 @@ struct SettingsView: View {
                 Text("Proxy")
             } footer: {
                 Text("""
-                Beyond the URLs you download, CloakDrop only ever connects to a proxy configured \
-                here — or to the server you pick in Speed Test, when you run one.
+                Controls how HTTP downloads and speed tests connect. A manual proxy also applies \
+                to the built-in browser. FTP and FTPS connect directly.
                 """)
             }
 

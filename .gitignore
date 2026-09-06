@@ -32,6 +32,8 @@ CloakDrop.xcodeproj/
 .swiftpm/
 apps/macos/Packages/*/.build/
 Package.resolved
+# Keep the app's headless package reproducible while ignoring generated Xcode lockfiles.
+!apps/macos/Packages/DownloaderCore/Package.resolved
 
 # Xcode SPM integration caches
 *.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/

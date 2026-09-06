@@ -24,7 +24,8 @@ public struct MediaResolver {
     /// Fetch and parse a manifest URL. An HLS multivariant playlist comes back with its variants
     /// *unresolved* (segments empty, `playlistURL` set); DASH comes back fully resolved.
     public func fetchManifest(url: URL, headers: [String: String] = [:]) async throws -> MediaStream {
-        try Self.parse(try await fetch(url: url, headers: headers), url: url)
+        let (data, finalURL) = try await fetch(url: url, headers: headers)
+        return try Self.parse(data, url: finalURL)
     }
 
     /// Fetch a manifest and return a plan for a chosen variant — or, when `variantID` is nil, the
@@ -36,7 +37,7 @@ public struct MediaResolver {
         if let variantID {
             chosen = stream.variants.first { $0.id == variantID }
         } else {
-            chosen = stream.variants.max { $0.bandwidth < $1.bandwidth }
+            chosen = stream.bestVariant
         }
         guard let variant = chosen else { throw MediaParseError.noContent }
 
@@ -44,10 +45,10 @@ public struct MediaResolver {
         guard !resolved.segments.isEmpty else { throw MediaParseError.noContent }
 
         // Pair a separate audio track (HLS AUDIO group / DASH audio set) so the video downloads with
-        // sound, resolving its media playlist too (HLS). A failed audio resolution degrades to a
-        // video-only grab rather than failing the whole download.
+        // sound, resolving its media playlist too (HLS). A failed separate audio request must fail
+        // preparation: silently dropping it would publish a successful-looking but silent video.
         var audio = stream.audioTrack(for: resolved)
-        if let track = audio { audio = try? await resolveAudioTrack(track, headers: headers) }
+        if let track = audio { audio = try await resolveAudioTrack(track, headers: headers) }
         return stream.plan(for: resolved, audio: audio)
     }
 
@@ -55,8 +56,8 @@ public struct MediaResolver {
     /// when already resolved (DASH, or an inline media playlist).
     public func resolveAudioTrack(_ track: MediaTrack, headers: [String: String] = [:]) async throws -> MediaTrack {
         guard track.segments.isEmpty, let playlistURL = track.playlistURL else { return track }
-        let media = try Self.parse(try await fetch(url: playlistURL, headers: headers), url: playlistURL)
-        guard let resolved = media.variants.first else { throw MediaParseError.noContent }
+        let media = try await fetchManifest(url: playlistURL, headers: headers)
+        guard let resolved = media.variants.first, !resolved.segments.isEmpty else { throw MediaParseError.noContent }
         return MediaTrack(
             id: track.id, kind: track.kind, groupID: track.groupID, name: track.name,
             language: track.language, isDefault: track.isDefault, playlistURL: playlistURL,
@@ -77,7 +78,7 @@ public struct MediaResolver {
         if Self.directSubtitleExtensions.contains(url.pathExtension.lowercased()) {
             return track.withSegments([MediaSegment(id: 0, url: url, duration: 0)], initSegment: nil)
         }
-        let media = try Self.parse(try await fetch(url: url, headers: headers), url: url)
+        let media = try await fetchManifest(url: url, headers: headers)
         guard let resolved = media.variants.first else { throw MediaParseError.noContent }
         return track.withSegments(resolved.segments, initSegment: resolved.initSegment)
     }
@@ -86,8 +87,8 @@ public struct MediaResolver {
     /// the variant unchanged when it's already resolved (DASH, or a lone media playlist).
     public func resolveVariant(_ variant: MediaVariant, headers: [String: String] = [:]) async throws -> MediaVariant {
         guard variant.segments.isEmpty, let playlistURL = variant.playlistURL else { return variant }
-        let media = try Self.parse(try await fetch(url: playlistURL, headers: headers), url: playlistURL)
-        guard let resolved = media.variants.first else { throw MediaParseError.noContent }
+        let media = try await fetchManifest(url: playlistURL, headers: headers)
+        guard let resolved = media.variants.first, !resolved.segments.isEmpty else { throw MediaParseError.noContent }
         // Keep the multivariant metadata (bandwidth/resolution/codecs), take the segments + init.
         return MediaVariant(
             id: variant.id,
@@ -99,7 +100,8 @@ public struct MediaResolver {
             audioGroupID: variant.audioGroupID,
             subtitleGroupID: variant.subtitleGroupID,
             initSegment: resolved.initSegment,
-            segments: resolved.segments
+            segments: resolved.segments,
+            videoTrackPresent: variant.videoTrackPresent
         )
     }
 
@@ -116,15 +118,19 @@ public struct MediaResolver {
 
     /// Fetch a small resource (a playlist) fully into memory, bounded by `maxManifestBytes` so a
     /// runaway response fails cleanly instead of exhausting memory.
-    private func fetch(url: URL, headers: [String: String]) async throws -> Data {
-        let (_, stream) = try await httpClient.stream(HTTPDownloadRequest(url: url, headers: headers))
+    private func fetch(url: URL, headers: [String: String]) async throws -> (Data, URL) {
+        let (head, stream) = try await httpClient.stream(HTTPDownloadRequest(url: url, headers: headers))
+        guard head.isSuccess else { throw DownloadError.httpStatus(code: head.statusCode) }
         var data = Data()
         for try await chunk in stream {
-            data.append(chunk)
-            guard data.count <= maxManifestBytes else {
+            try Task.checkCancellation()
+            guard chunk.count <= maxManifestBytes - data.count else {
                 throw MediaParseError.malformed("Manifest is larger than the \(maxManifestBytes)-byte limit.")
             }
+            data.append(chunk)
         }
-        return data
+        // Signed playback endpoints commonly redirect into another CDN directory. Relative
+        // playlists, segments, keys and subtitles all belong to the final response URL.
+        return (data, head.finalURL ?? url)
     }
 }

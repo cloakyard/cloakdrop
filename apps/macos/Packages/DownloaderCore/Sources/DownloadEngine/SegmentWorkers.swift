@@ -107,6 +107,10 @@ func runSegment(
             throw CancellationError()
         } catch let validation as SegmentResponseError {
             if Task.isCancelled { throw CancellationError() }
+            // An oversized response can invalidate a range only after its expected interval was
+            // filled. Failover would hit the loop's completion shortcut and publish that invalid
+            // prefix, so escalate immediately to the task's coherent whole-resource restart.
+            if local.currentOffset > currentEnd { throw validation }
             sourceIndex += 1
             consecutiveValidationFailures += 1
             // Give every mirror one chance. If none can prove the requested range/identity, surface
@@ -158,19 +162,18 @@ private func openValidatedSegmentStream(
     expectedETag: String?,
     httpClient: any HTTPClient
 ) async throws -> AsyncThrowingStream<Data, Error> {
-    var requestHeaders = headers
-    let validator = sameOrigin(url, primaryURL) ? expectedETag : nil
-    if range != nil, let validator, !validator.hasPrefix("W/"),
-       !requestHeaders.keys.contains(where: { $0.caseInsensitiveCompare("If-Range") == .orderedSame }) {
-        requestHeaders["If-Range"] = validator
-    }
-    let request = HTTPDownloadRequest(
-        url: url,
-        headers: requestHeaders,
+    var request = HTTPDownloadRequest(
+        url: primaryURL ?? url,
+        headers: headers,
         byteRange: range,
         username: username,
         password: password
-    )
+    ).forSource(url)
+    let validator = HTTPDownloadRequest.sameOrigin(url, primaryURL ?? url) ? expectedETag : nil
+    if range != nil, let validator, !validator.hasPrefix("W/"),
+       !request.headers.keys.contains(where: { $0.caseInsensitiveCompare("If-Range") == .orderedSame }) {
+        request.headers["If-Range"] = validator
+    }
     let (head, stream) = try await httpClient.stream(request)
     // A Metalink mirror was never probed, so prove its range support and identity here rather than
     // assuming the download-level probe also described this source.
@@ -198,12 +201,31 @@ private func transferSegmentBody(
     releaseBytes: @Sendable (Int) async -> Void,
     onBytes: @Sendable (Int) async -> Int64
 ) async throws {
-    let handle = try SegmentFileHandle(partPath: partPath, startingAtOffset: local.currentOffset)
+    let handle = try SegmentFileHandle(
+        partPath: partPath,
+        startingAtOffset: local.currentOffset,
+        truncateBeforeWriting: requestedRange == nil
+    )
     defer { handle.close() }
 
     for try await chunk in stream {
         try Task.checkCancellation()
         if chunk.isEmpty { continue }
+
+        // Extra body bytes invalidate the response; silently trimming them would publish a
+        // truncated representation. A deliberately shortened work-stealing boundary is different:
+        // the still-valid response contains a tail now owned by another worker, so trim that tail.
+        if totalKnown, currentEnd == (requestedRange?.upperBound ?? currentEnd),
+           Int64(chunk.count) > max(0, currentEnd - local.currentOffset + 1) {
+            if requestedRange != nil { throw SegmentResponseError.rangeNotHonored }
+            // An earlier chunk may already have filled the expected interval. Invalidate that
+            // progress so retrying the failed download cannot skip transfer and publish its prefix.
+            if local.downloadedBytes > 0 {
+                _ = await onBytes(-Int(local.downloadedBytes))
+                local.downloadedBytes = 0
+            }
+            throw DownloadError.underlying(reason: "The server sent more data than the download's expected size.")
+        }
 
         // Trim to what this segment still needs; nil means its tail was stolen — stop writing.
         guard let data = capToSegment(
@@ -270,6 +292,10 @@ private func validateSegmentResponse(
         guard head.statusCode == 206, head.contentRange == requestedRange else {
             throw SegmentResponseError.rangeNotHonored
         }
+    } else if head.statusCode == 206 || head.contentRange != nil {
+        // A full-file fallback must actually contain the full representation, including when the
+        // probe could not determine its size. An unsolicited 206 otherwise looks like a valid EOF.
+        throw SegmentResponseError.rangeNotHonored
     }
     if let expectedTotal, let advertised = head.totalBytes, advertised != expectedTotal {
         throw SegmentResponseError.resourceChanged
@@ -278,13 +304,6 @@ private func validateSegmentResponse(
        !expectedETag.isEmpty, !responseETag.isEmpty, expectedETag != responseETag {
         throw SegmentResponseError.resourceChanged
     }
-}
-
-private func sameOrigin(_ lhs: URL, _ rhs: URL?) -> Bool {
-    guard let rhs else { return false }
-    return lhs.scheme?.lowercased() == rhs.scheme?.lowercased()
-        && lhs.host?.lowercased() == rhs.host?.lowercased()
-        && lhs.port == rhs.port
 }
 
 /// Errors that can plausibly improve on another attempt/source. Permanent HTTP authorization/not-

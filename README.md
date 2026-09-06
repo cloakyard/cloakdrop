@@ -1,170 +1,220 @@
 # CloakDrop
 
-**A native, private, multi-segment download manager for macOS.**
+**A carefully made, open-source download manager for macOS.**
 
-Serious multi-segment download power with the look and feel of a first-party app. The app shell is
-native SwiftUI—not Electron or a web-powered UI—and WebKit is used only for the built-in browser.
-There is no telemetry, account, or CloakDrop service receiving your activity.
+CloakDrop is for people who care about the details: native SwiftUI controls, resilient transfers,
+and video capture that fits into a Mac workflow. A thin app shell sits over an independently tested
+Swift engine. Free, MIT-licensed, with no account, telemetry, or CloakDrop service receiving your activity.
+
+**[Website](https://drop.cloakyard.com)** · **[Download the beta](https://github.com/cloakyard/cloakdrop/releases)** · **[Documentation](docs/README.md)** · **[Contributing](CONTRIBUTING.md)**
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
   <img src="https://img.shields.io/badge/platform-macOS%20%C2%B7%20Apple%20silicon-lightgrey" alt="Platform: macOS · Apple silicon">
   <img src="https://img.shields.io/badge/status-beta-2A7B9B" alt="Status: beta">
-  <img src="https://img.shields.io/badge/Swift-6.0-F05138?logo=swift&logoColor=white" alt="Swift 6.0">
+  <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6">
   <img src="https://img.shields.io/badge/SwiftUI-Liquid%20Glass-8A2BE2" alt="SwiftUI · Liquid Glass">
 </p>
 
 <p align="center">
   <picture>
     <source srcset="assets/screenshots/hero-readme.webp" type="image/webp">
-    <img src="assets/screenshots/hero-readme.png" alt="CloakDrop on macOS — a multi-segment download in progress, with the sidebar library, download list, and a live segment inspector showing per-connection progress." width="900">
+    <img src="assets/screenshots/hero-readme.png" alt="CloakDrop on macOS, with the sidebar library, download list, and live segment inspector." width="900">
   </picture>
 </p>
 
-> Part of the **[Cloakyard](https://github.com/cloakyard)** privacy-first suite, alongside **CloakPDF**, **CloakIMG**, and **CloakResume**.
+Part of **[Cloakyard](https://github.com/cloakyard)**. The screenshot uses a deterministic example
+catalog; its displayed speeds are illustrative.
 
----
+## Download and install
 
-## 📥 Download & release status
+Requires **macOS 26 or later on Apple silicon**. Release builds and bundled helpers are arm64-only.
 
-**[⬇️ Download the beta](https://github.com/cloakyard/cloakdrop/releases)** · Apple silicon · grab the `.dmg` from the newest release
+1. Download the DMG from the [newest GitHub release](https://github.com/cloakyard/cloakdrop/releases) and open it.
+2. Drag **CloakDrop** into **Applications**, then open it.
+3. If macOS blocks that first launch, and you trust the official download, open **System Settings → Privacy & Security → Open Anyway**, then confirm **Open**.
 
-CloakDrop is in **active beta development**. This README documents the current source tree, which
-can be ahead of the newest published beta. The Releases page is the source of truth for each build's
-features, SHA-256 checksum, signing/notarization status, and current installation steps.
+A small installation note: current beta builds are locally signed but **not notarized**.
+Notarization requires a paid Apple Developer Program membership; I’ll consider it if there’s enough
+demand. See [Apple’s opening guidance](https://support.apple.com/en-us/102445) and the release notes
+for the specific build.
 
-**Why Apple silicon only?** CloakDrop's release app and bundled helper builds are intentionally
-**arm64-only**. There is no Intel or universal release build.
+This README describes the **current source**, which may be ahead of the published beta. Each
+release’s notes and assets are the source of truth for its features, checksums, and signing status.
 
-## ✨ What it does
+## What it does
 
-| | |
+| Capability | Implementation |
 |---|---|
-| 🧵 **Adaptive multi-segment downloads** | Automatic mode starts from the configurable default (8), adds connections for very large files, and stays within the configured maximum (16 by default, adjustable up to 32). You can override the connection count per download. Strict HTTP range/identity validation, FTP `REST` capability probing, bounded rolling scheduling, and tail work-stealing keep useful connections busy; a server that ignores or misreports ranges is restarted safely as one stream. |
-| 🔌 **HTTP, HTTPS & FTP/FTPS** | One engine, many transports — a native FTP/FTPS client (over Network.framework: EPSV/PASV, `REST` resume, implicit TLS for `ftps`) segments and resumes just like HTTP, with no bundled library. |
-| ⏯️ **True pause & resume** | Persisted byte-range progress survives app relaunch and reboot. Resume continues from the last saved offsets; if size/ETag/range validation detects that the remote representation changed, CloakDrop discards incompatible staging data and restarts cleanly instead of mixing versions. |
-| 🔁 **Auto-recovery** | Per-segment retry with exponential backoff + jitter; auto-pauses when the network drops and resumes when it returns. |
-| ✅ **Integrity & trust** | When checksum verification is enabled (the default), MD5 / SHA-1 / SHA-256—from a checksum you supply or a same-origin sibling `.sha256`/`.sha1`/`.md5`—is tested against private staging data before an ordinary file is exposed at its final path. Optional, offline code-signature validation covers recognizable `.app`/`.dmg` code objects; it does not claim a notarization verdict. |
-| 🧾 **Provenance Receipt** | When enabled (the default), completed ordinary file downloads get a local, exportable record containing the requested source, configured mirrors, encrypted-transport flag, whole-file SHA-256, and available checksum/code-signature verdicts. |
-| 🐢 **Bandwidth control** | Global **and** per-download speed limits (a GCRA throttle that holds the aggregate cap honestly under many concurrent connections), plus optional time-of-day profiles. |
-| 🗂️ **Queues, categories & rules** | Per-queue concurrency limits, smart filters, a rule-based routing engine (folder / queue / speed cap / auto-start), duplicate detection, and auto-sorting of finished files into per-type folders. |
-| 📦 **Post-processing** | Native ZIP auto-extraction (Zip-Slip + decompression-bomb guarded), a Gatekeeper quarantine flag on saved files, and an optional all-downloads-finished action (notify / quit / run a Shortcut). |
-| 📋 **Effortless capture** | Clipboard watching, drag & drop, a link-grabber (paste mixed links or **grab all** from a page → dedupe → pattern-expand `file[01-50].zip` → pick), scheduler, Keychain-backed HTTP/FTP auth, cookies/referrer, and system/manual proxy. |
-| 🌐 **Built-in browser** | A WebKit browser inside the app (⇧⌘B): visit a page and a live badge lists detected video, audio, and files (HLS/DASH manifests, direct files, `attachment` responses). Repeated sightings are deduplicated; known ad hosts, tracking beacons, and stream chunks are filtered, and players in shadow DOM can still be observed. Supported downloads can hand off to CloakDrop; streams open a quality picker, and logged-in grabs can carry the page's cookies. An optional **ad & tracker blocker** (off by default in Settings ▸ Browser) applies a compiled WebKit rule list: built-in curated rules or an open-source list (OISD Small, StevenBlack Hosts, Peter Lowe's) fetched on demand. Coverage varies by list and site. A Share Extension and “Send to CloakDrop” Services item provide capture from other apps. |
-| 🎬 **Media grabbing** | Detects HLS (`.m3u8`) and DASH (`.mpd`) streams, lists qualities, decrypts supported AES-128 streams, and attempts to pair a chosen video rendition with a resolvable audio track without re-encoding. AVFoundation handles compatible H.264/HEVC + AAC media; the optional ffmpeg helper adds VP9/AV1/Opus support. If no muxer accepts a split rendition, CloakDrop keeps the video-only result. Successfully fetched selected subtitle tracks are written as sidecar `.srt` files; compatible audio-only grabs are repackaged without re-encoding. |
-| 🎥 **Site & video extraction** | When the optional yt-dlp helper is included, paste a supported video-page URL into **New Download** and CloakDrop can resolve its available formats, then transfer the selected media payload with its own engine. It can select a format automatically or show a resolution picker when *Ask which quality* is on. yt-dlp contacts the submitted page and related service endpoints for metadata and media URLs; it does not transfer the selected payload. Site support depends on the bundled yt-dlp version and on upstream sites. |
-| 🪞 **Multi-source mirrors** | Open a Metalink (`.metalink` / `.meta4`) and CloakDrop spreads segments across its mirrors, rejects invalid range/size responses and detected same-origin ETag changes, and fails over between sources. When checksum verification is enabled (the default), a supplied whole-file Metalink checksum is tested against staging data before publication. |
-| 🏅 **Download stats** | Local, private lifetime totals — today / this month / all-time — with a playful monthly tier badge that resets each month (Warming Up → ISP's Worst Nightmare). Just counters on your Mac; nothing leaves the device. |
-| 🏎️ **Built-in speed test** | Speedometer-style dials measure your connection's real download, upload, idle/loaded latency, and jitter — multi-connection, warm-up-aware, and strictly manual. Cloudflare by default, Ookla optional; reachable from the menu bar. |
-| 🌍 **Fully localized** | Every UI string translated into 11 languages (English, Spanish, French, German, Simplified Chinese, Japanese, Korean, Brazilian Portuguese, Russian, Arabic, Hindi). |
-| 🪟 **Native to the bone** | SwiftUI + Liquid Glass, light/dark appearance, VoiceOver labels and keyboard access, a live menu-bar extra, and a Dock icon that shows overall progress at a glance. |
+| **Adaptive parallel transfers** | Size-aware automatic planning, a configurable connection budget up to 32, and per-download overrides. Bounded scheduling and tail work-stealing keep useful connections busy. Incorrect HTTP ranges trigger a coherent single-stream restart. |
+| **HTTP, HTTPS, FTP and FTPS** | Native transports, including FTP resume probing and implicit TLS for FTPS. Retries use backoff and jitter; connectivity changes can pause and resume configured work. |
+| **Pause and resume** | Persisted segment offsets and private staging files support app relaunch. Size, range and available resource validators guard against mixing incompatible remote representations. |
+| **Integrity and provenance** | Optional MD5, SHA-1 and SHA-256 verification before ordinary files are published; same-origin checksum discovery; local exportable receipts. Offline code-signature checks are available for recognizable app/DMG code objects, without claiming a notarization verdict. |
+| **Mirrors and safe publication** | Metalink mirror spread and failover, source validation, filename sanitization and collision handling. Finalization must never replace an existing file or directory. |
+| **Queues and bandwidth** | Per-queue concurrency, global and per-download speed caps, time-of-day profiles, scheduling, categories and routing rules. |
+| **Capture from your workflow** | Clipboard watching, drag and drop, Services, a Share Extension, and a link grabber with deduplication and pattern expansion. Remembered credentials use Keychain; request-specific state is retained locally for resume. |
+| **Built-in browser** | WebKit with persistent logins, no saved browsing history, and a one-click site-data wipe. Detects manifests, direct media and file downloads, including players in shadow DOM; filters known ad hosts and stream chunks. Optional blocklists are fetched only when selected or updated. |
+| **Video and audio grabbing** | HLS/DASH quality selection, supported AES-128 streams, subtitle sidecars and independently downloadable audio renditions. Optional yt-dlp resolves supported video pages and audio-only pages; CloakDrop’s own engine transfers the selected payload. |
+| **Local media processing** | AVFoundation passthrough for compatible media, with an optional network-free ffmpeg helper for additional formats such as VP9, AV1 and Opus. No re-encoding. |
+| **Useful finishing touches** | Guarded ZIP extraction, download quarantine, completion actions, local statistics, and a speed test that runs only when started by you. |
+| **Native macOS UI** | SwiftUI and Liquid Glass, light/dark appearance, keyboard and VoiceOver support, reduced-motion handling, menu-bar and Dock progress, and an interface localized into 11 languages. |
 
-## 🛡️ Privacy first
+### Current boundaries
 
-CloakDrop has no telemetry, analytics beacons, update checks, or other phone-home traffic. Network activity is limited to downloads and features you initiate or configure: the URLs, redirects, and mirrors used by your transfers; optional same-origin checksum-file discovery; video-page metadata resolution through yt-dlp; pages and subresources loaded by the built-in browser; address-bar queries submitted to your selected search engine on Return; your system or manually configured proxy; speed tests you start; and open-source blocklists you explicitly select or update. Scheduled transfers and automatic resume can continue work you configured earlier.
+Media support depends on the site, login state, region, URL lifetime and bundled extractor version.
+DRM-protected formats are excluded. The browser shelf currently represents one primary media item
+per page. Continuous live recording, automatic re-resolution of expired media URLs, and separate
+authentication headers for every media resource are not implemented.
 
-- **On-device only** — no accounts, no analytics, no crash reporting, no phone-home.
-- **A browser that forgets** — the built-in browser keeps cookies and site data so logins persist, but records **no browsing history**, and offers a one-click wipe of all site data.
-- **Your data stays yours** — download history and settings live in a local SQLite database, with controls to remove records, clear completed items, and reset statistics.
-- **Sandboxed** — App Sandbox limits access to CloakDrop's containers, the standard Downloads folder, and destinations you explicitly select.
-- **Transparent** — read the [full privacy policy](PRIVACY.md), with an in-app summary under Settings ▸ Privacy.
+If a split video requires an external audio track that cannot be resolved, preparation fails rather
+than silently choosing silent video. A later muxing failure is a separate limitation: if every
+available muxer rejects the downloaded pair, the current finalizer can keep a video-only result.
+Subtitle sidecars are best effort.
 
-## 🧰 Tech stack
+App proxy settings cover HTTP transfers and speed tests. The browser supports system/manual proxy
+selection; native FTP connects directly, and the app does not pass its proxy settings to yt-dlp.
+The Share Extension inbox requires an appropriately signed App Group build; the team-less Debug
+configuration does not exercise that handoff.
 
-| Area | Choice |
-|---|---|
-| Language | Swift 6 with **strict concurrency** (`complete`) |
-| UI | SwiftUI — native Liquid Glass on **macOS 26 or later**, with focused AppKit/WebKit bridges for browser and system integration |
-| Engine | Actor-based — a `DownloadManager` actor driving one `DownloadTask` actor per transfer, with an explicit bounded connection budget |
-| Networking | `URLSession` (strict HTTP Range/identity validation with bounded backpressure) + a native **Network.framework FTP/FTPS** client behind one `HTTPClient` protocol seam, both driving segmentation, resume & multi-source (Metalink mirror) spread + failover |
-| Persistence | GRDB (SQLite); remembered site/proxy secrets in the **Keychain**, with per-download request state in the local database for resume |
-| Integrity | CryptoKit (checksums) + Security framework (code-signature trust, Provenance Receipt) |
-| Media | AVFoundation for passthrough remux/mux (HLS/DASH → clean `.mp4`/`.m4a`) with a bundled ffmpeg fallback for VP9/AV1/Opus (→ `.mkv`), plus poster-frame thumbnails |
-| Extraction | An optional, code-signed **yt-dlp** page→formats resolver; supported sites depend on the bundled version, and CloakDrop's engine downloads the selected media payload |
-| Capture | A built-in WebKit browser (first-party media sniffing + download takeover), plus Share/Services bridged through a shared App Group inbox |
-| Build | XcodeGen (`project.yml` → `.xcodeproj`), SwiftLint |
+Resume has automated and GUI coverage across manager/app relaunch. That evidence does not establish
+physical power-loss durability or compatibility with every FTP/FTPS server. Without a usable
+validator or trusted checksum, equal-length remote changes can remain undetected. The
+[audit overview](docs/audits/2026-09-06-overview.md) records tested behavior and remaining limits.
 
-No third-party Swift dependencies beyond GRDB. Two native command-line tools are bundled as
-code-signed, sandboxed helpers via opt-in build scripts
-(`apps/macos/scripts/fetch-ffmpeg.sh`, `apps/macos/scripts/fetch-ytdlp.sh`): **ffmpeg** only transforms
-local media and has no network support in the bundled build; **yt-dlp** may contact a video page and
-related service endpoints to resolve metadata and media URLs, but it never transfers the selected
-media payload. CloakDrop's engine downloads that payload.
+## Privacy
 
-## 🚀 Getting started
+There are no analytics, accounts, crash-report uploads, automatic update checks, or phone-home
+requests. Network activity is limited to work you initiate or configure: transfers and their
+redirects/mirrors/retries; optional same-origin checksum discovery; submitted video-page resolution;
+browser pages and subresources; searches submitted on Return; configured proxies; manual speed
+tests; and blocklists you explicitly select or update. Scheduled transfers and automatic resume can
+continue work configured earlier.
 
-Requires **macOS 26+**, **Xcode 26+**, [XcodeGen](https://github.com/yonaskolb/XcodeGen), and an **Apple silicon** Mac.
+Download records, settings, receipts and statistics stay on your Mac. The browser retains cookies
+and site data for logins, but no browsing history. App Sandbox limits filesystem access to the app’s
+containers, Downloads and destinations you select. See the [full privacy policy](PRIVACY.md) and
+[security policy](SECURITY.md) for storage, authentication and network boundaries.
 
-This repo is a **monorepo**; the native macOS app lives in `apps/macos/` (the brand site is in `apps/site/`).
+## Build the app
 
-```bash
-brew install xcodegen                  # one-time
+Requires **macOS 26+**, **Xcode 26+**, an **Apple silicon** Mac and
+[XcodeGen](https://github.com/yonaskolb/XcodeGen). The headless Swift 6 package separately declares
+macOS 15 as its minimum deployment target.
+
+~~~bash
+brew install xcodegen
 git clone https://github.com/cloakyard/cloakdrop.git
-cd cloakdrop/apps/macos                # the macOS app lives here
-xcodegen generate                      # generate the (git-ignored) Xcode project
-open CloakDrop.xcodeproj                # …or build from the command line:
-```
+cd cloakdrop/apps/macos
+xcodegen generate
+xcodebuild -project CloakDrop.xcodeproj -scheme CloakDrop \
+  -destination 'platform=macOS,arch=arm64' -configuration Debug \
+  -derivedDataPath build/Verify build
+open build/Verify/Build/Products/Debug/CloakDrop.app
+~~~
 
-```bash
-xcodebuild -project CloakDrop.xcodeproj -scheme CloakDrop -destination 'platform=macOS' build
-```
+`project.yml` is the source of truth; the generated `.xcodeproj` is ignored. Regenerate after
+changing project configuration or adding/removing source files. Debug is locally ad-hoc signed
+without a developer team. Release signing and App Group capabilities require an appropriate signing
+configuration; packaging alone does not notarize the app.
 
-The `.xcodeproj` is generated and git-ignored — regenerate it any time with `xcodegen generate`. To package a shareable installer DMG (drag-to-Applications, with an install guide), run `scripts/dmg/make-dmg.sh <path/to/CloakDrop.app>` from `apps/macos/`. Released builds are published as [GitHub Release](https://github.com/cloakyard/cloakdrop/releases) assets — the DMG never lives in the repo.
+In agent environments that inject `git safe.bareRepository=explicit`, prefix `xcodegen`,
+`xcodebuild` and `swift test` with `GIT_CONFIG_COUNT=0` so SwiftPM can resolve packages.
 
-## 🧪 Testing
+### Optional media helpers
 
-The engine is UI-agnostic and tested in isolation — no GUI required:
+From `apps/macos/`, run these opt-in scripts before rebuilding:
 
-```bash
+~~~bash
+scripts/fetch-ffmpeg.sh
+scripts/fetch-ytdlp.sh
+~~~
+
+The scripts verify pinned upstream artifacts and stage the helpers for the app’s signing step.
+Without ffmpeg, compatible AVFoundation processing remains available. Without yt-dlp, direct media
+and manifest downloads still work, while extractor-based page resolution is unavailable.
+
+| Layer | Choice |
+|---|---|
+| App | SwiftUI, AppKit, WebKit and system accessibility |
+| Core | Swift 6 actors, structured concurrency and protocol seams |
+| Networking | URLSession and a native Network.framework FTP/FTPS client |
+| Persistence | GRDB/SQLite; Keychain for remembered credentials |
+| Integrity | CryptoKit and Security framework |
+| Media | AVFoundation plus optional [ffmpeg](apps/macos/Vendor/ffmpeg/README.md) |
+| Page extraction | Optional [yt-dlp](apps/macos/Vendor/yt-dlp/README.md), used for metadata and media URLs |
+| Build | XcodeGen and SwiftLint; the independent website uses Astro |
+
+GRDB is the only third-party Swift dependency. The
+[dependency audit](docs/audits/2026-09-06-dependencies.md) records exact versions, upstream sources,
+verification and compatibility exceptions. The latest audited yt-dlp release still bundles some
+older runtime libraries, including OpenSSL with a newer security patch available. Updating the
+extractor does not update every frozen dependency; the audit records the pending runtime rebuild.
+
+To package the Debug build as a drag-to-Applications DMG, from `apps/macos/`:
+
+~~~bash
+scripts/dmg/make-dmg.sh build/Verify/Build/Products/Debug/CloakDrop.app
+~~~
+
+Release assets belong on [GitHub Releases](https://github.com/cloakyard/cloakdrop/releases), not in
+the source repository. Bundled tools retain their own licenses and distribution requirements.
+
+## Testing
+
+From the **repository root**, run the headless suite:
+
+~~~bash
 cd apps/macos/Packages/DownloaderCore
 swift test
-```
+~~~
 
-**More than 500 tests** cover the core end-to-end: automatic and manual connection planning,
-bounded parallel scheduling and reassembly, **resume across a simulated relaunch**, strict range and
-resource-identity validation, safe single-stream fallback, retry-after-drop, dynamic tail
-re-splitting, bounded HTTP/FTP buffering, rolling HLS/DASH work, Metalink spread + mirror failover,
-pre-publication checksum verification, destination collision/non-overwrite safety, AES-128 media
-decryption, native FTP over a loopback server, GCRA bandwidth capping, ZIP extraction (Zip-Slip +
-bomb rejection), video-page recognition, and real loopback HTTP downloads.
+The **September 6, 2026 audit passed 593 tests across 83 suites**, covering segment scheduling,
+relaunch/resume, range and identity validation, retry truncation, cancellation races, credential
+scoping, HTTP/FTP loopback transfers, safe publication, checksums, bandwidth limiting, archive
+guards, manifest parsing and media extraction. See the [engine audit](docs/audits/2026-09-06-engine.md)
+and [video audit](docs/audits/2026-09-06-video.md).
 
-Normal test runs make no public-network requests. Maintainers can opt into production-path smoke tests
-against caller-selected HTTP(S) origins:
+Normal tests use mocks or loopback servers; a cold package resolution may fetch GRDB. To opt into
+live-origin smoke tests, supply your own HTTP(S) test files from the package directory:
 
-```bash
+~~~bash
 CLOAKDROP_LIVE_TEST_URLS='https://origin.example/file,https://another.example/file' \
   swift test --filter LiveOriginSmokeTests
-```
+~~~
 
-## 🏗️ Project layout
+The dated audit also includes an arm64 Debug build, static analysis, lint/localization checks and
+native GUI verification of a checksum-matched transfer, pause/relaunch/resume and browser capture.
+For the repeatable visual workflow, see the [verification guide](.agents/skills/verify/SKILL.md).
 
-```
-cloakdrop/                      # monorepo root
+## Repository layout
+
+~~~text
+cloakdrop/
 ├── apps/
-│   ├── macos/                  # The native macOS app (this project)
-│   │   ├── App/                # Thin SwiftUI app shell (CloakDrop target)
-│   │   │   ├── App/            #   @main entry, AppModel, environment
-│   │   │   ├── Features/       #   Sidebar · DownloadList · Inspector · AddDownload · Browser · Settings
-│   │   │   ├── Ambient/        #   MenuBarExtra · Dock progress · Notifications
-│   │   │   └── Shared/         #   Formatters, icons, shared views
-│   │   ├── ShareExtension/     # macOS share-sheet capture
-│   │   ├── scripts/            # Opt-in helpers: fetch-ffmpeg.sh · fetch-ytdlp.sh (bundle & sign the native tools) · dmg/ (build the installer DMG) · generate_app_icon.swift (exports flattened fallbacks from the native Icon Composer document) · validate_localizations.py
-│   │   └── Packages/
-│   │       └── DownloaderCore/ # Headless, UI-agnostic, unit-tested core
-│   │           ├── DownloadModels/       # Sendable value types + HLS/DASH & Metalink parsers + stats, link-grabber, bandwidth-schedule & provenance models
-│   │           ├── DownloadPersistence/  # GRDB store behind a protocol
-│   │           └── DownloadEngine/       # Actors, segmentation, HTTP + native FTP/FTPS networking, checksums, Keychain credentials, archive extraction, media, yt-dlp resolver
-│   └── site/                   # CloakDrop brand site (Astro → Cloudflare Workers, drop.cloakyard.com)
-├── assets/                     # Shared brand assets (logo · icons · social card · screenshots)
-└── README · LICENSE · CLAUDE.md · CONTRIBUTING · SECURITY · CODE_OF_CONDUCT
-```
+│   ├── macos/
+│   │   ├── App/                       # Thin SwiftUI shell and AppModel bridge
+│   │   ├── ShareExtension/            # Share-sheet capture
+│   │   ├── Packages/DownloaderCore/
+│   │   │   ├── Sources/
+│   │   │   │   ├── DownloadModels/
+│   │   │   │   ├── DownloadPersistence/
+│   │   │   │   └── DownloadEngine/
+│   │   │   └── Tests/
+│   │   ├── Vendor/                    # Opt-in helpers and provenance notes
+│   │   ├── scripts/                   # Helper fetch, DMG and validation tools
+│   │   └── project.yml                # XcodeGen source
+│   └── site/                          # Astro site → Cloudflare Workers
+├── assets/                            # Shared icons, artwork and screenshots
+└── docs/                              # Documentation index and dated audits
+~~~
 
-The brand (`CloakDrop`) lives only at the repo root and the app target; the reusable core is named for the **downloader** domain. See [ARCHITECTURE.md](apps/macos/ARCHITECTURE.md) for the full design.
+See the [architecture](apps/macos/ARCHITECTURE.md), [website guide](apps/site/README.md),
+[asset guide](assets/README.md) and [documentation index](docs/README.md).
 
-## 🤝 Contributing
+## Contributing and license
 
-Contributions are welcome — please read [CONTRIBUTING.md](CONTRIBUTING.md) and our [Code of Conduct](CODE_OF_CONDUCT.md). To report a security issue, see [SECURITY.md](SECURITY.md).
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) and our
+[Code of Conduct](CODE_OF_CONDUCT.md); report vulnerabilities through [SECURITY.md](SECURITY.md).
 
-## 📄 License
-
-Released under the [MIT License](LICENSE). Built by Sumit Sahoo as part of [Cloakyard](https://github.com/cloakyard).
+CloakDrop source is released under the [MIT License](LICENSE). Third-party components retain their
+own licenses. Built by Sumit Sahoo as part of [Cloakyard](https://github.com/cloakyard).

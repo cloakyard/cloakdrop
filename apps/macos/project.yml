@@ -125,11 +125,13 @@ targets:
         script: |
           set -euo pipefail
           FFMPEG_SRC="${SRCROOT}/Vendor/ffmpeg/ffmpeg"
+          DEST_DIR="${CODESIGNING_FOLDER_PATH}/Contents/MacOS"
           if [ ! -f "${FFMPEG_SRC}" ]; then
+            # Incremental builds must reflect removal of this opt-in helper too.
+            rm -f "${DEST_DIR}/ffmpeg"
             echo "note: Vendor/ffmpeg/ffmpeg not found — CloakDrop will remux with AVFoundation only. Run scripts/fetch-ffmpeg.sh to add VP9/AV1/Opus muxing."
             exit 0
           fi
-          DEST_DIR="${CODESIGNING_FOLDER_PATH}/Contents/MacOS"
           mkdir -p "${DEST_DIR}"
           cp -f "${FFMPEG_SRC}" "${DEST_DIR}/ffmpeg"
           chmod +x "${DEST_DIR}/ffmpeg"
@@ -145,6 +147,7 @@ targets:
             echo "note: signing bundled ffmpeg with ${NAME}"
             codesign --force --options runtime --timestamp --sign "${IDENTITY}" --entitlements "${ENTITLEMENTS}" "${DEST_DIR}/ffmpeg"
           fi
+          codesign --verify --strict "${DEST_DIR}/ffmpeg"
       # Bundle the optional, git-ignored yt-dlp ONEDIR tree (vendored by scripts/fetch-ytdlp.sh) into
       # Contents/Resources/yt-dlp and sign it, so the sandboxed app can spawn it to resolve page URLs
       # (YouTube and other supported sites) into real format tiers — which our own engine then downloads. The tree
@@ -158,11 +161,12 @@ targets:
         script: |
           set -euo pipefail
           SRC="${SRCROOT}/Vendor/yt-dlp"
+          DEST="${CODESIGNING_FOLDER_PATH}/Contents/Resources/yt-dlp"
           if [ ! -x "${SRC}/yt-dlp" ] || [ ! -d "${SRC}/_internal" ]; then
+            rm -rf "${DEST}"
             echo "note: Vendor/yt-dlp not vendored — page-URL extraction (YouTube etc.) is disabled. Run scripts/fetch-ytdlp.sh to enable it."
             exit 0
           fi
-          DEST="${CODESIGNING_FOLDER_PATH}/Contents/Resources/yt-dlp"
           rm -rf "${DEST}"; mkdir -p "${DEST}"
           # ditto preserves the framework's symlinks/permissions (cp -R can mangle them).
           ditto "${SRC}/yt-dlp" "${DEST}/yt-dlp"
@@ -182,8 +186,12 @@ targets:
           fi
           # Deepest-first: nested dylibs/.so, the Python framework, then the executable (entitled).
           find "${DEST}/_internal" -type f \( -name "*.so" -o -name "*.dylib" \) -exec "${SIGN[@]}" {} +
-          [ -d "${DEST}/_internal/Python.framework" ] && "${SIGN[@]}" --deep "${DEST}/_internal/Python.framework"
+          if [ -d "${DEST}/_internal/Python.framework" ]; then
+            "${SIGN[@]}" --deep "${DEST}/_internal/Python.framework"
+            codesign --verify --deep --strict "${DEST}/_internal/Python.framework"
+          fi
           "${SIGN[@]}" --entitlements "${ENT}" "${DEST}/yt-dlp"
+          codesign --verify --strict "${DEST}/yt-dlp"
   # Native share-sheet extension: accepts a web URL shared from any app and drops it in the shared
   # App Group inbox for the app to confirm.
   CloakDropShareExtension:

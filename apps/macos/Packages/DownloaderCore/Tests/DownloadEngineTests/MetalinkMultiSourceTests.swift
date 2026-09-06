@@ -59,6 +59,29 @@ private func sha256Hex(_ d: Data) -> String { SHA256.hash(data: d).map { String(
 @Suite("Metalink multi-source transfer")
 struct MetalinkMultiSourceTests {
 
+    @Test("Primary authentication and cookies never reach a separate mirror")
+    func primaryCredentialsStayOnPrimary() async throws {
+        let payload = makePayload(120_000)
+        let primary = URL(string: "https://primary.example.com/file.bin")!
+        let mirror = URL(string: "https://mirror.example.com/file.bin")!
+        let h = try await MirrorHarness(payload: payload, liveMirrors: [primary, mirror])
+        defer { h.cleanup() }
+        let added = await h.manager.add(DownloadRequest(
+            url: primary, mirrors: [mirror], destinationDirectoryPath: h.directory.path,
+            requestHeaders: ["Authorization": "Bearer private", "Cookie": "session=private"],
+            username: "user", password: "private"
+        ))
+        let done = try await h.waitFor(added.id) { $0.status == .completed }
+        #expect(try h.fileData(done) == payload)
+        let requests = h.mock.streamedRequests.filter { $0.url == mirror }
+        #expect(!requests.isEmpty)
+        #expect(requests.allSatisfy { $0.username == nil && $0.password == nil
+            && $0.headers["Authorization"] == nil && $0.headers["Cookie"] == nil })
+        let primaryRequest = try #require(h.mock.streamedRequests.first { $0.url == primary })
+        #expect(primaryRequest.username == "user")
+        #expect(primaryRequest.headers["Cookie"] == "session=private")
+    }
+
     @Test("A dead primary fails over to a live mirror and completes byte-perfectly")
     func failoverToLiveMirror() async throws {
         let payload = makePayload(120_000)

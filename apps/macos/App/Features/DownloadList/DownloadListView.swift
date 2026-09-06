@@ -34,6 +34,9 @@ struct DownloadListView: View {
         .navigationTitle(model.effectiveSelection.title)
         .searchable(text: $model.searchText, placement: .toolbar, prompt: "Search downloads")
         .toolbar { toolbarContent }
+        .onChange(of: model.filteredDownloads.map(\.id)) { _, visibleIDs in
+            model.selectedDownloadIDs.formIntersection(visibleIDs)
+        }
         .dropDestination(for: URL.self) { urls, _ in
             model.acceptDrop(urls: urls, strings: [])
         }
@@ -127,6 +130,9 @@ struct DownloadListView: View {
         // row insets), so make that invariant part of List rather than relying on its first estimate.
         .environment(\.defaultMinListRowHeight, 60)
         .focused($listFocused)
+        // Move keyboard navigation into the list when a row is clicked. Otherwise SwiftUI can
+        // leave focus in the sidebar even though the download selection visibly changed.
+        .simultaneousGesture(TapGesture().onEnded { listFocused = true })
         // Tell the rows whether selection is drawn emphasized (accent) or unemphasized (gray),
         // mirroring AppKit's backgroundStyle: focused list in an active window.
         .environment(\.selectionEmphasis, listFocused && controlActiveState != .inactive)

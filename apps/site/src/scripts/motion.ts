@@ -1,39 +1,55 @@
+export {};
+
 /**
  * Restrained progressive motion for the marketing page.
  * Product-specific animation lives with the transfer theatre; this file only
  * handles navigation state and a small, one-time content arrival.
  */
 
-const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 function initReveal() {
-  if (reduce || !('IntersectionObserver' in window)) return;
-
-  const elements = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
-  elements.forEach((element) => {
-    element.style.opacity = '0';
-    element.style.transform = 'translateY(12px)';
-    element.style.transition =
-      'opacity .55s ease, transform .7s cubic-bezier(.22, 1, .36, 1)';
+  if (!('IntersectionObserver' in window)) return;
+  const animations = new Set<Animation>();
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      observer.unobserve(entry.target);
+      if (motion.matches) return;
+      // No persistent hidden styles: interrupted scripts, print, and no-JS remain legible.
+      const animation = entry.target.animate(
+        [{ opacity: .3, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 550, easing: 'cubic-bezier(.22, 1, .36, 1)' }
+      );
+      animations.add(animation);
+      animation.finished.then(() => animations.delete(animation)).catch(() => animations.delete(animation));
+    });
+  }, { threshold: .04 });
+  document.querySelectorAll('[data-reveal]').forEach((element) => observer.observe(element));
+  motion.addEventListener('change', () => {
+    if (motion.matches) animations.forEach((animation) => animation.cancel());
   });
+}
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        const element = entry.target as HTMLElement;
-        element.style.opacity = '1';
-        element.style.transform = 'none';
-        observer.unobserve(element);
-      });
-    },
-    // Some mobile chapters are deliberately tall; a low ratio reveals the shell
-    // as soon as its opening scene arrives instead of waiting for hundreds of
-    // pixels of an otherwise blank panel to enter the viewport.
-    { threshold: 0.04, rootMargin: '0px 0px -6% 0px' }
-  );
-
-  elements.forEach((element) => observer.observe(element));
+function initHeroArrival() {
+  const hero = document.querySelector('[data-hero-arrival]');
+  if (!hero || !('IntersectionObserver' in window)) return;
+  const observer = new IntersectionObserver((entries) => {
+    if (!entries.some((entry) => entry.isIntersecting)) return;
+    observer.disconnect();
+    if (motion.matches) return;
+    hero.querySelectorAll<HTMLElement>('.track i').forEach((track, index) => {
+      track.style.transformOrigin = 'left';
+      const animation = track.animate(
+        [{ transform: 'scaleX(.15)' }, { transform: 'scaleX(1)' }],
+        { duration: 900, delay: index * 55, easing: 'cubic-bezier(.22, 1, .36, 1)' }
+      );
+      const stop = () => { if (motion.matches) animation.cancel(); };
+      motion.addEventListener('change', stop);
+      animation.finished.catch(() => {}).finally(() => motion.removeEventListener('change', stop));
+    });
+  }, { threshold: .15 });
+  observer.observe(hero);
 }
 
 function initNavigation() {
@@ -66,7 +82,7 @@ function initNavigation() {
     }
 
     const marker = window.scrollY + Math.min(window.innerHeight * 0.3, 180);
-    const current = sections.filter((section) => section.offsetTop <= marker).at(-1);
+    const current = sections.filter((section) => section.getBoundingClientRect().top + window.scrollY <= marker).at(-1);
     setActive(current?.id);
   };
 
@@ -88,5 +104,6 @@ function initMobileNavigation() {
 }
 
 initReveal();
+initHeroArrival();
 initNavigation();
 initMobileNavigation();

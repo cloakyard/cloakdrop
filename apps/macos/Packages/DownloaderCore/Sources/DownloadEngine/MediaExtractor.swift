@@ -62,23 +62,18 @@ public struct ExtractedMedia: Sendable, Hashable {
     /// manifest sub-protocol or DASH-segment stream).
     public var directFormats: [ExtractedFormat] { formats.filter(\.isDirectFile) }
 
-    /// One adaptive manifest to hand back to the app's own HLS/DASH resolver when direct formats
-    /// cannot produce complete media. yt-dlp often expands a master into several per-quality playlists;
-    /// choosing the highest known resolution/bitrate keeps the page grab a single deterministic
-    /// item. A master with no dimensions remains the fallback when it is the only manifest.
+    /// One adaptive source to hand back to the app's own HLS/DASH resolver. Preserve yt-dlp's
+    /// parent manifest when available: a video-only child playlist has lost the master's alternate
+    /// audio, subtitles and quality choices. DASH fragment URLs likewise are not manifest URLs.
     public var preferredManifestFormat: ExtractedFormat? {
-        let manifests = formats.filter { format in
-            guard format.url.scheme == "http" || format.url.scheme == "https" else { return false }
-            let proto = (format.proto ?? "").lowercased()
-            return proto == "m3u8" || proto == "m3u8_native"
-                || ["m3u8", "m3u", "mpd"].contains(format.url.pathExtension.lowercased())
-        }
+        let manifests = formats.filter { !$0.hasDRM && $0.resolvedManifestURL != nil }
         return manifests.max { lhs, rhs in
+            if (lhs.manifestURL != nil) != (rhs.manifestURL != nil) { return lhs.manifestURL == nil }
+            if lhs.hasAudio != rhs.hasAudio { return !lhs.hasAudio }
             let left = (lhs.height ?? 0, lhs.width ?? 0, lhs.tbr ?? 0)
             let right = (rhs.height ?? 0, rhs.width ?? 0, rhs.tbr ?? 0)
             if left.0 != right.0 { return left.0 < right.0 }
             if left.1 != right.1 { return left.1 < right.1 }
-            if lhs.hasAudio != rhs.hasAudio { return !lhs.hasAudio }
             return left.2 < right.2
         }
     }
@@ -132,6 +127,10 @@ public struct ExtractedFormat: Sendable, Hashable, Identifiable {
     /// (a manifest/segmented stream we don't take off this path).
     public let proto: String?
     public let httpHeaders: [String: String]
+    /// Parent HLS/DASH manifest retained by yt-dlp after expanding its renditions/fragments.
+    public let manifestURL: URL?
+    /// A format explicitly marked encrypted by the extractor is never offered as a direct file.
+    public let hasDRM: Bool
 
     public init(
         formatID: String, url: URL, ext: String,
@@ -139,7 +138,8 @@ public struct ExtractedFormat: Sendable, Hashable, Identifiable {
         width: Int? = nil, height: Int? = nil, fps: Double? = nil,
         tbr: Double? = nil, abr: Double? = nil, filesize: Int64? = nil,
         language: String? = nil,
-        proto: String? = nil, httpHeaders: [String: String] = [:]
+        proto: String? = nil, httpHeaders: [String: String] = [:],
+        manifestURL: URL? = nil, hasDRM: Bool = false
     ) {
         self.formatID = formatID; self.url = url; self.ext = ext
         self.vcodec = vcodec; self.acodec = acodec
@@ -147,6 +147,7 @@ public struct ExtractedFormat: Sendable, Hashable, Identifiable {
         self.tbr = tbr; self.abr = abr; self.filesize = filesize
         self.language = language
         self.proto = proto; self.httpHeaders = httpHeaders
+        self.manifestURL = manifestURL; self.hasDRM = hasDRM
     }
 
     private static func present(_ codec: String?) -> Bool {
@@ -162,10 +163,25 @@ public struct ExtractedFormat: Sendable, Hashable, Identifiable {
     /// A single directly-downloadable HTTP(S) file (what our ranged, segmented engine grabs). Excludes
     /// `m3u8*`/`http_dash_segments` — those are handled by the manifest resolver, not this path.
     public var isDirectFile: Bool {
+        guard !hasDRM, ["http", "https"].contains(url.scheme?.lowercased() ?? ""),
+              !["m3u8", "m3u", "mpd"].contains(url.pathExtension.lowercased()) else { return false }
         switch (proto ?? "https").lowercased() {
         case "https", "http", "": return true
         default: return false
         }
+    }
+
+    /// The fetchable adaptive manifest, never a DASH media fragment or unsupported sub-protocol.
+    public var resolvedManifestURL: URL? {
+        let proto = (proto ?? "").lowercased()
+        let adaptive = ["m3u8", "m3u8_native", "http_dash_segments", "dash"].contains(proto)
+        if let manifestURL, ["http", "https"].contains(manifestURL.scheme?.lowercased() ?? ""),
+           adaptive || ["m3u8", "m3u", "mpd"].contains(manifestURL.pathExtension.lowercased()) {
+            return manifestURL
+        }
+        guard ["http", "https"].contains(url.scheme?.lowercased() ?? "") else { return nil }
+        return ["m3u8", "m3u8_native"].contains(proto)
+            || ["m3u8", "m3u", "mpd"].contains(url.pathExtension.lowercased()) ? url : nil
     }
 }
 

@@ -35,7 +35,15 @@ public struct YtDlpExtractor: MediaExtractor {
     }
 
     public func extract(pageURL: URL, cookies: ExtractionCookies?, userAgent: String?) async throws -> ExtractedMedia {
+        try Task.checkCancellation()
+        guard ["http", "https"].contains(pageURL.scheme?.lowercased() ?? ""), pageURL.host != nil else {
+            throw MediaExtractionError.invalidOutput
+        }
         var baseArguments = [
+            "--ignore-config",         // app behavior cannot inherit shell downloads/exec/plugins
+            "--no-plugin-dirs",
+            "--no-cache-dir",          // no persistent page/signature cache outside browser data
+            "--simulate",              // explicit: this process resolves, never downloads media
             "-J",                       // dump a single JSON object describing the video + all formats
             "--no-playlist",            // resolve just this video, never a whole playlist/channel
             "--no-warnings",
@@ -58,7 +66,7 @@ public struct YtDlpExtractor: MediaExtractor {
                     break
                 }
             }
-            arguments.append(url.absoluteString)
+            arguments += ["--", url.absoluteString]
             return arguments
         }
 
@@ -99,9 +107,13 @@ public struct YtDlpExtractor: MediaExtractor {
 
     private func run(arguments: [String]) async throws -> ProcessRunResult {
         do {
-            return try await runner.run(executable: executableURL, arguments: arguments, timeout: timeout)
+            let result = try await runner.run(executable: executableURL, arguments: arguments, timeout: timeout)
+            try Task.checkCancellation()
+            return result
         } catch let error as MediaExtractionError {
             throw error
+        } catch is CancellationError {
+            throw CancellationError()
         } catch {
             throw MediaExtractionError.toolUnavailable
         }
@@ -150,7 +162,9 @@ public struct SystemProcessRunner: ProcessRunning {
         }
 
         let outHandle = try FileHandle(forWritingTo: outURL)
+        defer { try? outHandle.close() }
         let errHandle = try FileHandle(forWritingTo: errURL)
+        defer { try? errHandle.close() }
         let process = Process()
         process.executableURL = executable
         process.arguments = arguments

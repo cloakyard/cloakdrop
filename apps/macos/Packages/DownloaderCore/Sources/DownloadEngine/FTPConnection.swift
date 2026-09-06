@@ -76,13 +76,19 @@ actor FTPControlConnection {
     func openPassiveData(tls: Bool) async throws -> FTPDataConnection {
         if let epsv = try? await send("EPSV"), epsv.code == 229,
            let port = FTPProtocol.parseExtendedPassivePort(epsv.text) {
-            return try await FTPDataConnection.open(host: host, port: UInt16(port), tls: tls, queue: queue)
+            return try await FTPDataConnection.open(
+                host: host, port: UInt16(port), tls: tls, queue: queue, timeout: opTimeout
+            )
         }
         let pasv = try await send("PASV")
         guard pasv.code == 227, let address = FTPProtocol.parsePassiveAddress(pasv.text) else {
             throw FTPError.unexpected(pasv)
         }
-        return try await FTPDataConnection.open(host: address.host, port: UInt16(address.port), tls: tls, queue: queue)
+        // PASV frequently advertises an unroutable private address behind NAT. Like EPSV, connect
+        // back to the control host; an origin must not redirect the data channel to an arbitrary host.
+        return try await FTPDataConnection.open(
+            host: host, port: UInt16(address.port), tls: tls, queue: queue, timeout: opTimeout
+        )
     }
 
     /// Issue RETR; the server answers with a 1xx preliminary (150/125) once the data connection is
@@ -105,6 +111,9 @@ actor FTPControlConnection {
     // MARK: Command / reply plumbing
 
     private func send(_ command: String) async throws -> FTPProtocol.Reply {
+        guard !command.utf8.contains(where: { $0 == 0 || $0 == 10 || $0 == 13 }) else {
+            throw DownloadError.underlying(reason: "FTP paths and credentials cannot contain line breaks or null bytes.")
+        }
         try await write(Data((command + "\r\n").utf8))
         return try await readReply()
     }
@@ -252,6 +261,7 @@ actor FTPDataConnection {
         let pump = FTPBodyStreamPump(
             connection: connection,
             byteLimit: byteLimit,
+            receiveTimeout: opTimeout,
             continuation: continuation
         )
         continuation.onTermination = { [weak pump] _ in
@@ -271,6 +281,7 @@ actor FTPDataConnection {
 private final class FTPBodyStreamPump: @unchecked Sendable {
     private let connection: NWConnection
     private let byteLimit: Int64?
+    private let receiveTimeout: Duration
     private let continuation: AsyncThrowingStream<Data, Error>.Continuation
     private let delivered = DeliveredCounter()
     private let stateLock = NSLock()
@@ -279,10 +290,12 @@ private final class FTPBodyStreamPump: @unchecked Sendable {
     init(
         connection: NWConnection,
         byteLimit: Int64?,
+        receiveTimeout: Duration,
         continuation: AsyncThrowingStream<Data, Error>.Continuation
     ) {
         self.connection = connection
         self.byteLimit = byteLimit
+        self.receiveTimeout = receiveTimeout
         self.continuation = continuation
     }
 
@@ -300,7 +313,16 @@ private final class FTPBodyStreamPump: @unchecked Sendable {
 
     private func receiveNext() {
         guard !isStopped else { return }
+        // Only an outstanding socket read has a deadline. Backpressure can keep data in the bounded
+        // stream for as long as a speed-limited consumer needs without causing a false timeout.
+        let watchdog = Task { [weak self, receiveTimeout] in
+            do { try await Task.sleep(for: receiveTimeout) } catch { return }
+            guard let self, !self.isStopped else { return }
+            self.continuation.finish(throwing: DownloadError.networkLost)
+            self.connection.cancel()
+        }
         connection.receive(minimumIncompleteLength: 1, maximumLength: 256 * 1024) { [self] data, _, isComplete, error in
+            watchdog.cancel()
             handleReceive(data: data, isComplete: isComplete, error: error)
         }
     }

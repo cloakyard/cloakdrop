@@ -14,8 +14,11 @@ import DownloadModels
 /// `FTPProtocol`; this type is the I/O around it.
 public actor FTPClient: HTTPClient {
     private let queue = DispatchQueue(label: "com.cloakyard.cloakdrop.ftp")
+    private let operationTimeout: Duration
 
-    public init() {}
+    public init(operationTimeout: Duration = .seconds(30)) {
+        self.operationTimeout = operationTimeout
+    }
 
     // MARK: HTTPClient
 
@@ -94,10 +97,14 @@ public actor FTPClient: HTTPClient {
         let scheme = request.url.scheme?.lowercased() ?? "ftp"
         let secure = scheme == "ftps"
         // ftps implicit-TLS defaults to 990; plain FTP to 21.
-        let port = UInt16(request.url.port ?? (secure ? 990 : 21))
+        guard let port = UInt16(exactly: request.url.port ?? (secure ? 990 : 21)), port > 0 else {
+            throw DownloadError.invalidURL(request.url.absoluteString)
+        }
         guard let host = request.url.host else { throw DownloadError.underlying(reason: "FTP URL has no host.") }
 
-        let control = FTPControlConnection(host: host, port: port, secure: secure, queue: queue)
+        let control = FTPControlConnection(
+            host: host, port: port, secure: secure, queue: queue, timeout: operationTimeout
+        )
         do {
             try await control.connect()
             try await control.login(user: request.username ?? "anonymous",

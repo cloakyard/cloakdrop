@@ -27,6 +27,7 @@ const nameAccent = wordmark?.[2] ?? '';
 
 <style>
   .brand {
+    min-width: 0;
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
@@ -38,6 +39,9 @@ const nameAccent = wordmark?.[2] ?? '';
   }
 
   .brand-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    line-height: 1.15;
     font-weight: 800;
     letter-spacing: -0.02em;
     color: var(--ink);

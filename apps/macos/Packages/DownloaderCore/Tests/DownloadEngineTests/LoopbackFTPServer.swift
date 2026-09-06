@@ -8,13 +8,17 @@ final class LoopbackFTPServer: @unchecked Sendable {
     private let control: NWListener
     private let payload: Data
     private let supportsREST: Bool
+    private let stallsDuringTransfer: Bool
+    private let supportsEPSV: Bool
     private let queue = DispatchQueue(label: "cloakdrop.loopback.ftp")
 
     private(set) var port: UInt16 = 0
 
-    init(payload: Data, supportsREST: Bool = true) throws {
+    init(payload: Data, supportsREST: Bool = true, stallsDuringTransfer: Bool = false, supportsEPSV: Bool = true) throws {
         self.payload = payload
         self.supportsREST = supportsREST
+        self.stallsDuringTransfer = stallsDuringTransfer
+        self.supportsEPSV = supportsEPSV
         let params = NWParameters.tcp
         params.allowLocalEndpointReuse = true
         self.control = try NWListener(using: params)
@@ -93,7 +97,9 @@ final class LoopbackFTPServer: @unchecked Sendable {
             } else {
                 send(connection, "502 REST not supported\r\n")
             }
-        case "EPSV": openPassive(connection, session: session)
+        case "EPSV":
+            if supportsEPSV { openPassive(connection, session: session) }
+            else { send(connection, "502 EPSV unsupported\r\n") }
         case "PASV": openPassivePASV(connection, session: session)
         case "RETR": retrieve(connection, session: session)
         case "QUIT": send(connection, "221 Bye\r\n"); connection.cancel()
@@ -124,7 +130,9 @@ final class LoopbackFTPServer: @unchecked Sendable {
         waitForPort(listener) { [weak self] port in
             session.dataPort = port
             let p1 = port / 256, p2 = port % 256
-            self?.send(connection, "227 Entering Passive Mode (127,0,0,1,\(p1),\(p2))\r\n")
+            // A mismatched private address models a server behind NAT. The client must use the
+            // control host, regardless of the address a PASV response advertises.
+            self?.send(connection, "227 Entering Passive Mode (192,0,2,1,\(p1),\(p2))\r\n")
         }
     }
 
@@ -136,6 +144,7 @@ final class LoopbackFTPServer: @unchecked Sendable {
 
     private func retrieve(_ connection: NWConnection, session: Session) {
         send(connection, "150 Opening data connection\r\n")
+        guard !stallsDuringTransfer else { return }
         // The data connection may not have been accepted yet; poll briefly.
         deliverWhenReady(connection, session: session, attempts: 0)
     }

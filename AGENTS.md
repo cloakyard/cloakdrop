@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
+This file provides guidance to Codex when working with code in this repository.
 
 CloakDrop is a native, sandboxed macOS Tahoe 26 multi-segment download manager built as a thin SwiftUI shell over a headless, independently tested Swift package. See [README.md](README.md) for the product overview and [ARCHITECTURE.md](apps/macos/ARCHITECTURE.md) for the full design.
 
@@ -8,21 +8,21 @@ CloakDrop is a native, sandboxed macOS Tahoe 26 multi-segment download manager b
 
 This is a **monorepo** with two independent deliverables under `apps/`:
 
-- **`apps/macos/`** — the native macOS app (this document's subject). All the paths below are relative to `apps/macos/` unless noted; run the app commands from there.
-- **`apps/site/`** — the CloakDrop brand site (Astro, static), deployed to Cloudflare Workers at `drop.cloakyard.com`. See [apps/site/README.md](apps/site/README.md). It shares nothing with the app build; configure Cloudflare to watch `apps/site/*`, `assets/*`, and `scripts/sync-assets.mjs`, so shared-asset changes deploy but a Swift-only change does not rebuild the site.
+- **`apps/macos/`** — the native macOS app (this document's subject). Architecture paths below are relative to `apps/macos/` unless noted. Each command block starts from the repository root unless it says otherwise.
+- **`apps/site/`** — the CloakDrop brand site (Astro, static), deployed to Cloudflare Workers at `drop.cloakyard.com`. See [apps/site/README.md](apps/site/README.md). It shares nothing with the app build; configure Cloudflare to watch `apps/site/*`, `assets/*`, `scripts/sync-assets.mjs`, and `PRIVACY.md`, so site, shared-asset and rendered policy changes deploy while a Swift-only change does not rebuild the site.
 
 ## Commands
 
-The `.xcodeproj` is **generated and git-ignored** — `project.yml` (XcodeGen) is the source of truth. Regenerate after editing `project.yml` or adding/removing source files (run from `apps/macos/`):
+The `.xcodeproj` is **generated and git-ignored** — `project.yml` (XcodeGen) is the source of truth. Regenerate after editing `project.yml` or adding/removing source files (the following block starts from the repository root):
 
 ```bash
 cd apps/macos
 xcodegen generate                                                              # requires: brew install xcodegen
-xcodebuild -project CloakDrop.xcodeproj -scheme CloakDrop -destination 'platform=macOS' build
+xcodebuild -project CloakDrop.xcodeproj -scheme CloakDrop -destination 'platform=macOS,arch=arm64' -configuration Debug -derivedDataPath build/Verify build
 open CloakDrop.xcodeproj                                                        # or develop/run in Xcode
 ```
 
-The engine is UI-agnostic and tested in isolation — no GUI, builds in seconds. Prefer this loop for engine work:
+The engine is UI-agnostic and tested in isolation — no GUI required. Prefer this loop for engine work:
 
 ```bash
 cd apps/macos/Packages/DownloaderCore
@@ -31,10 +31,12 @@ swift test --filter EngineIntegrationTests  # one suite (by type name)
 swift test --filter multiSegmentCompletes   # one test (by function name; Swift Testing)
 ```
 
-Lint (config in `apps/macos/.swiftlint.yml`, covers `App/` and `Packages/DownloaderCore/Sources`; run from `apps/macos/`):
+Lint (config in `apps/macos/.swiftlint.yml`, covers `App/` and `Packages/DownloaderCore/Sources`; block starts from the repository root):
 
 ```bash
-cd apps/macos && swiftlint
+cd apps/macos
+swiftlint --strict
+python3 scripts/validate_localizations.py
 ```
 
 Package a shareable installer DMG (stylised drag-to-Applications, plus an install guide):
@@ -53,9 +55,15 @@ apps/macos/scripts/dmg/make-dmg.sh <path/to/CloakDrop.app> [output.dmg]   # artw
 
 **Event flow & two-tier UI state.** `DownloadManager` publishes an `AsyncStream<EngineEvent>` via its `events` property; `AppModel.apply(event)` mirrors events into observable state. Status-level changes (`.downloadAdded/Updated/Removed`) update the `downloads` array and the database; high-frequency `.progress` events (~10/sec) flow into a **separate `progress` dictionary** so live speed/ETA never thrash the `downloads` array or hit the DB. `refreshAmbient()` runs after every event to update the Dock progress ring and menu-bar.
 
-**Persistence, resume & publication safety (core invariants).** GRDB/SQLite; each `Download` is stored as a JSON payload alongside indexed scalar columns (status/queue/category/order). Ordinary-file bytes stream into one sparse `*.cdpart` file where each segment owns a contiguous region and its `downloadedBytes` is persisted, so resume starts at `segment.start + downloadedBytes`. **Resume must survive force-quit and reboot.** A relaunch integration test enforces this (pause mid-flight → discard the manager → resume a brand-new manager from the same store + part file). Checksums are verified against staging before the final move. Suggested names are sanitized/de-collided, and finalization must never replace an existing file or directory. Extend these tests whenever you touch transfer, persistence, naming, or finalization.
+**Persistence, resume & publication safety (core invariants).** GRDB/SQLite; each `Download` is stored as a JSON payload alongside indexed scalar columns (status/queue/category/order). Ordinary-file bytes stream into one sparse `*.cdpart` file where each segment owns a contiguous region and its `downloadedBytes` is persisted, so resume starts at `segment.start + downloadedBytes`. **Resume must survive force-quit and reboot.** The relaunch integration test covers pause mid-flight → discard the manager → resume a new manager from the same store + part file. This checks persisted logical recovery, not physical power-loss durability; do not equate the two in documentation. Checksums are verified against staging before the final move. Suggested names are sanitized/de-collided, and finalization must never replace an existing file or directory. Extend these tests whenever you touch transfer, persistence, naming, or finalization.
 
-**Protocol seams for testability.** Networking (`HTTPClient` → `SchemeRoutingHTTPClient` in prod, which dispatches `http(s)` → `URLSessionHTTPClient` and `ftp(s)` → the native `FTPClient`; `MockHTTPClient` with injectable drops/malformed ranges in tests), storage (`DownloadStore` → `GRDBDownloadStore` / `.inMemory()`), connectivity (`NetworkPathMonitoring` → `NetworkMonitor` / `AlwaysReachableMonitor`), and credentials (`CredentialStoring` → `KeychainCredentialStore` / in-memory) are all behind protocols. Ranged workers accept only the exact requested interval and compatible resource identity; invalid range behavior triggers a coherent single-stream restart. HTTP/FTP body bridges are bounded and cancellation-aware. Pure math (`SegmentPlanner`, `BandwidthLimiter` — a GCRA virtual-clock limiter, not a per-connection token bucket, so a shared cap holds under concurrency; `BackoffPolicy`, `ChecksumVerifier`, `SpeedSampler`) is I/O-free and unit-tested directly.
+**Protocol seams for testability.** Networking (`HTTPClient` → `SchemeRoutingHTTPClient` in prod, which dispatches `http(s)` → `URLSessionHTTPClient` and `ftp(s)` → the native `FTPClient`; `MockHTTPClient` with injectable drops/malformed ranges in tests), storage (`DownloadStore` → `GRDBDownloadStore` / `.inMemory()`), connectivity (`NetworkPathMonitoring` → `NetworkMonitor` / `AlwaysReachableMonitor`), and credentials (`CredentialStoring` → `KeychainCredentialStore` / in-memory) are all behind protocols. Ranged workers accept only the exact requested interval and compatible resource identity; invalid range behavior triggers a coherent single-stream restart. HTTP/FTP body bridges are bounded and cancellation-aware. Whole-stream retries must truncate stale staging bytes. URLSession task identity must remain unique across sessions; credential scope must include scheme, host and effective port across redirects, mirrors and challenges. Pure math (`SegmentPlanner`, `BandwidthLimiter` — a GCRA virtual-clock limiter, not a per-connection token bucket, so a shared cap holds under concurrency; `BackoffPolicy`, `ChecksumVerifier`, `SpeedSampler`) is I/O-free and unit-tested directly.
+
+## Documentation and verification
+
+See the [documentation index](docs/README.md), [verification guide](.agents/skills/verify/SKILL.md), and [September 2026 audit](docs/audits/2026-09-06-overview.md). Keep user-facing claims, installation guidance, privacy policy, architecture and affected vendor docs aligned with implementation. Dated audit evidence does not certify every site or failure mode. The website renders root `PRIVACY.md`; keep its displayed policy date and Cloudflare watch paths aligned. The native Privacy settings page has separate localized text and a revision date that must also stay in sync.
+
+Local verification uses the arm64, ad-hoc signed Debug configuration. It does not verify Release App Group/Share Extension handoff, Developer ID signing or notarization. Optional helper versions, hashes, frozen-runtime exceptions and redistribution requirements are documented under `Vendor/` and in the dependency audit. A current yt-dlp version alone does not establish that its bundled runtime is current.
 
 ## Conventions
 

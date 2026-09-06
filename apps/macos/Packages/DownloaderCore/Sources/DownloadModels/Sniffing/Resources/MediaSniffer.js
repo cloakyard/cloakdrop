@@ -15,13 +15,14 @@
     if (window.__cloakdropSniffer) { return; }
     window.__cloakdropSniffer = 1;
 
-    var SEEN_MAX = 800;          // distinct sightings per document — beyond this the page is noise
+    var SEEN_MAX = 800;          // recent sightings; long pages must still discover later players
     var BATCH_DELAY_MS = 250;    // coalesce bursts into one bridge message
     var BATCH_MAX = 64;          // ...but never let a batch grow unbounded
     var PAGE_SNAPSHOT_MS = 400;  // debounce for page (title/players) snapshots
 
     var seen = Object.create(null);
-    var seenCount = 0;
+    var seenKeys = [];
+    var seenCursor = 0;
     var queue = [];
     var timer = null;
     var pageTimer = null;
@@ -58,9 +59,17 @@
         if (typeof url !== "string" || !url) { return; }
         if (url.slice(0, 5) === "data:") { return; }
         var key = kind + "|" + url + (dedupeSuffix ? "|" + dedupeSuffix : "");
-        if (seen[key] || seenCount >= SEEN_MAX) { return; }
+        if (seen[key]) { return; }
+        // Infinite-scroll pages can load hundreds of ordinary resources before playback begins.
+        // Retain a bounded recent window instead of permanently disabling every detector at 800.
+        if (seenKeys.length < SEEN_MAX) {
+            seenKeys.push(key);
+        } else {
+            delete seen[seenKeys[seenCursor]];
+            seenKeys[seenCursor] = key;
+            seenCursor = (seenCursor + 1) % SEEN_MAX;
+        }
         seen[key] = 1;
-        seenCount += 1;
         var event = extra || {};
         event.kind = kind;
         event.url = url;
@@ -364,7 +373,8 @@
         if (now === lastHref) { return; }
         lastHref = now;
         seen = Object.create(null);
-        seenCount = 0;
+        seenKeys = [];
+        seenCursor = 0;
         queue = [];
         post([{ kind: "navigated", url: String(location.href) }]);
         scanMediaElements();

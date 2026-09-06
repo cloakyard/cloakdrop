@@ -2,9 +2,7 @@ import SwiftUI
 import DownloadModels
 
 /// Quality picker for an adaptive-streaming (HLS/DASH) grab. Shown after a manifest URL resolves,
-/// it lists the available renditions (highest quality first) and lets the user pick one before the
-/// grab is enqueued. Audio/subtitle renditions are surfaced as a note; the chosen video variant is
-/// what's downloaded (separate-track muxing lands with the remux work in 4c).
+/// it lists available renditions (highest quality first), audio languages, and subtitle sidecars.
 struct MediaPickerSheet: View {
     @Environment(AppModel.self) private var model
     let selection: MediaSelection
@@ -14,7 +12,9 @@ struct MediaPickerSheet: View {
     @State private var audioOnly = false
 
     private var variants: [MediaVariant] {
-        selection.stream.variants.sorted(by: MediaVariant.higherQualityFirst)
+        let sorted = selection.stream.variants.sorted(by: MediaVariant.higherQualityFirst)
+        let video = sorted.filter { !$0.isAudioOnly }
+        return canGrabAudioOnly && !video.isEmpty ? video : sorted
     }
 
     private var subtitleTracks: [MediaTrack] {
@@ -22,7 +22,7 @@ struct MediaPickerSheet: View {
     }
 
     private var audioTracks: [MediaTrack] {
-        selection.stream.audioTracks
+        audioOnly ? selection.stream.standaloneAudioTracks : selection.stream.audioTracks
     }
 
     /// Whether an "audio only" grab is offered (the stream has a separate audio track to extract).
@@ -40,24 +40,31 @@ struct MediaPickerSheet: View {
                 modePicker
             }
 
-            List(selection: $chosenVariantID) {
-                ForEach(variants) { variant in
-                    variantRow(variant).tag(variant.id)
-                }
-            }
-            .listStyle(.inset)
-            .frame(minHeight: 200)
-            .disabled(audioOnly)
-            .opacity(audioOnly ? 0.35 : 1)
-            .overlay(alignment: .center) {
+            Group {
                 if audioOnly {
-                    Label("Downloads the sound only, saved as an audio file.", systemImage: "music.note")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 24)
-                        .multilineTextAlignment(.center)
+                    VStack(spacing: 10) {
+                        Image(systemName: "waveform")
+                            .font(.system(size: 36, weight: .regular))
+                            .symbolRenderingMode(.hierarchical)
+                            .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
+                        Text("Downloads the sound only, saved as an audio file.")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(32)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    List(selection: $chosenVariantID) {
+                        ForEach(variants) { variant in
+                            variantRow(variant).tag(variant.id)
+                        }
+                    }
+                    .listStyle(.inset)
                 }
             }
+            .frame(minHeight: 200)
 
             Divider()
             footer
@@ -71,16 +78,27 @@ struct MediaPickerSheet: View {
                 selectedSubtitleIDs = [track.id]
             }
         }
+        .onChange(of: audioOnly) { _, _ in
+            if !audioTracks.contains(where: { $0.id == selectedAudioTrackID }) {
+                selectedAudioTrackID = audioTracks.first(where: \.isDefault)?.id ?? audioTracks.first?.id ?? ""
+            }
+        }
     }
 
     /// The shared sheet chrome, with the host as subtitle and the stream format as the accessory.
     private var header: some View {
         SheetHeader(
-            title: "Choose Quality",
+            title: audioOnly ? "Download Audio" : "Choose Quality",
             systemImage: "play.rectangle.on.rectangle",
             subtitle: Text(selection.request.url.host() ?? selection.request.url.absoluteString)
         ) {
-            Text(selection.stream.format == .hls ? "HLS" : "DASH")
+            Group {
+                if selection.extracted != nil {
+                    Text("Video")
+                } else {
+                    Text(verbatim: selection.stream.format == .hls ? "HLS" : "DASH")
+                }
+            }
                 .font(.caption2.weight(.semibold))
                 .padding(.horizontal, 7)
                 .padding(.vertical, 3)
@@ -96,6 +114,7 @@ struct MediaPickerSheet: View {
         }
         .pickerStyle(.segmented)
         .labelsHidden()
+        .accessibilityLabel("Download format")
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
     }
@@ -149,7 +168,8 @@ struct MediaPickerSheet: View {
     private func confirm() {
         // In audio-only mode the primary id names the audio track to grab (fall back to the default);
         // in video mode it names the chosen resolution, with the audio choice passed alongside.
-        let audioTrackID = selectedAudioTrackID.isEmpty ? (selection.stream.defaultAudioTrack?.id ?? "") : selectedAudioTrackID
+        let defaultAudio = audioOnly ? selection.stream.defaultStandaloneAudioTrack : selection.stream.defaultAudioTrack
+        let audioTrackID = selectedAudioTrackID.isEmpty ? (defaultAudio?.id ?? "") : selectedAudioTrackID
         model.confirmMediaSelection(
             variantID: audioOnly ? audioTrackID : chosenVariantID,
             subtitleTrackIDs: Array(selectedSubtitleIDs),
@@ -174,9 +194,11 @@ struct MediaPickerSheet: View {
                 }
             } label: {
                 Text(audioTracks.first { $0.id == selectedAudioTrackID }.map(audioLabel) ?? String(localized: "Default"))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
             }
             .menuStyle(.borderlessButton)
-            .fixedSize()
+            .frame(maxWidth: 280, alignment: .trailing)
         }
     }
 
@@ -184,6 +206,13 @@ struct MediaPickerSheet: View {
     /// manifest's own name (or container, for a page grab), else a generic "Audio".
     private func audioLabel(_ track: MediaTrack) -> String {
         if let code = track.language, let localized = Locale.current.localizedString(forLanguageCode: code) {
+            let matches = audioTracks.filter {
+                $0.language.flatMap { Locale.current.localizedString(forLanguageCode: $0) } == localized
+            }
+            if matches.count > 1, let name = track.name, !name.isEmpty,
+               name.caseInsensitiveCompare(localized) != .orderedSame {
+                return localized + " · " + name
+            }
             return localized
         }
         if let name = track.name, !name.isEmpty { return name }

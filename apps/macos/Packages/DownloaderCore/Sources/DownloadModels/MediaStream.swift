@@ -137,6 +137,9 @@ public struct MediaVariant: Sendable, Hashable, Codable, Identifiable {
     public let initSegment: MediaInitSegment?
     /// The media segments, once resolved (empty for an unresolved HLS master variant).
     public var segments: [MediaSegment]
+    /// Explicit track presence from a page extractor, which can identify video without dimensions
+    /// or RFC 6381 codec names. Optional for manifests and backward-compatible persisted records.
+    public let videoTrackPresent: Bool?
 
     public init(
         id: String,
@@ -148,7 +151,8 @@ public struct MediaVariant: Sendable, Hashable, Codable, Identifiable {
         audioGroupID: String? = nil,
         subtitleGroupID: String? = nil,
         initSegment: MediaInitSegment? = nil,
-        segments: [MediaSegment] = []
+        segments: [MediaSegment] = [],
+        videoTrackPresent: Bool? = nil
     ) {
         self.id = id
         self.bandwidth = bandwidth
@@ -160,6 +164,7 @@ public struct MediaVariant: Sendable, Hashable, Codable, Identifiable {
         self.subtitleGroupID = subtitleGroupID
         self.initSegment = initSegment
         self.segments = segments
+        self.videoTrackPresent = videoTrackPresent
     }
 
     /// Sum of segment durations (0 for an unresolved variant).
@@ -179,6 +184,7 @@ public struct MediaVariant: Sendable, Hashable, Codable, Identifiable {
     /// `codecs` is from a video family — some HLS masters omit `RESOLUTION` but still declare a
     /// video codec (e.g. `CODECS="avc1.4d401f,mp4a.40.2"`), so resolution alone can't be trusted.
     public var hasVideo: Bool {
+        if let videoTrackPresent { return videoTrackPresent }
         if resolution != nil { return true }
         return codecs.contains { Self.videoCodecFamilies.contains($0.prefix { $0 != "." }.lowercased()) }
     }
@@ -332,11 +338,24 @@ public struct MediaStream: Sendable, Hashable, Codable {
     /// True when there's a standalone audio track (HLS AUDIO group / DASH audio set / yt-dlp audio
     /// format), or a variant that is itself audio-only.
     public var hasGrabbableAudio: Bool {
-        !audioTracks.isEmpty || variants.contains(where: \.isAudioOnly)
+        !standaloneAudioTracks.isEmpty || variants.contains(where: \.isAudioOnly)
     }
 
-    /// The default (else first) standalone audio track — the one an "audio only" grab defaults to when
-    /// the user doesn't pick a language. `nil` when the stream has no separate audio track.
+    /// Audio renditions that can be fetched independently. HLS also lists in-band tracks without
+    /// a URI; those remain valid choices for video playback but cannot form an audio-only plan.
+    public var standaloneAudioTracks: [MediaTrack] {
+        audioTracks.filter { !$0.segments.isEmpty || $0.playlistURL != nil }
+    }
+
+    /// The default independently fetchable audio rendition, falling back to the first available
+    /// standalone track when the manifest's default audio is carried inside the video segments.
+    public var defaultStandaloneAudioTrack: MediaTrack? {
+        let tracks = standaloneAudioTracks
+        return tracks.first(where: \.isDefault) ?? tracks.first
+    }
+
+    /// The manifest's default (else first) audio rendition, including in-band HLS audio. Normal
+    /// video pairing uses this full set; audio-only callers use `defaultStandaloneAudioTrack`.
     public var defaultAudioTrack: MediaTrack? {
         audioTracks.first(where: \.isDefault) ?? audioTracks.first
     }

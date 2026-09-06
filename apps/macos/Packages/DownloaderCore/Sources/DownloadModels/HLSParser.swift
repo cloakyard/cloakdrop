@@ -118,23 +118,30 @@ public enum HLSParser {
 
         for line in lines {
             if line.hasPrefix("#EXT-X-MEDIA-SEQUENCE:") {
-                sequence = Int(value(after: "#EXT-X-MEDIA-SEQUENCE:", in: line)) ?? 0
+                guard let parsed = Int(value(after: "#EXT-X-MEDIA-SEQUENCE:", in: line)), parsed >= 0 else {
+                    throw MediaParseError.malformed("Invalid HLS media sequence.")
+                }
+                sequence = parsed
             } else if line.hasPrefix("#EXTINF:") {
-                let raw = value(after: "#EXTINF:", in: line)
-                pendingDuration = Double(raw.split(separator: ",", maxSplits: 1).first.map(String.init)?
-                    .trimmingCharacters(in: .whitespaces) ?? "")
+                pendingDuration = try parseDuration(value(after: "#EXTINF:", in: line))
             } else if line.hasPrefix("#EXT-X-BYTERANGE:") {
                 pendingByteRange = parseByteRange(value(after: "#EXT-X-BYTERANGE:", in: line), previousEnd: lastByteEnd)
+                guard pendingByteRange != nil else { throw MediaParseError.malformed("Invalid HLS byte range.") }
             } else if line.hasPrefix("#EXT-X-KEY:") {
                 key = parseKey(parseAttributes(after: "#EXT-X-KEY:", in: line), baseURL: baseURL)
             } else if line.hasPrefix("#EXT-X-MAP:") {
                 let attrs = parseAttributes(after: "#EXT-X-MAP:", in: line)
                 if let uri = attrs["URI"], let url = resolve(uri, baseURL) {
-                    initSegment = MediaInitSegment(url: url, byteRange: attrs["BYTERANGE"].flatMap { parseByteRange($0, previousEnd: -1) })
+                    let range = attrs["BYTERANGE"].flatMap { parseByteRange($0, previousEnd: -1) }
+                    if attrs["BYTERANGE"] != nil, range == nil {
+                        throw MediaParseError.malformed("Invalid HLS initialization byte range.")
+                    }
+                    initSegment = MediaInitSegment(url: url, byteRange: range)
                 }
             } else if line.hasPrefix("#") {
                 continue
             } else if let url = resolve(line, baseURL) {
+                guard sequence < Int.max else { throw MediaParseError.malformed("HLS media sequence is too large.") }
                 segments.append(MediaSegment(
                     id: sequence,
                     url: url,
@@ -177,6 +184,17 @@ public enum HLSParser {
 
     // MARK: Scalar parsing
 
+    private static func parseDuration(_ raw: String) throws -> Double {
+        let value = raw.split(separator: ",", maxSplits: 1).first.map(String.init)?
+            .trimmingCharacters(in: .whitespaces) ?? ""
+        // Even a finite Double can exceed downstream duration/ETA integer conversions. This
+        // generous ceiling is over 30,000 years for one segment, far beyond playable media.
+        guard let duration = Double(value), duration.isFinite, (0...1_000_000_000_000).contains(duration) else {
+            throw MediaParseError.malformed("Invalid HLS segment duration.")
+        }
+        return duration
+    }
+
     /// Split an HLS attribute list into a dictionary, respecting quoted values (so a comma inside
     /// `CODECS="avc1,mp4a"` isn't treated as a separator). Surrounding quotes are stripped.
     static func parseAttributes(after tag: String, in line: String) -> [String: String] {
@@ -212,17 +230,20 @@ public enum HLSParser {
 
     private static func parseResolution(_ raw: String) -> MediaResolution? {
         let parts = raw.lowercased().split(separator: "x")
-        guard parts.count == 2, let width = Int(parts[0]), let height = Int(parts[1]) else { return nil }
+        guard parts.count == 2, let width = Int(parts[0]), let height = Int(parts[1]),
+              (1...100_000).contains(width), (1...100_000).contains(height) else { return nil }
         return MediaResolution(width: width, height: height)
     }
 
     /// `length[@offset]`. A missing offset continues from the previous byte-range's end (HLS spec);
     /// `previousEnd < 0` means "no previous range", so a missing offset starts at 0.
     private static func parseByteRange(_ raw: String, previousEnd: Int64) -> MediaByteRange? {
-        let parts = raw.split(separator: "@", maxSplits: 1)
-        guard let length = Int64(parts[0].trimmingCharacters(in: .whitespaces)), length > 0 else { return nil }
+        let parts = raw.split(separator: "@", maxSplits: 1, omittingEmptySubsequences: false)
+        guard let first = parts.first,
+              let length = Int64(first.trimmingCharacters(in: .whitespaces)), length > 0 else { return nil }
         let offset: Int64
-        if parts.count == 2, let parsed = Int64(parts[1].trimmingCharacters(in: .whitespaces)) {
+        if parts.count == 2 {
+            guard let parsed = Int64(parts[1].trimmingCharacters(in: .whitespaces)) else { return nil }
             offset = parsed
         } else {
             offset = previousEnd < 0 ? 0 : previousEnd + 1

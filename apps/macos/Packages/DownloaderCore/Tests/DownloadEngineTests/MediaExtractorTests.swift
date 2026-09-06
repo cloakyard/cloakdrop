@@ -90,6 +90,8 @@ struct MediaExtractionParseTests {
         let stream = try #require(media.toMediaStream(pageURL: URL(string: "https://vimeo.example/1")!))
         #expect(stream.variants.map(\.id) == ["http-720p", "http-unknown"])
         #expect(stream.variants[0].audioGroupID == nil)
+        #expect(stream.variants[1].hasVideo)
+        #expect(!stream.variants[1].isAudioOnly, "an opaque MP4 must not be mislabeled as audio")
     }
 
     @Test("HLS-only extraction chooses one highest-quality manifest for the app resolver")
@@ -203,15 +205,17 @@ struct MediaExtractionMappingTests {
         #expect(plan.segments.first?.url == URL(string: "https://v/18"))
     }
 
-    @Test func audioOnlyPageYieldsNoTiers() throws {
-        // A page whose only direct formats are audio (or manifests) can't produce a video tier.
+    @Test func audioOnlyPageYieldsAudioTier() throws {
+        // Recognized music pages use the same grab flow and must produce a complete audio file.
         let audioOnly = #"""
         { "title": "song", "formats": [
           { "format_id": "a", "url": "https://a/1", "ext": "m4a", "vcodec": "none", "acodec": "mp4a.40.2", "abr": 128 }
         ] }
         """#
         let media = try ExtractedMedia.parse(json: Data(audioOnly.utf8))
-        #expect(media.toMediaStream(pageURL: URL(string: "https://x/y")!) == nil)
+        let stream = try #require(media.toMediaStream(pageURL: URL(string: "https://x/y")!))
+        #expect(stream.bestVariant?.isAudioOnly == true)
+        #expect(stream.bestPlan?.segments.first?.url == URL(string: "https://a/1"))
     }
 
     @Test func containerFamilyPairingHelper() {
@@ -263,6 +267,10 @@ struct YtDlpExtractorTests {
         let args = runner.lastArguments
         #expect(args.contains("-J"))
         #expect(args.contains("--no-playlist"))
+        #expect(args.contains("--ignore-config"))
+        #expect(args.contains("--no-plugin-dirs"))
+        #expect(args.contains("--simulate"))
+        #expect(args.contains("--no-cache-dir"))
         #expect(args.contains("--user-agent"))
         #expect(args.contains("UA/1"))
         #expect(args.contains("--add-header"))

@@ -154,11 +154,11 @@ actor DownloadTask {
                 do {
                     probed = try await httpClient.probe(
                         HTTPDownloadRequest(
-                            url: source,
+                            url: download.url,
                             headers: download.requestHeaders,
                             username: download.username,
                             password: download.password
-                        )
+                        ).forSource(source)
                     )
                     break
                 } catch is CancellationError {

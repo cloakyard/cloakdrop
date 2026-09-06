@@ -26,11 +26,11 @@ public extension DownloadManager {
         let resolver = MediaResolver(httpClient: httpClient)
         let resolved = try await resolver.resolveVariant(variant, headers: headers)
         // Pair the variant with the chosen (else default) separate audio track and resolve its playlist
-        // too, so a chosen video quality always downloads with sound. A failed audio resolution degrades
-        // to a video-only grab rather than failing the whole download.
+        // too, so a chosen video quality always downloads with sound. Fail preparation if its separate
+        // audio cannot be read instead of silently publishing a video without the requested sound.
         var audio = audioTrackID.flatMap { id in stream.audioTracks.first { $0.id == id } }
             ?? stream.audioTrack(for: resolved)
-        if let track = audio { audio = try? await resolver.resolveAudioTrack(track, headers: headers) }
+        if let track = audio { audio = try await resolver.resolveAudioTrack(track, headers: headers) }
         let subtitles = await resolvedSubtitles(stream, ids: subtitleTrackIDs, headers: headers)
         return stream.plan(for: resolved, audio: audio, subtitles: subtitles)
     }
@@ -43,7 +43,8 @@ public extension DownloadManager {
         subtitleTrackIDs: [String] = [], headers: [String: String] = [:]
     ) async throws -> MediaPlan {
         let resolver = MediaResolver(httpClient: httpClient)
-        let chosen = trackID.flatMap { id in stream.audioTracks.first { $0.id == id } } ?? stream.defaultAudioTrack
+        let chosen = trackID.flatMap { id in stream.standaloneAudioTracks.first { $0.id == id } }
+            ?? stream.defaultStandaloneAudioTrack
         guard let track = chosen else { throw MediaParseError.noContent }
         let resolved = try await resolver.resolveAudioTrack(track, headers: headers)
         guard !resolved.segments.isEmpty else { throw MediaParseError.noContent }

@@ -9,6 +9,29 @@ import Testing
 @Suite("Loopback integration (real URLSession)", .serialized)
 struct LoopbackIntegrationTests {
 
+    @Test("Cancellation racing request registration always releases the response waiter")
+    func immediateCancellationDoesNotStrandHead() async throws {
+        let server = try LoopbackHTTPServer(payload: Data([1]), stallsBeforeResponse: true)
+        try await server.start()
+        defer { server.stop() }
+        let client = URLSessionHTTPClient()
+        defer { client.invalidate() }
+        let started = ContinuousClock().now
+        await withTaskGroup(of: Void.self) { group in
+            for index in 0..<64 {
+                group.addTask {
+                    let pending = Task {
+                        _ = try await client.stream(HTTPDownloadRequest(url: server.baseURL))
+                    }
+                    if index.isMultiple(of: 2) { await Task.yield() }
+                    pending.cancel()
+                    _ = try? await pending.value
+                }
+            }
+        }
+        #expect(started.duration(to: ContinuousClock().now) < .seconds(2))
+    }
+
     private func makePayload(_ n: Int) -> Data { Data((0..<n).map { UInt8($0 % 251) }) }
 
     @Test("Probe reports size and range support from a real server")
