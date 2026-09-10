@@ -24,6 +24,10 @@ describe each shipped build.
 - [DMG installation guide](../apps/macos/scripts/dmg/ReadMe.txt).
 - Agent guidance: [Codex](../AGENTS.md) and [Claude Code](../CLAUDE.md).
 
+## Release verification
+
+- [September 10, 2026: Xcode 27 RC build, dependency updates and DMG checks](audits/2026-09-10-xcode-27-rc.md).
+
 ## September 6, 2026 audit
 
 These reports record observed results and unresolved limits; they are dated evidence, not

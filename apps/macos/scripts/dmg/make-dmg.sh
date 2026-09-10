@@ -7,6 +7,8 @@
 #
 # Defaults the output to ~/Desktop/CloakDrop-Installer.dmg. macOS only (hdiutil, Finder, SetFile).
 # Iterate on the artwork in background.swift and on the window layout in the AppleScript below.
+# Set DMG_LAYOUT_TEMPLATE to a previously verified installer's .DS_Store to reuse its layout
+# without automating Finder. The template must use the same volume name and staged filenames.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -15,9 +17,15 @@ REPO="$(cd "$HERE/../.." && pwd)"
 APP="${1:-}"
 OUT="${2:-$HOME/Desktop/CloakDrop-Installer.dmg}"
 VOLNAME="CloakDrop"
+LAYOUT="${DMG_LAYOUT_TEMPLATE:-}"
 
 if [[ -z "$APP" || ! -d "$APP" ]]; then
   echo "usage: $0 <path/to/CloakDrop.app> [output.dmg]" >&2
+  exit 1
+fi
+
+if [[ -n "$LAYOUT" && ! -f "$LAYOUT" ]]; then
+  echo "missing DMG layout template: $LAYOUT" >&2
   exit 1
 fi
 
@@ -82,6 +90,9 @@ if [[ -d "$MNT/.fseventsd" ]]; then
 fi
 
 echo "▸ Laying out the window…"
+if [[ -n "$LAYOUT" ]]; then
+  cp "$LAYOUT" "$MNT/.DS_Store"
+else
 osascript <<APPLESCRIPT
 tell application "Finder"
   tell disk "$VOLNAME"
@@ -106,6 +117,7 @@ tell application "Finder"
   end tell
 end tell
 APPLESCRIPT
+fi
 
 # Write and hide the volume icon after Finder's layout pass. Adding it earlier can make Finder remove
 # the file or clear the custom-volume-icon bit while it updates the window.
