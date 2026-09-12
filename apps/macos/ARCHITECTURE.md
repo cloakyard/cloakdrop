@@ -225,6 +225,11 @@ serial delegate queues and narrowly scoped locks to bridge callbacks into asynch
   segments, completed/total segment counts; whole-file media progress uses bytes. Paused rows do not
   keep displaying the last running speed, and unknown totals/ETAs are omitted rather than rendered
   as misleading fractions.
+  Dock completion is the equal-weight mean of currently downloading items' fractions, using live
+  snapshots when available. If any active item is indeterminate, only the active-count badge is
+  shown. Progress-driven Dock refreshes are coalesced to 333 ms with a trailing refresh so the last
+  tick is delivered even if events stop; status changes refresh immediately. Aggregate arithmetic
+  lives in `DownloadModels`, while refresh scheduling and AppKit rendering stay in the app.
 
 ## Data flow for a download
 
