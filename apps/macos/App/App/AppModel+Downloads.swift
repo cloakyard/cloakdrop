@@ -32,17 +32,9 @@ extension AppModel {
     var aggregateSpeed: Double { progress.values.reduce(0) { $0 + $1.value.bytesPerSecond } }
 
     var aggregateFraction: Double? {
-        let active = downloads.filter { $0.status == .downloading }
-        guard !active.isEmpty else { return nil }
-        var downloadedBytes: Int64 = 0
-        var totalBytes: Int64 = 0
-        for download in active {
-            let current = progress[download.id]?.value.downloadedBytes ?? download.downloadedBytes
-            downloadedBytes += current
-            totalBytes += download.totalBytes ?? current
+        DownloadProgress.aggregateFraction(downloads: downloads) { id in
+            progress[id]?.value
         }
-        guard totalBytes > 0 else { return nil }
-        return min(1, Double(downloadedBytes) / Double(totalBytes))
     }
 
     func liveDownloadedBytes(_ download: Download) -> Int64 {
@@ -66,7 +58,8 @@ extension AppModel {
     }
 
     func liveFraction(_ download: Download) -> Double? {
-        progress[download.id]?.value.fractionCompleted ?? download.fractionCompleted
+        if let live = progress[download.id]?.value { return live.fractionCompleted }
+        return download.fractionCompleted
     }
 
     func eta(_ download: Download) -> TimeInterval? {

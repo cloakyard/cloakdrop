@@ -407,19 +407,15 @@ final class AppModel {
 
     // MARK: Ambient surfaces
 
-    @ObservationIgnored private var lastAmbientRefresh: ContinuousClock.Instant?
-    @ObservationIgnored private let ambientClock = ContinuousClock()
+    @ObservationIgnored private let ambientRefresh = AmbientRefreshThrottle()
 
-    /// Coalesce progress-driven ambient refreshes to ~3/sec so the Dock update (and the two full
-    /// `downloads` scans behind it) doesn't run on every progress tick of every active download.
+    /// Coalesce progress-driven refreshes, including the last tick when events stop arriving.
     private func refreshAmbientThrottled() {
-        let now = ambientClock.now
-        if let last = lastAmbientRefresh, last.duration(to: now) < .milliseconds(333) { return }
-        refreshAmbient()
+        ambientRefresh.schedule { [weak self] in self?.refreshAmbient() }
     }
 
     private func refreshAmbient() {
-        lastAmbientRefresh = ambientClock.now
+        ambientRefresh.didRefresh()
         let active = activeCount
         dock.update(fraction: aggregateFraction, activeCount: active)
         sleepPreventer.update(active: active > 0)

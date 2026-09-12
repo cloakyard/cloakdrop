@@ -13,7 +13,7 @@ final class DockProgressController {
     func update(fraction: Double?, activeCount: Int) {
         let tile = NSApp.dockTile
 
-        guard let fraction else {
+        guard activeCount > 0, let fraction, fraction.isFinite else {
             lastDrawn = nil   // clearing is never gated; the next draw always goes through
             tile.badgeLabel = activeCount > 0 ? "\(activeCount)" : nil
             tile.contentView = nil   // revert to the plain app icon
@@ -21,12 +21,15 @@ final class DockProgressController {
             return
         }
 
-        let state = (percent: Int(min(1, max(0, fraction)) * 100), activeCount: activeCount)
+        let clamped = min(1, max(0, fraction))
+        let state = (percent: Int((clamped * 100).rounded()), activeCount: activeCount)
         if let lastDrawn, lastDrawn == state { return }
         lastDrawn = state
 
         tile.badgeLabel = activeCount > 0 ? "\(activeCount)" : nil
-        tileView.fraction = fraction
+        tileView.frame = NSRect(origin: .zero, size: tile.size)
+        tileView.fraction = clamped
+        tileView.needsDisplay = true
         tile.contentView = tileView
         tile.display()
     }
