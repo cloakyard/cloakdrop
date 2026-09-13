@@ -26,6 +26,7 @@ describe each shipped build.
 
 ## Release verification
 
+- [September 13, 2026: Browser media naming and window lifecycle](audits/2026-09-13-browser-lifecycle.md).
 - [September 12, 2026: Dock progress fix, native visual checks and dependency audit](audits/2026-09-12-progress-and-dependencies.md).
 - [September 10, 2026: Xcode 27 RC build, dependency updates and DMG checks](audits/2026-09-10-xcode-27-rc.md).
 

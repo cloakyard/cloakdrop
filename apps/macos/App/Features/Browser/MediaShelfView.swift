@@ -20,7 +20,7 @@ struct MediaShelfView: View {
                 ScrollView {
                     VStack(spacing: 2) {
                         ForEach(candidates) { item in
-                            ShelfRow(item: item, pageTitle: session.media.pageTitle) {
+                            ShelfRow(item: item, pageTitle: session.downloadPageTitle) {
                                 session.download(item)
                             }
                         }
@@ -150,12 +150,10 @@ private struct ShelfRow: View {
         switch item.type {
         case .page:
             return pageTitle.isEmpty ? item.label : pageTitle
-        case .stream:
-            // A manifest's filename ("master.m3u8") says nothing about the video — show the page
-            // title, the name the user actually recognizes. A server-supplied filename still wins.
-            if let filename = item.filename { return filename }
-            return pageTitle.isEmpty ? item.label : pageTitle
-        case .video, .audio, .file:
+        case .stream, .video, .audio:
+            // Media endpoints often have no useful filename; use the same title as the handoff.
+            return item.downloadFileName(pageTitle: pageTitle) ?? item.label
+        case .file:
             return item.filename ?? item.label
         }
     }

@@ -127,7 +127,23 @@ extension AppModel: BrowserCaptureSink {
         case .stream:
             raiseMainWindow?()
             grabStream(request, forcePicker: true)
-        case .video, .audio, .file:
+        case .video, .audio:
+            raiseMainWindow?()
+            beginMediaResolve()
+            Task {
+                defer { endMediaResolve() }
+                let preview = await manager.preview(
+                    url: request.url, headers: request.requestHeaders,
+                    referrer: request.referrer, cookies: request.cookies
+                )
+                var named = request
+                named.suggestedFileName = FileNaming.mediaFileName(
+                    suggested: request.suggestedFileName, url: preview?.finalURL ?? request.url,
+                    mimeType: preview?.mimeType
+                )
+                grab(named, preview: preview)
+            }
+        case .file:
             grab(request)   // a `.m3u8`/`.mpd` URL still reroutes into the media flow by extension
         }
     }

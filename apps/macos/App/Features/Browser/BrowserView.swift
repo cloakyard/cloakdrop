@@ -55,7 +55,6 @@ struct BrowserView: View {
             session.onOpenWindow = { openWindow(id: BrowserScene.windowID, value: BrowserLaunch(url: $0, openedByPage: true)) }
             prepareNetworkSession()
         }
-        .onDisappear { session.teardown() }
         .onChange(of: session.shouldClose) { _, close in if close { dismiss() } }
         .onChange(of: session.urlBarFocusToken) { beginEditingURL() }
         .onChange(of: session.dialog?.id) { promptText = session.dialog?.promptDefault ?? "" }

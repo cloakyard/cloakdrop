@@ -125,6 +125,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var pendingURLs: [URL] = []
     /// `NSApplication` doesn't retain `servicesProvider`, so we hold it here for the app's lifetime.
     var servicesProvider: ServicesProvider?
+    var reopenMainWindow: (() -> Void)?
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        // A browser or Settings window can be visible while the downloads window is closed.
+        // Dock activation must still reopen the downloads window, including during transfers.
+        guard let reopenMainWindow else { return true }
+        reopenMainWindow()
+        return false
+    }
 
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let openURLsHandler else {
@@ -159,16 +168,22 @@ private struct CaptureIntakeInstaller: View {
     var body: some View {
         Color.clear
             .onAppear {
-                appDelegate.installOpenURLsHandler { urls in
+                let showMainWindow = {
+                    if let window = NSApp.windows.first(where: { $0.identifier?.rawValue == CloakDropApp.mainWindowID }) {
+                        if window.isMiniaturized { window.deminiaturize(nil) }
+                        window.makeKeyAndOrderFront(nil)
+                    } else {
+                        openWindow(id: CloakDropApp.mainWindowID)
+                    }
                     NSApp.activate()
-                    openWindow(id: CloakDropApp.mainWindowID)
+                }
+                appDelegate.reopenMainWindow = showMainWindow
+                appDelegate.installOpenURLsHandler { urls in
+                    showMainWindow()
                     for url in urls { model.handleIncomingURL(url) }
                 }
                 // Lets browser windows summon the main window (quality picker, duplicate prompts).
-                model.raiseMainWindow = {
-                    NSApp.activate()
-                    openWindow(id: CloakDropApp.mainWindowID)
-                }
+                model.raiseMainWindow = showMainWindow
                 // Register the "Send to CloakDrop" Services item. NSApp doesn't retain the provider,
                 // so the delegate holds it; NSUpdateDynamicServices refreshes the system registration.
                 let provider = ServicesProvider(model: model)

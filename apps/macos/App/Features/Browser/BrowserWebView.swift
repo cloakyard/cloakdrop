@@ -7,9 +7,43 @@ import WebKit
 /// through `WKNavigationDelegate.navigationAction(_:didBecome:)`, which we already take over).
 final class SnifferWebView: WKWebView {
     var onNewTab: (() -> Void)?
+    var onWindowClose: (() -> Void)?
+    private var didStopForClosure = false
 
     override func newWindowForTab(_ sender: Any?) {
         onNewTab?()
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        // Keep observing through a temporary unmount; window closure can finish after SwiftUI
+        // detaches the content. Moving to another window replaces the old observation.
+        guard let window else { return }
+        NotificationCenter.default.removeObserver(self, name: NSWindow.willCloseNotification, object: nil)
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(windowWillClose), name: NSWindow.willCloseNotification, object: window
+        )
+    }
+
+    @objc private func windowWillClose(_ notification: Notification) {
+        onWindowClose?()
+        stopForWindowClose()
+    }
+
+    /// Closing a window is terminal; hiding it or switching native tabs is not. `stopLoading`
+    /// alone leaves loaded players, iframe audio and page timers alive in a retained web view.
+    func stopForWindowClose() {
+        guard !didStopForClosure else { return }
+        didStopForClosure = true
+        onWindowClose = nil
+        onNewTab = nil
+        stopLoading()
+        setAllMediaPlaybackSuspended(true, completionHandler: nil)
+        closeAllMediaPresentations(completionHandler: nil)
+        navigationDelegate = nil
+        uiDelegate = nil
+        configuration.userContentController.removeAllUserScripts()
+        loadHTMLString("", baseURL: nil)
     }
 }
 

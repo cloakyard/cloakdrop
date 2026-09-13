@@ -68,6 +68,7 @@ final class BrowserSession: NSObject {
     private(set) var userAgent: String?
 
     private var observations: [NSKeyValueObservation] = []
+    private(set) var isClosed = false
     private var lastCrashRecovery: Date?
     var popupTimestamps: [Date] = []
     /// One page may emit the same WebKit download through more than one delegate callback, and a
@@ -92,6 +93,7 @@ final class BrowserSession: NSObject {
         webView.isInspectable = true
         #endif
         webView.onNewTab = { [weak self] in self?.onOpenWindow?(nil) }
+        webView.onWindowClose = { [weak self] in self?.teardown() }
         observeWebView()
     }
 
@@ -226,13 +228,7 @@ final class BrowserSession: NSObject {
         let handoffKey = MediaSniffer.recordKey(item.url)
         guard handedOffKeys.insert(handoffKey).inserted else { return }
         let kind = item.type
-        var filename = item.filename.flatMap(CapturedDownload.sanitizedFileName)
-        // A sniffed stream's URL names its manifest ("master.m3u8"), not the video — hand the
-        // engine the page title as the save-name stem; `addMedia` appends the container extension
-        // once the plan is known.
-        if kind == .stream, filename == nil, !media.pageTitle.isEmpty {
-            filename = CapturedDownload.sanitizedFileName(media.pageTitle)
-        }
+        let filename = item.downloadFileName(pageTitle: downloadPageTitle)
         Task { [weak self] in
             guard let self else { return }
             let cookies = await BrowserStore.shared.cookieHeader(for: url)
@@ -265,7 +261,8 @@ final class BrowserSession: NSObject {
         guard !MediaSniffer.isNoise(url.absoluteString) else { return }
         let handoffKey = MediaSniffer.recordKey(url.absoluteString)
         guard handedOffKeys.insert(handoffKey).inserted else { return }
-        let filename = CapturedDownload.sanitizedFileName(suggestedFilename)
+        let item = SniffedItem(url: url.absoluteString, type: kind, filename: suggestedFilename)
+        let filename = item.downloadFileName(pageTitle: downloadPageTitle, mimeType: mimeType)
         Task { [weak self] in
             guard let self else { return }
             let cookies = await BrowserStore.shared.cookieHeader(for: url)
@@ -288,6 +285,10 @@ final class BrowserSession: NSObject {
         return currentURL?.absoluteString
     }
 
+    var downloadPageTitle: String {
+        media.pageTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? pageTitle : media.pageTitle
+    }
+
     // MARK: - Lifecycle
 
     func markCommitted(url: URL?) {
@@ -299,6 +300,7 @@ final class BrowserSession: NSObject {
     }
 
     func applySniff(_ envelope: SniffEnvelope) {
+        guard !isClosed else { return }
         media.apply(envelope)
         shelfItems = media.candidates
     }
@@ -386,15 +388,18 @@ final class BrowserSession: NSObject {
     /// Resolve everything pending and detach from WebKit — called when the window goes away.
     /// (Un-called WebKit completion handlers are a hang/assert; never leave them dangling.)
     func teardown() {
+        guard !isClosed else { return }
+        isClosed = true
         dialog?.cancel()
         dialog = nil
         authRequest?.cancel()
         authRequest = nil
-        webView.stopLoading()
         webView.configuration.userContentController.removeScriptMessageHandler(
             forName: Self.messageHandlerName, contentWorld: .page
         )
         observations = []
+        onOpenWindow = nil
+        webView.stopForWindowClose()
     }
 }
 

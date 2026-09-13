@@ -61,7 +61,11 @@ struct MenuBarContent: View {
     /// Bring the app forward and reopen/raise the main window — works even if the user closed
     /// it while downloads keep running in the background.
     private func showMainWindow() {
-        NSApp.activate()
-        openWindow(id: CloakDropApp.mainWindowID)
+        if let raise = model.raiseMainWindow {
+            raise()
+        } else {
+            openWindow(id: CloakDropApp.mainWindowID)
+            NSApp.activate()
+        }
     }
 }

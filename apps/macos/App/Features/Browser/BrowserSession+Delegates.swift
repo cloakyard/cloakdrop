@@ -7,6 +7,7 @@ import DownloadModels
 
 extension BrowserSession: WKNavigationDelegate {
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async -> WKNavigationActionPolicy {
+        guard !isClosed else { return .cancel }
         // ⌥-click and `<a download>` — the page explicitly asked for a download.
         if navigationAction.shouldPerformDownload { return .download }
         guard let url = navigationAction.request.url, let scheme = url.scheme?.lowercased() else { return .allow }
@@ -26,6 +27,7 @@ extension BrowserSession: WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse) async -> WKNavigationResponsePolicy {
+        guard !isClosed else { return .cancel }
         guard let response = navigationResponse.response as? HTTPURLResponse else { return .allow }
         let disposition = response.value(forHTTPHeaderField: "Content-Disposition")
         // IDM-style takeover, scoped to what the *browser* would download anyway: an explicit
@@ -80,6 +82,7 @@ extension BrowserSession: WKNavigationDelegate {
     }
 
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        guard !isClosed else { return }
         // One quiet recovery, then honesty: a crash-looping page gets the error state instead of
         // a reload storm.
         if shouldAutoRecoverFromCrash() {
@@ -92,6 +95,7 @@ extension BrowserSession: WKNavigationDelegate {
     func webView(
         _ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge
     ) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
+        guard !isClosed else { return (.cancelAuthenticationChallenge, nil) }
         let space = challenge.protectionSpace
         let interactiveMethods = [
             NSURLAuthenticationMethodHTTPBasic, NSURLAuthenticationMethodHTTPDigest, NSURLAuthenticationMethodNTLM
@@ -184,7 +188,7 @@ extension BrowserSession: WKUIDelegate {
     func webView(
         _ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo
     ) async {
-        guard dialog == nil else { return }   // one dialog at a time; extras resolve immediately
+        guard !isClosed, dialog == nil else { return }   // extras and late callbacks resolve immediately
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             dialog = BrowserDialog(message: message, host: frame.securityOrigin.host,
                                    kind: .alert { continuation.resume() })
@@ -195,7 +199,7 @@ extension BrowserSession: WKUIDelegate {
     func webView(
         _ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo
     ) async -> Bool {
-        guard dialog == nil else { return false }
+        guard !isClosed, dialog == nil else { return false }
         let confirmed = await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
             dialog = BrowserDialog(message: message, host: frame.securityOrigin.host,
                                    kind: .confirm { continuation.resume(returning: $0) })
@@ -208,7 +212,7 @@ extension BrowserSession: WKUIDelegate {
         _ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?,
         initiatedByFrame frame: WKFrameInfo
     ) async -> String? {
-        guard dialog == nil else { return nil }
+        guard !isClosed, dialog == nil else { return nil }
         let text = await withCheckedContinuation { (continuation: CheckedContinuation<String?, Never>) in
             dialog = BrowserDialog(message: prompt, host: frame.securityOrigin.host,
                                    kind: .prompt(defaultText: defaultText ?? "") { continuation.resume(returning: $0) })
@@ -256,9 +260,12 @@ extension BrowserSession: WKDownloadDelegate {
                 contentLength: length,
                 contentDisposition: http?.value(forHTTPHeaderField: "Content-Disposition")
             )
-            // A downloaded manifest routes as a stream (quality picker); everything else is a file.
-            takeOver(url: url, suggestedFilename: suggestedFilename, mimeType: response.mimeType,
-                     kind: classified?.type == .stream ? .stream : .file)
+            // WebKit's fallback suggestion can be the bare endpoint name. Only an explicit
+            // attachment name should override the containing page's title for media.
+            let filename = classified?.filename
+                ?? (classified == nil || classified?.type == .file ? suggestedFilename : nil)
+            takeOver(url: url, suggestedFilename: filename, mimeType: response.mimeType,
+                     kind: classified?.type ?? .file)
         }
         return nil   // no destination: WebKit cancels — the engine owns every byte
     }

@@ -311,14 +311,21 @@ ad-network hosts, analytics beacons, adaptive-stream chunks (segment extensions,
 `bytestart=`/`range=` fetches), and UI sound effects. This policy is heuristic, not a promise to identify
 every site's unwanted resource. DRM is flagged only on
 real engagement — `setMediaKeys` with keys, or an `encrypted` media event — never on the capability
-probes players run against clear content. A sniffed stream is shown and saved under the **page
-title** (its URL only names a manifest); the engine appends the container extension once the plan
-is known. Grabs and IDM-style download takeovers
+probes players run against clear content. Sniffed media is shown and saved under the **containing
+page title**, unless the server supplies an explicit attachment filename. Direct video/audio captures
+probe with the captured request context to infer a container extension for extensionless endpoints;
+manifest captures receive their extension once the selected media plan is known. Grabs and download takeovers
 become `CapturedDownload`s and route through the same media/add funnels as everything else; every
 byte is still fetched by the engine with the applicable captured request context. The collector's
 bounded dedupe cache evicts older entries, so crossing 800 distinct resource URLs no longer disables
 later discovery; SPA navigation resets page state. The shelf intentionally selects one primary media
 item, and an HLS candidate can outrank a direct MP4 from the same page.
+
+Browser cleanup follows the native window-close notification, rather than SwiftUI disappearance
+when switching tabs. Closing suspends all WebKit media playback, closes media presentations,
+resolves pending dialogs, detaches delegates and unloads the document, even if SwiftUI retains its
+web view. Engine downloads continue independently. Dock reopen, menu-bar actions and browser
+captures share the main-window presenter, which also restores a minimized downloads window.
 
 Browser extraction can use a private Netscape cookie-jar copy with domain/path scope. Flattened page
 cookies are restricted from crossing into an unrelated media host. The final media plan still shares
