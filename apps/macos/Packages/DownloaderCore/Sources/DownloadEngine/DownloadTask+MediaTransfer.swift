@@ -14,6 +14,13 @@ extension DownloadTask {
         guard !plan.segments.isEmpty else {
             throw DownloadError.underlying(reason: "The media plan contains no downloadable segments.")
         }
+        // Each track owns one staging file per ID. Duplicate IDs would make workers write the same
+        // file concurrently and then concatenate that file twice; reject the plan before any I/O.
+        for segments in [plan.segments, plan.audioSegments ?? []] {
+            guard Set(segments.map(\.id)).count == segments.count else {
+                throw DownloadError.underlying(reason: "The media plan contains duplicate segment identifiers.")
+            }
+        }
         guard !plan.hasUnsupportedEncryption else {
             throw DownloadError.underlying(reason: "This stream uses an unsupported or incomplete encryption method.")
         }

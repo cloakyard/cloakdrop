@@ -122,7 +122,7 @@ extension SniffEnvelope: Codable {
             while !list.isAtEnd {
                 if let event = try? list.decode(SniffEvent.self) {
                     events.append(event)
-                } else if (try? list.decode(AnyIgnored.self)) == nil {
+                } else if (try? list.superDecoder()) == nil {
                     break   // the skip itself failed — the container can't advance, so bail
                 }
             }
@@ -146,29 +146,5 @@ extension SniffEnvelope: Codable {
               data.count <= 1_048_576,   // a batch is a few KB; a megabyte is an attack, not a batch
               let envelope = try? JSONDecoder().decode(SniffEnvelope.self, from: data) else { return nil }
         return envelope
-    }
-}
-
-/// Decodes (and discards) any JSON value — used to skip malformed array elements.
-private struct AnyIgnored: Decodable {
-    init(from decoder: any Decoder) throws {
-        if let container = try? decoder.container(keyedBy: FreeformKey.self) {
-            for key in container.allKeys { _ = try? container.decode(AnyIgnored.self, forKey: key) }
-        } else if var list = try? decoder.unkeyedContainer() {
-            while !list.isAtEnd { _ = try? list.decode(AnyIgnored.self) }
-        } else {
-            let single = try decoder.singleValueContainer()
-            if single.decodeNil() { return }
-            if (try? single.decode(Bool.self)) != nil { return }
-            if (try? single.decode(Double.self)) != nil { return }
-            _ = try? single.decode(String.self)
-        }
-    }
-
-    private struct FreeformKey: CodingKey {
-        var stringValue: String
-        var intValue: Int? { nil }
-        init?(stringValue: String) { self.stringValue = stringValue }
-        init?(intValue: Int) { nil }
     }
 }

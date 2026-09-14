@@ -6,6 +6,28 @@ import Testing
 
 @Suite("Media transfer (segment grab through the engine)")
 struct MediaTransferTests {
+    @Test("Duplicate media IDs fail before concurrent workers can overwrite shared staging files",
+          arguments: [false, true])
+    func duplicateSegmentIDsAreRejected(inAudio: Bool) async throws {
+        let directory = try tempDir()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let first = URL(string: "https://cdn.example/first.ts")!
+        let second = URL(string: "https://cdn.example/second.ts")!
+        let duplicates = [MediaSegment(id: 0, url: first, duration: 1), MediaSegment(id: 0, url: second, duration: 1)]
+        let plan = MediaPlan(format: .hls, segments: inAudio ? [duplicates[0]] : duplicates,
+                             audioSegments: inAudio ? duplicates : nil)
+        let mock = MockHTTPClient(resources: [first: .init(data: payload(0)), second: .init(data: payload(1))])
+        let manager = try await makeManager(store: GRDBDownloadStore.inMemory(), mock: mock)
+        let added = await manager.addMedia(
+            DownloadRequest(url: first, suggestedFileName: "video.ts", destinationDirectoryPath: directory.path), plan: plan
+        )
+        let result = try await waitFor(manager, added.id) { $0.status.isTerminal || $0.status.isResumable }
+        guard case .failed(let reason) = result.status else { Issue.record("Unsafe media plan was not rejected"); return }
+        #expect(reason.contains("duplicate segment"))
+        #expect(mock.streamCount == 0)
+        #expect(!FileManager.default.fileExists(atPath: result.destinationFilePath))
+    }
+
     /// Deterministic, content-checkable segment payload.
     private func payload(_ seed: Int, _ count: Int = 4000) -> Data {
         Data((0..<count).map { UInt8(($0 + seed) % 251) })

@@ -10,7 +10,7 @@ import Foundation
 /// without any UI or engine. Callers construct it (or `parse` a URL into it) and then map it to a
 /// `DownloadRequest` with `toRequest(destinationDirectoryPath:)`.
 ///
-/// `Codable` so it can cross the process boundary between a bundled browser/share extension and
+/// `Codable` so it can cross the process boundary between the native Share Extension and
 /// the app as JSON in the shared App Group inbox (see `CaptureInbox`).
 public struct CapturedDownload: Sendable, Hashable, Codable {
     /// The file to download. Always http/https after validation.

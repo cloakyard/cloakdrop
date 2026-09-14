@@ -131,7 +131,7 @@ while IFS= read -r -d '' fw; do fix_framework "$fw"; done \
 info "Ad-hoc signing the vendored tree"
 find "${STAGE}/_internal" -type f \( -name "*.so" -o -name "*.dylib" \) -exec codesign --force --sign - {} +
 if [ -d "${STAGE}/_internal/Python.framework" ]; then
-  codesign --force --deep --sign - "${STAGE}/_internal/Python.framework"
+  codesign --force --sign - "${STAGE}/_internal/Python.framework"
   codesign --verify --deep --strict "${STAGE}/_internal/Python.framework"
 fi
 codesign --force --sign - "${STAGE}/yt-dlp"

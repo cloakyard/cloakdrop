@@ -90,7 +90,7 @@ struct SettingsView: View {
                         TextField("5", value: speedLimitMBs, format: .number)
                             .labelsHidden()
                             .frame(width: 70)
-                            .textFieldStyle(.roundedBorder)
+                            .borderedTextField()
                             .multilineTextAlignment(.trailing)
                             // `.labelsHidden()` drops the field's VoiceOver label; restore it (the
                             // visible "Maximum" / "MB/s" text around it is a separate element).
@@ -117,7 +117,7 @@ struct SettingsView: View {
                             TextField("1", value: scheduleLimitMBs, format: .number)
                                 .labelsHidden()
                                 .frame(width: 70)
-                                .textFieldStyle(.roundedBorder)
+                                .borderedTextField()
                                 .multilineTextAlignment(.trailing)
                                 .accessibilityLabel("Scheduled limit")
                             Text("MB/s").foregroundStyle(.secondary)
@@ -186,7 +186,7 @@ struct SettingsView: View {
                 }
                 if model.settings.resolvedPostAction.needsShortcutName {
                     TextField("Shortcut name", text: shortcutNameBinding, prompt: Text("Exact name in Shortcuts"))
-                        .textFieldStyle(.roundedBorder)
+                        .borderedTextField()
                 }
             } header: {
                 Text("When Finished")
@@ -226,13 +226,13 @@ struct SettingsView: View {
                         ForEach(ProxyConfiguration.ProxyType.allCases) { Text($0.label).tag($0) }
                     }
                     TextField("Host", text: proxyBinding(\.host), prompt: Text("proxy.example.com"))
-                        .textFieldStyle(.roundedBorder)
+                        .borderedTextField()
                     TextField("Port", value: proxyBinding(\.port), format: .number.grouping(.never))
-                        .textFieldStyle(.roundedBorder)
+                        .borderedTextField()
                     TextField("Username", text: proxyBinding(\.username), prompt: Text("Optional"))
-                        .textFieldStyle(.roundedBorder)
+                        .borderedTextField()
                     SecureField("Password", text: proxyBinding(\.password), prompt: Text("Optional"))
-                        .textFieldStyle(.roundedBorder)
+                        .borderedTextField()
                 }
             }
         }
@@ -355,8 +355,9 @@ struct SettingsView: View {
         Binding(
             get: { Double(model.settings.globalSpeedLimitBytesPerSecond ?? 0) / 1_000_000 },
             set: { mb in
+                guard let limit = SettingsInput.speedLimitBytes(megabytesPerSecond: mb) else { return }
                 var settings = model.settings
-                settings.globalSpeedLimitBytesPerSecond = Int64(max(0.1, mb) * 1_000_000)
+                settings.globalSpeedLimitBytesPerSecond = limit
                 model.updateSettings(settings)
             }
         )
@@ -385,8 +386,7 @@ struct SettingsView: View {
         Binding(
             get: {
                 let minute = model.settings.bandwidthSchedule?[keyPath: keyPath] ?? 0
-                return Calendar.current.startOfDay(for: Date())
-                    .addingTimeInterval(TimeInterval(minute * 60))
+                return SettingsInput.time(on: Date(), minuteOfDay: minute)
             },
             set: { date in
                 let c = Calendar.current.dateComponents([.hour, .minute], from: date)
@@ -409,7 +409,10 @@ struct SettingsView: View {
     private var scheduleLimitMBs: Binding<Double> {
         Binding(
             get: { Double(model.settings.bandwidthSchedule?.limitBytesPerSecond ?? 0) / 1_000_000 },
-            set: { mb in updateSchedule { $0.limitBytesPerSecond = Int64(max(0.1, mb) * 1_000_000) } }
+            set: { mb in
+                guard let limit = SettingsInput.speedLimitBytes(megabytesPerSecond: mb) else { return }
+                updateSchedule { $0.limitBytesPerSecond = limit }
+            }
         )
     }
 }

@@ -9,26 +9,50 @@ struct CloakDropApp: App {
     static let mainWindowID = "main"
 
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @State private var model: AppModel
+    @State private var model: AppModel?
+    @State private var startupError: String?
 
     init() {
         do {
-            #if DEBUG
-            // Exercise native dark materials without changing the user's system appearance.
-            if ProcessInfo.processInfo.arguments.contains("--verify-dark-appearance") {
-                NSApplication.shared.appearance = NSAppearance(named: .darkAqua)
-            }
-            let appModel = ProcessInfo.processInfo.arguments.contains("--hero-fixture")
-                ? try AppModel.heroFixture()
-                : try AppModel.live()
-            #else
-            let appModel = try AppModel.live()
-            #endif
-            _model = State(initialValue: appModel)
+            _model = State(initialValue: try Self.makeModel())
         } catch {
-            // The only failure here is being unable to open the local database; there's no
-            // safe way to continue without persistence, so fail fast with a clear message.
-            fatalError("CloakDrop could not open its local store: \(error)")
+            _startupError = State(initialValue: error.localizedDescription)
+        }
+    }
+
+    private static func makeModel() throws -> AppModel {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--verify-dark-appearance") {
+            NSApplication.shared.appearance = NSAppearance(named: .darkAqua)
+        }
+        // Exercise the recovery UI without altering the real catalog.
+        if ProcessInfo.processInfo.arguments.contains("--verify-store-unavailable") {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        if ProcessInfo.processInfo.arguments.contains("--hero-fixture") { return try AppModel.heroFixture() }
+        #endif
+        return try AppModel.live()
+    }
+
+    private func retryStartup() {
+        do {
+            model = try Self.makeModel()
+            startupError = nil
+        } catch {
+            startupError = error.localizedDescription
+        }
+    }
+
+    /// A failed store open leaves the catalog untouched and every network-capable scene unavailable.
+    /// Retrying constructs a fresh model only after the persistent store opens successfully.
+    private var startupFailure: some View {
+        ContentUnavailableView {
+            Label("Startup", systemImage: "exclamationmark.triangle")
+        } description: {
+            Text(startupError ?? "")
+        } actions: {
+            Button("Try Again", action: retryStartup)
+            Button("Quit CloakDrop") { NSApp.terminate(nil) }
         }
     }
 
@@ -37,25 +61,38 @@ struct CloakDropApp: App {
         // reopen it when closed — or bring it forward when already open — instead of spawning
         // duplicate windows. A download manager has no need for multiple main windows.
         Window("CloakDrop", id: Self.mainWindowID) {
-            RootView()
-                .environment(model)
-                .frame(minWidth: 860, minHeight: 520)
-                .background(CaptureIntakeInstaller(model: model, appDelegate: appDelegate))
-                .task { await model.bootstrap() }
+            Group {
+                if let model {
+                    RootView()
+                        .environment(model)
+                        .background(CaptureIntakeInstaller(model: model, appDelegate: appDelegate))
+                        .task { await model.bootstrap() }
+                } else {
+                    startupFailure
+                }
+            }
+            .frame(minWidth: 860, minHeight: 520)
         }
-        .commands { CloakDropCommands(model: model) }
+        .commands { if let model { CloakDropCommands(model: model) } }
 
         BrowserScene(model: model)
 
         MenuBarExtra("CloakDrop", systemImage: "arrow.down.circle") {
-            MenuBarContent()
-                .environment(model)
+            if let model {
+                MenuBarContent().environment(model)
+            } else {
+                Button("Try Again", action: retryStartup)
+                Button("Quit CloakDrop") { NSApp.terminate(nil) }
+            }
         }
         .menuBarExtraStyle(.menu)
 
         Settings {
-            SettingsView()
-                .environment(model)
+            if let model {
+                SettingsView().environment(model)
+            } else {
+                startupFailure
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 import Foundation
 import DownloadModels
+import DownloadEngine
 
 /// The search engine the address bar uses for a typed query. The query is only ever sent on Return
 /// (submit-only) — there is no as-you-type suggestion traffic to any of these providers.
@@ -42,8 +43,8 @@ protocol BrowserCaptureSink: AnyObject {
     func browserCapture(_ capture: CapturedDownload, kind: SniffedItem.ItemType, cookiesFile: URL?)
     /// Whether a page extractor is bundled and runnable — gates the shelf's extraction offer.
     var canExtractFromPages: Bool { get }
-    func rememberSiteCredentials(host: String, username: String, password: String)
-    func siteCredentials(forHost host: String) -> (username: String, password: String)?
+    func rememberSiteCredentials(for scope: CredentialScope, username: String, password: String)
+    func siteCredentials(for scope: CredentialScope) -> (username: String, password: String)?
 }
 
 /// A JavaScript dialog (`alert`/`confirm`/`prompt`) awaiting the user. WebKit hands us a
@@ -95,13 +96,15 @@ final class BrowserAuthRequest: Identifiable {
     let host: String
     let realm: String?
     let isProxy: Bool
+    let credentialScope: CredentialScope?
     private let completion: (URLCredential?) -> Void
     private var finished = false
 
-    init(host: String, realm: String?, isProxy: Bool, completion: @escaping (URLCredential?) -> Void) {
-        self.host = host
-        self.realm = realm
-        self.isProxy = isProxy
+    init(protectionSpace: URLProtectionSpace, completion: @escaping (URLCredential?) -> Void) {
+        host = protectionSpace.host
+        realm = protectionSpace.realm
+        isProxy = protectionSpace.isProxy()
+        credentialScope = CredentialScope(protectionSpace: protectionSpace)
         self.completion = completion
     }
 

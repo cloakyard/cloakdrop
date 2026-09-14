@@ -95,6 +95,43 @@ public final class InMemoryCredentialStore: CredentialStoring, @unchecked Sendab
 public extension CredentialStoring {
     /// The conventional Keychain key for a manual proxy's credentials.
     static func proxyKey(host: String, port: Int) -> String { "proxy:\(host):\(port)" }
-    /// The conventional Keychain key for a site host's credentials.
-    static func siteKey(host: String) -> String { "site:\(host)" }
+}
+
+/// Credentials belong to one service origin. A saved HTTPS password must never be offered to
+/// HTTP, a different port, FTP, or a proxy running on the same host. Legacy host-only keys are
+/// deliberately not read: their original service cannot be recovered safely.
+public struct CredentialScope: Hashable, Sendable {
+    public let key: String
+
+    public init?(url: URL) {
+        self.init(scheme: url.scheme, host: url.host, port: url.port)
+    }
+
+    public init?(protectionSpace: URLProtectionSpace) {
+        if protectionSpace.isProxy() {
+            guard let kind = protectionSpace.proxyType, !protectionSpace.host.isEmpty,
+                  (1...65535).contains(protectionSpace.port) else { return nil }
+            self.init(key: "browser-proxy:\(kind):\(protectionSpace.host.lowercased()):\(protectionSpace.port)")
+        } else {
+            self.init(scheme: protectionSpace.protocol, host: protectionSpace.host,
+                      port: protectionSpace.port > 0 ? protectionSpace.port : nil)
+        }
+    }
+
+    private init(key: String) { self.key = key }
+
+    private init?(scheme: String?, host: String?, port: Int?) {
+        guard let scheme = scheme?.lowercased(), let host = host?.lowercased(), !host.isEmpty else { return nil }
+        let defaultPort: Int
+        switch scheme {
+        case "https": defaultPort = 443
+        case "http": defaultPort = 80
+        case "ftp": defaultPort = 21
+        case "ftps": defaultPort = 990
+        default: return nil
+        }
+        let port = port ?? defaultPort
+        guard (1...65535).contains(port) else { return nil }
+        key = "site:\(scheme)://\(host):\(port)"
+    }
 }

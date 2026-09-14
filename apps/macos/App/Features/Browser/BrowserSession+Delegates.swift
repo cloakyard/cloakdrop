@@ -1,5 +1,6 @@
 import WebKit
 import DownloadModels
+import DownloadEngine
 
 // The four WebKit delegate conformances. State/intents live in BrowserSession.swift.
 
@@ -104,12 +105,13 @@ extension BrowserSession: WKNavigationDelegate {
             return (.performDefaultHandling, nil)   // server trust etc. — never bypassed, never customized
         }
         // Saved credentials answer the first challenge silently; a failure falls through to the sheet.
-        if challenge.previousFailureCount == 0, let saved = sink?.siteCredentials(forHost: space.host) {
+        if challenge.previousFailureCount == 0, let scope = CredentialScope(protectionSpace: space),
+           let saved = sink?.siteCredentials(for: scope) {
             return (.useCredential, URLCredential(user: saved.username, password: saved.password, persistence: .forSession))
         }
         guard authRequest == nil else { return (.cancelAuthenticationChallenge, nil) }
         let credential = await withCheckedContinuation { (continuation: CheckedContinuation<URLCredential?, Never>) in
-            authRequest = BrowserAuthRequest(host: space.host, realm: space.realm, isProxy: space.isProxy()) {
+            authRequest = BrowserAuthRequest(protectionSpace: space) {
                 continuation.resume(returning: $0)
             }
         }

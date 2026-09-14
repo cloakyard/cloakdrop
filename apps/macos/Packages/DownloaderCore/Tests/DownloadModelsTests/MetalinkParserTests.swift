@@ -113,4 +113,36 @@ struct MetalinkParserTests {
             try parse("<metalink><file name=\"x\"><url>https://e.com/x</url>")   // unclosed tags
         }
     }
+
+    @Test("Extreme mirror preferences cannot overflow and retain valid ordering")
+    func boundsMirrorPreferences() throws {
+        let files = try parse("""
+        <metalink><file name="file.bin">
+          <size>-1</size>
+          <url preference="\(Int.min)">https://least.example/file.bin</url>
+          <url preference="\(Int.max)">https://best.example/file.bin</url>
+          <url>https:missing-host</url>
+        </file></metalink>
+        """)
+        let file = try #require(files.first)
+        #expect(file.size == nil)
+        #expect(file.urls.map(\.host) == ["best.example", "least.example"])
+    }
+
+    @Test("Oversized documents and XML values are rejected before unbounded import work")
+    func boundsImportSize() {
+        #expect(throws: DownloadError.self) {
+            try MetalinkParser.parse(Data(repeating: 32, count: MetalinkParser.maximumDocumentBytes + 1))
+        }
+        #expect(throws: DownloadError.self) {
+            try parse("<metalink><description>\(String(repeating: "x", count: 65_537))</description></metalink>")
+        }
+    }
+
+    @Test("Nested file elements fail instead of duplicating or replacing a file's state")
+    func rejectsNestedFiles() {
+        #expect(throws: DownloadError.self) {
+            try parse("<metalink><file name=\"outer\"><file name=\"inner\"><url>https://e.com/a</url></file></file></metalink>")
+        }
+    }
 }

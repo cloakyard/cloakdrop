@@ -50,7 +50,7 @@ struct BatchAddSheet: View {
 
                 HStack(spacing: 8) {
                     TextField("Page URL", text: $pageURLString, prompt: Text("Grab all links from a page…"))
-                        .textFieldStyle(.roundedBorder)
+                        .borderedTextField()
                         .onSubmit { fetchFromPage() }
                     Button {
                         fetchFromPage()
@@ -136,7 +136,7 @@ struct BatchAddSheet: View {
                     .controlSize(.small)
                 Spacer()
                 TextField("Filter", text: $filter, prompt: Text("Filter"))
-                    .textFieldStyle(.roundedBorder)
+                    .borderedTextField()
                     .frame(width: 160)
             }
             List {

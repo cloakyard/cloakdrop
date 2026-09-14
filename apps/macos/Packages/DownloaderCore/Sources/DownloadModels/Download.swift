@@ -186,7 +186,11 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     /// Bytes downloaded so far: the running media byte count for a media grab, else the sum across
     /// byte-range segments.
     public var downloadedBytes: Int64 {
-        isMedia ? mediaDownloadedBytes : segments.reduce(0) { $0 + $1.downloadedBytes }
+        if isMedia { return max(0, mediaDownloadedBytes) }
+        return segments.reduce(0) { total, segment in
+            let sum = total.addingReportingOverflow(max(0, segment.downloadedBytes))
+            return sum.overflow ? Int64.max : sum.partialValue
+        }
     }
 
     /// Average transfer rate (bytes/sec) over the download's active time, or `nil` if not yet
@@ -202,7 +206,7 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     public var fractionCompleted: Double? {
         if let plan = mediaPlan {
             guard plan.totalSegments > 0 else { return nil }
-            return min(1.0, Double(mediaCompletedSegments) / Double(plan.totalSegments))
+            return min(1.0, Double(max(0, mediaCompletedSegments)) / Double(plan.totalSegments))
         }
         guard let totalBytes, totalBytes > 0 else { return nil }
         return min(1.0, Double(downloadedBytes) / Double(totalBytes))

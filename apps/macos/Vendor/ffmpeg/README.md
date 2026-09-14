@@ -56,5 +56,5 @@ corresponding FFmpeg source and build configuration, including any modifications
 and nonfree components does not remove redistribution obligations; follow
 [FFmpeg's licensing guidance](https://ffmpeg.org/legal.html).
 
-Local ad-hoc signing is distinct from Developer ID signing and Apple notarization. The current
-beta is locally signed and not notarized; see the [security policy](../../../../SECURITY.md).
+Local ad-hoc signing is distinct from Developer ID signing and Apple notarization. Locally signed
+builds are not notarized; see the [security policy](../../../../SECURITY.md).

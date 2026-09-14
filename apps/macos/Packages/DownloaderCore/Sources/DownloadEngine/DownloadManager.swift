@@ -370,10 +370,7 @@ public actor DownloadManager {
         downloads[id] = nil
         tasks[id] = nil
         handles[id] = nil
-        SegmentedFileWriter.discardPartData(for: download)
-        if deleteFile {
-            try? FileManager.default.removeItem(atPath: download.destinationFilePath)
-        }
+        SegmentedFileWriter.discardPartData(for: download, deleteFile: deleteFile)
         // Drain any save still queued for this id so a straggler can't re-create the row after
         // the delete.
         await pendingSaves[id]?.value

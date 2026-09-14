@@ -118,4 +118,28 @@ struct SubtitleConverterTests {
         #expect(SubtitleConverter.srtTimestamp(0) == "00:00:00,000")
         #expect(SubtitleConverter.srtTimestamp(-5) == "00:00:00,000")
     }
+
+    @Test("Malformed remote timestamps are skipped without poisoning good captions", arguments: [
+        "00:NaN", "00:inf", "1e308:00:00", "-1:00", "00::01", ":00:01"
+    ])
+    func rejectsUnsafeTimestamps(_ timestamp: String) throws {
+        #expect(SubtitleConverter.parseTimestamp(timestamp) == nil)
+        let text = "WEBVTT\n\n\(timestamp) --> 00:00:02.000\nBad\n\n00:00:03.000 --> 00:00:04.000\nGood"
+        #expect(try #require(SubtitleConverter.toSRT(text)) == "1\n00:00:03,000 --> 00:00:04,000\nGood\n\n")
+    }
+
+    @Test("Malformed timestamp maps are ignored", arguments: ["NaN", "inf", "1e308", "-1", "8589934592"])
+    func ignoresUnsafeTimestampMaps(_ ticks: String) throws {
+        let text = "WEBVTT\nX-TIMESTAMP-MAP=MPEGTS:\(ticks),LOCAL:00:00:00.000\n\n00:00:01.000 --> 00:00:02.000\nGood"
+        #expect(try #require(SubtitleConverter.toSRT(text)).contains("00:00:01,000 --> 00:00:02,000"))
+    }
+
+    @Test("SRT formatting remains safe for non-finite and extreme internal values")
+    func boundsTimestampFormatting() {
+        for value in [Double.nan, .infinity, -.infinity] {
+            #expect(SubtitleConverter.srtTimestamp(value) == "00:00:00,000")
+        }
+        #expect(SubtitleConverter.srtTimestamp(.greatestFiniteMagnitude) == "277777777:46:40,000")
+        #expect(SubtitleConverter.toSRT("WEBVTT\n\n00:02 --> 00:01\nBackwards") == nil)
+    }
 }

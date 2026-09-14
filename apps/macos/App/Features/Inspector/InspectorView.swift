@@ -225,11 +225,11 @@ struct InspectorView: View {
 
     private func segments(_ download: Download) -> some View {
         section("Segments (\(download.segments.count))", "rectangle.split.3x1") {
-            ForEach(download.segments) { segment in
+            ForEach(Array(download.segments.enumerated()), id: \.offset) { index, segment in
                 let live = model.progress[download.id]?.value.segmentBytes[segment.id] ?? segment.downloadedBytes
                 let fraction = segment.length > 0 ? min(1, Double(live) / Double(segment.length)) : 0
                 HStack(spacing: 8) {
-                    Text("#\(segment.id + 1)")
+                    Text("#\(index + 1)")
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
                         .frame(width: 28, alignment: .leading)

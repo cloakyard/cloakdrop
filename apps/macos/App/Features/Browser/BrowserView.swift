@@ -431,13 +431,16 @@ private struct BrowserAuthSheet: View {
                     TextField("User Name", text: $username)
                     SecureField("Password", text: $password)
                     Toggle("Remember in my Keychain", isOn: $remember)
+                        .disabled(request.credentialScope == nil)
                 }
                 HStack {
                     Spacer()
                     Button("Cancel", role: .cancel) { request.cancel() }
                         .keyboardShortcut(.cancelAction)
                     Button("Sign In") {
-                        if remember { sink.rememberSiteCredentials(host: request.host, username: username, password: password) }
+                        if remember, let scope = request.credentialScope {
+                            sink.rememberSiteCredentials(for: scope, username: username, password: password)
+                        }
                         request.finish(username: username, password: password)
                     }
                     .keyboardShortcut(.defaultAction)
@@ -448,7 +451,7 @@ private struct BrowserAuthSheet: View {
         }
         .frame(width: 380)
         .onAppear {
-            if let saved = sink.siteCredentials(forHost: request.host) {
+            if let scope = request.credentialScope, let saved = sink.siteCredentials(for: scope) {
                 username = saved.username
                 password = saved.password
             }

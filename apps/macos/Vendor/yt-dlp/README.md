@@ -21,10 +21,18 @@ native code to arm64 and normalizes Python.framework's versioned symlinks. The o
 the helper load signed code from its fixed bundle location instead of extracting executable code
 to temporary storage as the onefile distribution does.
 
-Rebuild the app after vendoring. The [project build phase](../../project.yml) copies the runtime
-beside the executable in `CloakDrop.app/Contents/Resources/yt-dlp`, signs nested code and the helper with the
-appropriate app identity, and verifies signatures. The helper inherits the app's sandbox. If the
-vendor inputs are absent, the build phase removes stale bundled copies.
+Rebuild the app after vendoring. The [project build phase](../../project.yml) invokes
+[`bundle-ytdlp.py`](../../scripts/bundle-ytdlp.py) using Xcode's Python 3. It places the executable in
+`Contents/MacOS`, the Python framework and native modules in `Contents/Frameworks`, and the remaining
+frozen runtime resources in `Contents/Resources/yt-dlp`. Relative symlinks preserve the original
+import paths and PyInstaller's app-bundle runtime lookup. Existing library search paths are adjusted
+to this layout; the official runtime is preserved without rebuilding or replacing dependencies.
+This follows [Apple's guidance for nonstandard code structures](https://developer.apple.com/documentation/xcode/embedding-nonstandard-code-structures-in-a-bundle).
+
+The build signs native components individually, then the framework and sandbox-inheriting helper,
+and verifies signatures. `--deep` is used only for verification. The helper keeps its current library
+validation exception until removal can be verified with Developer ID signing. If vendor inputs are
+absent, the build removes both the resource tree and its relocated code and symlinks.
 
 [`YtDlpExtractor`](../../Packages/DownloaderCore/Sources/DownloadEngine/YtDlpExtractor.swift)
 invokes the helper with `--ignore-config --no-plugin-dirs --no-cache-dir --simulate -J --no-playlist`,
@@ -56,5 +64,5 @@ The [12 September recheck](../../../../docs/audits/2026-09-12-progress-and-depen
 confirms that this gap remains and records current custom-build targets.
 
 The local script uses ad-hoc signing. Successful code-signature checks do not establish Developer
-ID identity or Apple notarization. The current beta is locally signed and not notarized; see the
+ID identity or Apple notarization. Locally signed builds are not notarized; see the
 [security policy](../../../../SECURITY.md).
