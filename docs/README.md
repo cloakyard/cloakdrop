@@ -26,6 +26,7 @@ describe each shipped build.
 
 ## Release verification
 
+- [September 14, 2026: Static product page and 1.0.0 README update](audits/2026-09-14-website-1.0.0.md).
 - [September 14, 2026: 1.0.0 optimization, macOS 27 review and fresh installation](audits/2026-09-14-release-1.0.0.md).
 - [September 13, 2026: Browser media naming and window lifecycle](audits/2026-09-13-browser-lifecycle.md).
 - [September 12, 2026: Dock progress fix, native visual checks and dependency audit](audits/2026-09-12-progress-and-dependencies.md).

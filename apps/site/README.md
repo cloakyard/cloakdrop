@@ -3,7 +3,7 @@
 The marketing site for **CloakDrop**, hosted at **[drop.cloakyard.com](https://drop.cloakyard.com)**.
 
 - **Stack:** [Astro](https://astro.build) 7 — fully static output, with a small first-party
-  script for progressive motion and the interactive transfer demonstration.
+  script for navigation and progressive content reveals.
 - **Host:** Cloudflare **Workers static assets** (`wrangler.jsonc` → serves `dist/` from the edge).
 - **Design:** editorial / magazine layout — numbered sections, hairline rules, self-hosted **Archivo** (heavy display) + **JetBrains Mono** (labels & data) on CloakDrop's deep-ocean accent (`#2A7B9B`). Follows the OS light/dark theme via `prefers-color-scheme`. Fonts are self-hosted (no Google Fonts request) to keep the privacy story intact.
 
@@ -13,14 +13,16 @@ assets (logo, favicons, OG card, hero screenshot) live in the repo-root
 `scripts/sync-assets.mjs` script (run automatically by the `prebuild` hook). See
 [`/assets/README.md`](../../assets/README.md).
 
-The landing-page copy describes the current source tree. Published beta builds can lag behind it;
-GitHub Releases remains the source of truth for the contents and installation status of each build.
-The compact install note documents the locally signed, non-notarized beta and Apple’s current
+The landing-page copy describes the 1.0.0 source tree and macOS 27 support. Until that release is
+published, its download note identifies release preparation and links to the available GitHub
+builds. Update that note when uploading 1.0.0; keep the download URL on the releases index so it
+also works for prereleases. The install note documents local signing and Apple’s
 Privacy & Security → Open Anyway flow; keep it aligned with the DMG install guide.
 
-The landing page keeps a real app screenshot, three short interactive product chapters, an
-open-source/privacy band, and a download panel. Motion is finite, respects reduced motion, and
-never starts a network request. Without JavaScript, the product chapters remain readable.
+The landing page uses a real app screenshot, three concise feature summaries, an
+open-source/privacy band, and a download panel. There are no simulated transfers, product tabs,
+demo timers or decorative range animations. Features remain readable without JavaScript;
+content reveals are finite and respect reduced motion.
 
 ## Develop
 
@@ -45,10 +47,10 @@ Astro 7 can leave the development/preview server running after the command retur
 server when finished with `npx astro dev stop` or `npx astro preview stop`.
 
 After visual changes, inspect desktop and narrow mobile widths in light/dark appearance,
-keyboard navigation (including chapter tabs and the mobile menu), reduced motion, enlarged text
-and the no-JavaScript fallback. The transfer demonstration is illustrative; it performs no real
-download or throughput measurement. See the [website audit](../../docs/audits/2026-09-06-website.md)
-for the latest recorded checks and screenshots.
+keyboard navigation (including the mobile menu), reduced motion, enlarged text and the
+no-JavaScript fallback. The app screenshot uses an example library; displayed speeds are
+illustrative. See the [documentation index](../../docs/README.md#release-verification) for dated
+verification results.
 
 ## Structure
 
@@ -68,13 +70,12 @@ apps/site/
     ├── pages/index.astro   # landing page — composes the sections in order
     ├── pages/privacy.astro # renders the repo-root privacy policy for the web
     ├── pages/404.astro     # static not-found page used by Cloudflare
-    ├── scripts/motion.ts   # finite reveals, hero arrival, and navigation
-    ├── scripts/transferDemo.ts # keyboard tabs + user-started relaunch illustration
+    ├── scripts/motion.ts   # finite content reveals and navigation
     └── styles/global.css   # @font-face + design tokens (light/dark) + shared primitives
 ```
 
-Edit shared product copy and links in [`src/data/site.ts`](src/data/site.ts). Labels and
-annotations that belong to a specific visual demonstration live beside that component's markup.
+Edit shared product copy and links in [`src/data/site.ts`](src/data/site.ts). The static feature
+section lives in [`src/components/Product.astro`](src/components/Product.astro).
 The privacy page imports [`PRIVACY.md`](../../PRIVACY.md); update its displayed date in
 `src/pages/privacy.astro` when the source policy changes; sync the native Privacy settings page
 and its translations too. Keep installation steps aligned with the

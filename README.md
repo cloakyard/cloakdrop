@@ -2,9 +2,9 @@
 
 **A carefully made, open-source download manager for macOS.**
 
-CloakDrop is for people who care about the details: native SwiftUI controls, resilient transfers,
-and video capture that fits into a Mac workflow. A thin app shell sits over an independently tested
-Swift engine. Free, MIT-licensed, with no account, telemetry, or CloakDrop service receiving your activity.
+Parallel downloads, saved progress, and video capture in a native Mac app. Built with SwiftUI
+for macOS 27, with support for macOS 26. A thin app shell sits over an independently tested Swift
+engine. Free, MIT-licensed, with no account, telemetry, or CloakDrop service receiving your activity.
 
 **[Website](https://drop.cloakyard.com)** · **[Downloads](https://github.com/cloakyard/cloakdrop/releases)** · **[Documentation](docs/README.md)** · **[Contributing](CONTRIBUTING.md)**
 
@@ -34,13 +34,23 @@ Requires **macOS 26 or later on Apple silicon**. Release builds and bundled help
 2. Drag **CloakDrop** into **Applications**, then open it.
 3. If macOS blocks that first launch, and you trust the official download, open **System Settings → Privacy & Security → Open Anyway**, then confirm **Open**.
 
-A small installation note: locally signed builds are **not notarized**.
-Notarization requires a paid Apple Developer Program membership; I’ll consider it if there’s enough
-demand. See [Apple’s opening guidance](https://support.apple.com/en-us/102445) and the release notes
-for the specific build.
+Current locally signed builds are **not notarized**. See
+[Apple’s opening guidance](https://support.apple.com/en-us/102445) and the release notes for the
+signing status of the build you download.
 
-This README describes the **current source**, which may be ahead of the published release. Each
-release’s notes and assets are the source of truth for its features, checksums, and signing status.
+This source tree is **1.0.0**, currently in release preparation. GitHub Releases lists the available
+downloads; each release’s notes and assets are the source of truth for its features, checksums,
+and signing status.
+
+## Version 1.0.0
+
+This release focuses on transfer reliability and a simpler native experience: safer recovery of
+saved downloads and moved folders, stronger input validation, scoped remembered credentials,
+and updated macOS 27 controls.
+
+The [September 14 release audit](docs/audits/2026-09-14-release-1.0.0.md) records **626 passing
+tests**, fresh installation checks, and real media/download verification. It also documents the
+remaining signing, Share Extension and bundled-runtime limits before public release.
 
 ## What it does
 
@@ -79,7 +89,7 @@ configuration does not exercise that handoff.
 Resume has automated and GUI coverage across manager/app relaunch. That evidence does not establish
 physical power-loss durability or compatibility with every FTP/FTPS server. Without a usable
 validator or trusted checksum, equal-length remote changes can remain undetected. The
-[audit overview](docs/audits/2026-09-06-overview.md) records tested behavior and remaining limits.
+[1.0.0 release audit](docs/audits/2026-09-14-release-1.0.0.md) records tested behavior and remaining limits.
 
 ## Troubleshooting
 
@@ -191,11 +201,12 @@ cd apps/macos/Packages/DownloaderCore
 swift test
 ~~~
 
-The **September 6, 2026 audit passed 593 tests across 83 suites**, covering segment scheduling,
+The **September 14, 2026 audit passed 626 tests across 87 suites** in both optimized and
+Thread Sanitizer runs, covering segment scheduling,
 relaunch/resume, range and identity validation, retry truncation, cancellation races, credential
 scoping, HTTP/FTP loopback transfers, safe publication, checksums, bandwidth limiting, archive
-guards, manifest parsing and media extraction. See the [engine audit](docs/audits/2026-09-06-engine.md)
-and [video audit](docs/audits/2026-09-06-video.md).
+guards, manifest parsing and media extraction. See the
+[1.0.0 release audit](docs/audits/2026-09-14-release-1.0.0.md) for the exact commands, results and limits.
 
 Normal tests use mocks or loopback servers; a cold package resolution may fetch GRDB. To opt into
 live-origin smoke tests, supply your own HTTP(S) test files from the package directory:
@@ -205,8 +216,9 @@ CLOAKDROP_LIVE_TEST_URLS='https://origin.example/file,https://another.example/fi
   swift test --filter LiveOriginSmokeTests
 ~~~
 
-The dated audit also includes an arm64 Debug build, static analysis, lint/localization checks and
-native GUI verification of a checksum-matched transfer, pause/relaunch/resume and browser capture.
+The dated audit also includes arm64 Debug and optimized Release builds, static analysis,
+lint/localization checks, and native verification of checksum-matched transfers,
+pause/relaunch/resume, moved destinations and browser capture.
 For the repeatable visual workflow, see the [verification guide](.agents/skills/verify/SKILL.md).
 
 ## Repository layout

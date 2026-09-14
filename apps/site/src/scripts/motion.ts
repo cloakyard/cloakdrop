@@ -2,8 +2,7 @@ export {};
 
 /**
  * Restrained progressive motion for the marketing page.
- * Product-specific animation lives with the transfer theatre; this file only
- * handles navigation state and a small, one-time content arrival.
+ * Navigation state and a small, one-time content arrival.
  */
 
 const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -29,27 +28,6 @@ function initReveal() {
   motion.addEventListener('change', () => {
     if (motion.matches) animations.forEach((animation) => animation.cancel());
   });
-}
-
-function initHeroArrival() {
-  const hero = document.querySelector('[data-hero-arrival]');
-  if (!hero || !('IntersectionObserver' in window)) return;
-  const observer = new IntersectionObserver((entries) => {
-    if (!entries.some((entry) => entry.isIntersecting)) return;
-    observer.disconnect();
-    if (motion.matches) return;
-    hero.querySelectorAll<HTMLElement>('.track i').forEach((track, index) => {
-      track.style.transformOrigin = 'left';
-      const animation = track.animate(
-        [{ transform: 'scaleX(.15)' }, { transform: 'scaleX(1)' }],
-        { duration: 900, delay: index * 55, easing: 'cubic-bezier(.22, 1, .36, 1)' }
-      );
-      const stop = () => { if (motion.matches) animation.cancel(); };
-      motion.addEventListener('change', stop);
-      animation.finished.catch(() => {}).finally(() => motion.removeEventListener('change', stop));
-    });
-  }, { threshold: .15 });
-  observer.observe(hero);
 }
 
 function initNavigation() {
@@ -104,6 +82,5 @@ function initMobileNavigation() {
 }
 
 initReveal();
-initHeroArrival();
 initNavigation();
 initMobileNavigation();
