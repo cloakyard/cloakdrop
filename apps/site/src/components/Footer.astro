@@ -1,5 +1,5 @@
 ---
-import { site } from '../data/site';
+import { downloads, site } from '../data/site';
 import Icon from './Icon.astro';
 interface Props { linkPrefix?: string; }
 const { linkPrefix = '' } = Astro.props;
@@ -8,7 +8,7 @@ const { linkPrefix = '' } = Astro.props;
   <div class="container inner">
     <p><strong translate="no">CloakDrop</strong><span>Made with care by <a href="https://github.com/sumitsahoo">Sumit Sahoo</a>.</span></p>
     <nav aria-label="Footer">
-      <a href={linkPrefix + '#download'}>Get the beta</a>
+      <a href={linkPrefix + downloads.sectionHref}>{downloads.label}</a>
       <a href={site.repo}>GitHub</a>
       <a href={site.privacyPolicy}>Privacy</a>
       <a href="https://cloakyard.com">Cloakyard <Icon name="arrow" size={15} /></a>
