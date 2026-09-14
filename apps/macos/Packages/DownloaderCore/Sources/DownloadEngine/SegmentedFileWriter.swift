@@ -62,12 +62,24 @@ public enum SegmentedFileWriter {
         try? FileManager.default.removeItem(atPath: partPath)
     }
 
-    /// Discard all in-progress data for a download — the `.cdpart` file and, for a media grab,
-    /// the `.cdparts` segment directory.
-    public static func discardPartData(for download: Download) {
+    /// Discard staging data and, only when requested, the finished file. Resolve the saved folder
+    /// even for paused downloads: after a move, the old path may belong to an unrelated file.
+    public static func discardPartData(for original: Download, deleteFile: Bool = false) {
+        let scope = SecurityScope(bookmark: original.destinationBookmark)
+        let accessGranted = scope.start()
+        defer { scope.stop() }
+        guard !scope.hasBookmark || accessGranted else { return }
+        var download = original
+        if scope.hasBookmark {
+            guard let directory = scope.resolvedPath(for: download.destinationDirectoryPath) else { return }
+            download.destinationDirectoryPath = directory
+        }
         discardPartFile(partPath: download.partFilePath)
         if download.isMedia {
             try? FileManager.default.removeItem(atPath: download.mediaPartDirectoryPath)
+        }
+        if deleteFile {
+            try? FileManager.default.removeItem(atPath: download.destinationFilePath)
         }
     }
 }

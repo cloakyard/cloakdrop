@@ -18,7 +18,10 @@ extension AppModel {
         guard mediaThumbnails[download.id] == nil, !thumbnailsInFlight.contains(download.id),
               !thumbnailsUnavailable.contains(download.id) else { return }
 
-        let cacheURL = Self.thumbnailCacheURL(for: download.id)
+        guard let cacheURL = try? Self.thumbnailCacheURL(for: download.id) else {
+            thumbnailsUnavailable.insert(download.id)
+            return
+        }
         if FileManager.default.fileExists(atPath: cacheURL.path) {
             mediaThumbnails[download.id] = cacheURL
             return
@@ -34,18 +37,40 @@ extension AppModel {
             // silently fail forever. Detached so neither the render nor the cache write touches
             // the main actor.
             let scope = SecurityScope(bookmark: bookmark)
-            scope.start()
+            let accessGranted = scope.start()
             defer { scope.stop() }
-            let data = try? await MediaThumbnailer.generateJPEG(for: fileURL)
-            if let data { try? data.write(to: cacheURL, options: .atomic) }
+            let cached: Bool
+            do {
+                let sourceURL: URL
+                if scope.hasBookmark {
+                    guard accessGranted, let path = scope.resolvedPath(for: fileURL.path) else {
+                        throw CocoaError(.fileReadNoPermission)
+                    }
+                    sourceURL = URL(fileURLWithPath: path)
+                } else {
+                    sourceURL = fileURL
+                }
+                let data = try await MediaThumbnailer.generateJPEG(for: sourceURL)
+                try data.write(to: cacheURL, options: .atomic)
+                cached = true
+            } catch {
+                cached = false
+            }
             await MainActor.run {
-                self?.thumbnailsInFlight.remove(id)
-                if data != nil {
-                    self?.mediaThumbnails[id] = cacheURL
+                guard let self else { return }
+                self.thumbnailsInFlight.remove(id)
+                guard self.downloads.contains(where: {
+                    $0.id == id && $0.status == .completed && $0.destinationFilePath == download.destinationFilePath
+                }) else {
+                    try? FileManager.default.removeItem(at: cacheURL)
+                    return
+                }
+                if cached {
+                    self.mediaThumbnails[id] = cacheURL
                 } else {
                     // Remember the miss (audio-only grabs have no frame; unreadable files) so a
                     // row appearance doesn't re-run a doomed AVAsset load every time.
-                    self?.thumbnailsUnavailable.insert(id)
+                    self.thumbnailsUnavailable.insert(id)
                 }
             }
         }
@@ -53,10 +78,11 @@ extension AppModel {
 
     /// `~/Library/Caches/<container>/Thumbnails/<id>.jpg` — inside the sandbox container, so it's
     /// writable and swept by the system under cache pressure (regenerated on demand if evicted).
-    private static func thumbnailCacheURL(for id: UUID) -> URL {
-        let directory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Thumbnails", isDirectory: true)
-        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    private static func thumbnailCacheURL(for id: UUID) throws -> URL {
+        let directory = try FileManager.default.url(
+            for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true
+        ).appendingPathComponent("Thumbnails", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         return directory.appendingPathComponent("\(id.uuidString).jpg")
     }
 }

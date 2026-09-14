@@ -115,7 +115,8 @@ struct SpeedTestSettingsView: View {
     }
 
     private static func milliseconds(_ value: Double) -> String {
-        String(localized: "\(Int(value.rounded())) ms")
+        guard value.isFinite, value >= 0, value.rounded() < Double(Int.max) else { return "—" }
+        return String(localized: "\(Int(value.rounded())) ms")
     }
 
     @ViewBuilder private var statusFooter: some View {

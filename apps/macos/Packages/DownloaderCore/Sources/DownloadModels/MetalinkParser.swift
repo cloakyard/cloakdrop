@@ -5,10 +5,16 @@ import Foundation
 /// in how they rank mirrors (4's `priority`, lower-is-better, vs 3's `preference`, higher-is-better).
 ///
 /// Pure and I/O-free — built on Foundation's `XMLParser`, no third-party dependency. Only http(s)
-/// mirrors are kept; ftp/magnet/rsync sources are dropped since the engine speaks HTTP.
+/// mirrors are kept; multi-source Metalink transfers require HTTP range and resource validation.
 public enum MetalinkParser {
+    static let maximumDocumentBytes = 8 * 1024 * 1024
+
     public static func parse(_ data: Data) throws -> [MetalinkFile] {
+        guard data.count <= maximumDocumentBytes else {
+            throw DownloadError.underlying(reason: "The Metalink document exceeds the 8 MB limit.")
+        }
         let parser = XMLParser(data: data)
+        parser.shouldResolveExternalEntities = false
         parser.shouldProcessNamespaces = true          // report local element names, namespace-agnostic
         let delegate = MetalinkParserDelegate()
         parser.delegate = delegate
@@ -38,6 +44,7 @@ private final class MetalinkParserDelegate: NSObject, XMLParserDelegate {
     private var inPieces = false
     private var currentHashAlgorithm: ChecksumAlgorithm?
     private var currentURLPriority: Int?
+    private var inFile = false
 
     func parser(
         _ parser: XMLParser,
@@ -49,6 +56,8 @@ private final class MetalinkParserDelegate: NSObject, XMLParserDelegate {
         text = ""
         switch elementName.lowercased() {
         case "file":
+            guard !inFile else { parser.abortParsing(); return }
+            inFile = true
             resetFile()
             name = attributes["name"] ?? ""
         case "pieces":
@@ -65,6 +74,7 @@ private final class MetalinkParserDelegate: NSObject, XMLParserDelegate {
     }
 
     func parser(_ parser: XMLParser, foundCharacters string: String) {
+        guard text.utf8.count + string.utf8.count <= 65_536 else { parser.abortParsing(); return }
         text += string
     }
 
@@ -77,7 +87,7 @@ private final class MetalinkParserDelegate: NSObject, XMLParserDelegate {
         let value = text.trimmingCharacters(in: .whitespacesAndNewlines)
         switch elementName.lowercased() {
         case "size":
-            size = Int64(value)
+            size = Int64(value).flatMap { $0 >= 0 ? $0 : nil }
         case "hash":
             if inPieces {
                 if !value.isEmpty { pieceHashes.append(value.lowercased()) }
@@ -89,12 +99,13 @@ private final class MetalinkParserDelegate: NSObject, XMLParserDelegate {
             inPieces = false
         case "url":
             if let url = URL(string: value), let scheme = url.scheme?.lowercased(),
-               scheme == "http" || scheme == "https" {
+               scheme == "http" || scheme == "https", url.host?.isEmpty == false {
                 sources.append(MetalinkSource(url: url, priority: currentURLPriority ?? Self.defaultPriority))
             }
             currentURLPriority = nil
         case "file":
             commitFile()
+            inFile = false
         default:
             break
         }
@@ -141,7 +152,10 @@ private final class MetalinkParserDelegate: NSObject, XMLParserDelegate {
     /// is better) mapped into the same lower-is-better space; otherwise the default.
     static func priority(from attributes: [String: String]) -> Int {
         if let priority = attributes["priority"].flatMap({ Int($0) }) { return priority }
-        if let preference = attributes["preference"].flatMap({ Int($0) }) { return defaultPriority - preference }
+        if let preference = attributes["preference"].flatMap({ Int($0) }) {
+            // Metalink 3 defines preference as 0–100; clamp hostile values before subtracting.
+            return defaultPriority - min(100, max(0, preference))
+        }
         return defaultPriority
     }
 

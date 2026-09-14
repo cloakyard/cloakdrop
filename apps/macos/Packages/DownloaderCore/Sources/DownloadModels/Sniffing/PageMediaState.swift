@@ -199,8 +199,10 @@ public struct PageMediaState: Sendable {
         if let previous = recorded[key] {
             // Fresh signed URL/frame wins, while stronger metadata from an earlier response/element
             // is retained. The position remains stable.
+            var merged = item
+            if merged.filename == nil { merged.filename = previous.item.filename }
             recorded[key] = Observation(
-                item: item,
+                item: merged,
                 frameKey: frame,
                 isTopFrame: envelope.isTopFrame,
                 evidence: previous.evidence.rawValue > evidence.rawValue ? previous.evidence : evidence,

@@ -1,7 +1,7 @@
 # CloakDrop capability inventory and product gaps
 
 This document records the source tree checked on **6 September 2026**. It is not a release roadmap:
-published beta builds can lag behind the source, and an idea listed here is not a delivery commitment.
+published releases can lag behind the source, and an idea listed here is not a delivery commitment.
 The historical `COMPETITIVE.md` filename is retained, but this is a CloakDrop capability inventory.
 It makes no current competitor feature, price or performance comparison; such comparisons require
 fresh, dated evidence from the products concerned.

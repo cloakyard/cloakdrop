@@ -29,6 +29,12 @@ if [[ -n "$LAYOUT" && ! -f "$LAYOUT" ]]; then
   exit 1
 fi
 
+# Finder addresses the installer by volume name. Never lay out or detach another mounted copy.
+if [[ -e "/Volumes/$VOLNAME" ]]; then
+  echo "Eject the mounted $VOLNAME installer before building another." >&2
+  exit 1
+fi
+
 ICON="$REPO/App/Resources/Assets.xcassets/AboutAppIcon.imageset/about_icon_512.png"
 ICNS="$APP/Contents/Resources/AppIcon.icns"
 
@@ -47,11 +53,10 @@ fi
 
 WORK="$(mktemp -d)"
 STAGE="$WORK/stage"
+MNT="$WORK/mount"
 mkdir -p "$STAGE/.background"
-DEV=""
 cleanup() {
-  [[ -n "$DEV" ]] && hdiutil detach "$DEV" -quiet 2>/dev/null || true
-  [[ -d "/Volumes/$VOLNAME" ]] && hdiutil detach "/Volumes/$VOLNAME" -quiet 2>/dev/null || true
+  [[ -d "$MNT" ]] && hdiutil detach "$MNT" -quiet 2>/dev/null || true
   rm -rf "$WORK"
 }
 trap cleanup EXIT
@@ -78,9 +83,7 @@ hdiutil create -srcfolder "$STAGE" -volname "$VOLNAME" -fs HFS+ \
   -format UDRW -size "${SIZE_MB}m" -ov "$RW" >/dev/null
 
 echo "▸ Mounting…"
-DEV="$(hdiutil attach -readwrite -noverify -noautoopen "$RW" | grep -E '^/dev/' | sed 1q | awk '{print $1}')"
-MNT="/Volumes/$VOLNAME"
-sleep 1
+hdiutil attach -readwrite -noverify -noautoopen -mountpoint "$MNT" "$RW" >/dev/null
 
 # Mark support resources invisible without assigning them icon coordinates. Finder includes even
 # invisible off-canvas coordinates in its scrollable extent, so hidden files must remain unplaced.
@@ -130,8 +133,7 @@ SetFile -a V "$MNT/.VolumeIcon.icns"
 SetFile -a C "$MNT"
 sync
 echo "▸ Detaching…"
-hdiutil detach "$DEV" -quiet
-DEV=""
+hdiutil detach "$MNT" -quiet
 
 echo "▸ Compressing to read-only…"
 rm -f "$OUT"

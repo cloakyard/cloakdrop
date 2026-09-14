@@ -50,18 +50,18 @@ public struct DownloadProgress: Sendable, Hashable, Identifiable {
     /// fallback for media whose byte total isn't known (typical HLS/DASH).
     public var fractionCompleted: Double? {
         if let totalBytes, totalBytes > 0 {
-            return min(1.0, Double(downloadedBytes) / Double(totalBytes))
+            return min(1.0, Double(max(0, downloadedBytes)) / Double(totalBytes))
         }
         if let completedSegments, let totalSegments, totalSegments > 0 {
-            return min(1.0, Double(completedSegments) / Double(totalSegments))
+            return min(1.0, Double(max(0, completedSegments)) / Double(totalSegments))
         }
         return nil
     }
 
     /// Estimated time remaining in seconds, or `nil` if it cannot be computed.
     public var estimatedTimeRemaining: TimeInterval? {
-        guard let totalBytes, bytesPerSecond > 1 else { return nil }
-        let remaining = Double(totalBytes - downloadedBytes)
+        guard let totalBytes, totalBytes >= 0, bytesPerSecond.isFinite, bytesPerSecond > 1 else { return nil }
+        let remaining = Double(totalBytes) - Double(max(0, downloadedBytes))
         guard remaining > 0 else { return 0 }
         return remaining / bytesPerSecond
     }

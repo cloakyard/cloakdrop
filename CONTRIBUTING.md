@@ -7,11 +7,11 @@ the user-facing browser.
 By participating, you agree to the [Code of Conduct](CODE_OF_CONDUCT.md). Start with the
 [README](README.md#what-it-does), [architecture](apps/macos/ARCHITECTURE.md) and
 [documentation index](docs/README.md). The README describes current source, which may be ahead of
-the published beta.
+the published release.
 
 ## App setup
 
-Requires macOS 26+ on Apple silicon, Xcode 26+, [XcodeGen](https://github.com/yonaskolb/XcodeGen)
+Requires macOS 26+ on Apple silicon, Xcode 27+, [XcodeGen](https://github.com/yonaskolb/XcodeGen)
 and SwiftLint. The app and bundled helpers are arm64-only.
 
 ~~~bash

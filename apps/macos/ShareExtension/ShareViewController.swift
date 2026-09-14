@@ -13,6 +13,8 @@ import DownloadModels
 /// Privacy: the extension has no network access; the URL crosses to the app through the shared
 /// container (or the deep link), never the network.
 final class ShareViewController: NSViewController {
+    private var hasStarted = false
+
     override func loadView() {
         // A small non-empty view so macOS doesn't flash a blank sheet before we complete.
         let label = NSTextField(labelWithString: "Sending to CloakDrop…")
@@ -30,6 +32,8 @@ final class ShareViewController: NSViewController {
 
     override func viewDidAppear() {
         super.viewDidAppear()
+        guard !hasStarted else { return }
+        hasStarted = true
         guard let provider = firstURLProvider() else { return finish() }
         provider.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) { [weak self] item, _ in
             let url = item as? URL
@@ -53,7 +57,7 @@ final class ShareViewController: NSViewController {
 
     /// Validate and relay the shared URL: inbox first, deep link as a fallback.
     private func handOff(_ url: URL?) {
-        guard let url, url.scheme == "http" || url.scheme == "https",
+        guard let url, let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https",
               let capture = try? CapturedDownload(url: url, source: .shareExtension).validated() else { return }
         do {
             try CaptureInbox.write(capture)

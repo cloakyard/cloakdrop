@@ -5,7 +5,7 @@ appreciate responsible disclosure.
 
 ## Supported Versions
 
-Security fixes target the latest release, including the current beta. Older versions do not
+Security fixes target the latest release. Older versions do not
 receive backports. Install updates manually from [GitHub Releases](https://github.com/cloakyard/cloakdrop/releases);
 the app does not check for updates automatically. Fixes in the repository may not yet be included
 in a published installer.
@@ -69,9 +69,10 @@ CloakDrop is a native, sandboxed macOS app designed to minimize attack surface:
   FTP/FTPS connects directly, and the app does not pass its proxy setting to yt-dlp. See the
   [privacy policy](PRIVACY.md#network-activity) for the complete request surface.
 
-### Signing and the current beta
+### Signing and distribution
 
-The current beta is locally signed, but is **not Developer ID-signed or notarized by Apple**.
+Locally signed builds are **not Developer ID-signed or notarized by Apple**.
+Each release’s notes identify its signing status.
 A valid local code signature does not establish an Apple-verified publisher or notarization.
 For an official download you trust, follow [Apple's opening guidance](https://support.apple.com/en-us/102445)
 and the [installer guide](apps/macos/scripts/dmg/ReadMe.txt). We will consider joining Apple's paid

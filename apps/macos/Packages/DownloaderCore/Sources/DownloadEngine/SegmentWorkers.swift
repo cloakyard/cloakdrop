@@ -53,7 +53,7 @@ func runSegment(
     // Which mirror this worker pulls from. It starts at `mirrorStart` (segments are seeded at
     // different offsets so they spread across mirrors for parallel throughput) and advances on every
     // failure, so a dead or throttling mirror is abandoned for the next one. `% sources.count` wraps.
-    var sourceIndex = mirrorStart
+    var sourceIndex = mirrorStart % sources.count
     var consecutiveValidationFailures = 0
     var consecutivePermanentSourceFailures = 0
     var lifetimeFailures = 0

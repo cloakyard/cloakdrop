@@ -15,7 +15,11 @@ public struct MediaResolution: Sendable, Hashable, Codable {
         self.height = height
     }
     /// Total pixels — a format-free way to rank variants by quality.
-    public var pixelCount: Int { width * height }
+    public var pixelCount: Int {
+        guard width > 0, height > 0 else { return 0 }
+        let pixels = width.multipliedReportingOverflow(by: height)
+        return pixels.overflow ? Int.max : pixels.partialValue
+    }
     /// The quality tier this resolution maps to by the streaming convention — the "p" number YouTube,
     /// IDM, and browsers show (144p, 360p, 720p, 1080p, 1440p, 2160p…). For 16:9-or-taller content
     /// (standard, 4:3, portrait/Shorts) that's the shorter side, so a 1080×1920 vertical video reads
@@ -24,7 +28,8 @@ public struct MediaResolution: Sendable, Hashable, Codable {
     /// it — so we scale the width to its 16:9-equivalent height. Reproduces yt-dlp's own ladder
     /// labels across every aspect ratio.
     public var qualityHeight: Int {
-        width * 9 > height * 16                        // wider than 16:9?
+        guard width > 0, height > 0 else { return 0 }
+        return Double(width) * 9 > Double(height) * 16 // wider than 16:9?
             ? Int((Double(width) * 9 / 16).rounded())  // bin by width (its 16:9-equivalent height)
             : min(width, height)                       // 16:9 or taller → the shorter side
     }
@@ -38,6 +43,16 @@ public struct MediaByteRange: Sendable, Hashable, Codable {
     public init(offset: Int64, length: Int64) {
         self.offset = offset
         self.length = length
+    }
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        offset = try container.decode(Int64.self, forKey: .offset)
+        length = try container.decode(Int64.self, forKey: .length)
+        guard offset >= 0, length > 0, offset <= Int64.max - length else {
+            throw DecodingError.dataCorrupted(.init(
+                codingPath: decoder.codingPath, debugDescription: "Invalid persisted media byte range."
+            ))
+        }
     }
     /// Inclusive last byte offset, for a `Range: bytes=offset-end` request.
     public var end: Int64 { offset + length - 1 }
@@ -331,7 +346,7 @@ public struct MediaStream: Sendable, Hashable, Codable {
 
     /// The highest-resolution video variant, with pixel count and bitrate as tie-breakers.
     public var bestVariant: MediaVariant? {
-        variants.sorted(by: MediaVariant.higherQualityFirst).first
+        variants.min(by: MediaVariant.higherQualityFirst)
     }
 
     /// Whether the stream exposes a separate audio track to grab on its own (the "audio only" verb).

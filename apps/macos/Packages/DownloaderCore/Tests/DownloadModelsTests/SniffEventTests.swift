@@ -54,6 +54,15 @@ struct SniffEnvelopeTests {
         #expect(SniffEnvelope.parse(messageBody: Date()) == nil)   // not JSON-serializable
     }
 
+    @Test func skipsNestedMalformedEventsWithoutRecursivelyDecodingThem() throws {
+        let nested = String(repeating: "[", count: 200) + "null" + String(repeating: "]", count: 200)
+        let json = """
+        {"events":[\(nested),null,42,true,{"kind":"resource","size":{}},{"kind":"resource","url":"https://e.com/v.mp4"}]}
+        """
+        let envelope = try JSONDecoder().decode(SniffEnvelope.self, from: Data(json.utf8))
+        #expect(envelope.events.map(\.url) == ["https://e.com/v.mp4"])
+    }
+
     /// The JS half of the wire format must name every event kind the Swift half decodes — a drifted
     /// collector would silently stop feeding a channel.
     @Test func collectorScriptCoversEveryEventKind() {

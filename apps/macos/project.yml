@@ -14,7 +14,7 @@ settings:
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
     MACOSX_DEPLOYMENT_TARGET: "26.0"
-    # Xcode 27 beta otherwise warns that App Intents extraction was skipped for these targets even
+    # Xcode 27 otherwise warns that App Intents extraction was skipped for these targets even
     # though CloakDrop intentionally has no AppIntents dependency. Its own package targets already
     # force an empty metadata result; using the same supported extractor mode keeps app builds clean.
     LM_FORCE_LINK_GENERATION: YES
@@ -25,10 +25,8 @@ settings:
     # dependencies retain their own warning policy rather than inheriting command-line overrides.
     SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
     GCC_TREAT_WARNINGS_AS_ERRORS: YES
-    # Keep the beta suffix until a notarized stable build is ready. The tag rides the version string
-    # so About, Finder's Get Info, and bug reports agree without a second source of truth. Drop the
-    # suffix here to cut that stable build.
-    MARKETING_VERSION: "1.0.0 Beta"
+    # Shared by the app and native Share Extension; signing status belongs in the release notes.
+    MARKETING_VERSION: "1.0.0"
     # The build number is the build date (yyyymmdd). Both targets set
     # CFBundleVersion: $(CURRENT_PROJECT_VERSION), which Xcode expands while it processes the
     # Info.plist — so CodeSign seals the value and the signature stays valid. Pass it in when the
@@ -148,50 +146,16 @@ targets:
             codesign --force --options runtime --timestamp --sign "${IDENTITY}" --entitlements "${ENTITLEMENTS}" "${DEST_DIR}/ffmpeg"
           fi
           codesign --verify --strict "${DEST_DIR}/ffmpeg"
-      # Bundle the optional, git-ignored yt-dlp ONEDIR tree (vendored by scripts/fetch-ytdlp.sh) into
-      # Contents/Resources/yt-dlp and sign it, so the sandboxed app can spawn it to resolve page URLs
-      # (YouTube and other supported sites) into real format tiers — which our own engine then downloads. The tree
-      # is the executable + `_internal/` (an unpacked Python runtime): shipping it unpacked (vs. the
-      # self-extracting single-file build) is what lets it run under the App Sandbox at all — no temp
-      # extraction, no SysV semaphore, no Gatekeeper prompt. No-ops (with a note) when it isn't
-      # vendored, so a checkout without it still builds — page-URL extraction is just disabled. Runs
-      # before Xcode's CodeSign so the app seal covers the tree.
+      # Keep the official frozen runtime intact, with native code in MacOS/Frameworks and data
+      # in Resources. Relative symlinks preserve PyInstaller's runtime/import paths.
       - name: Bundle & sign yt-dlp (optional; adds supported page-URL extraction)
         basedOnDependencyAnalysis: false
         script: |
           set -euo pipefail
-          SRC="${SRCROOT}/Vendor/yt-dlp"
-          DEST="${CODESIGNING_FOLDER_PATH}/Contents/Resources/yt-dlp"
-          if [ ! -x "${SRC}/yt-dlp" ] || [ ! -d "${SRC}/_internal" ]; then
-            rm -rf "${DEST}"
-            echo "note: Vendor/yt-dlp not vendored — page-URL extraction (YouTube etc.) is disabled. Run scripts/fetch-ytdlp.sh to enable it."
-            exit 0
-          fi
-          rm -rf "${DEST}"; mkdir -p "${DEST}"
-          # ditto preserves the framework's symlinks/permissions (cp -R can mangle them).
-          ditto "${SRC}/yt-dlp" "${DEST}/yt-dlp"
-          ditto "${SRC}/_internal" "${DEST}/_internal"
-          chmod +x "${DEST}/yt-dlp"
-          ENT="${SRCROOT}/App/Resources/YtDlpHelper.entitlements"
-          IDENTITY="${EXPANDED_CODE_SIGN_IDENTITY:-}"
-          NAME="${EXPANDED_CODE_SIGN_IDENTITY_NAME:-}"
-          if [ -z "${IDENTITY}" ] || [ "${IDENTITY}" = "-" ] || [ "${NAME}" = "-" ] || [ "${NAME}" = "Sign to Run Locally" ]; then
-            echo "note: ad-hoc signing bundled yt-dlp tree"
-            SIGN=(codesign --force --sign -)
-          else
-            # Real identity (Developer ID): hardened runtime + secure timestamp. The executable's
-            # entitlements carry cs.disable-library-validation so it can load its bundled dylibs.
-            echo "note: signing bundled yt-dlp tree with ${NAME}"
-            SIGN=(codesign --force --options runtime --timestamp --sign "${IDENTITY}")
-          fi
-          # Deepest-first: nested dylibs/.so, the Python framework, then the executable (entitled).
-          find "${DEST}/_internal" -type f \( -name "*.so" -o -name "*.dylib" \) -exec "${SIGN[@]}" {} +
-          if [ -d "${DEST}/_internal/Python.framework" ]; then
-            "${SIGN[@]}" --deep "${DEST}/_internal/Python.framework"
-            codesign --verify --deep --strict "${DEST}/_internal/Python.framework"
-          fi
-          "${SIGN[@]}" --entitlements "${ENT}" "${DEST}/yt-dlp"
-          codesign --verify --strict "${DEST}/yt-dlp"
+          /usr/bin/python3 "${SRCROOT}/scripts/bundle-ytdlp.py" \
+            "${SRCROOT}/Vendor/yt-dlp" \
+            "${CODESIGNING_FOLDER_PATH}/Contents" \
+            "${SRCROOT}/App/Resources/YtDlpHelper.entitlements"
   # Native share-sheet extension: accepts a web URL shared from any app and drops it in the shared
   # App Group inbox for the app to confirm.
   CloakDropShareExtension:

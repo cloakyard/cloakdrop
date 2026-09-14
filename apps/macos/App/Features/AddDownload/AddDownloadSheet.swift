@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import DownloadModels
+import DownloadEngine
 
 /// The "add download" sheet: URL (pre-filled from the clipboard when it holds a link),
 /// destination, segment count, and an optional checksum to verify against.
@@ -28,9 +29,8 @@ struct AddDownloadSheet: View {
     @State private var username = ""
     @State private var password = ""
     @State private var rememberCredentials = false
-    /// The host the currently-shown credentials were auto-filled for, so they can be cleared if the
-    /// user then edits the URL to a different host (never send one host's saved password to another).
-    @State private var autofilledHost: String?
+    /// Clear autofilled credentials whenever the destination service changes.
+    @State private var autofilledScope: CredentialScope?
     @State private var referrer = ""
     @State private var cookies = ""
 
@@ -89,7 +89,7 @@ struct AddDownloadSheet: View {
             Form {
                 Section("Source") {
                     TextField("URL", text: $urlString, prompt: Text("https://example.com/file.zip"))
-                        .textFieldStyle(.roundedBorder)
+                        .borderedTextField()
                         .onChange(of: urlString) { _, _ in
                             deriveFileNameIfNeeded()
                             if let url = resolvedURL { autofillSavedCredentials(for: url) }
@@ -104,7 +104,7 @@ struct AddDownloadSheet: View {
                             expiryRow
                         }
                         TextField("Save As", text: $fileName, prompt: Text("File name"))
-                            .textFieldStyle(.roundedBorder)
+                            .borderedTextField()
                     }
                 }
 
@@ -159,9 +159,9 @@ struct AddDownloadSheet: View {
                     if detectedVideoPage == nil {
                         DisclosureGroup("Authentication") {
                             TextField("Username", text: $username)
-                                .textFieldStyle(.roundedBorder)
+                                .borderedTextField()
                             SecureField("Password", text: $password, prompt: Text("HTTP Basic/Digest"))
-                                .textFieldStyle(.roundedBorder)
+                                .borderedTextField()
                             Toggle("Remember for this site", isOn: $rememberCredentials)
                         }
                     }
@@ -169,9 +169,9 @@ struct AddDownloadSheet: View {
                     // needs them handed to the extractor.
                     DisclosureGroup("Referrer & cookies") {
                         TextField("Referrer", text: $referrer, prompt: Text("https://example.com"))
-                            .textFieldStyle(.roundedBorder)
+                            .borderedTextField()
                         TextField("Cookies", text: $cookies, prompt: Text("name=value; name2=value2"))
-                            .textFieldStyle(.roundedBorder)
+                            .borderedTextField()
                             .font(.callout.monospaced())
                     }
                     if detectedVideoPage == nil {
@@ -180,7 +180,7 @@ struct AddDownloadSheet: View {
                                 ForEach(ChecksumAlgorithm.allCases, id: \.self) { Text($0.displayName).tag($0) }
                             }
                             TextField("Expected hash", text: $checksumHex, prompt: Text("Optional hex digest"))
-                                .textFieldStyle(.roundedBorder)
+                                .borderedTextField()
                                 .font(.callout.monospaced())
                             if checksumIsMalformed {
                                 Label("Enter a valid \(checksumAlgorithm.displayName) digest, or clear the field to continue.",
@@ -373,23 +373,20 @@ struct AddDownloadSheet: View {
         return trimmed.isEmpty ? nil : trimmed
     }
 
-    /// Pre-fill saved credentials for this URL's host when the fields are still empty, so a returning
-    /// user doesn't retype them. Flips the "remember" toggle on to reflect that they're stored.
     private func autofillSavedCredentials(for url: URL) {
-        let host = url.host
-        // If we auto-filled for a previous host and the user hasn't touched the fields, clear them
-        // before the host changes — otherwise host A's password would ride along to host B (and get
-        // re-stored under B's key on Add).
-        if let prev = autofilledHost, prev != host, let saved = model.siteCredentials(forHost: prev),
-           username == saved.username, password == saved.password {
-            username = ""; password = ""; rememberCredentials = false; autofilledHost = nil
+        let scope = CredentialScope(url: url)
+        if let previous = autofilledScope, previous != scope {
+            username = ""
+            password = ""
+            rememberCredentials = false
+            autofilledScope = nil
         }
-        guard username.isEmpty, password.isEmpty, let host,
-              let saved = model.siteCredentials(forHost: host) else { return }
+        guard username.isEmpty, password.isEmpty, let scope,
+              let saved = model.siteCredentials(for: scope) else { return }
         username = saved.username
         password = saved.password
         rememberCredentials = true
-        autofilledHost = host
+        autofilledScope = scope
     }
 
     // MARK: Actions
@@ -473,8 +470,8 @@ struct AddDownloadSheet: View {
         // Only hand the pre-flight to duplicate detection if it's for the URL we're actually adding
         // (the user may have edited the URL after the last probe resolved).
         let effectivePreview = preview?.requestedURL == url ? preview : nil
-        if rememberCredentials, let host = url.host {
-            model.rememberSiteCredentials(host: host, username: username, password: password)
+        if rememberCredentials, let scope = CredentialScope(url: url) {
+            model.rememberSiteCredentials(for: scope, username: username, password: password)
         }
         model.grab(request, preview: effectivePreview)
         dismiss()

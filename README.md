@@ -6,12 +6,12 @@ CloakDrop is for people who care about the details: native SwiftUI controls, res
 and video capture that fits into a Mac workflow. A thin app shell sits over an independently tested
 Swift engine. Free, MIT-licensed, with no account, telemetry, or CloakDrop service receiving your activity.
 
-**[Website](https://drop.cloakyard.com)** · **[Download the beta](https://github.com/cloakyard/cloakdrop/releases)** · **[Documentation](docs/README.md)** · **[Contributing](CONTRIBUTING.md)**
+**[Website](https://drop.cloakyard.com)** · **[Downloads](https://github.com/cloakyard/cloakdrop/releases)** · **[Documentation](docs/README.md)** · **[Contributing](CONTRIBUTING.md)**
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
   <img src="https://img.shields.io/badge/platform-macOS%20%C2%B7%20Apple%20silicon-lightgrey" alt="Platform: macOS · Apple silicon">
-  <img src="https://img.shields.io/badge/status-beta-2A7B9B" alt="Status: beta">
+  <img src="https://img.shields.io/badge/source-1.0.0-2A7B9B" alt="Source version: 1.0.0">
   <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6">
   <img src="https://img.shields.io/badge/SwiftUI-Liquid%20Glass-8A2BE2" alt="SwiftUI · Liquid Glass">
 </p>
@@ -34,12 +34,12 @@ Requires **macOS 26 or later on Apple silicon**. Release builds and bundled help
 2. Drag **CloakDrop** into **Applications**, then open it.
 3. If macOS blocks that first launch, and you trust the official download, open **System Settings → Privacy & Security → Open Anyway**, then confirm **Open**.
 
-A small installation note: current beta builds are locally signed but **not notarized**.
+A small installation note: locally signed builds are **not notarized**.
 Notarization requires a paid Apple Developer Program membership; I’ll consider it if there’s enough
 demand. See [Apple’s opening guidance](https://support.apple.com/en-us/102445) and the release notes
 for the specific build.
 
-This README describes the **current source**, which may be ahead of the published beta. Each
+This README describes the **current source**, which may be ahead of the published release. Each
 release’s notes and assets are the source of truth for its features, checksums, and signing status.
 
 ## What it does
@@ -81,6 +81,29 @@ physical power-loss durability or compatibility with every FTP/FTPS server. With
 validator or trusted checksum, equal-length remote changes can remain undetected. The
 [audit overview](docs/audits/2026-09-06-overview.md) records tested behavior and remaining limits.
 
+## Troubleshooting
+
+### A download folder moved
+
+Pause downloads before moving their destination folder. Keep its `.cdpart` files and `.cdparts`
+directories with it, then **Resume**; CloakDrop can follow the saved folder and reuse compatible
+partial data.
+
+If another folder occupies the original location, CloakDrop may refuse to resume because it cannot
+verify which folder is yours. Preserve that replacement folder and its contents by moving it aside,
+then **Retry**. If access still cannot be restored, return the original download folder to the saved
+location shown under **Destination**, then retry. Do not delete unrelated data to make room, or
+remove and re-add the download if you want to retain its partial progress. Existing downloads do not
+currently offer a destination picker.
+
+### A remembered password needs entering again after upgrading
+
+Version 1.0.0 separates saved website credentials by scheme, host and port, and keeps proxy logins
+separate. Older credentials saved only by hostname are no longer reused, so you may need to enter
+and remember a password once again. This prevents a saved HTTPS password from being offered to HTTP
+or another service on the same host. Credentials already attached to an existing download remain
+available for its resume.
+
 ## Privacy
 
 There are no analytics, accounts, crash-report uploads, automatic update checks, or phone-home
@@ -97,7 +120,7 @@ containers, Downloads and destinations you select. See the [full privacy policy]
 
 ## Build the app
 
-Requires **macOS 26+**, **Xcode 26+**, an **Apple silicon** Mac and
+Requires **macOS 26+**, **Xcode 27+**, an **Apple silicon** Mac and
 [XcodeGen](https://github.com/yonaskolb/XcodeGen). The headless Swift 6 package separately declares
 macOS 15 as its minimum deployment target.
 

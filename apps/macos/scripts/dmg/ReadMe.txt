@@ -4,7 +4,7 @@ CloakDrop — Install Guide
 THE APP
   1.  Drag CloakDrop onto the Applications folder in this window.
   2.  Open CloakDrop from Applications in Finder or with Spotlight.
-  3.  This beta is locally signed but has not been notarized by Apple.
+  3.  This build is locally signed but has not been notarized by Apple.
       If macOS cannot verify the app and you trust this official
       download, open System Settings → Privacy & Security → Open Anyway
       after attempting to launch the app. Authenticate if prompted,

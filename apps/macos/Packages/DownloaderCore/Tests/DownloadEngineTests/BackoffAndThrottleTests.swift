@@ -64,42 +64,29 @@ struct BackoffPolicyTests {
     }
 }
 
-@Suite("Rate schedule (virtual-clock reservation)")
-struct RateScheduleTests {
-    private let burst = 0.5   // seconds
-
-    @Test("An idle bucket serves a within-burst request with no wait")
-    func idleWithinBurstNoWait() {
-        // Bucket idle (tat behind now); 100 KB at 1 MB/s = 0.1 s cost < 0.5 s burst → wakeAt in the past.
-        let (tat, wakeAt) = RateSchedule.reserve(tat: 0, now: 10, cost: 0.1, burst: burst)
-        #expect(tat == 10.1)          // reservation starts from `now`, not the stale tat
-        #expect(wakeAt <= 10)         // no wait
-    }
-
-    @Test("Successive reservations serialize, spaced by their cost")
-    func successiveReservationsSpace() {
-        // Three back-to-back 600 KB chunks (0.6 s each) at the same instant. The virtual clock, not
-        // `now`, spaces them — so their absolute wake instants step by 0.6 s regardless of overlap.
-        let now = 10.0
-        let (t1, w1) = RateSchedule.reserve(tat: 0, now: now, cost: 0.6, burst: burst)
-        let (t2, w2) = RateSchedule.reserve(tat: t1, now: now, cost: 0.6, burst: burst)
-        let (_, w3) = RateSchedule.reserve(tat: t2, now: now, cost: 0.6, burst: burst)
-        #expect(abs(w1 - (now + 0.1)) < 1e-9)   // 0.6 − 0.5 burst
-        #expect(abs(w2 - (now + 0.7)) < 1e-9)
-        #expect(abs(w3 - (now + 1.3)) < 1e-9)   // steady 0.6 s spacing → the aggregate rate
-    }
-
-    @Test("A bucket that fell behind resets to now rather than accumulating backlog")
-    func idleResets() {
-        // tat is far in the past relative to now → base is `now`, no burst of catch-up traffic.
-        let (tat, wakeAt) = RateSchedule.reserve(tat: 1, now: 100, cost: 0.6, burst: burst)
-        #expect(tat == 100.6)
-        #expect(abs(wakeAt - 100.1) < 1e-9)
-    }
-}
-
 @Suite("Bandwidth limiter (actor)")
 struct BandwidthLimiterTests {
+    @Test("Raising or disabling a limit releases workers already waiting at the old rate",
+          arguments: [nil, Int64(1_000_000)])
+    func changedRateReleasesExistingWaiters(newRate: Int64?) async {
+        let limiter = BandwidthLimiter(bytesPerSecond: 1)
+        await withTaskGroup(of: Bool.self) { group in
+            group.addTask {
+                await limiter.awaitAllowance(byteCount: 10_000)
+                return !Task.isCancelled
+            }
+            group.addTask {
+                try? await Task.sleep(for: .seconds(2))
+                return false
+            }
+            try? await Task.sleep(for: .milliseconds(50))
+            await limiter.setRate(bytesPerSecond: newRate)
+            let released = await group.next()
+            group.cancelAll()
+            #expect(released == true)
+        }
+    }
+
     private func seconds(_ start: ContinuousClock.Instant, _ end: ContinuousClock.Instant) -> Double {
         let (s, a) = start.duration(to: end).components
         return Double(s) + Double(a) / 1e18

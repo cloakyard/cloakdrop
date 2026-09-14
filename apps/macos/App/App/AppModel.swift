@@ -318,7 +318,7 @@ final class AppModel {
         case .downloadUpdated(let download):
             let previous = downloads.first { $0.id == download.id }?.status
             upsert(download)
-            if download.status != previous { announce(transition: download, from: previous) }
+            if download.status != previous { announce(transition: download) }
             if download.status == .downloading { postCompletionArmed = true }
             if download.status.isTerminal { progress[download.id] = nil }
             if download.status == .completed, download.isMedia { ensureThumbnail(for: download) }
@@ -326,6 +326,8 @@ final class AppModel {
             downloads.removeAll { $0.id == id }
             progress[id] = nil
             selectedDownloadIDs.remove(id)
+            mediaThumbnails[id] = nil
+            thumbnailsUnavailable.remove(id)
         case .progress(let p):
             applyProgress(p)
         case .queuesChanged(let q):
@@ -421,7 +423,7 @@ final class AppModel {
         sleepPreventer.update(active: active > 0)
     }
 
-    private func announce(transition download: Download, from previous: DownloadStatus?) {
+    private func announce(transition download: Download) {
         switch download.status {
         case .completed:
             notifications.notifyCompleted(download)
@@ -441,18 +443,14 @@ final class AppModel {
         }
     }
 
-    /// Store a site's HTTP/FTP credentials in the Keychain so the user needn't retype them next time.
-    func rememberSiteCredentials(host: String, username: String, password: String) {
-        guard !host.isEmpty, !(username.isEmpty && password.isEmpty) else { return }
-        siteCredentialStore.setCredential(StoredCredential(username: username, password: password),
-                                          forKey: KeychainCredentialStore.siteKey(host: host))
+    /// Remember credentials for this exact service, keeping scheme, port and proxy identity separate.
+    func rememberSiteCredentials(for scope: CredentialScope, username: String, password: String) {
+        guard !(username.isEmpty && password.isEmpty) else { return }
+        siteCredentialStore.setCredential(StoredCredential(username: username, password: password), forKey: scope.key)
     }
 
-    /// Recall a site's saved credentials, if any (for the add sheet's auto-fill).
-    func siteCredentials(forHost host: String) -> (username: String, password: String)? {
-        guard !host.isEmpty,
-              let credential = siteCredentialStore.credential(forKey: KeychainCredentialStore.siteKey(host: host))
-        else { return nil }
+    func siteCredentials(for scope: CredentialScope) -> (username: String, password: String)? {
+        guard let credential = siteCredentialStore.credential(forKey: scope.key) else { return nil }
         return (credential.username, credential.password)
     }
 

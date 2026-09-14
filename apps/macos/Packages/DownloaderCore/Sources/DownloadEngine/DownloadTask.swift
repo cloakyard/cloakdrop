@@ -91,8 +91,9 @@ actor DownloadTask {
             // reason instead of a cryptic write error mid-transfer. The default Downloads folder
             // carries no bookmark and is covered by the entitlement, so it's unaffected.
             if scope.hasBookmark && !accessGranted {
-                throw DownloadError.fileSystem(reason: "the destination folder is no longer accessible — choose it again")
+                throw DownloadError.fileSystem(reason: "restore access to the original download folder, then retry")
             }
+            try await refreshDestination(using: scope)
             if download.mediaPlan != nil {
                 try await transferMedia()
             } else {
@@ -125,7 +126,8 @@ actor DownloadTask {
         // change (e.g. a `.cloakpart` left behind when the extension became `.cdpart`) — would seek
         // past the end of a freshly created, zero-filled file and stitch garbage into the output.
         // Detect that up front, before any network probe, and restart cleanly from scratch.
-        if !download.segments.isEmpty, download.downloadedBytes > 0, !partFileBacksProgress() {
+        if !download.segments.isEmpty,
+           !hasValidSegmentLayout() || (download.downloadedBytes > 0 && !partFileBacksProgress()) {
             SegmentedFileWriter.discardPartData(for: download)
             download.segments = []
             download.startedAt = Date()
@@ -390,7 +392,7 @@ actor DownloadTask {
         // non-resumable stream has no offsets to divide.
         guard download.supportsResume, download.totalBytes != nil else { return nil }
         // Bound the segment table so a pathological download can't split without end.
-        guard download.segments.count < 4 * settings.maxSegmentCount else { return nil }
+        guard download.segments.count / 4 < settings.maxSegmentCount else { return nil }
 
         // A worthwhile split leaves both halves at or above the minimum segment size; the resulting
         // gap between the victim's write head and the split point (≥ half the remaining bytes) also
@@ -423,8 +425,13 @@ actor DownloadTask {
         return tail
     }
 
-    /// A fresh, unused segment id (ids only ever grow, so splits never collide with existing ones).
-    private func nextSegmentID() -> Int { (download.segments.map(\.id).max() ?? -1) + 1 }
+    /// Fill the first unused ID; persisted IDs near Int.max must never overflow during a split.
+    private func nextSegmentID() -> Int {
+        let ids = Set(download.segments.map(\.id))
+        var next = 0
+        while ids.contains(next) { next += 1 }
+        return next
+    }
 
     /// Atomically claim a writable prefix against the latest segment boundary. Claimed bytes count
     /// as unavailable to work stealing but do not become persisted progress until `recordBytes` runs

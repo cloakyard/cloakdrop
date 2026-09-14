@@ -13,6 +13,8 @@ import Foundation
 /// Foundation-only and dependency-free so both the app target and the lightweight Share Extension target
 /// can link it without pulling in the engine.
 public enum CaptureInbox {
+    static let maximumCaptureBytes = 1_048_576
+
     /// The App Group both the app and its Share Extension declare in their entitlements. Changing
     /// this requires updating `CloakDrop.entitlements` and the Share Extension's entitlements in lockstep.
     public static let appGroupID = "group.com.cloakyard.cloakdrop"
@@ -33,6 +35,7 @@ public enum CaptureInbox {
     /// Why a write couldn't happen. Reading never throws — malformed files are just skipped.
     public enum InboxError: Error, Equatable {
         case containerUnavailable
+        case captureTooLarge
     }
 
     /// Persist a capture as a uniquely-named JSON file in the inbox (the Share Extension side). Assumes
@@ -40,9 +43,11 @@ public enum CaptureInbox {
     @discardableResult
     public static func write(_ capture: CapturedDownload) throws -> URL {
         guard let inbox = inboxURL else { throw InboxError.containerUnavailable }
+        let data = try JSONEncoder().encode(capture)
+        guard data.count <= maximumCaptureBytes else { throw InboxError.captureTooLarge }
         try FileManager.default.createDirectory(at: inbox, withIntermediateDirectories: true)
         let file = inbox.appendingPathComponent(UUID().uuidString).appendingPathExtension("json")
-        try JSONEncoder().encode(capture).write(to: file, options: .atomic)
+        try data.write(to: file, options: .atomic)
         return file
     }
 
@@ -50,23 +55,35 @@ public enum CaptureInbox {
     /// decode or re-validate are discarded, not surfaced — a corrupt or hostile drop can't wedge
     /// the inbox or reach the UI. Returns an empty array when the container is unavailable.
     public static func drain() -> [CapturedDownload] {
+        guard let inbox = inboxURL else { return [] }
+        return drain(from: inbox)
+    }
+
+    static func drain(from inbox: URL) -> [CapturedDownload] {
         let manager = FileManager.default
-        guard let inbox = inboxURL,
-              let files = try? manager.contentsOfDirectory(
+        let keys: Set<URLResourceKey> = [.contentModificationDateKey, .isRegularFileKey, .isSymbolicLinkKey, .fileSizeKey]
+        guard let files = try? manager.contentsOfDirectory(
                 at: inbox,
-                includingPropertiesForKeys: [.contentModificationDateKey],
+                includingPropertiesForKeys: Array(keys),
                 options: [.skipsHiddenFiles]
               ) else {
             return []
         }
         let ordered = files
-            .filter { $0.pathExtension == "json" }
-            .sorted { modificationDate($0) < modificationDate($1) }
+            .compactMap { file -> (url: URL, values: URLResourceValues)? in
+                guard file.pathExtension == "json", let values = try? file.resourceValues(forKeys: keys),
+                      values.isRegularFile == true, values.isSymbolicLink != true else { return nil }
+                return (file, values)
+            }
+            .sorted { ($0.values.contentModificationDate ?? .distantPast) < ($1.values.contentModificationDate ?? .distantPast) }
 
         var captures: [CapturedDownload] = []
         for file in ordered {
-            defer { try? manager.removeItem(at: file) }
-            guard let data = try? Data(contentsOf: file),
+            defer { try? manager.removeItem(at: file.url) }
+            guard let size = file.values.fileSize, size <= maximumCaptureBytes,
+                  let handle = try? FileHandle(forReadingFrom: file.url) else { continue }
+            defer { try? handle.close() }
+            guard let data = try? handle.read(upToCount: maximumCaptureBytes + 1), data.count <= maximumCaptureBytes,
                   let decoded = try? JSONDecoder().decode(CapturedDownload.self, from: data),
                   let valid = try? decoded.validated() else { continue }
             captures.append(valid)
@@ -81,9 +98,5 @@ public enum CaptureInbox {
             CFNotificationName(darwinNotificationName as CFString),
             nil, nil, true
         )
-    }
-
-    private static func modificationDate(_ url: URL) -> Date {
-        (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
     }
 }

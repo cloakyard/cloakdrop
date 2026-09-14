@@ -68,6 +68,7 @@ final class BrowserSession: NSObject {
     private(set) var userAgent: String?
 
     private var observations: [NSKeyValueObservation] = []
+    private(set) var isClosed = false
     private var lastCrashRecovery: Date?
     var popupTimestamps: [Date] = []
     /// One page may emit the same WebKit download through more than one delegate callback, and a
@@ -92,6 +93,7 @@ final class BrowserSession: NSObject {
         webView.isInspectable = true
         #endif
         webView.onNewTab = { [weak self] in self?.onOpenWindow?(nil) }
+        webView.onWindowClose = { [weak self] in self?.teardown() }
         observeWebView()
     }
 
@@ -222,32 +224,8 @@ final class BrowserSession: NSObject {
     /// Send one shelf candidate to the app: streams resolve to the quality picker, files download
     /// directly, `.page` runs the extractor with the browser's whole cookie jar.
     func download(_ item: SniffedItem) {
-        guard let url = item.resolvedURL, !MediaSniffer.isNoise(item.url) else { return }
-        let handoffKey = MediaSniffer.recordKey(item.url)
-        guard handedOffKeys.insert(handoffKey).inserted else { return }
-        let kind = item.type
-        var filename = item.filename.flatMap(CapturedDownload.sanitizedFileName)
-        // A sniffed stream's URL names its manifest ("master.m3u8"), not the video — hand the
-        // engine the page title as the save-name stem; `addMedia` appends the container extension
-        // once the plan is known.
-        if kind == .stream, filename == nil, !media.pageTitle.isEmpty {
-            filename = CapturedDownload.sanitizedFileName(media.pageTitle)
-        }
-        Task { [weak self] in
-            guard let self else { return }
-            let cookies = await BrowserStore.shared.cookieHeader(for: url)
-            let jar = kind == .page ? await BrowserStore.shared.writeNetscapeJar() : nil
-            let capture = CapturedDownload(
-                url: url,
-                extractFromPage: kind == .page ? true : nil,
-                suggestedFileName: filename,
-                referrer: referrerForHandoff,
-                cookies: cookies,
-                userAgent: userAgent,
-                source: .builtInBrowser
-            )
-            sink?.browserCapture(capture, kind: kind, cookiesFile: jar)
-        }
+        guard let url = item.resolvedURL else { return }
+        handoff(url: url, filename: item.downloadFileName(pageTitle: downloadPageTitle), kind: item.type)
     }
 
     /// Extract this page's media via yt-dlp — the shelf's explicit action, available even when
@@ -262,30 +240,44 @@ final class BrowserSession: NSObject {
     /// ⌥-click…) — cancelled in WebKit and handed to the engine with full page context.
     /// `kind` routes it (`.stream` sends a downloaded manifest through the quality picker).
     func takeOver(url: URL, suggestedFilename: String?, mimeType: String?, kind: SniffedItem.ItemType = .file) {
-        guard !MediaSniffer.isNoise(url.absoluteString) else { return }
-        let handoffKey = MediaSniffer.recordKey(url.absoluteString)
-        guard handedOffKeys.insert(handoffKey).inserted else { return }
-        let filename = CapturedDownload.sanitizedFileName(suggestedFilename)
-        Task { [weak self] in
-            guard let self else { return }
+        let item = SniffedItem(url: url.absoluteString, type: kind, filename: suggestedFilename)
+        let filename = item.downloadFileName(pageTitle: downloadPageTitle, mimeType: mimeType)
+        guard handoff(url: url, filename: filename, kind: kind) else { return }
+        if openedByPage && !hasCommittedNavigation { shouldClose = true }
+    }
+
+    /// Capture page context before reading cookies asynchronously. Retaining the sink for this one
+    /// handoff also lets a download-only popup close without dropping its requested download.
+    @discardableResult
+    private func handoff(url: URL, filename: String?, kind: SniffedItem.ItemType) -> Bool {
+        guard !isClosed, !MediaSniffer.isNoise(url.absoluteString), let sink else { return false }
+        guard handedOffKeys.insert(MediaSniffer.recordKey(url.absoluteString)).inserted else { return false }
+        let referrer = referrerForHandoff
+        let agent = userAgent
+        Task {
             let cookies = await BrowserStore.shared.cookieHeader(for: url)
+            let jar = kind == .page ? await BrowserStore.shared.writeNetscapeJar() : nil
             let capture = CapturedDownload(
                 url: url,
+                extractFromPage: kind == .page ? true : nil,
                 suggestedFileName: filename,
-                referrer: referrerForHandoff,
+                referrer: referrer,
                 cookies: cookies,
-                userAgent: userAgent,
+                userAgent: agent,
                 source: .builtInBrowser
             )
-            sink?.browserCapture(capture, kind: kind, cookiesFile: nil)
+            sink.browserCapture(capture, kind: kind, cookiesFile: jar)
         }
-        // A popup whose very first act was downloading has no other content — close it.
-        if openedByPage && !hasCommittedNavigation { shouldClose = true }
+        return true
     }
 
     var referrerForHandoff: String? {
         if !media.pageURL.isEmpty { return media.pageURL }
         return currentURL?.absoluteString
+    }
+
+    var downloadPageTitle: String {
+        media.pageTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? pageTitle : media.pageTitle
     }
 
     // MARK: - Lifecycle
@@ -299,6 +291,7 @@ final class BrowserSession: NSObject {
     }
 
     func applySniff(_ envelope: SniffEnvelope) {
+        guard !isClosed else { return }
         media.apply(envelope)
         shelfItems = media.candidates
     }
@@ -332,11 +325,13 @@ final class BrowserSession: NSObject {
     /// already doing, and returned as a base64 data URL. Cross-origin icons without CORS, SVG data,
     /// or a missing file simply leave it nil — the chrome falls back to a globe.
     func refreshFavicon() {
+        let pageURL = currentURL
         webView.callAsyncJavaScript(Self.faviconScript, in: nil, in: .defaultClient) { [weak self] result in
             MainActor.assumeIsolated {
-                guard case .success(let value) = result, let dataURL = value as? String,
+                guard let self, !self.isClosed, self.currentURL == pageURL,
+                      case .success(let value) = result, let dataURL = value as? String,
                       let image = Self.decodeFaviconDataURL(dataURL) else { return }
-                self?.favicon = image
+                self.favicon = image
             }
         }
     }
@@ -386,15 +381,18 @@ final class BrowserSession: NSObject {
     /// Resolve everything pending and detach from WebKit — called when the window goes away.
     /// (Un-called WebKit completion handlers are a hang/assert; never leave them dangling.)
     func teardown() {
+        guard !isClosed else { return }
+        isClosed = true
         dialog?.cancel()
         dialog = nil
         authRequest?.cancel()
         authRequest = nil
-        webView.stopLoading()
         webView.configuration.userContentController.removeScriptMessageHandler(
             forName: Self.messageHandlerName, contentWorld: .page
         )
         observations = []
+        onOpenWindow = nil
+        webView.stopForWindowClose()
     }
 }
 

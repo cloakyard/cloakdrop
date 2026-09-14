@@ -3,6 +3,37 @@ import DownloadModels
 import DownloadPersistence
 
 extension DownloadTask {
+    func refreshDestination(using scope: SecurityScope) async throws {
+        guard scope.hasBookmark else { return }
+        guard let path = scope.resolvedPath(for: download.destinationDirectoryPath) else {
+            throw DownloadError.fileSystem(reason: "restore the original download folder to its saved location, then retry")
+        }
+        let bookmark = try scope.refreshedBookmark()
+        guard path != download.destinationDirectoryPath || bookmark != nil else { return }
+        download.destinationDirectoryPath = path
+        if let bookmark { download.destinationBookmark = bookmark }
+        await persist()
+        emit(.downloadUpdated(download))
+    }
+
+    /// Persisted ranges must cover the resource exactly once. Overlap, gaps or duplicate IDs can
+    /// corrupt output or trap the progress dictionary even when each segment is valid on its own.
+    func hasValidSegmentLayout() -> Bool {
+        var nextOffset: Int64 = 0
+        var ids = Set<Int>()
+        for segment in download.segments.sorted(by: { $0.start < $1.start }) {
+            guard segment.id >= 0, ids.insert(segment.id).inserted,
+                  segment.start == nextOffset, segment.end >= segment.start, segment.end < .max,
+                  segment.downloadedBytes >= 0,
+                  segment.downloadedBytes <= segment.end - segment.start + 1 else { return false }
+            nextOffset = segment.end + 1
+        }
+        if let total = download.totalBytes {
+            return nextOffset == total && (download.supportsResume || download.segments.count == 1)
+        }
+        return download.segments.count == 1 && nextOffset == .max && !download.supportsResume
+    }
+
     func handleStop() async -> Download {
         switch stopReason ?? .pause {
         case .cancel:

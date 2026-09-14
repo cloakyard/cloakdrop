@@ -14,12 +14,13 @@ struct BrowserLaunch: Codable, Hashable {
 /// (`BrowserWindowConfigurator` opts them into macOS window tabbing).
 struct BrowserScene: Scene {
     static let windowID = "browser"
-    let model: AppModel
+    let model: AppModel?
 
     var body: some Scene {
         WindowGroup(id: Self.windowID, for: BrowserLaunch.self) { $launch in
-            BrowserView(launch: launch)
-                .environment(model)
+            if let model {
+                BrowserView(launch: launch).environment(model)
+            }
         } defaultValue: {
             BrowserLaunch()
         }

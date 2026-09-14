@@ -6,6 +6,80 @@ import Testing
 
 @Suite("Transfer response integrity")
 struct TransferSafetyTests {
+    @Test("Extreme persisted segment IDs and connection caps remain safe during retries and work stealing",
+          arguments: [2, Int.max])
+    func extremePersistedIDCanSplit(maximumSegments: Int) async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("resume-ids-\(UUID())")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let expected = Data((0..<200_000).map { UInt8($0 % 251) })
+        let url = URL(string: "https://example.com/body.bin")!
+        let client = MockHTTPClient(resources: [url: .init(data: expected)], pendingDrops: 2, dropAfterBytes: 4_096)
+        client.chunkSize = 4_096
+        client.slowFromOffset = 16_384
+        client.slowChunkDelay = .milliseconds(2)
+        let store = try GRDBDownloadStore.inMemory()
+        try await store.bootstrap()
+        var download = Download(url: url, fileName: "body.bin", destinationDirectoryPath: directory.path,
+                                totalBytes: Int64(expected.count), supportsResume: true, segments: [
+                                    DownloadSegment(id: .max, start: 0, end: 16_383),
+                                    DownloadSegment(id: 1, start: 16_384, end: Int64(expected.count - 1))
+                                ], requestedSegmentCount: 2)
+        download.status = .paused
+        try await store.save(download)
+        let restored = try #require(await store.download(id: download.id))
+        let settings = EngineSettings(defaultSegmentCount: 2, maxSegmentCount: maximumSegments, minimumSegmentSizeBytes: 8_192,
+                                      autoDiscoverChecksums: false, assessSignatures: false, applyQuarantine: false,
+                                      generateProvenanceReceipts: false)
+        let task = DownloadTask(download: restored, httpClient: client, store: store,
+                                globalLimiter: BandwidthLimiter(bytesPerSecond: nil), settings: settings, emit: { _ in })
+        let result = await task.run()
+        #expect(result.status == .completed)
+        #expect(result.segments.count > 2)
+        #expect(try Data(contentsOf: URL(fileURLWithPath: result.destinationFilePath)) == expected)
+    }
+
+    @Test("Unsafe persisted segment layouts restart instead of publishing stale staging bytes",
+          arguments: ["gap", "overlap", "duplicate IDs", "short coverage", "excess coverage", "unknown size", "whole stream"])
+    func invalidPersistedLayoutRestarts(kind: String) async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("resume-layout-\(UUID())")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let expected = Data("correct!".utf8)
+        let url = URL(string: "https://example.com/body.bin")!
+        let client = MockHTTPClient(resources: [url: .init(data: expected)])
+        let store = try GRDBDownloadStore.inMemory()
+        try await store.bootstrap()
+        var download = Download(url: url, fileName: "body.bin", destinationDirectoryPath: directory.path)
+        download.status = .paused
+        download.totalBytes = 8
+        download.supportsResume = true
+        download.segments = [
+            DownloadSegment(id: 0, start: 0, end: 3, downloadedBytes: 4),
+            DownloadSegment(id: 1, start: 4, end: 7, downloadedBytes: 4)
+        ]
+        switch kind {
+        case "gap": download.segments[0] = DownloadSegment(id: 0, start: 0, end: 2, downloadedBytes: 3)
+        case "overlap": download.segments[0] = DownloadSegment(id: 0, start: 0, end: 4, downloadedBytes: 5)
+        case "duplicate IDs": download.segments[1] = DownloadSegment(id: 0, start: 4, end: 7, downloadedBytes: 4)
+        case "short coverage": download.segments.removeLast()
+        case "excess coverage": download.segments[1] = DownloadSegment(id: 1, start: 4, end: 8, downloadedBytes: 5)
+        case "unknown size": download.totalBytes = nil
+        default: download.supportsResume = false
+        }
+        try Data(repeating: 120, count: 9).write(to: URL(fileURLWithPath: download.partFilePath))
+        try await store.save(download)
+        let restored = try #require(await store.download(id: download.id))
+        let settings = EngineSettings(autoDiscoverChecksums: false, assessSignatures: false,
+                                      applyQuarantine: false, generateProvenanceReceipts: false)
+        let task = DownloadTask(download: restored, httpClient: client, store: store,
+                                globalLimiter: BandwidthLimiter(bytesPerSecond: nil), settings: settings, emit: { _ in })
+        let result = await task.run()
+        #expect(result.status == .completed)
+        #expect(result.downloadedBytes == 8)
+        #expect(try Data(contentsOf: URL(fileURLWithPath: result.destinationFilePath)) == expected)
+    }
+
     @Test("A completed range with excess trailing bytes restarts coherently even when mirrors exist")
     func oversizedRangeCannotEscapeThroughMirrorCompletion() async throws {
         let client = OversizedRangeClient()

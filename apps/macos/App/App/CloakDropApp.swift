@@ -9,26 +9,50 @@ struct CloakDropApp: App {
     static let mainWindowID = "main"
 
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @State private var model: AppModel
+    @State private var model: AppModel?
+    @State private var startupError: String?
 
     init() {
         do {
-            #if DEBUG
-            // Exercise native dark materials without changing the user's system appearance.
-            if ProcessInfo.processInfo.arguments.contains("--verify-dark-appearance") {
-                NSApplication.shared.appearance = NSAppearance(named: .darkAqua)
-            }
-            let appModel = ProcessInfo.processInfo.arguments.contains("--hero-fixture")
-                ? try AppModel.heroFixture()
-                : try AppModel.live()
-            #else
-            let appModel = try AppModel.live()
-            #endif
-            _model = State(initialValue: appModel)
+            _model = State(initialValue: try Self.makeModel())
         } catch {
-            // The only failure here is being unable to open the local database; there's no
-            // safe way to continue without persistence, so fail fast with a clear message.
-            fatalError("CloakDrop could not open its local store: \(error)")
+            _startupError = State(initialValue: error.localizedDescription)
+        }
+    }
+
+    private static func makeModel() throws -> AppModel {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--verify-dark-appearance") {
+            NSApplication.shared.appearance = NSAppearance(named: .darkAqua)
+        }
+        // Exercise the recovery UI without altering the real catalog.
+        if ProcessInfo.processInfo.arguments.contains("--verify-store-unavailable") {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        if ProcessInfo.processInfo.arguments.contains("--hero-fixture") { return try AppModel.heroFixture() }
+        #endif
+        return try AppModel.live()
+    }
+
+    private func retryStartup() {
+        do {
+            model = try Self.makeModel()
+            startupError = nil
+        } catch {
+            startupError = error.localizedDescription
+        }
+    }
+
+    /// A failed store open leaves the catalog untouched and every network-capable scene unavailable.
+    /// Retrying constructs a fresh model only after the persistent store opens successfully.
+    private var startupFailure: some View {
+        ContentUnavailableView {
+            Label("Startup", systemImage: "exclamationmark.triangle")
+        } description: {
+            Text(startupError ?? "")
+        } actions: {
+            Button("Try Again", action: retryStartup)
+            Button("Quit CloakDrop") { NSApp.terminate(nil) }
         }
     }
 
@@ -37,25 +61,38 @@ struct CloakDropApp: App {
         // reopen it when closed — or bring it forward when already open — instead of spawning
         // duplicate windows. A download manager has no need for multiple main windows.
         Window("CloakDrop", id: Self.mainWindowID) {
-            RootView()
-                .environment(model)
-                .frame(minWidth: 860, minHeight: 520)
-                .background(CaptureIntakeInstaller(model: model, appDelegate: appDelegate))
-                .task { await model.bootstrap() }
+            Group {
+                if let model {
+                    RootView()
+                        .environment(model)
+                        .background(CaptureIntakeInstaller(model: model, appDelegate: appDelegate))
+                        .task { await model.bootstrap() }
+                } else {
+                    startupFailure
+                }
+            }
+            .frame(minWidth: 860, minHeight: 520)
         }
-        .commands { CloakDropCommands(model: model) }
+        .commands { if let model { CloakDropCommands(model: model) } }
 
         BrowserScene(model: model)
 
         MenuBarExtra("CloakDrop", systemImage: "arrow.down.circle") {
-            MenuBarContent()
-                .environment(model)
+            if let model {
+                MenuBarContent().environment(model)
+            } else {
+                Button("Try Again", action: retryStartup)
+                Button("Quit CloakDrop") { NSApp.terminate(nil) }
+            }
         }
         .menuBarExtraStyle(.menu)
 
         Settings {
-            SettingsView()
-                .environment(model)
+            if let model {
+                SettingsView().environment(model)
+            } else {
+                startupFailure
+            }
         }
     }
 }
@@ -125,6 +162,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var pendingURLs: [URL] = []
     /// `NSApplication` doesn't retain `servicesProvider`, so we hold it here for the app's lifetime.
     var servicesProvider: ServicesProvider?
+    var reopenMainWindow: (() -> Void)?
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        // A browser or Settings window can be visible while the downloads window is closed.
+        // Dock activation must still reopen the downloads window, including during transfers.
+        guard let reopenMainWindow else { return true }
+        reopenMainWindow()
+        return false
+    }
 
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let openURLsHandler else {
@@ -159,16 +205,22 @@ private struct CaptureIntakeInstaller: View {
     var body: some View {
         Color.clear
             .onAppear {
-                appDelegate.installOpenURLsHandler { urls in
+                let showMainWindow = {
+                    if let window = NSApp.windows.first(where: { $0.identifier?.rawValue == CloakDropApp.mainWindowID }) {
+                        if window.isMiniaturized { window.deminiaturize(nil) }
+                        window.makeKeyAndOrderFront(nil)
+                    } else {
+                        openWindow(id: CloakDropApp.mainWindowID)
+                    }
                     NSApp.activate()
-                    openWindow(id: CloakDropApp.mainWindowID)
+                }
+                appDelegate.reopenMainWindow = showMainWindow
+                appDelegate.installOpenURLsHandler { urls in
+                    showMainWindow()
                     for url in urls { model.handleIncomingURL(url) }
                 }
                 // Lets browser windows summon the main window (quality picker, duplicate prompts).
-                model.raiseMainWindow = {
-                    NSApp.activate()
-                    openWindow(id: CloakDropApp.mainWindowID)
-                }
+                model.raiseMainWindow = showMainWindow
                 // Register the "Send to CloakDrop" Services item. NSApp doesn't retain the provider,
                 // so the delegate holds it; NSUpdateDynamicServices refreshes the system registration.
                 let provider = ServicesProvider(model: model)

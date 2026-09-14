@@ -136,7 +136,7 @@ struct RuleEditorView: View {
             Form {
                 Section("Name") {
                     TextField("Rule name", text: $name, prompt: Text("e.g. Videos to Movies"))
-                        .textFieldStyle(.roundedBorder)
+                        .borderedTextField()
                 }
 
                 Section {
@@ -195,7 +195,7 @@ struct RuleEditorView: View {
                             TextField("5", value: $speedMBs, format: .number)
                                 .labelsHidden()
                                 .frame(width: 70)
-                                .textFieldStyle(.roundedBorder)
+                                .borderedTextField()
                                 .multilineTextAlignment(.trailing)
                                 .accessibilityLabel("Maximum")
                             Text("MB/s").foregroundStyle(.secondary)
@@ -251,13 +251,13 @@ struct RuleEditorView: View {
                 TextField("100", value: condition.sizeMB, format: .number)
                     .labelsHidden()
                     .frame(width: 70)
-                    .textFieldStyle(.roundedBorder)
+                    .borderedTextField()
                     .multilineTextAlignment(.trailing)
                     .accessibilityLabel("Size in megabytes")
                 Text("MB").foregroundStyle(.secondary)
             default:
                 TextField(condition.wrappedValue.kind.placeholder, text: condition.text)
-                    .textFieldStyle(.roundedBorder)
+                    .borderedTextField()
             }
 
             Spacer(minLength: 0)

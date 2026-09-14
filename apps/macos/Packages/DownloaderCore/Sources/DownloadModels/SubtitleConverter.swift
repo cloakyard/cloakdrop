@@ -9,6 +9,9 @@ import Foundation
 /// neutral cue list (honoring HLS's `X-TIMESTAMP-MAP` offset so segmented captions line up) and
 /// re-emit SRT, which every player and Quick Look reads as a sidecar.
 public enum SubtitleConverter {
+    // Far beyond a useful subtitle timeline, while millisecond conversion and SRT hours stay safe.
+    private static let maximumTimestamp = 1_000_000_000_000.0
+
     /// One caption: a time window and its (tag-stripped) text.
     public struct Cue: Sendable, Hashable {
         public var start: Double      // seconds
@@ -83,7 +86,10 @@ public enum SubtitleConverter {
             let key = kv[0].trimmingCharacters(in: .whitespaces).uppercased()
             let value = kv[1].trimmingCharacters(in: .whitespaces)
             if key == "MPEGTS" {
-                mpegts = (Double(value) ?? 0) / 90_000
+                // MPEG-TS timestamps are unsigned 33-bit ticks. Ignore malformed maps so a bad
+                // segment header cannot inject NaN/infinity into every otherwise valid cue.
+                guard let ticks = UInt64(value), ticks < 1 << 33 else { return 0 }
+                mpegts = Double(ticks) / 90_000
             } else if key == "LOCAL" {
                 local = parseTimestamp(value) ?? 0
             }
@@ -99,19 +105,20 @@ public enum SubtitleConverter {
         let startText = parts[0].trimmingCharacters(in: .whitespaces)
         // The end timestamp is the first whitespace-delimited token after `-->` (settings follow it).
         let endText = parts[1].trimmingCharacters(in: .whitespaces).split(whereSeparator: \.isWhitespace).first.map(String.init) ?? ""
-        guard let start = parseTimestamp(startText), let end = parseTimestamp(endText) else { return nil }
+        guard let start = parseTimestamp(startText), let end = parseTimestamp(endText), end >= start else { return nil }
         return (start, end)
     }
 
     /// Parse `HH:MM:SS.mmm`, `MM:SS.mmm`, or the `,`-separated SRT variant into seconds.
     static func parseTimestamp(_ text: String) -> Double? {
         let unified = text.replacingOccurrences(of: ",", with: ".")
-        let components = unified.split(separator: ":")
+        let components = unified.split(separator: ":", omittingEmptySubsequences: false)
         guard (2...3).contains(components.count) else { return nil }
         var seconds = 0.0
         for component in components {
-            guard let value = Double(component) else { return nil }
+            guard let value = Double(component), value.isFinite, value >= 0 else { return nil }
             seconds = seconds * 60 + value
+            guard seconds <= maximumTimestamp else { return nil }
         }
         return seconds
     }
@@ -149,7 +156,7 @@ public enum SubtitleConverter {
 
     /// Format seconds as SRT's `HH:MM:SS,mmm`.
     static func srtTimestamp(_ seconds: Double) -> String {
-        let clamped = max(0, seconds)
+        let clamped = seconds.isFinite ? min(maximumTimestamp, max(0, seconds)) : 0
         let totalMillis = Int((clamped * 1000).rounded())
         let millis = totalMillis % 1000
         let totalSeconds = totalMillis / 1000

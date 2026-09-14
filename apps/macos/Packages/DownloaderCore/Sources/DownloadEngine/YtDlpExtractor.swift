@@ -4,8 +4,8 @@ import Foundation
 /// to resolve a page URL into its formats. yt-dlp only *reads* — it prints JSON to stdout and never
 /// touches the destination — so the app's own engine still does every byte of downloading.
 ///
-/// The onedir tree lives in the app bundle (`Contents/Resources/yt-dlp/`, bundled + signed by
-/// project.yml's "Bundle & sign yt-dlp" phase) and runs in-sandbox via the app's `inherit`
+/// The onedir resource tree lives at `Contents/Resources/yt-dlp/`; relative symlinks reach native
+/// code in MacOS/Frameworks, bundled and signed by project.yml. It runs in-sandbox via `inherit`
 /// entitlement; use `locate(in:)` to find it. Process spawning is behind `ProcessRunning` so the
 /// parse/argument logic is unit-tested without launching anything.
 public struct YtDlpExtractor: MediaExtractor {
@@ -23,7 +23,8 @@ public struct YtDlpExtractor: MediaExtractor {
     /// present/executable — so the app offers page extraction only when it can actually work. Mirrors
     /// `FFmpegMuxer.locate`.
     public static func locate(in bundle: Bundle = .main) -> YtDlpExtractor? {
-        // The onedir tree lives at Contents/Resources/yt-dlp/yt-dlp (executable + sibling `_internal/`).
+        // The resource-tree entry is a relative link to Contents/MacOS/yt-dlp. Keep this stable
+        // path first so existing bundles and the relocated PyInstaller runtime are both supported.
         let candidates = [
             bundle.resourceURL?.appendingPathComponent("yt-dlp/yt-dlp"),
             bundle.url(forAuxiliaryExecutable: "yt-dlp")
