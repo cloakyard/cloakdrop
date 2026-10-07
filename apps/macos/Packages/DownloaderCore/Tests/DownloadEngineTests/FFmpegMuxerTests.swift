@@ -170,7 +170,9 @@ struct FFmpegMuxerTests {
 // MARK: - Tool discovery (real ffmpeg/ffprobe, when installed)
 
 private enum Tools {
-    static let ffmpeg = locate("ffmpeg")
+    // Verify the shipped minimal helper, not only a developer's full Homebrew build.
+    static let ffmpeg = ProcessInfo.processInfo.environment["FFMPEG_PATH"]
+        .map { URL(fileURLWithPath: $0) } ?? locate("ffmpeg")
     static let ffprobe = locate("ffprobe")
 
     private static func locate(_ name: String) -> URL? {
