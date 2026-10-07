@@ -11,10 +11,9 @@ import { stats } from '../data/site';
 
     <ul class="specs">
       {
-        stats.map((stat, index) => (
+        stats.map((stat) => (
           <li class:list={['cell', { 'cell--accent': 'accent' in stat && stat.accent }] }>
             <a href={stat.href} rel={stat.href?.startsWith('http') ? 'noopener' : undefined}>
-              <span class="index">{String(index + 1).padStart(2, '0')}</span>
               <span class="val">{stat.value}</span>
               <span class="lbl">{stat.label}</span>
             </a>
@@ -71,7 +70,7 @@ import { stats } from '../data/site';
 
   .cell a {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr);
     align-content: space-between;
     min-height: 8.25rem;
     padding: 1.25rem clamp(0.9rem, 2vw, 1.65rem);
@@ -80,16 +79,6 @@ import { stats } from '../data/site';
 
   .cell a:hover {
     background: color-mix(in srgb, var(--accent) 4.5%, transparent);
-  }
-
-  .index {
-    grid-column: 2;
-    grid-row: 1;
-    color: var(--ink-4);
-    font-family: var(--font-mono);
-    font-size: 0.625rem;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.04em;
   }
 
   .val {

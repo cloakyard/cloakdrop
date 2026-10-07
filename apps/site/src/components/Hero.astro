@@ -4,15 +4,7 @@ import { hero, downloads } from '../data/site';
 import { readPngDimensions } from '../lib/heroGeometry';
 import Icon from './Icon.astro';
 
-const titleLead = hero.titleLead.replace(/\n/g, ' ');
-const titleAccent = hero.titleAccent.replace(/\n/g, ' ');
-
 const shot = readPngDimensions(resolve(process.cwd(), 'public/hero.png'));
-
-// This product capture uses a configured eight-range plan as an example. Automatic
-// mode may plan fewer or more ranges (within the user's ceiling), and manual mode can
-// request this exact connection count.
-const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
 ---
 
 <section class="hero">
@@ -20,23 +12,15 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
     <div class="top">
       <div class="lede">
         <p class="kicker">{hero.kicker}</p>
-        <h1>
-          <span>{titleLead}</span>
-          <span class="accent">{titleAccent}</span>
-        </h1>
+        <h1><span>{hero.titleLead}</span><span class="accent">{hero.titleAccent}</span></h1>
       </div>
-
       <div class="aside">
         <p class="lead">{hero.lead}</p>
         <div class="cta">
           <a class="btn btn--primary" href={downloads.sectionHref}>
-            <Icon name="download" size={17} stroke={2} />
-            {downloads.label}
+            <Icon name="download" size={17} stroke={2} />{downloads.label}
           </a>
-          <a class="btn" href="#product">
-            See it work
-            <Icon name="arrow" size={17} />
-          </a>
+          <a class="btn" href="#product">Explore features <Icon name="arrow" size={17} /></a>
         </div>
         <div class="availability">
           <p>{downloads.note}</p>
@@ -44,526 +28,91 @@ const segmentProgress = [51, 68, 79, 63, 47, 72, 70, 49];
         </div>
       </div>
     </div>
-
-    <figure class="shot" data-hero-arrival>
-      <figcaption class="fig">
+    <figure class="shot">
+      <figcaption>
         <span>{hero.figLabel}</span>
-        <span class="fig-status"><i aria-hidden="true"></i> Example · 8 ranges planned</span>
+        <span>Actual app · Example library</span>
       </figcaption>
-
-      <div class="instrument">
-        <div
-          class="range-map"
-          role="img"
-          aria-label="An example transfer planned into eight byte ranges that converge into one local file"
-        >
-          <div class="map-head" aria-hidden="true">
-            <span>Adaptive range map</span>
-            <b>N→1</b>
-          </div>
-
-          <div class="source" aria-hidden="true">
-            <span>Remote object</span>
-            <strong>6.52 GB</strong>
-          </div>
-
-          <ol aria-hidden="true">
-            {segmentProgress.map((progress, index) => (
-              <li>
-                <span class="range-index">{String(index + 1).padStart(2, '0')}</span>
-                <span class="track">
-                  <i style={`--progress: ${progress}%`}></i>
-                </span>
-              </li>
-            ))}
-          </ol>
-
-          <div class="merge" aria-hidden="true">
-            <span class="merge-count">N</span>
-            <i></i>
-            <span class="output">
-              <b>01</b>
-              <small>Local file</small>
-            </span>
-          </div>
-        </div>
-
-        <div class="app-window">
-          <picture>
-            <source srcset="/hero.webp" type="image/webp" />
-            <img
-              src="/hero.png"
-              width={shot.width}
-              height={shot.height}
-              alt={hero.shotAlt}
-              fetchpriority="high"
-              decoding="async"
-            />
-          </picture>
-        </div>
-      </div>
-
-      <div class="instrument-foot" aria-hidden="true">
-        <span>ubuntu-26.04-desktop-amd64.iso</span>
-        <span>Configured example · 8 planned ranges</span>
-        <span>Actual app window</span>
+      <div class="app-window">
+        <picture>
+          <source srcset="/hero.webp" type="image/webp" />
+          <img src="/hero.png" width={shot.width} height={shot.height} alt={hero.shotAlt}
+            fetchpriority="high" decoding="async" />
+        </picture>
       </div>
     </figure>
   </div>
 </section>
 
 <style>
-  .hero {
-    padding-top: clamp(3rem, 5vw, 4.5rem);
-    padding-bottom: clamp(2.5rem, 5vw, 4.5rem);
-  }
-
+  .hero { padding-top: clamp(3rem, 5vw, 4.5rem); padding-bottom: clamp(2.5rem, 5vw, 4.5rem); }
   .top {
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(20rem, .8fr);
     gap: clamp(2.5rem, 6vw, 6.5rem);
     align-items: end;
   }
-
   .lede h1 {
-    margin-top: clamp(1.5rem, 3vw, 2.75rem);
     max-width: 13ch;
+    margin-top: clamp(1.5rem, 3vw, 2.75rem);
     font-size: var(--t-h1);
     font-weight: 760;
-    letter-spacing: -0.065em;
-    line-height: 0.91;
-    text-wrap: balance;
+    letter-spacing: -.065em;
+    line-height: .91;
   }
-
-  .lede h1 > span {
-    display: block;
-  }
-
-  .lede h1 .accent {
-    margin-top: 0.06em;
-  }
-
-  .aside {
-    display: grid;
-    align-content: end;
-    padding-top: 1.15rem;
-    padding-bottom: 0.4rem;
-    border-top: 1px solid var(--line-2);
-  }
-
-  .lead {
-    max-width: 39ch;
-  }
-
-  .cta {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.7rem;
-    width: 100%;
-    margin-top: 1.65rem;
-  }
-
-  .cta .btn {
-    width: 100%;
-  }
-
+  .lede h1 > span { display: block; }
+  .lede h1 .accent { margin-top: .06em; }
+  .aside { display: grid; align-content: end; padding: 1.15rem 0 .4rem; border-top: 1px solid var(--line-2); }
+  .lead { max-width: 39ch; }
+  .cta { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.65rem; }
+  .cta .btn { flex: 1 1 auto; }
   .availability {
     display: grid;
-    gap: 0.25rem;
-    margin-top: 0.9rem;
+    gap: .25rem;
+    margin-top: .9rem;
     color: var(--ink-4);
-    font-family: var(--font-mono);
-    font-size: .875rem;
-    line-height: 1.55;
+    font: .875rem/1.55 var(--font-mono);
   }
-
-  .availability p:last-child {
-    color: var(--ink-3);
-  }
-
-  .shot {
-    margin-top: clamp(2.5rem, 5vw, 4.5rem);
-  }
-
-  .fig {
+  .availability p:last-child { color: var(--ink-3); }
+  .shot { margin-top: clamp(2.5rem, 5vw, 4.5rem); }
+  figcaption {
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
     justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 0.75rem;
+    gap: .25rem 1rem;
+    margin-bottom: .75rem;
     color: var(--ink-4);
-    font-family: var(--font-mono);
-    font-size: .875rem;
-    letter-spacing: 0.045em;
+    font: .875rem/1.5 var(--font-mono);
+    letter-spacing: .045em;
     text-transform: uppercase;
   }
-
-  .fig-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .fig-status i {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--positive);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--positive) 14%, transparent);
-  }
-
-  .instrument {
-    display: grid;
-    grid-template-columns: minmax(11.5rem, 0.21fr) minmax(0, 1fr);
-    overflow: hidden;
+  .app-window {
+    min-width: 0;
+    padding: clamp(.55rem, 2.2vw, 2rem);
     border: 1px solid var(--line-2);
     border-radius: var(--radius-lg);
-    background: var(--surface);
-    box-shadow: none;
-  }
-
-  .range-map {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    padding: clamp(1rem, 2vw, 1.6rem);
-    border-right: 1px solid var(--line-2);
-    background: color-mix(in srgb, var(--surface-2) 72%, var(--surface));
-    color: var(--ink-4);
-    font-family: var(--font-mono);
-    font-size: 0.625rem;
-    letter-spacing: 0.045em;
-    text-transform: uppercase;
-  }
-
-  .map-head,
-  .source,
-  .merge {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-  }
-
-  .map-head {
-    padding-bottom: 0.85rem;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .map-head b {
-    color: var(--accent-ink);
-    font-size: 0.75rem;
-  }
-
-  .source {
-    padding-top: 1rem;
-  }
-
-  .source strong {
-    color: var(--ink-3);
-    font-size: inherit;
-    font-weight: 600;
-  }
-
-  .range-map ol {
-    display: grid;
-    align-content: center;
-    flex: 1;
-    gap: clamp(0.45rem, 1vw, 0.8rem);
-    min-height: 12rem;
-    padding: 1.15rem 0;
-    list-style: none;
-  }
-
-  .range-map li {
-    display: grid;
-    grid-template-columns: 1.45rem minmax(0, 1fr);
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .range-index {
-    color: var(--ink-4);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .track {
-    position: relative;
-    display: block;
-    height: 2px;
-    background: var(--line-2);
-  }
-
-  .track i {
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: var(--progress);
-    background: var(--accent);
-  }
-
-  .track i::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: -2px;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--accent-ink);
-    transform: translateY(-50%);
-  }
-
-  .merge {
-    padding-top: 0.9rem;
-    border-top: 1px solid var(--line);
-  }
-
-  .merge-count {
-    color: var(--accent-ink);
-    font-weight: 700;
-  }
-
-  .merge > i {
-    position: relative;
-    flex: 1;
-    height: 1px;
-    background: var(--accent);
-  }
-
-  .merge > i::before,
-  .merge > i::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    width: 3px;
-    height: 3px;
-    border: 1px solid var(--accent);
-    border-radius: 50%;
-    background: var(--surface-2);
-    transform: translateY(-50%);
-  }
-
-  .merge > i::before {
-    left: 0;
-  }
-
-  .merge > i::after {
-    right: 0;
-  }
-
-  .output {
-    display: grid;
-    grid-template-columns: auto auto;
-    align-items: center;
-    gap: 0.35rem;
-  }
-
-  .output b {
-    display: grid;
-    place-items: center;
-    width: 1.45rem;
-    height: 1.45rem;
-    border-radius: 6px;
-    color: #fff;
-    background: var(--accent);
-    font-size: 0.625rem;
-  }
-
-  .output small {
-    color: var(--ink-3);
-    font: inherit;
-    white-space: nowrap;
-  }
-
-  .app-window {
-    display: flex;
-    align-items: center;
-    min-width: 0;
-    padding: clamp(0.85rem, 2.2vw, 2rem);
     background: var(--surface-2);
   }
-
-  .app-window picture {
-    display: block;
-    width: 100%;
-    font-size: 0;
-    filter: drop-shadow(0 8px 7px rgba(18, 31, 38, 0.18));
-  }
-
-  .app-window img {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-
-  .instrument-foot {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    gap: clamp(1rem, 3vw, 3rem);
-    padding: 0.75rem 0.15rem 0;
-    color: var(--ink-4);
-    font-family: var(--font-mono);
-    font-size: 0.625rem;
-    letter-spacing: 0.035em;
-    line-height: 1.5;
-    text-transform: uppercase;
-  }
-
-  .instrument-foot span:first-child {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
+  picture { display: block; width: 100%; filter: drop-shadow(0 8px 7px rgba(18, 31, 38, .18)); }
+  img { display: block; width: 100%; height: auto; }
   @media (max-width: 960px) {
-    .cta { grid-template-columns: 1fr; }
-    .top {
-      grid-template-columns: minmax(0, 1fr) minmax(15rem, 0.42fr);
-      gap: 3rem;
-    }
-
-    .lede h1 {
-      font-size: clamp(3.4rem, 9vw, 4.8rem);
-    }
-
-    .instrument {
-      grid-template-columns: 1fr;
-    }
-
-    .range-map {
-      border-right: 0;
-      border-bottom: 1px solid var(--line-2);
-    }
-
-    .range-map ol {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 0.85rem;
-      min-height: 0;
-      padding-block: 1.2rem;
-    }
-
-    .range-map li {
-      grid-template-columns: 1fr;
-      gap: 0.35rem;
-    }
-
-    .instrument-foot span:nth-child(2) {
-      display: none;
-    }
+    .top { grid-template-columns: minmax(0, 1fr) minmax(15rem, .42fr); gap: 3rem; }
+    .lede h1 { font-size: clamp(3.4rem, 9vw, 4.8rem); }
   }
-
   @media (max-width: 700px) {
-    .hero {
-      padding-top: 3rem;
-    }
-
-    .top {
-      grid-template-columns: 1fr;
-      gap: 2.5rem;
-      align-items: start;
-    }
-
-    .lede h1 {
-      max-width: 13ch;
-      font-size: clamp(3.4rem, 9vw, 4.8rem);
-    }
-
-    .aside {
-      max-width: 35rem;
-      padding-bottom: 0;
-    }
-
-    .cta {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      width: min(100%, 32rem);
-    }
-
-    .cta .btn {
-      min-width: 0;
-    }
-
-    .range-map {
-      display: none;
-    }
-
-    .shot {
-      margin-top: 3.25rem;
-    }
-
-    .fig-status {
-      display: none;
-    }
-
-    .instrument-foot {
-      grid-template-columns: minmax(0, 1fr) auto;
-    }
+    .top { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; align-items: start; }
+    .aside { max-width: 35rem; padding-bottom: 0; }
+    .cta { max-width: 32rem; }
+    .shot { margin-top: 3.25rem; }
   }
-
   @media (max-width: 480px) {
-    .hero {
-      padding-top: 2.6rem;
-      padding-bottom: 2.75rem;
-    }
-
-    .lede h1 {
-      margin-top: 1.65rem;
-      max-width: 13ch;
-      font-size: clamp(2.75rem, 14vw, 4.4rem);
-      letter-spacing: -0.065em;
-      line-height: 0.91;
-    }
-
-    .top {
-      gap: 2.15rem;
-    }
-
-    .cta {
-      grid-template-columns: 1fr;
-      width: 100%;
-    }
-
-    .cta .btn {
-      min-width: 0;
-      min-height: 48px;
-      padding-inline: 0.75rem;
-    }
-
-    .shot {
-      margin-top: 2.75rem;
-    }
-
-    .range-map {
-      padding: 0.9rem;
-    }
-
-    .range-map ol {
-      gap: 0.7rem 0.6rem;
-    }
-
-    .source {
-      padding-top: 0.8rem;
-    }
-
-    .output small {
-      display: none;
-    }
-
-    .app-window {
-      padding: 0.55rem;
-    }
-
-    .app-window picture {
-      filter: drop-shadow(0 2px 2px rgba(18, 31, 38, 0.16));
-    }
-
-    .instrument-foot {
-      display: none;
-    }
-  }
-
-  @media (max-width: 350px) {
-    .lede h1 {
-      font-size: 2.75rem;
-    }
+    .hero { padding-top: 2.6rem; padding-bottom: 2.75rem; }
+    .lede h1 { margin-top: 1.65rem; font-size: clamp(2.75rem, 14vw, 4.4rem); }
+    .top { gap: 2.15rem; }
+    .cta { display: grid; grid-template-columns: minmax(0, 1fr); }
+    .cta .btn { min-width: 0; padding-inline: .75rem; }
+    .shot { margin-top: 2.75rem; }
+    figcaption { font-size: .75rem; }
+    picture { filter: drop-shadow(0 2px 2px rgba(18, 31, 38, .16)); }
   }
 </style>

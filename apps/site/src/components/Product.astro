@@ -1,0 +1,50 @@
+---
+import { product } from '../data/site';
+import Kicker from './Kicker.astro';
+---
+
+<section id="product" class="section product" aria-labelledby="product-title">
+  <div class="container">
+    <header data-reveal>
+      <Kicker num={product.num} label={product.label} />
+      <h2 id="product-title">From the first connection<br /><span class="accent">to the finished file.</span></h2>
+    </header>
+    <div class="features" data-reveal>
+      {product.features.map((feature) => (
+        <article>
+          <p class="eyebrow">{feature.label}</p>
+          <h3>{feature.title}</h3>
+          <p class="description">{feature.body}</p>
+          <p class="detail">{feature.detail}</p>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  header { display: grid; gap: 1.4rem; }
+  h2 { font-size: clamp(2.2rem, 4vw, 4rem); }
+  .features {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: clamp(2rem, 4vw, 3.5rem);
+    border-top: 1px solid var(--line-2);
+  }
+  article { min-width: 0; padding: 2rem clamp(1.5rem, 3vw, 3rem); }
+  article:first-child { padding-left: 0; }
+  article:last-child { padding-right: 0; }
+  article + article { border-left: 1px solid var(--line-2); }
+  .eyebrow { color: var(--accent-ink); text-transform: uppercase; }
+  h3 { max-width: 19ch; margin-top: 1rem; font-size: clamp(1.6rem, 2.5vw, 2.25rem); }
+  .description { max-width: 42ch; margin-top: 1.15rem; line-height: 1.65; }
+  .detail { max-width: 46ch; margin-top: 1rem; color: var(--ink-3); font-size: .875rem; line-height: 1.6; }
+  @media (max-width: 760px) {
+    .features { grid-template-columns: minmax(0, 1fr); }
+    article, article:first-child, article:last-child { padding: 1.75rem 0; }
+    article + article { border-left: 0; border-top: 1px solid var(--line-2); }
+    article:last-child { padding-bottom: 0; }
+    h3 { max-width: 25ch; }
+    .description, .detail { max-width: 60ch; }
+  }
+</style>

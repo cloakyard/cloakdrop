@@ -12,8 +12,10 @@ scripts/fetch-ffmpeg.sh
 ```
 
 The [fetch script](../../scripts/fetch-ffmpeg.sh) is the source of truth for the version,
-source URL, SHA-256, and complete configure flags. It currently builds **FFmpeg 9.0.1** for
+source URL, SHA-256, and complete configure flags. It currently builds **FFmpeg 9.0.2** for
 arm64 with a macOS 26 deployment target and writes `Vendor/ffmpeg/ffmpeg`.
+See the [October 7 verification](../../../../docs/audits/2026-10-07-dependencies.md)
+for this release's signature, source hash and vendored-binary test results.
 
 Rebuild CloakDrop afterward. The [project build phase](../../project.yml) copies the helper to
 `CloakDrop.app/Contents/MacOS/ffmpeg`, signs it with sandbox-inheritance entitlements, and verifies

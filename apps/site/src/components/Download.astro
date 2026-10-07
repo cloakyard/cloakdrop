@@ -9,7 +9,7 @@ import Icon from './Icon.astro';
     <div class="copy">
       <Kicker num="03" label="Yours to download" />
       <h2>A little more care.<br /><span class="accent">For every download.</span></h2>
-      <p class="requirements">{downloads.note}<br />Free · Open-source beta</p>
+      <p class="requirements">{downloads.note}<br />Free · Open source</p>
       <a class="btn btn--primary" href={downloads.href}>
         <Icon name="download" size={18} stroke={2} />{downloads.actionLabel}
       </a>
@@ -22,8 +22,8 @@ import Icon from './Icon.astro';
         <li><span>02</span><p>Open it, drag <strong>CloakDrop</strong> to <strong>Applications</strong>, then open the app.</p></li>
         <li><span>03</span><p>If macOS blocks it and you trust the download, go to <strong>System Settings → Privacy &amp; Security → Open Anyway</strong>, then confirm <strong>Open</strong>.</p></li>
       </ol>
-      <p class="install-note">A small note: this beta is locally signed, but <strong>not notarized</strong>.
-        Notarization requires a paid Apple Developer Program membership; I’ll consider it if there’s enough demand.
+      <p class="install-note">Current builds are locally signed and <strong>not notarized</strong>.
+        Check the release notes for the signing status of the build you download.
         <a href="https://support.apple.com/en-us/102445">Apple’s opening guide</a> · <a href={site.repo + '/issues'}>Share feedback</a></p>
     </div>
   </div>

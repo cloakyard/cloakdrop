@@ -62,6 +62,9 @@ A proposed custom runtime rebuild is documented there and remains pending depend
 and end-to-end validation. A current yt-dlp release does not imply every frozen dependency is current.
 The [12 September recheck](../../../../docs/audits/2026-09-12-progress-and-dependencies.md#remaining-runtime-update--requires-new-build-dependencies)
 confirms that this gap remains and records current custom-build targets.
+On [October 7](../../../../docs/audits/2026-10-07-dependencies.md), the maintainer
+explicitly chose to keep the official stable bundle and retain this exception
+instead of introducing a custom runtime build.
 
 The local script uses ad-hoc signing. Successful code-signature checks do not establish Developer
 ID identity or Apple notarization. Locally signed builds are not notarized; see the

@@ -353,7 +353,7 @@ struct EngineIntegrationTests {
 
         let done = try await h.waitFor(download.id) { if case .failed = $0.status { return true } else { return false } }
         guard case .failed(let reason) = done.status else { Issue.record("expected a failed status"); return }
-        #expect(reason.contains("no longer accessible"))
+        #expect(reason.contains("restore access to the original download folder"))
         #expect(!FileManager.default.fileExists(atPath: download.destinationFilePath))   // nothing written
     }
 
