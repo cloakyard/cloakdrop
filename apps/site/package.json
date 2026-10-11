@@ -2,11 +2,8 @@
   "name": "cloakdrop-site",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "description": "CloakDrop brand site — drop.cloakyard.com",
-  "engines": {
-    "node": ">=22.12.0"
-  },
+  "type": "module",
   "scripts": {
     "sync:assets": "node ../../scripts/sync-assets.mjs",
     "predev": "npm run sync:assets",
@@ -16,7 +13,9 @@
     "preview": "astro preview",
     "check": "astro check",
     "deploy": "npm run build && wrangler deploy",
-    "cf:dev": "npm run build && wrangler dev"
+    "cf:dev": "npm run build && wrangler dev",
+    "design:check": "node ../../scripts/check-air-design.mjs",
+    "design:inventory": "node ../../scripts/air-inventory.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
@@ -32,6 +31,9 @@
     "miniflare": {
       "sharp": "0.35.5"
     }
+  },
+  "engines": {
+    "node": ">=22.12.0"
   },
   "allowScripts": {
     "esbuild@0.28.2": true,

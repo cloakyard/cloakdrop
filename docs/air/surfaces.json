@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": "1.0.0",
+  "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
+  "surfaces": [
+    {
+      "path": "apps/site/src/components/Brand.astro",
+      "kind": "app-surface",
+      "sourceReviewed": false,
+      "airImplemented": false,
+      "validated": false,
+      "states": [],
+      "viewports": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "path": "apps/site/src/components/Download.astro",
+      "kind": "app-surface",
+      "sourceReviewed": false,
+      "airImplemented": false,
+      "validated": false,
+      "states": [],
+      "viewports": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "path": "apps/site/src/components/Footer.astro",
+      "kind": "app-surface",
+      "sourceReviewed": false,
+      "airImplemented": false,
+      "validated": false,
+      "states": [],
+      "viewports": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "path": "apps/site/src/components/Header.astro",
+      "kind": "app-surface",
+      "sourceReviewed": false,
+      "airImplemented": false,
+      "validated": false,
+      "states": [],
+      "viewports": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "path": "apps/site/src/components/Hero.astro",
+      "kind": "app-surface",
+      "sourceReviewed": false,
+      "airImplemented": false,
+      "validated": false,
+      "states": [],
+      "viewports": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "path": "apps/site/src/components/Icon.astro",
+      "kind": "app-surface",
+      "sourceReviewed": false,
+      "airImplemented": false,
+      "validated": false,
+      "states": [],
+      "viewports": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "path": "apps/site/src/components/Kicker.astro",
+      "kind": "app-surface",
+      "sourceReviewed": false,
+      "airImplemented": false,
+      "validated": false,
+      "states": [],
+      "viewports": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "path": "apps/site/src/components/Product.astro",
+      "kind": "app-surface",
+      "sourceReviewed": false,
+      "airImplemented": false,
+      "validated": false,
+      "states": [],
+      "viewports": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "path": "apps/site/src/components/Provenance.astro",
+      "kind": "app-surface",
+      "sourceReviewed": false,
+      "airImplemented": false,
+      "validated": false,
+      "states": [],
+      "viewports": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "path": "apps/site/src/components/SpecStrip.astro",
+      "kind": "app-surface",
+      "sourceReviewed": false,
+      "airImplemented": false,
+      "validated": false,
+      "states": [],
+      "viewports": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "path": "apps/site/src/layouts/BaseLayout.astro",
+      "kind": "app-surface",
+      "sourceReviewed": false,
+      "airImplemented": false,
+      "validated": false,
+      "states": [],
+      "viewports": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "path": "apps/site/src/pages/404.astro",
+      "kind": "app-surface",
+      "sourceReviewed": false,
+      "airImplemented": false,
+      "validated": false,
+      "states": [],
+      "viewports": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "path": "apps/site/src/pages/index.astro",
+      "kind": "app-surface",
+      "sourceReviewed": false,
+      "airImplemented": false,
+      "validated": false,
+      "states": [],
+      "viewports": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "path": "apps/site/src/pages/privacy.astro",
+      "kind": "app-surface",
+      "sourceReviewed": false,
+      "airImplemented": false,
+      "validated": false,
+      "states": [],
+      "viewports": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "path": "apps/site/src/styles/global.css",
+      "kind": "app-surface",
+      "sourceReviewed": false,
+      "airImplemented": false,
+      "validated": false,
+      "states": [],
+      "viewports": [],
+      "evidence": [],
+      "notes": ""
+    }
+  ]
+}
