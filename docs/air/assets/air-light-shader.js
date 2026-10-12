@@ -142536,9 +142536,11 @@ var xL = RF({
 	},
 	paint: $P`
     let x = uv.x - 0.5;
-    let edgeBack = 0.43 + 0.32 * x * x + 0.19 * x + (1.0 - arrival) * 0.035;
-    let edgeFront = 0.61 + 0.24 * x * x - 0.18 * x + (1.0 - arrival) * 0.018;
-    let spot = exp(-pow((uv.x - aim) / 0.23, 2.0));
+    let response = (aim - 0.5) * 0.08;
+    let edgeBack = 0.43 + 0.32 * x * x + 0.19 * x + (1.0 - arrival) * 0.12 + response;
+    let edgeFront = 0.61 + 0.24 * x * x - 0.18 * x + (1.0 - arrival) * 0.06 - response * 0.5;
+    let sweep = mix(0.14, aim, arrival);
+    let spot = exp(-pow((uv.x - sweep) / 0.18, 2.0));
     let veil = smoothstep(0.0, 0.16, uv.x) * (1.0 - smoothstep(0.84, 1.0, uv.x));
     let lowerFade = 1.0 - smoothstep(0.78, 1.0, uv.y);
     let lineWidth = 1.1 / viewport.y;
@@ -142550,10 +142552,10 @@ var xL = RF({
     let glowFront = exp(-abs(uv.y - edgeFront) * 36.0) * (0.24 + spot * 0.76);
     let grain = (fract(sin(dot(uv * viewport, vec2f(12.9898, 78.233))) * 43758.5453) - 0.5) / 600.0;
     var color = mix(base.rgb, plane.rgb, backFill * 0.75);
-    color = mix(color, accent.rgb, glowBack * mix(0.075, 0.13, dark));
+    color = mix(color, accent.rgb, glowBack * mix(0.24, 0.17, dark));
     color = mix(color, mix(base.rgb, plane.rgb, 0.35), frontFill * 0.58);
-    color = mix(color, accent.rgb, glowFront * mix(0.10, 0.18, dark));
-    color = mix(color, accent.rgb, (backEdge * 0.12 + frontEdge * 0.20) * (0.4 + spot * 0.6));
+    color = mix(color, accent.rgb, glowFront * mix(0.32, 0.24, dark));
+    color = mix(color, accent.rgb, (backEdge * mix(0.30, 0.20, dark) + frontEdge * mix(0.45, 0.32, dark)) * (0.4 + spot * 0.6));
     color = mix(base.rgb, color + grain, veil * lowerFade);
     return vec4f(color, 1.0);
   `

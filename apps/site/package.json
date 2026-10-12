@@ -2,7 +2,7 @@
   "name": "cloakdrop-site",
   "version": "1.0.0",
   "private": true,
-  "description": "CloakDrop brand site — drop.cloakyard.com",
+  "description": "CloakDrop brand site \u2014 drop.cloakyard.com",
   "type": "module",
   "scripts": {
     "sync:assets": "node ../../scripts/sync-assets.mjs",
@@ -15,7 +15,8 @@
     "deploy": "npm run build && wrangler deploy",
     "cf:dev": "npm run build && wrangler dev",
     "design:check": "node ../../scripts/check-air-design.mjs",
-    "design:inventory": "node ../../scripts/air-inventory.mjs"
+    "design:inventory": "node ../../scripts/air-inventory.mjs",
+    "design:portability": "node ../../scripts/check-air-portability.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

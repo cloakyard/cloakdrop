@@ -4,10 +4,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Cloakyard Air — refined design study</title>
-    <link rel="stylesheet" href="../../apps/site/src/styles/air.css" />
+    <link rel="stylesheet" href="../../apps/site/src/styles/air.css?air=54e940cc480e" />
     <style>
       * {
         box-sizing: border-box;
+      }
+      .study-skip {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: var(--air-z-recovery);
+        transform: translateY(-200%);
+      }
+      .study-skip:focus {
+        transform: none;
       }
       body {
         margin: 0;
@@ -178,20 +188,24 @@
         box-shadow: var(--air-shadow-surface);
       }
       .family-nav {
-        height: 72px;
-        padding: 0 32px;
+        min-height: 72px;
+        padding-block: 12px;
+        padding-inline: 32px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 16px;
       }
       .wordmark {
+        min-height: 44px;
+        min-width: 44px;
+        justify-content: center;
         display: inline-flex;
         align-items: center;
         gap: 10px;
-        font-size: 19px;
+        font-size: 1.1875rem;
         font-weight: 500;
-        letter-spacing: -0.7px;
+        letter-spacing: -0.035em;
         white-space: nowrap;
       }
       .mark {
@@ -201,16 +215,48 @@
       .family-links {
         display: flex;
         gap: 24px;
+        flex-wrap: wrap;
         color: var(--air-ink-secondary);
-        font-size: 13px;
+        font-size: 0.8125rem;
       }
       .family-links a {
-        min-height: 40px;
+        min-height: 44px;
         display: flex;
         align-items: center;
       }
       .family-links a:hover {
         color: var(--air-accent);
+      }
+      .family-menu {
+        display: none;
+      }
+      .family-menu summary {
+        list-style: none;
+        font-size: 0.875rem;
+      }
+      .family-menu summary::-webkit-details-marker {
+        display: none;
+      }
+      .family-menu summary svg {
+        width: 16px;
+        height: 16px;
+      }
+      .family-menu[open] summary svg {
+        transform: rotate(180deg);
+      }
+      .family-menu-links {
+        display: grid;
+        gap: 4px;
+        padding-block: 12px 4px;
+      }
+      .family-menu-links a {
+        min-height: 44px;
+        padding: 8px 12px;
+        display: flex;
+        align-items: center;
+        border-radius: var(--air-radius-control);
+        font-size: 0.875rem;
+        color: var(--air-ink-secondary);
       }
       .hero {
         position: relative;
@@ -224,16 +270,16 @@
         align-items: center;
         gap: 8px;
         color: var(--air-ink-secondary);
-        font-size: 13px;
+        font-size: 0.8125rem;
       }
       .hero-overline svg {
         width: 15px;
         height: 15px;
       }
       .hero h1 {
-        font-size: clamp(40px, 5.5cqw, 72px);
-        line-height: 1.03;
-        letter-spacing: -0.055em;
+        font-size: clamp(2.5rem, 5.5cqw, 4.5rem);
+        line-height: 1.05;
+        letter-spacing: -0.045em;
         margin: 24px auto 20px;
         max-width: 850px;
       }
@@ -244,8 +290,8 @@
         max-width: 440px;
         margin: auto;
         color: var(--air-ink-secondary);
-        font-size: 16px;
-        line-height: 1.65;
+        font-size: 1rem;
+        line-height: 1.6;
       }
       .hero-actions {
         margin-top: 28px;
@@ -256,6 +302,8 @@
         flex-wrap: wrap;
       }
       .hero-actions .air-button {
+        font-size: 0.875rem;
+        max-width: 100%;
         padding-inline: 20px;
       }
       .hero .air-button svg {
@@ -370,9 +418,10 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        font-size: 15px;
+        font-size: 0.9375rem;
+        flex-wrap: wrap;
         font-weight: 500;
-        letter-spacing: -0.2px;
+        letter-spacing: -0.015em;
       }
       .product-entry-head svg {
         width: 24px;
@@ -380,7 +429,7 @@
         stroke-width: 1.5;
       }
       .product-entry p {
-        font-size: 13px;
+        font-size: 0.8125rem;
         color: var(--air-ink-secondary);
         margin: 12px 0 16px;
         max-width: 210px;
@@ -390,7 +439,7 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        font-size: 12px;
+        font-size: 0.75rem;
         color: var(--air-ink-muted);
       }
       .product-entry small svg {
@@ -408,7 +457,7 @@
         gap: 16px;
         padding: 20px 40px;
         border-top: 1px solid var(--air-line);
-        font-size: 13px;
+        font-size: 0.8125rem;
       }
       .experiment-link span {
         color: var(--air-ink-secondary);
@@ -417,7 +466,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        min-height: 40px;
+        min-height: 44px;
         white-space: nowrap;
       }
       .experiment-link svg {
@@ -975,7 +1024,7 @@
         border-color: var(--air-line-control);
       }
       #date-dialog .air-field {
-        font-size: 16px;
+        font-size: var(--air-text-editable);
       }
       #date-dialog .dialog-actions {
         flex-wrap: wrap;
@@ -1363,12 +1412,12 @@
         border-bottom: 1px solid var(--air-line);
       }
       .component-row h3 {
-        font-size: 17px;
+        font-size: 1.0625rem;
         letter-spacing: -0.3px;
       }
-      .component-row p {
+      .component-row > div:first-child p {
         color: var(--air-ink-muted);
-        font-size: 12px;
+        font-size: var(--air-text-meta);
         line-height: 1.7;
         margin-top: 8px;
       }
@@ -1381,9 +1430,74 @@
       .component-examples .air-field {
         max-width: 240px;
       }
-      .field-demo {
-        width: min(240px, 100%);
+      .component-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+        gap: 24px;
+        align-items: start;
+        min-width: 0;
       }
+      .component-grid > * {
+        min-width: 0;
+      }
+      .component-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        grid-column: 1 / -1;
+      }
+      .component-actions .air-help {
+        margin: 0;
+        flex: 1 1 15rem;
+      }
+      .action-study-stack {
+        display: grid;
+        gap: 20px;
+        min-width: 0;
+      }
+      .action-study-stack .air-choice-group > div {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .template-study-list {
+        margin: 16px 0 0;
+        padding: 0;
+        list-style: none;
+        font: 400 var(--air-text-body)/1.5 var(--air-font);
+      }
+      .template-study-list li {
+        padding-block: 10px;
+        border-bottom: 1px solid var(--air-line);
+        overflow-wrap: anywhere;
+      }
+      .numeric-study-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 16px;
+        align-items: center;
+      }
+      .numeric-study-actions .air-help {
+        margin: 0;
+      }
+      .component-index {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 32px;
+      }
+      .component-row {
+        scroll-margin-block-start: 24px;
+      }
+      .choice-children {
+        padding-inline-start: 30px;
+      }
+      .choice-help {
+        margin-bottom: 12px;
+      }
+
       .status-line {
         display: flex;
         align-items: center;
@@ -1445,7 +1559,8 @@
         place-items: center;
         border-radius: 50%;
         color: var(--air-accent);
-        background: var(--air-surface);
+        background: var(--air-accent-soft);
+        border: 1px solid var(--air-line);
         box-shadow: var(--air-shadow-surface);
         position: relative;
       }
@@ -1497,7 +1612,7 @@
         text-underline-offset: 4px;
       }
       .air-dialog h2 {
-        font-size: 24px;
+        font-size: 1.5rem;
         letter-spacing: -0.8px;
         line-height: 1.2;
         margin-bottom: 12px;
@@ -1515,15 +1630,16 @@
         display: flex;
         justify-content: flex-end;
         gap: 8px;
+        flex-wrap: wrap;
         margin-top: 28px;
       }
       .dialog-kicker {
-        font-size: 12px;
+        font-size: var(--air-text-meta);
         color: var(--air-ink-muted);
         margin-bottom: 16px;
       }
       .dialog-meta {
-        font-size: 12px;
+        font-size: var(--air-text-meta);
         color: var(--air-ink-muted);
         margin-top: 12px;
       }
@@ -1843,15 +1959,44 @@
         .inspector .air-field {
           font-size: 16px;
         }
+        .inspector select.air-field {
+          font-size: 1rem;
+        }
       }
-      @container preview (max-width:639px) {
+      @container preview (max-width:40rem) {
         .family-nav {
-          height: 64px;
-          padding-inline: 20px;
+          position: relative;
+          display: block;
+          min-height: 64px;
+          padding: 10px 16px;
         }
         .family-links {
           display: none;
         }
+        .family-menu {
+          display: block;
+        }
+        .family-nav .wordmark {
+          /* Match the summary's text line plus padding when text is enlarged. */
+          min-height: max(44px, calc(1.225rem + 18px));
+        }
+        .family-menu summary {
+          position: absolute;
+          top: 10px;
+          right: 16px;
+          min-height: 44px;
+        }
+        .family-menu[open] .family-menu-links {
+          border-top: 1px solid var(--air-line);
+          margin-top: 10px;
+        }
+      }
+      @container preview (max-width:22rem) {
+        .wordmark-name {
+          display: none;
+        }
+      }
+      @container preview (max-width:639px) {
         .hero {
           padding: 28px 20px 0;
         }
@@ -1859,22 +2004,17 @@
           margin-inline: -20px;
         }
         .hero h1 {
-          font-size: clamp(38px, 10.5cqw, 48px);
-          letter-spacing: -0.05em;
-          line-height: 1.04;
+          font-size: clamp(2.5rem, 10.5cqw, 3rem);
+          letter-spacing: -0.045em;
+          line-height: 1.05;
         }
         .hero p {
-          font-size: 14px;
-          max-width: 300px;
-        }
-        .hero-overline {
-          font-size: 12px;
+          max-width: 30ch;
         }
         .hero-actions {
           margin-top: 24px;
         }
         .hero-actions .air-button {
-          font-size: 13px;
           min-height: 44px;
         }
         .family-products {
@@ -1884,7 +2024,7 @@
         .product-entry {
           padding: 20px 8px;
           display: grid;
-          grid-template-columns: 1fr auto;
+          grid-template-columns: minmax(0, 1fr) auto;
           column-gap: 12px;
           border-radius: 0;
         }
@@ -1912,7 +2052,7 @@
           height: 16px;
         }
         .product-entry-head {
-          font-size: 15px;
+          font-size: 0.9375rem;
           gap: 10px;
         }
         .product-entry-head svg {
@@ -1926,7 +2066,7 @@
           gap: 4px;
         }
         .experiment-link span {
-          font-size: 12px;
+          font-size: 0.8125rem;
         }
         .family-products .product-entry:hover {
           background: transparent;
@@ -1936,11 +2076,26 @@
           height: 40px;
         }
         .wordmark {
-          font-size: 18px;
+          font-size: 1.1875rem;
         }
         .mark {
           width: 32px;
           height: 32px;
+        }
+      }
+      @media (max-height: 500px) and (min-width: 640px) {
+        .hero {
+          padding-top: 20px;
+        }
+        .hero h1 {
+          font-size: 2.5rem;
+          margin-block: 16px;
+        }
+        .hero-actions {
+          margin-top: 20px;
+        }
+        .light-field {
+          height: 120px;
         }
       }
       @media (max-width: 900px) {
@@ -2069,6 +2224,9 @@
         .inspector .air-field {
           font-size: 16px;
         }
+        .inspector select.air-field {
+          font-size: 1rem;
+        }
         .tiny-segments button,
         .product-switch button,
         .editor-actions .air-button,
@@ -2101,6 +2259,7 @@
     </style>
   </head>
   <body>
+    <a class="air-button study-skip" href="#study-main">Skip to design reference</a>
     <header class="study-bar">
       <div class="study-title">
         <b>Air</b><span>by Cloakyard</span><span>·</span><span>Design study · refinement 03</span>
@@ -2129,17 +2288,70 @@
         ><a href="#motion">Motion</a>
       </nav>
     </div>
-    <main>
+    <main id="study-main" tabindex="-1">
       <div class="preview-wrap" data-size="desktop" id="experience">
         <div class="experience">
           <nav class="family-nav" aria-label="Landing preview">
-            <div class="wordmark"><span data-icon="brand"></span>Cloakyard</div>
+            <a class="wordmark" href="#experience" aria-label="Cloakyard home">
+              <svg class="mark" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+                <defs>
+                  <linearGradient
+                    id="brand-fill"
+                    x1="11"
+                    y1="6"
+                    x2="51"
+                    y2="58"
+                    gradientUnits="userSpaceOnUse"
+                  >
+                    <stop stop-color="#6FC3FF" />
+                    <stop offset=".45" stop-color="#3975F6" />
+                    <stop offset="1" stop-color="#2444D7" />
+                  </linearGradient>
+                </defs>
+                <circle cx="32" cy="32" r="30" fill="url(#brand-fill)" />
+                <circle
+                  cx="32"
+                  cy="32"
+                  r="29.25"
+                  stroke="white"
+                  stroke-opacity=".28"
+                  stroke-width="1.5"
+                />
+                <g stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path
+                    d="M29.03 46.85V24.58a1.49 1.49 0 0 0-1.49-1.49h-7.42a2.97 2.97 0 0 0-2.97 2.97v17.82a2.97 2.97 0 0 0 2.97 2.97h17.82a2.97 2.97 0 0 0 2.97-2.97v-7.43a1.49 1.49 0 0 0-1.49-1.48H17.15"
+                  />
+                  <rect x="34.97" y="17.15" width="11.88" height="11.88" rx="1.49" />
+                </g></svg
+              ><span class="wordmark-name">Cloakyard</span>
+            </a>
             <div class="family-links">
               <a href="#workspace">The tools</a><a href="#components">Our approach</a
               ><a href="https://github.com/cloakyard"
                 >Source <span data-icon="arrow" style="margin-left: 6px; width: 14px"></span
               ></a>
             </div>
+            <details class="family-menu">
+              <summary class="air-button air-button--quiet">
+                Explore
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </summary>
+              <div class="family-menu-links">
+                <a href="#workspace">The tools</a>
+                <a href="#components">Our approach</a>
+                <a href="https://github.com/cloakyard">Source</a>
+              </div>
+            </details>
           </nav>
           <section class="hero">
             <div class="hero-overline">
@@ -2147,8 +2359,8 @@
             </div>
             <h1>Your work.<br /><span>A little lighter.</span></h1>
             <p>
-              Thoughtful tools for the things you need to do.<br />With a little more space, and a
-              lot less noise.
+              Thoughtful tools for the things you need to do. With a little more space, and a lot
+              less noise.
             </p>
             <div class="hero-actions">
               <a class="air-button air-button--primary" href="#workspace"
@@ -2204,7 +2416,9 @@
               <small>Open the workspace <span data-icon="arrow"></span></small>
             </button>
             <button class="product-entry" data-app="resume" aria-pressed="false">
-              <div class="product-entry-head"><span data-icon="resume"></span>CloakResume</div>
+              <div class="product-entry-head">
+                <span data-icon="resume"></span><span>Cloak<wbr />Resume</span>
+              </div>
               <p>Your experience, beautifully told.</p>
               <small>Open the workspace <span data-icon="arrow"></span></small>
             </button>
@@ -2326,7 +2540,16 @@
             </p>
           </article>
         </div>
-        <div class="component-row">
+        <nav class="component-index" aria-label="Component studies">
+          <a class="air-button air-button--quiet" href="#action-study">Actions</a>
+          <a class="air-button air-button--quiet" href="#field-study">Fields</a>
+          <a class="air-button air-button--quiet" href="#compound-study">Search & units</a>
+          <a class="air-button air-button--quiet" href="#select-study">Menus</a>
+          <a class="air-button air-button--quiet" href="#choice-study">Choices</a>
+          <a class="air-button air-button--quiet" href="#overlay-study">Overlays</a>
+          <a class="air-button air-button--quiet" href="#floating-study">Floating controls</a>
+        </nav>
+        <div class="component-row" id="action-study">
           <div>
             <h3>Actions, with hierarchy.</h3>
             <p>
@@ -2334,59 +2557,353 @@
               small, tactile press.
             </p>
           </div>
-          <div class="component-examples">
-            <button class="air-button air-button--primary" id="sample-export">
-              Export document <span data-icon="right"></span></button
-            ><button class="air-button">Cancel</button
-            ><button class="air-button air-button--quiet">Reset</button
-            ><button class="air-button" disabled>Unavailable</button>
+          <div class="action-study-stack">
+            <div class="component-examples">
+              <button class="air-button air-button--primary" id="sample-export">
+                Export document <span data-icon="right"></span>
+              </button>
+              <button class="air-button" disabled>Unavailable</button>
+            </div>
+            <div>
+              <button
+                class="air-button"
+                id="reference-task"
+                type="button"
+                aria-label="Prepare preview"
+                aria-describedby="task-help"
+                data-state="idle"
+              >
+                <span class="air-action-labels" aria-hidden="true">
+                  <span data-state-label="idle" data-active>Prepare preview</span>
+                  <span data-state-label="busy">Preparing…</span>
+                  <span data-state-label="success">Prepare again</span>
+                  <span data-state-label="error">Try again</span>
+                </span>
+              </button>
+              <p class="air-help" id="task-help">
+                State study. Start, then choose an outcome below. No files are processed.
+              </p>
+              <p class="air-help" id="task-status" role="status" aria-atomic="true">
+                Ready to try.
+              </p>
+            </div>
+            <fieldset class="air-choice-group">
+              <legend>Resolve this study</legend>
+              <div>
+                <button
+                  class="air-button air-button--quiet"
+                  id="task-complete"
+                  type="button"
+                  disabled
+                >
+                  Show success
+                </button>
+                <button class="air-button air-button--quiet" id="task-fail" type="button" disabled>
+                  Show error
+                </button>
+                <button
+                  class="air-button air-button--quiet"
+                  id="task-cancel"
+                  type="button"
+                  disabled
+                >
+                  Cancel study
+                </button>
+              </div>
+            </fieldset>
           </div>
         </div>
-        <div class="component-row">
+        <div class="component-row" id="field-study">
           <div>
             <h3>Fields, with clarity.</h3>
             <p>
-              One quiet contour. Persistent labels and nearby help. Focus replaces the contour with
-              blue, without a second line or a change in layout.
+              One quiet contour, in every state. Labels stay in place. Help explains the next step;
+              focus never adds a second line.
+            </p>
+          </div>
+          <form class="component-grid" id="field-study-form" novalidate>
+            <div>
+              <label class="air-label" for="reference-name">File name · required</label>
+              <input
+                class="air-field"
+                id="reference-name"
+                name="file-name"
+                value="Field notes"
+                required
+                autocomplete="off"
+                aria-describedby="name-help name-error"
+              />
+              <p class="air-help" id="name-help">Use a name you’ll recognise later.</p>
+              <p class="air-help air-help--error" id="name-error" hidden>Enter a file name.</p>
+            </div>
+            <div>
+              <label class="air-label" for="reference-error">Page range</label>
+              <input
+                class="air-field"
+                id="reference-error"
+                name="page-range"
+                value="0–4"
+                autocomplete="off"
+                aria-invalid="true"
+                aria-describedby="range-help range-error"
+              />
+              <p class="air-help" id="range-help">One page or an ordered range, like 1–4.</p>
+              <p class="air-help air-help--error" id="range-error">
+                Use page 1 or later and put the smaller number first.
+              </p>
+            </div>
+            <div>
+              <label class="air-label" for="reference-readonly">Original file</label>
+              <input
+                class="air-field"
+                id="reference-readonly"
+                name="original"
+                value="Field notes.pdf"
+                readonly
+                aria-describedby="readonly-help"
+              />
+              <p class="air-help" id="readonly-help">
+                Read only. You can still select and copy this name.
+              </p>
+            </div>
+            <div>
+              <label class="air-label" for="reference-disabled">Encryption password</label>
+              <input
+                class="air-field"
+                id="reference-disabled"
+                name="password"
+                type="password"
+                disabled
+                autocomplete="off"
+                aria-describedby="disabled-help"
+              />
+              <p class="air-help" id="disabled-help">Unavailable for this unencrypted sample.</p>
+            </div>
+            <div>
+              <label class="air-label" for="reference-note">Export note · optional</label>
+              <textarea
+                class="air-field"
+                id="reference-note"
+                name="note"
+                rows="3"
+                placeholder="A short note…"
+                aria-describedby="note-help"
+              ></textarea>
+              <p class="air-help" id="note-help">
+                Multiline writing uses the same contour and spacing.
+              </p>
+            </div>
+            <div class="component-actions">
+              <button class="air-button" type="submit">Check details</button>
+              <p class="air-help" role="status" id="field-study-status">
+                Interaction study. No file is created.
+              </p>
+            </div>
+          </form>
+        </div>
+        <div class="component-row" id="compound-study">
+          <div>
+            <h3>A place for every detail.</h3>
+            <p>
+              Clear controls and fixed units belong to the field. One continuous edge keeps the
+              whole thing calm.
+            </p>
+          </div>
+          <div class="component-grid">
+            <div role="search" aria-label="Sample templates">
+              <label class="air-label" for="reference-search">Find a template</label>
+              <div class="air-field-group">
+                <input
+                  class="air-field"
+                  id="reference-search"
+                  name="template-search"
+                  type="search"
+                  placeholder="Search by name…"
+                  autocomplete="off"
+                  spellcheck="false"
+                  aria-describedby="search-help"
+                  aria-controls="template-study-results"
+                />
+                <span class="air-field-actions"
+                  ><button
+                    class="air-icon-button air-button--quiet air-field-clear"
+                    id="reference-clear"
+                    type="button"
+                    aria-label="Clear template search"
+                    hidden
+                  >
+                    <span data-icon="close"></span></button
+                ></span>
+              </div>
+              <p class="air-help" id="search-help">Filter these three sample names.</p>
+              <p class="air-help" id="search-status" role="status" aria-atomic="true">
+                3 templates.
+              </p>
+              <ul class="template-study-list" id="template-study-results">
+                <li>Field notes</li>
+                <li>Modern minimal</li>
+                <li>Studio résumé</li>
+              </ul>
+            </div>
+            <form id="number-study-form" novalidate>
+              <label class="air-label" for="reference-quality">Image quality · required</label>
+              <div class="air-field-group">
+                <input
+                  class="air-field"
+                  id="reference-quality"
+                  name="quality"
+                  type="number"
+                  inputmode="numeric"
+                  min="1"
+                  max="100"
+                  step="1"
+                  value="80"
+                  required
+                  aria-describedby="quality-help quality-error"
+                />
+                <span class="air-field-unit" aria-hidden="true">%</span>
+              </div>
+              <p class="air-help" id="quality-help">Percent. Use a whole number from 1 to 100.</p>
+              <p class="air-help air-help--error" id="quality-error" hidden>
+                Enter a whole number from 1 to 100.
+              </p>
+              <div class="numeric-study-actions">
+                <button class="air-button" type="submit">Apply quality</button>
+                <p class="air-help" id="quality-committed">Applied study value: 80%.</p>
+              </div>
+              <p class="air-help" id="quality-status" role="status" aria-atomic="true">
+                No image is processed.
+              </p>
+            </form>
+          </div>
+        </div>
+        <div class="component-row" id="select-study">
+          <div>
+            <h3>Menus, with the same care.</h3>
+            <p>
+              A little breathing room for the arrow. Quiet option rows, a clear selection and one
+              consistent surface.
             </p>
           </div>
           <div class="component-examples">
-            <div class="field-demo">
-              <label class="air-label" for="reference-name">File name</label
-              ><input class="air-field" id="reference-name" value="Field notes" />
-              <p class="air-help">Saved to your chosen location.</p>
+            <div style="width: 240px; max-width: 100%">
+              <label class="air-label" for="reference-format">Image format</label>
+              <select class="air-field" id="reference-format">
+                <option>PNG</option>
+                <option>JPEG</option>
+                <option>WebP</option>
+                <option disabled>AVIF · unavailable in this study</option>
+              </select>
+              <p class="air-help">Open to compare the complete menu.</p>
             </div>
-            <div class="field-demo">
-              <label class="air-label" for="reference-error">Page range</label
-              ><input
-                class="air-field"
-                id="reference-error"
-                value="0–4"
-                aria-invalid="true"
-                aria-describedby="range-error"
-              />
-              <p class="air-help air-help--error" id="range-error">Start with page 1 or later.</p>
+            <div style="width: 240px; max-width: 100%">
+              <label class="air-label" for="reference-select-disabled">Preset</label>
+              <select class="air-field" id="reference-select-disabled" disabled>
+                <option>Original quality</option>
+              </select>
+              <p class="air-help">Unavailable choices remain identifiable.</p>
             </div>
           </div>
         </div>
-        <div class="component-row">
+        <div class="component-row" id="choice-study">
           <div>
             <h3>Choices, with precision.</h3>
             <p>
-              Neutral selection surfaces. Blue for focus and the active indicator. Visual colour
-              data keeps its real values.
+              A shared shape and a clear state. Native keyboard behavior, generous label targets and
+              no decorative movement during work.
             </p>
           </div>
-          <div class="component-examples">
-            <div class="air-segments" aria-label="Reference alignment">
-              <button aria-pressed="true">Left</button><button aria-pressed="false">Centre</button
-              ><button aria-pressed="false">Right</button>
+          <div class="component-grid">
+            <fieldset class="air-choice-group">
+              <legend>Include in export</legend>
+              <p class="air-help choice-help" id="include-help">
+                A mixed selection keeps its own visible mark.
+              </p>
+              <label class="air-check-label"
+                ><input
+                  class="air-check"
+                  id="reference-all"
+                  type="checkbox"
+                  aria-describedby="include-help"
+                />All additions</label
+              >
+              <div class="choice-children">
+                <label class="air-check-label"
+                  ><input
+                    class="air-check"
+                    data-reference-child
+                    type="checkbox"
+                    checked
+                  />Annotations</label
+                >
+                <label class="air-check-label"
+                  ><input class="air-check" data-reference-child type="checkbox" />Bookmarks</label
+                >
+              </div>
+              <label class="air-check-label"
+                ><input class="air-check" type="checkbox" disabled />Embedded files ·
+                unavailable</label
+              >
+            </fieldset>
+            <fieldset class="air-choice-group">
+              <legend>Pages</legend>
+              <label class="air-check-label"
+                ><input
+                  type="radio"
+                  name="reference-pages"
+                  value="all"
+                  class="air-check"
+                  checked
+                />All pages</label
+              >
+              <label class="air-check-label"
+                ><input
+                  type="radio"
+                  name="reference-pages"
+                  value="current"
+                  class="air-check"
+                />Current page</label
+              >
+              <label class="air-check-label"
+                ><input
+                  type="radio"
+                  name="reference-pages"
+                  value="selection"
+                  class="air-check"
+                  disabled
+                />Selection · unavailable</label
+              >
+            </fieldset>
+            <fieldset class="air-choice-group">
+              <legend>Alignment</legend>
+              <div class="air-segments">
+                <label class="air-segment"
+                  ><input type="radio" name="reference-align" value="left" checked />Left</label
+                >
+                <label class="air-segment"
+                  ><input type="radio" name="reference-align" value="centre" />Centre</label
+                >
+                <label class="air-segment"
+                  ><input type="radio" name="reference-align" value="right" />Right</label
+                >
+              </div>
+              <p class="air-help">One choice. Use arrow keys to move within the group.</p>
+            </fieldset>
+            <div>
+              <label class="air-switch-row"
+                ><span>Keep original quality<small>No additional compression.</small></span
+                ><input
+                  class="air-switch"
+                  id="reference-switch"
+                  type="checkbox"
+                  role="switch"
+                  checked
+              /></label>
+              <label class="air-switch-row"
+                ><span>Sync to a workspace<small>Unavailable in this local study.</small></span
+                ><input class="air-switch" type="checkbox" role="switch" disabled
+              /></label>
             </div>
-            <label class="air-check-label"
-              ><input type="checkbox" class="air-check" checked />Keep original quality</label
-            ><label class="air-check-label"
-              ><input type="radio" name="pages" class="air-check" checked />All pages</label
-            >
           </div>
         </div>
         <div class="component-row">
@@ -2410,6 +2927,41 @@
             </div>
           </div>
         </div>
+        <div class="component-row" id="floating-study">
+          <div>
+            <h3>Small surfaces. Clear purpose.</h3>
+            <p>
+              Settings stay close to their trigger. Actions work by touch or keyboard. Confirmation
+              keeps the safe choice within reach.
+            </p>
+          </div>
+          <div id="air-overlay-root">
+            <p class="air-help" role="status" id="air-overlay-load-status">
+              Preparing the interactive examples…
+            </p>
+            <button type="button" class="air-button" id="air-overlay-retry" hidden>
+              Retry examples</button
+            ><noscript
+              ><p class="air-help">
+                These interaction examples need JavaScript. Their complete rules are in the design
+                contract.
+              </p></noscript
+            >
+          </div>
+        </div>
+        <div class="component-row" id="overlay-study">
+          <div>
+            <h3>Overlays, with clear boundaries.</h3>
+            <p>
+              The same surface, readable spacing and reachable actions. A dialog becomes a sheet on
+              a phone; Escape returns you to where you started.
+            </p>
+          </div>
+          <div class="component-examples">
+            <button class="air-button" id="inspect-overlay">Inspect export dialog</button>
+            <p class="air-help">Uses the active editor’s sample export options.</p>
+          </div>
+        </div>
       </section>
       <section class="reference" id="motion">
         <div class="reference-header">
@@ -2423,9 +2975,9 @@
           <div class="motion-copy">
             <h3>Finishing should feel good.</h3>
             <p>
-              A brief, soft settle confirms completion. No confetti, looping ornaments or moving
-              text. Try it again—the motion continues from its current position without stacking
-              effects.
+              A clear lift and soft landing confirm completion. No confetti, looping ornaments or
+              moving text. Try it again—the motion continues from its current position without
+              stacking effects.
             </p>
           </div>
           <div class="save-example">
@@ -2439,7 +2991,8 @@
             <strong>Press · 120ms</strong><span>2% compression, immediate release feedback.</span>
           </div>
           <div>
-            <strong>Popover · 180ms</strong><span>From its trigger. Four pixels, at most.</span>
+            <strong>Menus · immediate</strong
+            ><span>Frequent controls respond without a transition.</span>
           </div>
           <div>
             <strong>Dialog · 240ms</strong><span>Soft arrival. A sheet rises on a phone.</span>
@@ -2559,8 +3112,7 @@
         alert: '<path d="M12 3 2 21h20zM12 9v5m0 3h.01"/>',
         close: '<path d="m6 6 12 12M6 18 18 6"/>',
       };
-      const brand =
-        '<svg class="mark" viewBox="0 0 64 64" fill="none" aria-hidden="true"><defs><linearGradient id="brand-fill" x1="11" y1="6" x2="51" y2="58" gradientUnits="userSpaceOnUse"><stop stop-color="#6FC3FF"/><stop offset=".45" stop-color="#3975F6"/><stop offset="1" stop-color="#2444D7"/></linearGradient></defs><circle cx="32" cy="32" r="30" fill="url(#brand-fill)"/><circle cx="32" cy="32" r="29.25" stroke="white" stroke-opacity=".28" stroke-width="1.5"/><g stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M29.03 46.85V24.58a1.49 1.49 0 0 0-1.49-1.49h-7.42a2.97 2.97 0 0 0-2.97 2.97v17.82a2.97 2.97 0 0 0 2.97 2.97h17.82a2.97 2.97 0 0 0 2.97-2.97v-7.43a1.49 1.49 0 0 0-1.49-1.48H17.15"/><rect x="34.97" y="17.15" width="11.88" height="11.88" rx="1.49"/></g></svg>';
+      const brand = document.querySelector(".wordmark .mark").outerHTML;
       let brandCount = 0;
       function icon(name) {
         return name === "brand"
@@ -3289,6 +3841,17 @@
           paintHighlight();
         }
       });
+      const familyMenu = document.querySelector(".family-menu");
+      familyMenu.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && familyMenu.open) {
+          event.preventDefault();
+          familyMenu.open = false;
+          familyMenu.querySelector("summary").focus();
+        }
+      });
+      familyMenu.addEventListener("click", (event) => {
+        if (event.target.closest("a")) familyMenu.open = false;
+      });
       document.addEventListener("input", (event) => {
         const target = event.target;
         if (target.matches("input[type=range]")) {
@@ -3572,6 +4135,7 @@
       }
       document.querySelector("#open-dialog").addEventListener("click", openDialog);
       document.querySelector("#sample-export").addEventListener("click", openDialog);
+      document.querySelector("#inspect-overlay").addEventListener("click", openDialog);
       dialog.querySelector(".dialog-close").addEventListener("click", closeDialog);
       dialog.querySelectorAll("form button").forEach((button) =>
         button.addEventListener("click", (event) => {
@@ -4128,6 +4692,144 @@
         document.getElementById(dateDraft?.trigger)?.focus(),
       );
 
+      const taskStudy = document.querySelector("#reference-task");
+      const taskStatus = document.querySelector("#task-status");
+      const taskOutcomes = ["complete", "fail", "cancel"].map((name) =>
+        document.querySelector(`#task-${name}`),
+      );
+      function showTaskState(state, message) {
+        taskStudy.dataset.state = state;
+        taskStudy.setAttribute("aria-busy", String(state === "busy"));
+        taskStudy.setAttribute("aria-disabled", String(state === "busy"));
+        for (const label of taskStudy.querySelectorAll("[data-state-label]")) {
+          const active = label.dataset.stateLabel === state;
+          label.toggleAttribute("data-active", active);
+          if (active) taskStudy.setAttribute("aria-label", label.textContent);
+        }
+        taskStatus.classList.toggle("air-help--error", state === "error");
+        taskStatus.textContent = message;
+        taskOutcomes.forEach((button) => (button.disabled = state !== "busy"));
+      }
+      taskStudy.addEventListener("click", () => {
+        if (taskStudy.dataset.state === "busy") return;
+        showTaskState("busy", "Preparing the sample. Choose an outcome below to finish the study.");
+      });
+      const studyOutcomes = [
+        ["success", "Sample preview ready. No file was created."],
+        ["error", "Sample preview failed. Your settings are kept. Try again."],
+        ["idle", "Study cancelled. Your settings are kept."],
+      ];
+      taskOutcomes.forEach((button, index) =>
+        button.addEventListener("click", () => {
+          if (taskStudy.dataset.state !== "busy") return;
+          // Only the study's outcome controls return focus before disabling themselves.
+          taskStudy.focus();
+          showTaskState(...studyOutcomes[index]);
+        }),
+      );
+
+      const searchStudy = document.querySelector("#reference-search");
+      const searchClear = document.querySelector("#reference-clear");
+      const searchStatus = document.querySelector("#search-status");
+      const templateNames = [...document.querySelectorAll("#template-study-results li")];
+      const searchKey = (value) =>
+        value.normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase().trim();
+      function filterTemplates() {
+        const query = searchKey(searchStudy.value);
+        searchClear.hidden = !searchStudy.value;
+        let count = 0;
+        for (const item of templateNames) {
+          item.hidden = !searchKey(item.textContent).includes(query);
+          if (!item.hidden) count++;
+        }
+        const message = count
+          ? `${count} ${count === 1 ? "template" : "templates"}.`
+          : "No templates found. Try another name or clear the search.";
+        if (searchStatus.textContent !== message) searchStatus.textContent = message;
+      }
+      searchStudy.addEventListener("input", (event) => {
+        if (!event.isComposing) filterTemplates();
+      });
+      searchStudy.addEventListener("compositionend", filterTemplates);
+      searchClear.addEventListener("click", () => {
+        searchStudy.value = "";
+        searchStudy.focus();
+        filterTemplates();
+      });
+      filterTemplates();
+
+      const qualityStudy = document.querySelector("#reference-quality");
+      const qualityStatus = document.querySelector("#quality-status");
+      function validateQuality() {
+        const valid = qualityStudy.validity.valid && Number.isInteger(qualityStudy.valueAsNumber);
+        qualityStudy.setAttribute("aria-invalid", String(!valid));
+        document.querySelector("#quality-error").hidden = valid;
+        return valid;
+      }
+      qualityStudy.addEventListener("blur", validateQuality);
+      qualityStudy.addEventListener("input", () => {
+        const message = "Quality changed. Apply when you’re ready.";
+        if (qualityStatus.textContent !== message) qualityStatus.textContent = message;
+      });
+      document.querySelector("#number-study-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (!validateQuality()) {
+          qualityStatus.textContent = "Check the quality. The previous study value is unchanged.";
+          qualityStudy.focus();
+          return;
+        }
+        document.querySelector("#quality-committed").textContent =
+          `Applied study value: ${qualityStudy.valueAsNumber}%.`;
+        qualityStatus.textContent = "Quality applied to the study. No image was changed.";
+      });
+
+      const fieldStudy = document.querySelector("#field-study-form");
+      const nameStudy = document.querySelector("#reference-name");
+      const rangeStudy = document.querySelector("#reference-error");
+      const fieldStudyStatus = document.querySelector("#field-study-status");
+      fieldStudy.addEventListener("input", () => {
+        const message = "Details changed. Check them when you’re ready.";
+        if (fieldStudyStatus.textContent !== message) fieldStudyStatus.textContent = message;
+      });
+      function validateStudyField(input) {
+        const value = input.value.trim();
+        const range = /^(\d+)(?:\s*[–-]\s*(\d+))?$/.exec(value);
+        const valid =
+          input === nameStudy
+            ? Boolean(value)
+            : Boolean(
+                range &&
+                Number(range[1]) >= 1 &&
+                (!range[2] || Number(range[2]) >= Number(range[1])),
+              );
+        input.setAttribute("aria-invalid", String(!valid));
+        document.querySelector(input === nameStudy ? "#name-error" : "#range-error").hidden = valid;
+        return valid;
+      }
+      for (const input of [nameStudy, rangeStudy])
+        input.addEventListener("blur", () => validateStudyField(input));
+      fieldStudy.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const invalid = [nameStudy, rangeStudy].filter((input) => !validateStudyField(input));
+        document.querySelector("#field-study-status").textContent = invalid.length
+          ? "Check the highlighted details."
+          : "Details are ready. No file was created.";
+        invalid[0]?.focus();
+      });
+      const allAdditions = document.querySelector("#reference-all");
+      const additionChoices = [...document.querySelectorAll("[data-reference-child]")];
+      function reflectAdditions() {
+        const count = additionChoices.filter((input) => input.checked).length;
+        allAdditions.checked = count === additionChoices.length;
+        allAdditions.indeterminate = count > 0 && count < additionChoices.length;
+      }
+      allAdditions.addEventListener("change", () => {
+        additionChoices.forEach((input) => (input.checked = allAdditions.checked));
+        reflectAdditions();
+      });
+      additionChoices.forEach((input) => input.addEventListener("change", reflectAdditions));
+      reflectAdditions();
+
       const completionMotion = createCompletionMotion(document.querySelector(".saved-orb"));
       document.querySelector("#play-completion").addEventListener("click", (event) => {
         document.querySelector(".motion-status").textContent =
@@ -4136,5 +4838,6 @@
       });
     </script>
     <script type="module" src="./light-controller.mjs"></script>
+    <script type="module" src="./overlays-loader.mjs?air=7c0085adfa07"></script>
   </body>
 </html>

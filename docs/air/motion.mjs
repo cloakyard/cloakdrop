@@ -109,12 +109,12 @@ export function createCompletionMotion(element) {
       const continuing = active?.playState === "running";
       const from = continuing
         ? snapshot(element)
-        : { opacity: 0.4, transform: "translateY(4px) scale(.96)" };
+        : { opacity: 0.3, transform: "translateY(8px) scale(.9)" };
       cancel();
       if (immediate(event, preference)) return;
       const options = timing(element, "dialog");
       if (continuing)
-        options.duration *= Math.max(0, Math.min(1, (1 - Number(from.opacity)) / 0.6));
+        options.duration *= Math.max(0, Math.min(1, (1 - Number(from.opacity)) / 0.7));
       if (!options.duration) return;
       const animation = element.animate([from, resting], options);
       active = animation;
