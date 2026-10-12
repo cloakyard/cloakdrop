@@ -14,3 +14,55 @@ This commit establishes governance only. Runtime Air styles, component/state aud
 responsive screenshots and feature sweeps are still pending. The full phased plan
 is maintained in Cloakyard's `UX_REFRESH_TODO.md`; this repository's surface record
 tracks local evidence so it remains usable independently.
+
+## 2026-10-11 — shared component bundle
+
+The pinned local CSS and working `docs/air/components.html` reference are identical
+across the family. They are not yet imported into product screens. Contract/bundle
+hashes, palette equality and standalone-copy validation pass. All 15 required and
+breakpoint-neighbour viewport sizes have no document overflow in light and dark.
+The reference was visually inspected on desktop, laptop and phone, including the
+390px dark sheet and 320px light controls. Evidence images are recorded in the
+family repository's `docs/air/evidence/reference-*.jpg`.
+
+Verified: field/select editing; checkbox and segment selection; slider keyboard
+increment; dialog initial focus, forward/reverse focus wrap, Escape, Done and focus
+return; 44px coarse-pointer controls; 16px mobile inputs; zero-duration reduced
+motion. Fixed the native dialog's default max-width narrowing the phone sheet.
+Contrast calculations: all tested normal text/semantic pairs >=4.5:1; required
+field boundaries >=3:1 (light 3.31:1, dark 4.39:1). Source review covers disabled,
+busy, hover/press and status variants. Product-specific controls, real app state
+sweeps, 200% browser zoom and software-keyboard behaviour remain separate gates.
+
+The CSS is imported only by the standalone HTML reference. The Astro production
+site does not import it; production adoption remains a separate reviewed piece.
+
+
+## 2026-10-12 — complete website baseline audit
+
+[The source-linked audit](website-audit.md) records the current website and its
+migration findings. All 18 production source files were reviewed; the inventory
+now includes shared content, screenshot geometry and navigation TypeScript.
+The nineteenth entry is the opt-in family CSS. Production Air implementation and
+validation remain false for every production source.
+
+Evidence: 90 normal-layout cases, 24 header journeys, 40 targeted observations,
+370 computed opaque-background text pairs, 12 enlarged-root-font cases and 16
+visually inspected captures. The dark skip link fails contrast; narrow home/404
+fail enlarged-text reflow. Tablet composition, coarse targets, keyboard motion and
+no-JS same-page menu dismissal are migration findings, not silently passing tests.
+The functional baseline covers navigation, recovery, download destination and
+source-policy rendering. See the audit for the limits of browser emulation and
+remaining physical-device, actual zoom and cross-engine coverage.
+
+The copied refinement 03 reference includes the shared motion module and locally
+bundled Shaders study. Its earlier family validation is recorded in Cloakyard's
+motion/light evidence; local integrity and isolated portability are checked here.
+This checkpoint changes documentation, inventory tooling and opt-in design assets
+only. It does not restyle the live website or native application. The user's
+2026-10-12 decision is to keep refining Air before rollout.
+
+Final gates: asset sync (all seven up to date), Astro check (19 files; zero
+diagnostics), three-route production build, portable contract/bundle checker,
+five isolated portability assertions, evidence-preserving inventory regeneration
+and `git diff --check` pass. No tracked native or production UI files changed.

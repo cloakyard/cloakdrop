@@ -6,167 +6,425 @@
     {
       "path": "apps/site/src/components/Brand.astro",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "40px coarse target and fragmented wordmark under 200% root-font stress require migration. Baseline evidence does not certify Air conformance."
     },
     {
       "path": "apps/site/src/components/Download.astro",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "CTA reaches official releases index; beta DMG link verified without downloading/installing. Baseline evidence does not certify Air conformance."
     },
     {
       "path": "apps/site/src/components/Footer.astro",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "Existing website source reviewed with route and section evidence. Production Air migration remains pending. Baseline evidence does not certify Air conformance."
     },
     {
       "path": "apps/site/src/components/Header.astro",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "24 anchor journeys, native keyboard/pointer menu and focus return verified. Coarse targets, keyboard animation and no-JS dismissal need refinement. Baseline evidence does not certify Air conformance."
     },
     {
       "path": "apps/site/src/components/Hero.astro",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "Normal layout fits; tablet spacing and landscape action placement require compact composition. Baseline evidence does not certify Air conformance."
     },
     {
       "path": "apps/site/src/components/Icon.astro",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "Existing website source reviewed with route and section evidence. Production Air migration remains pending. Baseline evidence does not certify Air conformance."
     },
     {
       "path": "apps/site/src/components/Kicker.astro",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "Existing website source reviewed with route and section evidence. Production Air migration remains pending. Baseline evidence does not certify Air conformance."
     },
     {
       "path": "apps/site/src/components/Product.astro",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "Normal layout fits; 320px/200% root-font stress overflows. Baseline evidence does not certify Air conformance."
     },
     {
       "path": "apps/site/src/components/Provenance.astro",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "Normal layout fits; enlarged-text clipping, legacy band colours and ungated hover motion require migration. Baseline evidence does not certify Air conformance."
     },
     {
       "path": "apps/site/src/components/SpecStrip.astro",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "Existing website source reviewed with route and section evidence. Production Air migration remains pending. Baseline evidence does not certify Air conformance."
+    },
+    {
+      "path": "apps/site/src/data/site.ts",
+      "kind": "app-surface",
+      "sourceReviewed": true,
+      "airImplemented": false,
+      "validated": false,
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "Existing website source reviewed with route and section evidence. Production Air migration remains pending. Baseline evidence does not certify Air conformance."
     },
     {
       "path": "apps/site/src/layouts/BaseLayout.astro",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "Existing website source reviewed with route and section evidence. Production Air migration remains pending. Baseline evidence does not certify Air conformance."
+    },
+    {
+      "path": "apps/site/src/lib/heroGeometry.ts",
+      "kind": "app-surface",
+      "sourceReviewed": true,
+      "airImplemented": false,
+      "validated": false,
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "Screenshot framing source reviewed; preserve native screenshot content when replacing website composition. Baseline evidence does not certify Air conformance."
     },
     {
       "path": "apps/site/src/pages/404.astro",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "Unknown route returns HTTP 404/noindex and recovery works; narrow enlarged-text layout overflows. Baseline evidence does not certify Air conformance."
     },
     {
       "path": "apps/site/src/pages/index.astro",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "Existing website source reviewed with route and section evidence. Production Air migration remains pending. Baseline evidence does not certify Air conformance."
     },
     {
       "path": "apps/site/src/pages/privacy.astro",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "Nine policy sections, revision, canonical and heading verified against source; narrow enlarged text fits. Baseline evidence does not certify Air conformance."
+    },
+    {
+      "path": "apps/site/src/scripts/motion.ts",
+      "kind": "app-surface",
+      "sourceReviewed": true,
+      "airImplemented": false,
+      "validated": false,
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "Anchor destinations and active state verified; JS-only menu dismissal and keyboard-triggered reveals recorded. Baseline evidence does not certify Air conformance."
+    },
+    {
+      "path": "apps/site/src/styles/air.css",
+      "kind": "app-surface",
+      "sourceReviewed": true,
+      "airImplemented": true,
+      "validated": false,
+      "states": [
+        "default",
+        "hover/press (CSS review)",
+        "focus",
+        "selected",
+        "disabled",
+        "busy",
+        "error",
+        "success",
+        "warning",
+        "dialog open/close/focus return",
+        "narrow sheet",
+        "light/dark",
+        "reduced motion",
+        "coarse/fine pointer"
+      ],
+      "viewports": [
+        "320x568",
+        "375x812",
+        "390x844",
+        "430x932",
+        "844x390",
+        "768x1024",
+        "1024x768",
+        "1280x720",
+        "1366x768",
+        "1440x900",
+        "1920x1080",
+        "639x800",
+        "641x800",
+        "1023x768",
+        "1025x768"
+      ],
+      "evidence": [
+        "docs/air/validation.md \u2014 shared reference checkpoints",
+        "docs/air/components.html"
+      ],
+      "notes": "Refinement 03 candidate, opt-in reference only. Shared motion and shader evidence recorded in validation; product import, complete state validation and user design review remain pending."
     },
     {
       "path": "apps/site/src/styles/global.css",
       "kind": "app-surface",
-      "sourceReviewed": false,
+      "sourceReviewed": true,
       "airImplemented": false,
       "validated": false,
-      "states": [],
-      "viewports": [],
-      "evidence": [],
-      "notes": ""
+      "states": [
+        "baseline light/dark",
+        "baseline normal layout",
+        "source review"
+      ],
+      "viewports": [
+        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+      ],
+      "evidence": [
+        "docs/air/website-audit.md",
+        "docs/air/evidence/website-baseline-2026-10-11.json",
+        "docs/air/evidence/website-interactions-2026-10-12.json"
+      ],
+      "notes": "Dark skip-link contrast fails at 2.33:1; focus motion and unused legacy token/class candidates recorded. Baseline evidence does not certify Air conformance."
     }
   ]
 }

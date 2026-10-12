@@ -18,7 +18,8 @@ async function scan(directory) {
     entries.map(async (entry) => {
       const path = resolve(directory, entry.name);
       if (entry.isDirectory()) return scan(path);
-      if (!/\.(tsx|astro|css)$/.test(entry.name) || /\.(test|spec)\./.test(entry.name)) return [];
+      // Site navigation, shared copy and screenshot geometry also shape the UI.
+      if (!/\.(ts|tsx|astro|css)$/.test(entry.name) || /\.(test|spec)\./.test(entry.name)) return [];
       return [relative(root, path)];
     }),
   );
@@ -50,7 +51,11 @@ const data = {
   surfaces,
 };
 await mkdir(output, { recursive: true });
-await writeFile(resolve(output, "surfaces.json"), JSON.stringify(data, null, 2) + "\n");
+// Preserve the repository formatter's layout when the inventory is unchanged.
+// CI checks semantic source drift; formatting alone must not rewrite evidence.
+if (JSON.stringify(previous) !== JSON.stringify(data)) {
+  await writeFile(resolve(output, "surfaces.json"), JSON.stringify(data, null, 2) + "\n");
+}
 const cells = [
   ["Source", "Kind", "Source audit", "Air implementation", "Validation"],
   ...surfaces.map((s) => [
