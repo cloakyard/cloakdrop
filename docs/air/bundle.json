@@ -3,12 +3,12 @@
   "source": {
     "repository": "https://github.com/cloakyard/cloakyard",
     "directory": "design/air",
-    "status": "design-review",
-    "contractSha256": "c6ec55c0fe5949f5abb606c5c143eaa658986588d08e2a0f3d1392d010687a2c"
+    "status": "approved",
+    "contractSha256": "4232d7b9e8e062ff1ca9073c7f3102c4332908b50c43b6925b65b3b4c6d309ee"
   },
   "stylesheet": "apps/site/src/styles/air.css",
   "studyAssets": {
-    "components.html": "005a516bca6cd86f188fe710f54ebeadac20ee31c7b8b978959af4a6362eb86b",
+    "components.html": "13e6090f8351b604895dd5cb54634291e600ab6b9ab975e1b35d34cda22459e6",
     "reading.html": "383600c556a21d8942ead736340ec7d6a28e65d0ad1b9d99a5dbd13872f59828",
     "recovery.html": "40beae9732e7fdae0fe241a53c9291cd04a8ee5989c990d8b22ba1b0c7bb6efa",
     "pages.mjs": "11af689c60479af4e3c0a12fb85c31f2f7028ffabc79c4f05b67ee5b8a4e4824",
