@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.0.0",
+  "contractVersion": "1.0.1",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -400,7 +400,7 @@
         "1025x768"
       ],
       "evidence": [
-        "docs/air/validation.md \u2014 shared reference checkpoints",
+        "docs/air/validation.md — shared reference checkpoints",
         "docs/air/components.html"
       ],
       "notes": "Refinement 03 candidate, opt-in reference only. Shared motion and shader evidence recorded in validation; product import, complete state validation and user design review remain pending."

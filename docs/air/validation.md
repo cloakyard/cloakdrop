@@ -91,3 +91,17 @@ all seven assets current. No native macOS sources are changed.
 Existing product behavior and appearance are unchanged. Runtime editor/AI/export
 E2E sweeps are reserved for affected production pieces; this checkpoint does not
 claim those have passed. No push or deployment was performed.
+
+
+## 2026-10-14 — Portable Air 1.0.1
+
+Pinned the complete family contract and reference bundle to Air 1.0.1 (contract
+`201f7c381b5f`). Header identity is now consistently 36×36px across landing/editor
+and small screens, with at least a 44px interactive target. A shared paper-accent
+keeps selection chrome readable on white document paper in both themes. Inventory
+version comes from the manifest. The new token does not change this product's
+runtime controls; its full application migration remains separately tracked.
+
+Exact design integrity, isolated portability and production checks pass. Shared
+visual/interaction evidence is in CloakPDF's canvas checkpoint; it does not claim
+this product's editor, physical touch or assistive acceptance is complete.
