@@ -1,19 +1,19 @@
 ---
 name: CloakDrop website — Cloakyard Air
-version: 1.0.1
+version: 1.0.2
 status: approved
-date: 2026-10-14
+date: 2026-10-15
 scope: complete-web-product
 source-repository: https://github.com/cloakyard/cloakyard
 source-directory: design/air
-family-contract-sha256: 201f7c381b5f28d504d733c10f82f6559ef1f92684fb3b9d9b4d503c54d2419e
+family-contract-sha256: bb90f52e0b0a08a0367d31aad74fb8aa319610c1ae55501e966a9199b87e27c9
 ---
 
 <!-- BEGIN CLOAKYARD AIR CONTRACT -->
 
 # Cloakyard Air design contract
 
-Version: **1.0.1 — implementation baseline** · Direction: **Air** · Updated: **2026-10-14**
+Version: **1.0.2 — colour-wheel refinement** · Direction: **Air** · Updated: **2026-10-15**
 
 The detailed Air system is **locked for implementation**. On 2026-10-13 the user
 authorized one final agent review followed by implementation; that review is
@@ -587,6 +587,34 @@ accessible existing primitives, and shared shells are preferred to new widgets.
 Every component must define default, hover, focus, pressed/selected, disabled,
 busy, empty, success, error, and overflow behaviour where applicable. Mark truly
 inapplicable states with a reason in the inventory; do not silently skip them.
+
+### Colour selection
+
+- Use a circular hue/saturation wheel for arbitrary author colours: red at the top,
+  hue clockwise, white at the centre, full saturation at the rim. Keep it 208px
+  across when space permits, shrinking with the panel. The cursor follows the
+  exact same polar mapping as the displayed colours; no animated selection lag.
+- One labelled brightness control follows the wheel, then exact hex entry and an
+  optional “Fine tune hue & saturation” disclosure with independent native ranges.
+  Those ranges provide full keyboard and assistive access without a two-axis ARIA
+  slider. Show each value and unit. Do not require dragging or colour perception.
+- The wheel shows available colours at full brightness. Its thumb and swatch show
+  the actual selected colour. Preserve brightness when choosing hue/saturation;
+  when starting at black (brightness zero), a deliberate wheel choice restores
+  full brightness so it produces a visible colour. Merely opening never changes it.
+- Preserve hue/saturation while moving through black/grey; an external value or
+  Undo updates the picker. Invalid hex drafts show an associated error on blur and
+  never change output. Pointer cancellation restores the colour before the drag.
+- Keep presets as shortcuts. Use one shared implementation per product across
+  text, shapes, strokes, fills, stamps and other tool colours. Opacity remains a
+  separate labelled author setting. Eye-dropper features remain available where
+  supported. Never tint UI surfaces to match the chosen author colour.
+- Use the shared opaque popover and visual-viewport anchoring; scroll internally
+  at short heights and enlarged text. Escape/close restores the trigger; fine-pointer
+  opening focuses brightness, coarse-pointer opening does not summon a software keyboard.
+  Wheel/colour pixels retain their colours in forced-colour mode while labels,
+  focus and precise controls respect system contrast. Physical touch and spoken
+  assistive acceptance remain product gates.
 
 ### Writing and structured entry
 

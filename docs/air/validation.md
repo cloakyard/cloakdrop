@@ -105,3 +105,11 @@ runtime controls; its full application migration remains separately tracked.
 Exact design integrity, isolated portability and production checks pass. Shared
 visual/interaction evidence is in CloakPDF's canvas checkpoint; it does not claim
 this product's editor, physical touch or assistive acceptance is complete.
+
+## 2026-10-15 — Air 1.0.2 colour-wheel contract
+
+Pinned the portable colour-wheel rules, opt-in CSS, shared math/types and working
+reference. Product picker runtime adoption remains separate from this bundle sync.
+Asset sync, Astro check (19 files, zero diagnostics) and three-route build pass, as do design integrity and all 18 standalone portability assertions.
+No product UI source or dependency changed. The family evidence and PDF pilot are
+tracked in Cloakyard's UX_REFRESH_TODO.md; physical/assistive acceptance remains open.
