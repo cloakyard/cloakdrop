@@ -240,3 +240,12 @@ phone policy/recovery captures were visually inspected. Astro check/build/dry ru
 build, hashes and screenshots. Main/dev remain unchanged and need Air integration
 before another main-triggered deployment. Native/RC artifacts are unchanged;
 physical/assistive/device gates remain open.
+
+## 2026-10-19 — brand-coloured production deployment
+
+Dev → main PR #40 merged as `5ee9a01`; Cloudflare version
+`38ca8179` is active at 100%. Fresh checks/builds and remote CI pass.
+Exact live asset hashes, twelve responsive/theme cases, both real GPU themes
+and idle checks pass; desktop/laptop/phone light/dark states were inspected.
+[Deployment audit](brand-deployment-2026-10-19.md) contains the source/build identity
+and evidence. Resume/IMG remain local; physical/assistive acceptance remains open.

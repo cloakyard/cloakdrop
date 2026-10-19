@@ -1,0 +1,217 @@
+[
+  {
+    "app": "cloakdrop",
+    "url": "https://drop.cloakyard.com",
+    "layouts": [
+      {
+        "width": 1440,
+        "height": 160,
+        "theme": "light",
+        "expected": "rgb(51, 141, 171)",
+        "colour": "rgb(51, 141, 171)",
+        "base": "rgb(250, 251, 252)",
+        "page": "rgb(250, 251, 252)",
+        "strokes": [
+          "rgb(51, 141, 171)",
+          "rgb(51, 141, 171)"
+        ],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 1440,
+        "height": 160,
+        "theme": "dark",
+        "expected": "rgb(95, 205, 214)",
+        "colour": "rgb(95, 205, 214)",
+        "base": "rgb(16, 18, 22)",
+        "page": "rgb(16, 18, 22)",
+        "strokes": [
+          "rgb(95, 205, 214)",
+          "rgb(95, 205, 214)"
+        ],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 1280,
+        "height": 160,
+        "theme": "light",
+        "expected": "rgb(51, 141, 171)",
+        "colour": "rgb(51, 141, 171)",
+        "base": "rgb(250, 251, 252)",
+        "page": "rgb(250, 251, 252)",
+        "strokes": [
+          "rgb(51, 141, 171)",
+          "rgb(51, 141, 171)"
+        ],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 1280,
+        "height": 160,
+        "theme": "dark",
+        "expected": "rgb(95, 205, 214)",
+        "colour": "rgb(95, 205, 214)",
+        "base": "rgb(16, 18, 22)",
+        "page": "rgb(16, 18, 22)",
+        "strokes": [
+          "rgb(95, 205, 214)",
+          "rgb(95, 205, 214)"
+        ],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 768,
+        "height": 160,
+        "theme": "light",
+        "expected": "rgb(51, 141, 171)",
+        "colour": "rgb(51, 141, 171)",
+        "base": "rgb(250, 251, 252)",
+        "page": "rgb(250, 251, 252)",
+        "strokes": [
+          "rgb(51, 141, 171)",
+          "rgb(51, 141, 171)"
+        ],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 768,
+        "height": 160,
+        "theme": "dark",
+        "expected": "rgb(95, 205, 214)",
+        "colour": "rgb(95, 205, 214)",
+        "base": "rgb(16, 18, 22)",
+        "page": "rgb(16, 18, 22)",
+        "strokes": [
+          "rgb(95, 205, 214)",
+          "rgb(95, 205, 214)"
+        ],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 390,
+        "height": 104,
+        "theme": "light",
+        "expected": "rgb(51, 141, 171)",
+        "colour": "rgb(51, 141, 171)",
+        "base": "rgb(250, 251, 252)",
+        "page": "rgb(250, 251, 252)",
+        "strokes": [
+          "rgb(51, 141, 171)",
+          "rgb(51, 141, 171)"
+        ],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 390,
+        "height": 104,
+        "theme": "dark",
+        "expected": "rgb(95, 205, 214)",
+        "colour": "rgb(95, 205, 214)",
+        "base": "rgb(16, 18, 22)",
+        "page": "rgb(16, 18, 22)",
+        "strokes": [
+          "rgb(95, 205, 214)",
+          "rgb(95, 205, 214)"
+        ],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 320,
+        "height": 104,
+        "theme": "light",
+        "expected": "rgb(51, 141, 171)",
+        "colour": "rgb(51, 141, 171)",
+        "base": "rgb(250, 251, 252)",
+        "page": "rgb(250, 251, 252)",
+        "strokes": [
+          "rgb(51, 141, 171)",
+          "rgb(51, 141, 171)"
+        ],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 320,
+        "height": 104,
+        "theme": "dark",
+        "expected": "rgb(95, 205, 214)",
+        "colour": "rgb(95, 205, 214)",
+        "base": "rgb(16, 18, 22)",
+        "page": "rgb(16, 18, 22)",
+        "strokes": [
+          "rgb(95, 205, 214)",
+          "rgb(95, 205, 214)"
+        ],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 844,
+        "height": 64,
+        "theme": "light",
+        "expected": "rgb(51, 141, 171)",
+        "colour": "rgb(51, 141, 171)",
+        "base": "rgb(250, 251, 252)",
+        "page": "rgb(250, 251, 252)",
+        "strokes": [
+          "rgb(51, 141, 171)",
+          "rgb(51, 141, 171)"
+        ],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      },
+      {
+        "width": 844,
+        "height": 64,
+        "theme": "dark",
+        "expected": "rgb(95, 205, 214)",
+        "colour": "rgb(95, 205, 214)",
+        "base": "rgb(16, 18, 22)",
+        "page": "rgb(16, 18, 22)",
+        "strokes": [
+          "rgb(95, 205, 214)",
+          "rgb(95, 205, 214)"
+        ],
+        "overflow": false,
+        "contained": true,
+        "state": "reduced"
+      }
+    ],
+    "gpu": [
+      {
+        "theme": "light",
+        "lightState": "idle",
+        "lightFrames": "2",
+        "lightFirstDraw": "701.3",
+        "lightReady": "true"
+      },
+      {
+        "theme": "dark",
+        "lightState": "idle",
+        "lightFrames": "1",
+        "lightFirstDraw": "345.8",
+        "lightReady": "true"
+      }
+    ],
+    "errors": []
+  }
+]

@@ -1,0 +1,35 @@
+{
+  "app": "cloakdrop",
+  "label": "CloakDrop",
+  "url": "https://drop.cloakyard.com",
+  "source": "a28264ff48deeb1cbe9847d7e0d77b0802999ae7",
+  "main": "5ee9a016182ea3eebcce0415fde19ff15eee48f0",
+  "pr": 40,
+  "version": "38ca8179",
+  "build": "c42dcc9b-464a-4887-bf8f-872fcb65ad67",
+  "prUrl": "https://github.com/cloakyard/cloakdrop/pull/40",
+  "mergedAt": "2026-10-19T13:37:52Z",
+  "trafficPercent": 100,
+  "verifiedAt": "2026-10-19T13:43:53.611Z",
+  "checks": [
+    {
+      "name": "Workers Builds: cloakdrop",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://dash.cloudflare.com/73a3338267f567d02c3b79c9bcedc6a6/workers/services/view/cloakdrop/production/builds/c42dcc9b-464a-4887-bf8f-872fcb65ad67"
+    },
+    {
+      "name": "contract",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cloakyard/cloakdrop/actions/runs/39261804272/job/118091086466"
+    },
+    {
+      "name": "website",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cloakyard/cloakdrop/actions/runs/39261804272/job/118091086075"
+    }
+  ],
+  "scope": "Released websites only; Resume and IMG remain local. Published release tags/assets unchanged."
+}
