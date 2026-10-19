@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "mode": "normal",
+      "initial": {
+        "lightState": "idle",
+        "lightFrames": "1",
+        "lightFirstDraw": "67.8",
+        "lightReady": "true"
+      },
+      "restored": {
+        "lightState": "idle",
+        "lightFrames": "36",
+        "lightFirstDraw": "67.8",
+        "lightReady": "true"
+      }
+    },
+    {
+      "mode": "reduced",
+      "state": {
+        "lightState": "reduced",
+        "lightFrames": "0",
+        "lightFirstDraw": "0.0"
+      }
+    },
+    {
+      "mode": "unsupported",
+      "state": {
+        "lightState": "unsupported",
+        "lightFrames": "0",
+        "lightFirstDraw": "0.0"
+      }
+    },
+    {
+      "mode": "constrained",
+      "state": {
+        "lightState": "constrained",
+        "lightFrames": "0",
+        "lightFirstDraw": "0.0"
+      }
+    },
+    {
+      "mode": "save-data",
+      "state": {
+        "lightState": "constrained",
+        "lightFrames": "0",
+        "lightFirstDraw": "0.0"
+      }
+    },
+    {
+      "mode": "forced",
+      "state": {
+        "lightState": "forced",
+        "lightFrames": "0",
+        "lightFirstDraw": "0.0"
+      }
+    },
+    {
+      "mode": "no-js",
+      "state": {}
+    }
+  ],
+  "errors": []
+}

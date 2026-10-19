@@ -26,6 +26,13 @@ describe each shipped build.
 
 ## Release verification
 
+- [October 19, 2026: Air website production deployment](audits/2026-10-19-website-deployment.md).
+
+- [1.0.0-rc.1 release notes](releases/v1.0.0-rc.1.md): installer, checksums and known limits.
+- [October 19, 2026: RC build, packaging and native verification](audits/2026-10-19-rc.1.md).
+- [October 19, 2026: Air installer artwork](audits/2026-10-19-installer.md).
+- [October 19, 2026: Compatible dependency refresh and accepted official-runtime exception](audits/2026-10-19-dependencies.md).
+
 - [October 7, 2026: Dependency updates and native/site verification](audits/2026-10-07-dependencies.md).
 - [September 14, 2026: Static product page and 1.0.0 README update](audits/2026-09-14-website-1.0.0.md).
 - [September 14, 2026: 1.0.0 optimization, macOS 27 review and fresh installation](audits/2026-09-14-release-1.0.0.md).

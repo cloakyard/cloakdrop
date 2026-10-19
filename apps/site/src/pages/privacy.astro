@@ -1,209 +1,29 @@
 ---
-import { Content as PrivacyDocument } from '../../../../PRIVACY.md';
+import { Content as PrivacyDocument, getHeadings } from '../../../../PRIVACY.md';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
-import Icon from '../components/Icon.astro';
 import { site } from '../data/site';
 import BaseLayout from '../layouts/BaseLayout.astro';
-
-const title = `Privacy Policy — ${site.name}`;
-const description =
-  'How CloakDrop stores local data, when its macOS app connects to the network, and the privacy controls available to you.';
+const headings = getHeadings().filter((heading) => heading.depth === 2);
 ---
-
-<BaseLayout title={title} description={description}>
+<BaseLayout title={`Privacy policy — ${site.name}`} description="How CloakDrop stores local data, when its macOS app connects to the network, and the privacy controls available to you.">
   <Header linkPrefix="/" />
-
-  <main id="main" class="policy-page">
-    <article class="container policy-shell" aria-labelledby="privacy-title">
-      <header class="policy-intro">
-        <p class="policy-kicker">
-          <Icon name="shield" size={16} />
-          CloakDrop / Privacy document
-        </p>
-        <h1 id="privacy-title">Privacy policy.</h1>
-        <p class="policy-lede">
-          CloakDrop is a free, open-source download manager for macOS. App state stays on your Mac;
-          network requests happen only for transfers and features you initiate or configure.
-        </p>
-
-        <dl class="policy-facts">
-          <div>
-            <dt>Last updated</dt>
-            <dd><time datetime="2026-09-06">September 6, 2026</time></dd>
-          </div>
-          <div>
-            <dt>Accounts</dt>
-            <dd>None</dd>
-          </div>
-          <div>
-            <dt>Telemetry</dt>
-            <dd>None</dd>
-          </div>
-        </dl>
-      </header>
-
-      <div class="policy-document">
-        <PrivacyDocument />
-      </div>
-    </article>
+  <main id="main" class="policy-page frame" tabindex="-1">
+    <header class="policy-intro">
+      <p class="eyebrow">CloakDrop · Privacy</p>
+      <h1>Privacy policy.</h1>
+      <p class="policy-lead">App state stays on your Mac. Network requests happen for transfers and features you initiate or configure.</p>
+      <p class="policy-date">Last updated <time datetime="2026-09-06">September 6, 2026</time></p>
+    </header>
+    <div class="policy-layout">
+      <details class="policy-contents" open>
+        <summary>On this page</summary>
+        <nav aria-label="Policy contents">
+          {headings.map((heading) => <a href={`#${heading.slug}`}>{heading.text}</a>)}
+        </nav>
+      </details>
+      <article class="policy-document" aria-label="CloakDrop app privacy policy"><PrivacyDocument /></article>
+    </div>
   </main>
-
   <Footer linkPrefix="/" />
 </BaseLayout>
-
-<style>
-  .policy-page {
-    padding-block: clamp(3.5rem, 8vw, 6.5rem);
-  }
-
-  .policy-shell {
-    width: min(calc(100% - (2 * var(--gutter))), 48rem);
-  }
-
-  .policy-intro {
-    padding-bottom: clamp(3rem, 6vw, 4rem);
-    border-bottom: 1px solid var(--line-2);
-  }
-
-  .policy-kicker {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0;
-    color: var(--accent-ink);
-    font-family: var(--font-mono);
-    font-size: var(--t-mono);
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .policy-intro h1 {
-    max-width: 11ch;
-    margin-top: 1.5rem;
-    color: var(--ink);
-    font-size: clamp(3.25rem, 10vw, 6.5rem);
-    font-weight: 760;
-    letter-spacing: -0.065em;
-    line-height: 0.91;
-    overflow-wrap: anywhere;
-    text-wrap: balance;
-  }
-
-  .policy-lede {
-    max-width: 40rem;
-    margin-top: 2rem;
-    color: var(--ink-2);
-    font-size: clamp(1.1rem, 2vw, 1.3rem);
-    line-height: 1.65;
-  }
-
-  .policy-facts {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.25rem 1.5rem;
-    margin-top: 2.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--line);
-    font-family: var(--font-mono);
-    font-size: var(--t-mono);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-
-  .policy-facts dt {
-    color: var(--ink-4);
-  }
-
-  .policy-facts dd {
-    margin-top: 0.35rem;
-    color: var(--ink);
-  }
-
-  .policy-document :global(h1),
-  .policy-document :global(h1 + p) {
-    display: none;
-  }
-
-  .policy-document :global(h2) {
-    scroll-margin-top: 6.5rem;
-    margin-top: 0;
-    padding-block: clamp(2.5rem, 6vw, 3.5rem) 0;
-    border-top: 1px solid var(--line);
-    color: var(--ink);
-    font-size: clamp(1.55rem, 3vw, 2.15rem);
-    font-weight: 720;
-    letter-spacing: -0.035em;
-    line-height: 1.08;
-    text-wrap: balance;
-  }
-
-  .policy-document :global(h2:first-of-type) {
-    border-top: 0;
-  }
-
-  .policy-document :global(h2::before) {
-    display: block;
-    margin-bottom: 0.75rem;
-    color: var(--accent-ink);
-    font-family: var(--font-mono);
-    font-size: var(--t-mono);
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .policy-document :global(h2:nth-of-type(1)::before) { content: '01 / Summary'; }
-  .policy-document :global(h2:nth-of-type(2)::before) { content: '02 / Local data'; }
-  .policy-document :global(h2:nth-of-type(3)::before) { content: '03 / Network'; }
-  .policy-document :global(h2:nth-of-type(4)::before) { content: '04 / Recipients'; }
-  .policy-document :global(h2:nth-of-type(5)::before) { content: '05 / Bundled tools'; }
-  .policy-document :global(h2:nth-of-type(6)::before) { content: '06 / File access'; }
-  .policy-document :global(h2:nth-of-type(7)::before) { content: '07 / Controls'; }
-  .policy-document :global(h2:nth-of-type(8)::before) { content: '08 / Source'; }
-  .policy-document :global(h2:nth-of-type(9)::before) { content: '09 / Revisions'; }
-
-  .policy-document :global(p),
-  .policy-document :global(ul) {
-    margin-top: 1rem;
-    color: var(--ink-2);
-    font-size: 1rem;
-    line-height: 1.72;
-  }
-
-  .policy-document :global(ul) {
-    display: grid;
-    gap: 0.65rem;
-    padding-left: 1.2rem;
-  }
-
-  .policy-document :global(li) {
-    padding-left: 0.25rem;
-  }
-
-  .policy-document :global(li::marker) {
-    color: var(--accent-ink);
-  }
-
-  .policy-document :global(a) {
-    color: var(--accent-ink);
-    font-weight: 700;
-    text-decoration: underline;
-    text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
-    text-underline-offset: 0.2em;
-  }
-
-  .policy-document :global(code) {
-    padding: 0.12em 0.3em;
-    border-radius: 5px;
-    background: var(--surface-2);
-    color: var(--ink);
-  }
-
-  @media (min-width: 40rem) {
-    .policy-facts {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-</style>

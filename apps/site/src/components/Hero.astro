@@ -3,116 +3,26 @@ import { resolve } from 'node:path';
 import { hero, downloads } from '../data/site';
 import { readPngDimensions } from '../lib/heroGeometry';
 import Icon from './Icon.astro';
-
+import AirHorizon from './AirHorizon.astro';
 const shot = readPngDimensions(resolve(process.cwd(), 'public/hero.png'));
 ---
-
-<section class="hero">
-  <div class="container">
-    <div class="top">
-      <div class="lede">
-        <p class="kicker">{hero.kicker}</p>
-        <h1><span>{hero.titleLead}</span><span class="accent">{hero.titleAccent}</span></h1>
-      </div>
-      <div class="aside">
-        <p class="lead">{hero.lead}</p>
-        <div class="cta">
-          <a class="btn btn--primary" href={downloads.sectionHref}>
-            <Icon name="download" size={17} stroke={2} />{downloads.label}
-          </a>
-          <a class="btn" href="#product">Explore features <Icon name="arrow" size={17} /></a>
-        </div>
-        <div class="availability">
-          <p>{downloads.note}</p>
-          <p>{hero.micro}</p>
-        </div>
-      </div>
-    </div>
-    <figure class="shot">
-      <figcaption>
-        <span>{hero.figLabel}</span>
-        <span>Actual app · Example library</span>
-      </figcaption>
-      <div class="app-window">
-        <picture>
-          <source srcset="/hero.webp" type="image/webp" />
-          <img src="/hero.png" width={shot.width} height={shot.height} alt={hero.shotAlt}
-            fetchpriority="high" decoding="async" />
-        </picture>
-      </div>
-    </figure>
+<section class="hero frame" aria-labelledby="hero-title">
+  <p class="eyebrow">A download manager, at home on your Mac.</p>
+  <h1 id="hero-title">{hero.titleLead}<span>{hero.titleAccent}</span></h1>
+  <p class="hero-lead">{hero.lead}</p>
+  <div class="hero-actions">
+    <a class="air-button air-button--primary" href={downloads.sectionHref}>
+      <Icon name="download" size={18} />{downloads.label}
+    </a>
+    <a class="air-button air-button--quiet" href="#product">Explore features <Icon name="arrow" size={16} /></a>
   </div>
+  <p class="availability">{downloads.note}<span>{hero.micro}</span></p>
+  <AirHorizon />
+  <figure class="product-preview">
+    <picture>
+      <source srcset="/hero.webp" type="image/webp" />
+      <img src="/hero.png" width={shot.width} height={shot.height} alt={hero.shotAlt} fetchpriority="high" decoding="async" />
+    </picture>
+    <figcaption>Actual Mac app. Example library; displayed speeds are illustrative.</figcaption>
+  </figure>
 </section>
-
-<style>
-  .hero { padding-top: clamp(3rem, 5vw, 4.5rem); padding-bottom: clamp(2.5rem, 5vw, 4.5rem); }
-  .top {
-    display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(20rem, .8fr);
-    gap: clamp(2.5rem, 6vw, 6.5rem);
-    align-items: end;
-  }
-  .lede h1 {
-    max-width: 13ch;
-    margin-top: clamp(1.5rem, 3vw, 2.75rem);
-    font-size: var(--t-h1);
-    font-weight: 760;
-    letter-spacing: -.065em;
-    line-height: .91;
-  }
-  .lede h1 > span { display: block; }
-  .lede h1 .accent { margin-top: .06em; }
-  .aside { display: grid; align-content: end; padding: 1.15rem 0 .4rem; border-top: 1px solid var(--line-2); }
-  .lead { max-width: 39ch; }
-  .cta { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.65rem; }
-  .cta .btn { flex: 1 1 auto; }
-  .availability {
-    display: grid;
-    gap: .25rem;
-    margin-top: .9rem;
-    color: var(--ink-4);
-    font: .875rem/1.55 var(--font-mono);
-  }
-  .availability p:last-child { color: var(--ink-3); }
-  .shot { margin-top: clamp(2.5rem, 5vw, 4.5rem); }
-  figcaption {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: .25rem 1rem;
-    margin-bottom: .75rem;
-    color: var(--ink-4);
-    font: .875rem/1.5 var(--font-mono);
-    letter-spacing: .045em;
-    text-transform: uppercase;
-  }
-  .app-window {
-    min-width: 0;
-    padding: clamp(.55rem, 2.2vw, 2rem);
-    border: 1px solid var(--line-2);
-    border-radius: var(--radius-lg);
-    background: var(--surface-2);
-  }
-  picture { display: block; width: 100%; filter: drop-shadow(0 8px 7px rgba(18, 31, 38, .18)); }
-  img { display: block; width: 100%; height: auto; }
-  @media (max-width: 960px) {
-    .top { grid-template-columns: minmax(0, 1fr) minmax(15rem, .42fr); gap: 3rem; }
-    .lede h1 { font-size: clamp(3.4rem, 9vw, 4.8rem); }
-  }
-  @media (max-width: 700px) {
-    .top { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; align-items: start; }
-    .aside { max-width: 35rem; padding-bottom: 0; }
-    .cta { max-width: 32rem; }
-    .shot { margin-top: 3.25rem; }
-  }
-  @media (max-width: 480px) {
-    .hero { padding-top: 2.6rem; padding-bottom: 2.75rem; }
-    .lede h1 { margin-top: 1.65rem; font-size: clamp(2.75rem, 14vw, 4.4rem); }
-    .top { gap: 2.15rem; }
-    .cta { display: grid; grid-template-columns: minmax(0, 1fr); }
-    .cta .btn { min-width: 0; padding-inline: .75rem; }
-    .shot { margin-top: 2.75rem; }
-    figcaption { font-size: .75rem; }
-    picture { filter: drop-shadow(0 2px 2px rgba(18, 31, 38, .16)); }
-  }
-</style>

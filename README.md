@@ -38,8 +38,9 @@ Current locally signed builds are **not notarized**. See
 [Apple’s opening guidance](https://support.apple.com/en-us/102445) and the release notes for the
 signing status of the build you download.
 
-This source tree is **1.0.0**, currently in release preparation. GitHub Releases lists the available
-downloads; each release’s notes and assets are the source of truth for its features, checksums,
+This source tree is **1.0.0**; [**1.0.0-rc.1 (20261019)**](https://github.com/cloakyard/cloakdrop/releases/tag/v1.0.0-rc.1) is available as a prerelease.
+See the [RC notes](docs/releases/v1.0.0-rc.1.md) for its artifact and validation.
+GitHub Releases lists the available downloads; each release’s notes and assets are the source of truth for its features, checksums,
 and signing status.
 
 ## Version 1.0.0
@@ -48,9 +49,9 @@ This release focuses on transfer reliability and a simpler native experience: sa
 saved downloads and moved folders, stronger input validation, scoped remembered credentials,
 and updated macOS 27 controls.
 
-The [September 14 release audit](docs/audits/2026-09-14-release-1.0.0.md) records **626 passing
-tests**, fresh installation checks, and real media/download verification. It also documents the
-remaining signing, Share Extension and bundled-runtime limits before public release.
+The [October 19 RC audit](docs/audits/2026-10-19-rc.1.md) records **626 passing tests**,
+fresh Debug/Release builds, an actual checksum-verified download and the Air installer.
+It documents the remaining signing, Share Extension and official-bundle runtime limits.
 
 ## What it does
 
@@ -178,10 +179,11 @@ and manifest downloads still work, while extractor-based page resolution is unav
 | Build | XcodeGen and SwiftLint; the independent website uses Astro |
 
 GRDB is the only third-party Swift dependency. The
-[dependency audit](docs/audits/2026-09-06-dependencies.md) records exact versions, upstream sources,
+[dependency audit](docs/audits/2026-10-19-dependencies.md) records exact versions, upstream sources,
 verification and compatibility exceptions. The latest audited yt-dlp release still bundles some
 older runtime libraries, including OpenSSL with a newer security patch available. Updating the
-extractor does not update every frozen dependency; the audit records the pending runtime rebuild.
+extractor does not update every frozen dependency. For this RC, the maintainer explicitly chose
+to retain the complete official bundle and document that exception instead of adding a custom runtime.
 
 To package the Debug build as a drag-to-Applications DMG, from `apps/macos/`:
 
@@ -201,12 +203,12 @@ cd apps/macos/Packages/DownloaderCore
 swift test
 ~~~
 
-The **September 14, 2026 audit passed 626 tests across 87 suites** in both optimized and
-Thread Sanitizer runs, covering segment scheduling,
-relaunch/resume, range and identity validation, retry truncation, cancellation races, credential
+The **October 19, 2026 RC audit passed 626 tests across 87 suites** in the optimized run,
+covering segment scheduling, relaunch/resume, range and identity validation, retry truncation, cancellation races, credential
 scoping, HTTP/FTP loopback transfers, safe publication, checksums, bandwidth limiting, archive
 guards, manifest parsing and media extraction. See the
-[1.0.0 release audit](docs/audits/2026-09-14-release-1.0.0.md) for the exact commands, results and limits.
+[RC audit](docs/audits/2026-10-19-rc.1.md) for the exact commands, results and limits.
+The September 14 audit separately records the earlier Thread Sanitizer run.
 
 Normal tests use mocks or loopback servers; a cold package resolution may fetch GRDB. To opt into
 live-origin smoke tests, supply your own HTTP(S) test files from the package directory:
@@ -216,9 +218,9 @@ CLOAKDROP_LIVE_TEST_URLS='https://origin.example/file,https://another.example/fi
   swift test --filter LiveOriginSmokeTests
 ~~~
 
-The dated audit also includes arm64 Debug and optimized Release builds, static analysis,
-lint/localization checks, and native verification of checksum-matched transfers,
-pause/relaunch/resume, moved destinations and browser capture.
+The current audit includes arm64 Debug and optimized Release builds, lint/localization
+checks and a native checksum-matched transfer. Earlier static analysis, pause/relaunch/resume,
+moved-destination and browser-capture evidence remains in the dated September audit.
 For the repeatable visual workflow, see the [verification guide](.agents/skills/verify/SKILL.md).
 
 ## Repository layout

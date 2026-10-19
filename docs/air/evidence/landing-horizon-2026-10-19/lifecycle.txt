@@ -1,0 +1,2 @@
+Evidence: /var/folders/k0/mzs4nsyn7k78t1j1xlsxq1q40000gn/T/cloakdrop-air-horizon-QLQTT3
+PASS real GPU arrival/pointer/idle/theme/offscreen/Back restoration/reduced lifecycle; six static fallback profiles; policy has no renderer.

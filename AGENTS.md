@@ -2,6 +2,17 @@
 
 This file provides guidance to Codex when working with code in this repository.
 
+## Website design — Cloakyard Air
+
+`DESIGN.md` and `apps/site/DESIGN.md` contain the complete portable Air contract
+for the website. Read it before changing web UI. It supersedes older website
+Workbench styling and covers all sections, privacy/404, custom controls and
+responsive states. The SwiftUI application remains native and is outside this
+refresh. Track website surfaces in `docs/air/surfaces.json`; run
+`node scripts/check-air-design.mjs` at the repository root. Implement a bounded
+piece, inspect the required desktop/laptop/mobile themes and states, run asset
+sync/Astro check/build and feature checks, record evidence, then commit on a pass.
+
 CloakDrop is a native, sandboxed macOS Tahoe 26 multi-segment download manager built as a thin SwiftUI shell over a headless, independently tested Swift package. See [README.md](README.md) for the product overview and [ARCHITECTURE.md](apps/macos/ARCHITECTURE.md) for the full design.
 
 ## Repo layout (monorepo)
@@ -9,7 +20,7 @@ CloakDrop is a native, sandboxed macOS Tahoe 26 multi-segment download manager b
 This is a **monorepo** with two independent deliverables under `apps/`:
 
 - **`apps/macos/`** — the native macOS app (this document's subject). Architecture paths below are relative to `apps/macos/` unless noted. Each command block starts from the repository root unless it says otherwise.
-- **`apps/site/`** — the CloakDrop brand site (Astro, static), deployed to Cloudflare Workers at `drop.cloakyard.com`. See [apps/site/README.md](apps/site/README.md). It shares nothing with the app build; configure Cloudflare to watch `apps/site/*`, `assets/*`, `scripts/sync-assets.mjs`, and `PRIVACY.md`, so site, shared-asset and rendered policy changes deploy while a Swift-only change does not rebuild the site.
+- **`apps/site/`** — the CloakDrop brand site (Astro, static), deployed to Cloudflare Workers at `drop.cloakyard.com`. See [apps/site/README.md](apps/site/README.md). It shares nothing with the app build; configure Cloudflare to watch `apps/site/*`, `assets/*`, `scripts/sync-assets.mjs`, `docs/air/*`, and `PRIVACY.md`, so site, shared-asset and rendered policy changes deploy while a Swift-only change does not rebuild the site.
 
 ## Commands
 
@@ -67,7 +78,7 @@ Local verification uses the arm64, ad-hoc signed Debug configuration. It does no
 
 ## Conventions
 
-- **Brand is scaffolding.** "CloakDrop" / "Cloakyard" appear only at the repo root and the app target; internal modules are named for the *downloader* domain. Name new core code for what it does, not the brand. (The suite is spelled **Cloakyard**, one word, lowercase 'y'.)
+- **Brand is scaffolding.** "CloakDrop" / "Cloakyard" appear only at the repo root and the app target; internal modules are named for the _downloader_ domain. Name new core code for what it does, not the brand. (The suite is spelled **Cloakyard**, one word, lowercase 'y'.)
 - **Adding a feature:** model new persisted state in `DownloadModels`; implement transfer logic in `DownloadEngine` behind the relevant protocol with `MockHTTPClient`/in-memory-store tests; surface it through `AppModel` intents and SwiftUI views. Keep the app target thin.
 - **Liquid Glass discipline:** glass only on floating chrome (toolbar/sidebar/inspector), **never on list rows or scrolling content**. **SF Symbols only** for iconography.
 - **Sandbox:** App Sandbox + hardened runtime. The default `~/Downloads` is covered by entitlement; user-chosen folders are persisted as security-scoped bookmarks and activated (`SecurityScope`) for the duration of a transfer.

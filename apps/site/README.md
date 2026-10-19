@@ -3,9 +3,9 @@
 The marketing site for **CloakDrop**, hosted at **[drop.cloakyard.com](https://drop.cloakyard.com)**.
 
 - **Stack:** [Astro](https://astro.build) 7 — fully static output, with a small first-party
-  script for navigation and progressive content reveals.
+  script for anchor focus and native navigation disclosures.
 - **Host:** Cloudflare **Workers static assets** (`wrangler.jsonc` → serves `dist/` from the edge).
-- **Design:** editorial / magazine layout — numbered sections, hairline rules, self-hosted **Archivo** (heavy display) + **JetBrains Mono** (labels & data) on CloakDrop's deep-ocean accent (`#2A7B9B`). Follows the OS light/dark theme via `prefers-color-scheme`. Fonts are self-hosted (no Google Fonts request) to keep the privacy story intact.
+- **Design:** the portable **Air** contract in [DESIGN.md](DESIGN.md). Shared `src/styles/air.css` owns system typography, light/dark tokens and controls; `global.css` only composes the site. No font downloads, analytics or external runtime requests.
 
 Part of the CloakDrop monorepo — the macOS app lives in [`../macos`](../macos). Shared brand
 assets (logo, favicons, OG card, hero screenshot) live in the repo-root
@@ -20,13 +20,15 @@ also works for prereleases. The install note documents local signing and Apple�
 Privacy & Security → Open Anyway flow; keep it aligned with the DMG install guide.
 
 The landing page uses a real app screenshot, three concise feature summaries, an
-open-source/privacy band, and a download panel. There are no simulated transfers, product tabs,
-demo timers or decorative range animations. Features remain readable without JavaScript;
-content reveals are finite and respect reduced motion.
+open-source/privacy sections, and installation guidance. The header uses an in-flow native
+disclosure; every destination, policy section and recovery link works without JavaScript.
+The small navigation script enhances Escape, active section markers and anchor focus.
+The optional Air horizon has one finite arrival and pointer response, with a static
+fallback and no work at rest. There are no scroll reveals or simulated transfers.
 
 ## Develop
 
-Requires **Node 22.12.0 or later** and npm. Start from the repository root; the remaining
+Requires **Node 22.22.0 or later** and npm. Start from the repository root; the remaining
 commands in this guide run inside `apps/site/`.
 
 ```bash
@@ -59,24 +61,23 @@ apps/site/
 ├── astro.config.mjs        # static config + sitemap; site = drop.cloakyard.com
 ├── wrangler.jsonc          # Cloudflare Workers static-assets (serves ./dist)
 ├── public/
-│   ├── fonts/              # self-hosted Archivo + JetBrains Mono (variable woff2) — tracked
 │   ├── robots.txt          # tracked
 │   └── cloakdrop-mark.svg, icons/favicon.svg, *.png …
 │                           # brand assets — GENERATED from /assets by sync-assets (git-ignored)
 └── src/
     ├── data/site.ts        # shared product copy, links, and structured section content
-    ├── layouts/BaseLayout  # <head>, SEO/OG, JSON-LD, theme-color, font preloads
-    ├── components/         # Landing sections plus shared Brand · Icon · Kicker components
+    ├── layouts/BaseLayout  # <head>, SEO/OG, JSON-LD, Air theme colours
+    ├── components/         # Landing sections plus shared Brand · Icon components
     ├── pages/index.astro   # landing page — composes the sections in order
     ├── pages/privacy.astro # renders the repo-root privacy policy for the web
     ├── pages/404.astro     # static not-found page used by Cloudflare
-    ├── scripts/motion.ts   # finite content reveals and navigation
-    └── styles/global.css   # @font-face + design tokens (light/dark) + shared primitives
+    ├── scripts/navigation.ts # native disclosure/anchor focus and active navigation
+    └── styles/global.css   # site composition; imports the pinned air.css bundle
 ```
 
 Edit shared product copy and links in [`src/data/site.ts`](src/data/site.ts). The static feature
 section lives in [`src/components/Product.astro`](src/components/Product.astro).
-The privacy page imports [`PRIVACY.md`](../../PRIVACY.md); update its displayed date in
+The privacy page imports [`PRIVACY.md`](../../PRIVACY.md), including its section headings for contents navigation; update its displayed date in
 `src/pages/privacy.astro` when the source policy changes; sync the native Privacy settings page
 and its translations too. Keep installation steps aligned with the
 [README](../../README.md#download-and-install) and [DMG guide](../macos/scripts/dmg/ReadMe.txt).
@@ -89,6 +90,28 @@ download-arrow geometry while keeping the platform-appropriate circular web cont
 The hero is a real, transparent-background screenshot
 of the app mid-download (WebP with a PNG fallback), and `og.png` is a 1200×630 share card.
 
+## Air browser acceptance
+
+After a production build, run preview on a fresh local port (8144 for this review),
+then run from the repository root:
+
+```bash
+SITE_URL=http://127.0.0.1:8144 node scripts/test-air-site.mjs
+SITE_URL=http://127.0.0.1:8144 node scripts/test-air-horizon.mjs
+```
+
+This test requires Chrome and an available `puppeteer-core` installation. Set
+`CHROME_PATH` and `PUPPETEER_MODULE` (absolute module path or file URL) when those
+are not locally resolvable. It adds no production dependency. `AIR_EVIDENCE_DIR`
+selects the parent for a private temporary evidence directory; the printed path includes the full size/theme/root-font
+matrix, open/closed menus, contrast, anchors, policy, 404, no-JS and metadata checks.
+The horizon suite checks real GPU arrival, pointer/idle, offscreen/Back restoration,
+theme/reduced-motion changes and six static fallbacks. The optional pinned renderer
+is lazy, capped at 350 kB gzip and absent from privacy/404 routes.
+Actual Firefox/Safari review and physical/assistive limits are recorded separately
+in [the Air validation record](../../docs/air/validation.md). Use a fresh port if an
+older app's service worker controls a reused local origin; do not clear user data.
+
 ## Deploy (Cloudflare)
 
 The existing host uses Cloudflare **Workers Builds** with a dashboard-managed Git integration;
@@ -99,11 +122,18 @@ there is no deployment workflow in this repository. Verify these settings on the
 2. **Root directory:** `apps/site`.
 3. **Build command:** `npm run build` · **Deploy command:** `npx wrangler deploy`.
 4. **Build watch include paths:** `apps/site/*`, `assets/*`, `scripts/sync-assets.mjs`,
-   `PRIVACY.md` (repository-relative). Include the policy because it is rendered at build time.
+   `PRIVACY.md`, `docs/air/*` (repository-relative). Include the policy and pinned
+   horizon runtime because they are imported at build time.
    A Swift-only commit should not rebuild the site.
 
 Production triggers and branch/PR previews depend on the dashboard configuration; do not assume
 they are enabled from the local Wrangler file alone. A local build or dry run does not publish.
+
+Observed October19,2026: production branch `main`, non-production builds enabled,
+watch include `*`, root `apps/site`, and the commands above. The Air source on
+`codex/air-refresh` was built and its version promoted to 100% production traffic.
+Main/dev still need Air integration before a later main-triggered deployment.
+See the [production deployment audit](../../docs/audits/2026-10-19-website-deployment.md).
 
 ### Manual deploy (optional)
 
@@ -112,9 +142,12 @@ npm run deploy                  # builds and publishes (requires Cloudflare auth
 npx wrangler deploy --dry-run   # validate config without uploading
 ```
 
-Run `npm run build` before a standalone dry run so `dist/` contains the current source. Keep
+Run `npm run build` before a standalone dry run so `dist/` contains the current source.
+`public/_headers` preserves revalidation and requests `no-transform` so Cloudflare
+does not inject analytics or challenge scripts into the validated pages. Verify the
+actual production headers and asset hashes after deployment. Keep
 `package-lock.json` tracked. Check version compatibility and `npm audit` when updating packages;
-the [dependency audit](../../docs/audits/2026-09-06-dependencies.md) records the TypeScript compatibility
+the [dependency audit](../../docs/audits/2026-10-19-dependencies.md) records the TypeScript compatibility
 pin and the resolved dependency graph.
 
 ## Custom domain — drop.cloakyard.com

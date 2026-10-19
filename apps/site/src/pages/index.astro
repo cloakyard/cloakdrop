@@ -2,7 +2,6 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
-import SpecStrip from '../components/SpecStrip.astro';
 import Product from '../components/Product.astro';
 import Provenance from '../components/Provenance.astro';
 import Download from '../components/Download.astro';
@@ -11,9 +10,8 @@ import Footer from '../components/Footer.astro';
 
 <BaseLayout>
   <Header />
-  <main id="main">
+  <main id="main" tabindex="-1">
     <Hero />
-    <SpecStrip />
     <Product />
     <Provenance />
     <Download />

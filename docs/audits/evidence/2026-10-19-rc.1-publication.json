@@ -1,0 +1,33 @@
+{
+  "databaseId": 417278988,
+  "name": "v1.0.0 RC 1 (Build 20261019)",
+  "tagName": "v1.0.0-rc.1",
+  "isDraft": false,
+  "isPrerelease": true,
+  "publishedAt": "2026-10-19T12:43:28Z",
+  "url": "https://github.com/cloakyard/cloakdrop/releases/tag/v1.0.0-rc.1",
+  "tagCommit": "9936e47c24fa7264eeaa7790f97f80bf58a1bf2f",
+  "assets": [
+    {
+      "name": "CloakDrop-v1.0.0-rc.1.dmg",
+      "size": 48181551,
+      "digest": "sha256:c363dc38e9cd48ade60b74458f0f3f83c5dd666f60332af274134086556c9471",
+      "url": "https://github.com/cloakyard/cloakdrop/releases/download/v1.0.0-rc.1/CloakDrop-v1.0.0-rc.1.dmg",
+      "state": "uploaded"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 92,
+      "digest": "sha256:2410ceb87ac7fa3b77de53f6fc0775f3dd4257ad81b5d5c2e5cbbddbfeb2afbf",
+      "url": "https://github.com/cloakyard/cloakdrop/releases/download/v1.0.0-rc.1/SHA256SUMS.txt",
+      "state": "uploaded"
+    }
+  ],
+  "verified": [
+    "Exact release notes match docs/releases/v1.0.0-rc.1.md",
+    "Remote annotated tag resolves to verified source commit",
+    "Both uploaded asset sizes and GitHub SHA-256 digests match local files",
+    "Public release is not a draft and is marked prerelease"
+  ],
+  "scope": "Release tag and assets published; no branch push, main/dev merge or website deployment."
+}
