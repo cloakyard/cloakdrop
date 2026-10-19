@@ -26,7 +26,7 @@ describe each shipped build.
 
 ## Release verification
 
-- [1.0.0-rc.1 release draft](releases/v1.0.0-rc.1.md): prepared locally, not published.
+- [1.0.0-rc.1 release notes](releases/v1.0.0-rc.1.md): installer, checksums and known limits.
 - [October 19, 2026: RC build, packaging and native verification](audits/2026-10-19-rc.1.md).
 - [October 19, 2026: Air installer artwork](audits/2026-10-19-installer.md).
 - [October 19, 2026: Compatible dependency refresh and accepted official-runtime exception](audits/2026-10-19-dependencies.md).

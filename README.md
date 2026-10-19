@@ -38,7 +38,7 @@ Current locally signed builds are **not notarized**. See
 [Apple’s opening guidance](https://support.apple.com/en-us/102445) and the release notes for the
 signing status of the build you download.
 
-This source tree is **1.0.0**; a local **1.0.0-rc.1 (20261019)** candidate is prepared.
+This source tree is **1.0.0**; **1.0.0-rc.1 (20261019)** is the release candidate.
 See the [RC notes](docs/releases/v1.0.0-rc.1.md) for its artifact and validation.
 GitHub Releases lists the available downloads; each release’s notes and assets are the source of truth for its features, checksums,
 and signing status.
