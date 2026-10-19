@@ -1,0 +1,27 @@
+[
+  {
+    "link": "https://dash.cloudflare.com/73a3338267f567d02c3b79c9bcedc6a6/workers/services/view/cloakdrop/production/builds/0e083536-23bb-4742-9f5c-3f3053eab81f",
+    "name": "Workers Builds: cloakdrop",
+    "state": "SUCCESS"
+  },
+  {
+    "link": "https://github.com/cloakyard/cloakdrop/actions/runs/39278110714/job/118147217558",
+    "name": "website",
+    "state": "SUCCESS"
+  },
+  {
+    "link": "https://github.com/cloakyard/cloakdrop/actions/runs/39278110714/job/118147217321",
+    "name": "contract",
+    "state": "SUCCESS"
+  },
+  {
+    "link": "https://github.com/cloakyard/cloakdrop/actions/runs/39278064858/job/118147087360",
+    "name": "contract",
+    "state": "SUCCESS"
+  },
+  {
+    "link": "https://github.com/cloakyard/cloakdrop/actions/runs/39278064858/job/118147087627",
+    "name": "website",
+    "state": "SUCCESS"
+  }
+]

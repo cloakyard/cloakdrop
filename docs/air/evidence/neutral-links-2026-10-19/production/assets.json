@@ -1,0 +1,130 @@
+{
+  "app": "cloakdrop",
+  "url": "https://drop.cloakyard.com",
+  "verifiedAt": "2026-10-19T15:44:33.974Z",
+  "files": [
+    {
+      "path": "_astro/air-light-shader.CRQ1md_g.js",
+      "bytes": 1261560,
+      "sha256": "01d853162f685ea21854ce2634c833b3c76b19b6baba72d0ac7c596333f56c0f",
+      "status": 200,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform"
+    },
+    {
+      "path": "_astro/AirHorizon.astro_astro_type_script_index_0_lang.NTD0FiGH.js",
+      "bytes": 6690,
+      "sha256": "900348a2f7d9f8bb224332fafae2ce7fd94e581ab83a5bf0d8d8ac92846c645e",
+      "status": 200,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform"
+    },
+    {
+      "path": "_astro/Header.BiwuDE9G.css",
+      "bytes": 45590,
+      "sha256": "7402c55f3cfb6539cab59ea571dcd55906bf97b27fb0d9bb12cfde37c0f60577",
+      "status": 200,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform"
+    },
+    {
+      "path": "404.html",
+      "bytes": 7195,
+      "sha256": "430e58a28962846b6211162011e4834f64abade93dd61fb20440cab3199ef83b",
+      "status": 200,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform"
+    },
+    {
+      "path": "air-light.LICENSE.txt",
+      "bytes": 15864,
+      "sha256": "c0624d0848ea3de0ef47c127a134566f1dfd23fd95580f2c39eb8fb123d78d8a",
+      "status": 200,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform"
+    },
+    {
+      "path": "apple-touch-icon.png",
+      "bytes": 96552,
+      "sha256": "ec5ecf474a00c63922a493f6112c71191d50aec90a1ec2e9727d734745d83c34",
+      "status": 200,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform"
+    },
+    {
+      "path": "cloakdrop-mark.svg",
+      "bytes": 1989,
+      "sha256": "d47058d6f2e955d2bdb5d093ca2378a07c3191c1d8d5b09b928f739d9238e68b",
+      "status": 200,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform"
+    },
+    {
+      "path": "favicon.png",
+      "bytes": 29216,
+      "sha256": "140f80a65ef2b9422d7b923e30600924cd138240c1806a65d5d8a60f380583b9",
+      "status": 200,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform"
+    },
+    {
+      "path": "hero.png",
+      "bytes": 445053,
+      "sha256": "cac6e7b8991985c974405f11bd348e36eb25fc9d1fe25559a071fc5a644395ca",
+      "status": 200,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform"
+    },
+    {
+      "path": "hero.webp",
+      "bytes": 89652,
+      "sha256": "d81b91458d28ae9d0557ce3798c15fcf49615ce634ae2656f035fd6744eb9aab",
+      "status": 200,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform"
+    },
+    {
+      "path": "icons/favicon.svg",
+      "bytes": 2059,
+      "sha256": "078a85597e9786a8f3ba9fee7d8e46bf9fbd42c7ca6d20e1bedb9cd024afefec",
+      "status": 200,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform"
+    },
+    {
+      "path": "index.html",
+      "bytes": 14540,
+      "sha256": "ccd7255b899055c91e15fdd0d90aa1f54bdd3783ff3e3e7b1e1761d2c9f8d199",
+      "status": 200,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform"
+    },
+    {
+      "path": "og.png",
+      "bytes": 106885,
+      "sha256": "7a920c2312904b39ab4dfe5e89cf866c7328b4de21ff80dc052caceb750cc73a",
+      "status": 200,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform"
+    },
+    {
+      "path": "privacy/index.html",
+      "bytes": 17001,
+      "sha256": "0e031d84191a9f4bee6613c8265b4adf7a117ac1815f8978a434ca9f9ae5bb2d",
+      "status": 200,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform"
+    },
+    {
+      "path": "robots.txt",
+      "bytes": 78,
+      "sha256": "ba3048b0e802a6f9093eb98023b66fffe1fa42b8ebb61c93864a5f0ee1cba97e",
+      "status": 200,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform"
+    },
+    {
+      "path": "sitemap-0.xml",
+      "bytes": 440,
+      "sha256": "c477e24dc2eba33a1c5229580a2cc4206180b86035e56f9509a394d1c25625f5",
+      "status": 200,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform"
+    },
+    {
+      "path": "sitemap-index.xml",
+      "bytes": 189,
+      "sha256": "cc3cad167f02f41b0221f8691cc3ff468ddeb39a9c4795e6d2515b19f139995f",
+      "status": 200,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform"
+    }
+  ],
+  "missing": {
+    "status": 404,
+    "sha256": "430e58a28962846b6211162011e4834f64abade93dd61fb20440cab3199ef83b"
+  }
+}
