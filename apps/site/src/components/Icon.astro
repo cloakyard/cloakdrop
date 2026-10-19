@@ -1,6 +1,6 @@
 ---
 /**
- * Inline SVG icon set — thin, rounded strokes in the spirit of SF Symbols, drawn on a
+ * Inline SVG icons with rounded strokes, drawn on a
  * 24×24 grid with currentColor. No external requests.
  */
 interface Props {
@@ -12,10 +12,11 @@ interface Props {
 
 const glyphs = {
   download: '<path d="M12 3v11.5"/><path d="m7 10.5 5 5 5-5"/><path d="M5 20.5h14"/>',
+  link: '<path d="M7 7h10v10"/><path d="M7 17 17 7"/>',
   arrow: '<path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>',
 } as const;
 
-const { name, size = 22, stroke = 1.8, class: className } = Astro.props;
+const { name, size = 22, stroke = name === "link" ? 2 : 1.8, class: className } = Astro.props;
 const inner = glyphs[name] ?? '';
 ---
 

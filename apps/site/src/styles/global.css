@@ -94,6 +94,15 @@ summary:focus-visible {
   letter-spacing: -0.04em;
   white-space: nowrap;
 }
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--air-space-8);
+  min-height: 44px;
+  color: var(--air-accent);
+  font-size: var(--air-text-body);
+  font-weight: 500;
+}
 .desktop-nav {
   display: flex;
   align-items: center;
@@ -122,15 +131,6 @@ summary:focus-visible {
 }
 .mobile-nav {
   display: none;
-}
-.text-link {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--air-space-8);
-  min-height: 44px;
-  color: var(--air-accent);
-  font-size: var(--air-text-body);
-  font-weight: 500;
 }
 .eyebrow {
   color: var(--air-ink-secondary);
@@ -297,8 +297,7 @@ h3 {
   font-size: var(--air-text-body);
 }
 .install a,
-.policy-document a,
-.footer-inner > p a {
+.policy-document a {
   color: var(--air-accent);
   text-decoration: underline;
   text-underline-offset: 0.2em;
