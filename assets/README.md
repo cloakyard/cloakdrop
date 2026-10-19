@@ -130,3 +130,13 @@ When the shared pictogram changes, update the identical paths in
 `logo/cloakdrop-mark.svg`, `logo/favicon.svg`, `logo/macos-layers/`, and
 `AppIcon.icon`, then refresh the generated web and About artwork. Keep the web
 mark circular and let Icon Composer retain the native macOS shape.
+
+## Installer artwork
+
+[`background.swift`](../apps/macos/scripts/dmg/background.swift) is the editable Air
+installer background; `background.png` beside it is the generated preview. The DMG
+script renders it at 1520×1140 pixels and 144 dpi for Finder's 760×570-point window.
+Finder supplies the actual app, Applications and guide icons. Preserve their
+centres at (204,282), (556,282) and (380,464), respectively. The static canvas uses
+the canonical light palette; native app appearance remains unchanged. Review the
+mounted installer, since the preview PNG alone cannot show icon/label collisions.

@@ -4,6 +4,26 @@
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
+      "path": "apps/macos/scripts/dmg/background.swift",
+      "kind": "static-artwork",
+      "sourceReviewed": true,
+      "airImplemented": true,
+      "validated": true,
+      "states": [
+        "static light artwork",
+        "real Finder icons and labels",
+        "mounted read-only installer"
+      ],
+      "viewports": [
+        "760\u00d7570 pt / 1520\u00d71140 px fixed Finder canvas"
+      ],
+      "evidence": [
+        "docs/audits/2026-10-19-installer.md",
+        "docs/audits/images/2026-10-19-installer-air.png"
+      ],
+      "notes": "User explicitly extended Air to installer artwork. Fixed light bitmap; app controls and output unchanged. Finder target positions and install guide preserved."
+    },
+    {
       "path": "apps/site/src/components/AirHorizon.astro",
       "kind": "app-surface",
       "sourceReviewed": true,

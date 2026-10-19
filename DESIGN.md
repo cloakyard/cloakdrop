@@ -1006,7 +1006,7 @@ journeys across all apps; it is not inferred from the pilot alone.
 
 ## CloakDrop website requirements
 
-- This specification governs **`apps/site` only**: landing, product/craft/privacy,
+- This specification governs **`apps/site`**: landing, product/craft/privacy,
   download/install content, privacy document, 404, navigation, footer and artwork.
   It does not restyle the SwiftUI application or its native controls.
 - Keep the native app's real screenshots accurate. Air styles their surrounding
@@ -1023,7 +1023,7 @@ journeys across all apps; it is not inferred from the pilot alone.
 - Required gates in `apps/site`: `npm run sync:assets`, `npm run check`,
   `npm run build`, anchor/download/privacy/404 checks, and the full responsive,
   light/dark, keyboard/touch/reduced-motion and long-content matrix.
-- Confirm the change has no native-app or KERR diff. Record evidence in `docs/air/`.
+- Keep SwiftUI application controls and KERR unchanged. Record evidence in `docs/air/`.
 
 - The production home, policy and 404 share the quiet header/footer and an in-flow
   native compact menu. Focus/anchor/Escape enhancement lives in `navigation.ts`;
@@ -1043,3 +1043,12 @@ journeys across all apps; it is not inferred from the pilot alone.
   renderer loads lazily only for capable, visible, motion-enabled visits. Keep its
   350 kB gzip build ceiling and license. Stop at rest, release offscreen/hidden and
   preserve browser Back/Forward restoration. No React runtime or native UI change.
+
+- On 2026-10-19 the user extended Air to the **installer background**.
+  `apps/macos/scripts/dmg/background.swift` renders the fixed 760×570-point Finder
+  composition at 2× using the canonical light palette and system typography.
+  It is static artwork, like the OG card: Finder supports one background bitmap,
+  so it does not imply a native-app theme change. Keep original app/Applications
+  icons, actual installation targets, guide and signing instructions intact.
+  Inspect the mounted DMG with its real icons and labels; retain ample space and
+  a simple directional cue. No grid, nested card, status simulation or runtime dependency.

@@ -207,3 +207,19 @@ laptop and phone light/dark screenshots were inspected. The Air OG and native UI
 remain unchanged. Evidence: `evidence/dependencies-2026-10-19/`; details in
 [the dependency audit](../audits/2026-10-19-dependencies.md). Physical/assistive gates
 and actual Cloudflare deployment verification remain separate. Local commits only.
+
+## 2026-10-19 — Air installer artwork
+
+The user explicitly extended the refresh to the installer background. Replaced
+the old technical card/grid/mono labels with the canonical light palette, regular
+system display type, open spacing, a quiet two-plane horizon and one drag arrow.
+Actual app/Applications icons and the guide remain at their verified coordinates.
+No native application control or transfer behavior changed. The Swift renderer
+shrinks from 285 to 142 lines; its 2× PNG shrinks from 872 KB to 112 KB.
+
+Finder's single bitmap is intentionally fixed light artwork, independent of the
+app's light/dark UI. The final 760×570-point installer was opened through Finder,
+with real icons/labels and no clipping; the background is 1520×1140 at 144 dpi.
+Source/render, mounted-DMG review, code signatures, 20-source design integrity,
+18 portability checks and exact family specification sync pass.
+See [installer evidence](../audits/2026-10-19-installer.md).
