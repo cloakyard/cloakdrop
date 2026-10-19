@@ -1,0 +1,284 @@
+[
+  {
+    "app": "cloakdrop",
+    "route": "/",
+    "links": [
+      {
+        "label": "Skip to content",
+        "href": "#main",
+        "color": "rgb(255, 255, 255)",
+        "underline": "none"
+      },
+      {
+        "label": "CloakDrop",
+        "href": "/",
+        "color": "rgb(32, 35, 41)",
+        "underline": "none"
+      },
+      {
+        "label": "Product",
+        "href": "#product",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Craft",
+        "href": "#provenance",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Privacy",
+        "href": "#privacy",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Download",
+        "href": "#download",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Source",
+        "href": "https://github.com/cloakyard/cloakdrop",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Download CloakDrop",
+        "href": "#download",
+        "color": "rgb(255, 255, 255)",
+        "underline": "none"
+      },
+      {
+        "label": "Explore features",
+        "href": "#product",
+        "color": "rgb(32, 35, 41)",
+        "underline": "none"
+      },
+      {
+        "label": "Explore the source",
+        "href": "https://github.com/cloakyard/cloakdrop",
+        "color": "rgb(40, 90, 215)",
+        "underline": "none"
+      },
+      {
+        "label": "Read the privacy policy",
+        "href": "/privacy/",
+        "color": "rgb(40, 90, 215)",
+        "underline": "none"
+      },
+      {
+        "label": "Download from GitHub",
+        "href": "https://github.com/cloakyard/cloakdrop/releases",
+        "color": "rgb(255, 255, 255)",
+        "underline": "none"
+      },
+      {
+        "label": "GitHub Releases",
+        "href": "https://github.com/cloakyard/cloakdrop/releases",
+        "color": "rgb(40, 90, 215)",
+        "underline": "underline"
+      },
+      {
+        "label": "Apple’s opening guide",
+        "href": "https://support.apple.com/en-us/102445",
+        "color": "rgb(40, 90, 215)",
+        "underline": "underline"
+      },
+      {
+        "label": "Share feedback",
+        "href": "https://github.com/cloakyard/cloakdrop/issues",
+        "color": "rgb(40, 90, 215)",
+        "underline": "underline"
+      },
+      {
+        "label": "Sumit Sahoo",
+        "href": "https://github.com/sumitsahoo",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Download",
+        "href": "#download",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Source",
+        "href": "https://github.com/cloakyard/cloakdrop",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Privacy",
+        "href": "/privacy/",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Cloakyard",
+        "href": "https://cloakyard.com",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      }
+    ]
+  },
+  {
+    "app": "cloakdrop",
+    "route": "/privacy/",
+    "links": [
+      {
+        "label": "Skip to content",
+        "href": "#main",
+        "color": "rgb(255, 255, 255)",
+        "underline": "none"
+      },
+      {
+        "label": "CloakDrop",
+        "href": "/",
+        "color": "rgb(32, 35, 41)",
+        "underline": "none"
+      },
+      {
+        "label": "Product",
+        "href": "/#product",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Craft",
+        "href": "/#provenance",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Privacy",
+        "href": "/#privacy",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Download",
+        "href": "/#download",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Source",
+        "href": "https://github.com/cloakyard/cloakdrop",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Privacy at a glance",
+        "href": "#privacy-at-a-glance",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Data stored on your Mac",
+        "href": "#data-stored-on-your-mac",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Network activity",
+        "href": "#network-activity",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "What contacted services can see",
+        "href": "#what-contacted-services-can-see",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Bundled tools",
+        "href": "#bundled-tools",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Sandbox and file access",
+        "href": "#sandbox-and-file-access",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Your controls",
+        "href": "#your-controls",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Open source and licensing",
+        "href": "#open-source-and-licensing",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Questions and policy changes",
+        "href": "#questions-and-policy-changes",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "MIT License",
+        "href": "https://github.com/cloakyard/cloakdrop/blob/main/LICENSE",
+        "color": "rgb(40, 90, 215)",
+        "underline": "underline"
+      },
+      {
+        "label": "inspect the source code",
+        "href": "https://github.com/cloakyard/cloakdrop",
+        "color": "rgb(40, 90, 215)",
+        "underline": "underline"
+      },
+      {
+        "label": "open an issue",
+        "href": "https://github.com/cloakyard/cloakdrop/issues",
+        "color": "rgb(40, 90, 215)",
+        "underline": "underline"
+      },
+      {
+        "label": "private reporting instructions",
+        "href": "https://github.com/cloakyard/cloakdrop/blob/main/SECURITY.md#reporting-a-vulnerability",
+        "color": "rgb(40, 90, 215)",
+        "underline": "underline"
+      },
+      {
+        "label": "Sumit Sahoo",
+        "href": "https://github.com/sumitsahoo",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Download",
+        "href": "/#download",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Source",
+        "href": "https://github.com/cloakyard/cloakdrop",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      },
+      {
+        "label": "Privacy",
+        "href": "/privacy/",
+        "color": "rgb(82, 91, 104)",
+        "underline": "underline"
+      },
+      {
+        "label": "Cloakyard",
+        "href": "https://cloakyard.com",
+        "color": "rgb(82, 91, 104)",
+        "underline": "none"
+      }
+    ]
+  }
+]

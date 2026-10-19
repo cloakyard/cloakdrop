@@ -16,7 +16,8 @@
     "cf:dev": "npm run build && wrangler dev",
     "design:check": "node ../../scripts/check-air-design.mjs",
     "design:inventory": "node ../../scripts/air-inventory.mjs",
-    "design:portability": "node ../../scripts/check-air-portability.mjs"
+    "design:portability": "node ../../scripts/check-air-portability.mjs",
+    "test:air-links": "node ../../scripts/test-air-links.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

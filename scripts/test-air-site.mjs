@@ -114,6 +114,19 @@ async function layout(state) {
             : link.parentElement,
         ).color,
       ),
+      nonNeutralLinks: matchMedia("(forced-colors: active)").matches ? [] : (() => {
+        const probe = document.createElement("span");
+        probe.style.setProperty("transition", "none", "important");
+        document.body.append(probe);
+        const colours = ["ink", "ink-secondary", "ink-muted", "action", "on-action"].map((token) => {
+          probe.style.color = `var(--air-${token})`;
+          return getComputedStyle(probe).color;
+        });
+        probe.remove();
+        return [...document.querySelectorAll("a")].filter(visible)
+          .filter((link) => !colours.includes(getComputedStyle(link).color))
+          .map((link) => ({ label: link.textContent.trim(), colour: getComputedStyle(link).color }));
+      })(),
       bodyBackground: getComputedStyle(document.body).backgroundColor,
       navigationColours: [...new Set([...document.querySelectorAll(
         ".desktop-nav a, .desktop-source, .mobile-nav nav a",
@@ -132,6 +145,7 @@ async function layout(state) {
   assert.ok(result.navigationColours.length <= 1, `${JSON.stringify(state)} navigation colour drift`);
   assert.equal(result.duplicateSource, false, `${JSON.stringify(state)} duplicate compact navigation`);
   assert.ok(result.footerCreditColourMatches, `${JSON.stringify(state)} footer credit colour drift`);
+  assert.deepEqual(result.nonNeutralLinks, [], `${JSON.stringify(state)} content link colour drift`);
   assert.equal(result.visibleH1, 1);
   assert.deepEqual(result.brokenImages, []);
 }

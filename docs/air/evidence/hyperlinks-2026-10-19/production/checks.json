@@ -1,0 +1,1953 @@
+{
+  "app": "cloakdrop",
+  "url": "https://drop.cloakyard.com",
+  "rows": [
+    {
+      "w": 320,
+      "h": 568,
+      "theme": "light",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(82, 91, 104)",
+          "parent": "rgb(82, 91, 104)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(82, 91, 104)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(82, 91, 104)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 320,
+      "h": 568,
+      "theme": "dark",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(182, 190, 203)",
+          "parent": "rgb(182, 190, 203)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(182, 190, 203)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(182, 190, 203)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 375,
+      "h": 812,
+      "theme": "light",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(82, 91, 104)",
+          "parent": "rgb(82, 91, 104)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(82, 91, 104)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(82, 91, 104)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 375,
+      "h": 812,
+      "theme": "dark",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(182, 190, 203)",
+          "parent": "rgb(182, 190, 203)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(182, 190, 203)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(182, 190, 203)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 390,
+      "h": 844,
+      "theme": "light",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(82, 91, 104)",
+          "parent": "rgb(82, 91, 104)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(82, 91, 104)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(82, 91, 104)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 390,
+      "h": 844,
+      "theme": "dark",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(182, 190, 203)",
+          "parent": "rgb(182, 190, 203)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(182, 190, 203)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(182, 190, 203)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 430,
+      "h": 932,
+      "theme": "light",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(82, 91, 104)",
+          "parent": "rgb(82, 91, 104)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(82, 91, 104)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(82, 91, 104)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 430,
+      "h": 932,
+      "theme": "dark",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(182, 190, 203)",
+          "parent": "rgb(182, 190, 203)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(182, 190, 203)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(182, 190, 203)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 844,
+      "h": 390,
+      "theme": "light",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(82, 91, 104)",
+          "parent": "rgb(82, 91, 104)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(82, 91, 104)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(32, 35, 41)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 844,
+      "h": 390,
+      "theme": "dark",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(182, 190, 203)",
+          "parent": "rgb(182, 190, 203)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(182, 190, 203)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(241, 243, 247)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 768,
+      "h": 1024,
+      "theme": "light",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(82, 91, 104)",
+          "parent": "rgb(82, 91, 104)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(82, 91, 104)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(32, 35, 41)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 768,
+      "h": 1024,
+      "theme": "dark",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(182, 190, 203)",
+          "parent": "rgb(182, 190, 203)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(182, 190, 203)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(241, 243, 247)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 1024,
+      "h": 768,
+      "theme": "light",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(82, 91, 104)",
+          "parent": "rgb(82, 91, 104)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(82, 91, 104)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(32, 35, 41)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 1024,
+      "h": 768,
+      "theme": "dark",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(182, 190, 203)",
+          "parent": "rgb(182, 190, 203)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(182, 190, 203)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(241, 243, 247)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 1280,
+      "h": 720,
+      "theme": "light",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(82, 91, 104)",
+          "parent": "rgb(82, 91, 104)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(82, 91, 104)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(32, 35, 41)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 1280,
+      "h": 720,
+      "theme": "dark",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(182, 190, 203)",
+          "parent": "rgb(182, 190, 203)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(182, 190, 203)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(241, 243, 247)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 1366,
+      "h": 768,
+      "theme": "light",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(82, 91, 104)",
+          "parent": "rgb(82, 91, 104)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(82, 91, 104)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(32, 35, 41)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 1366,
+      "h": 768,
+      "theme": "dark",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(182, 190, 203)",
+          "parent": "rgb(182, 190, 203)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(182, 190, 203)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(241, 243, 247)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 1440,
+      "h": 900,
+      "theme": "light",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(82, 91, 104)",
+          "parent": "rgb(82, 91, 104)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(82, 91, 104)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(32, 35, 41)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 1440,
+      "h": 900,
+      "theme": "dark",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(182, 190, 203)",
+          "parent": "rgb(182, 190, 203)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(182, 190, 203)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(241, 243, 247)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 1920,
+      "h": 1080,
+      "theme": "light",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(82, 91, 104)",
+          "parent": "rgb(82, 91, 104)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(82, 91, 104)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(32, 35, 41)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 1920,
+      "h": 1080,
+      "theme": "dark",
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(182, 190, 203)",
+          "parent": "rgb(182, 190, 203)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(182, 190, 203)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(241, 243, 247)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 320,
+      "h": 568,
+      "theme": "light",
+      "textSize": 32,
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(82, 91, 104)",
+          "parent": "rgb(82, 91, 104)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(82, 91, 104)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(82, 91, 104)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    },
+    {
+      "w": 320,
+      "h": 568,
+      "theme": "dark",
+      "textSize": 32,
+      "footerCredits": [
+        {
+          "label": "Sumit Sahoo",
+          "color": "rgb(182, 190, 203)",
+          "parent": "rgb(182, 190, 203)"
+        }
+      ],
+      "overflow": false,
+      "links": [
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Explore features",
+          "href": "#product",
+          "target": "",
+          "angle": "straight",
+          "hidden": "true",
+          "stroke": "1.8px"
+        },
+        {
+          "label": "Explore the source",
+          "href": "https://github.com/cloakyard/cloakdrop",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Read the privacy policy",
+          "href": "/privacy/",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        },
+        {
+          "label": "Cloakyard",
+          "href": "https://cloakyard.com",
+          "target": "",
+          "angle": "diagonal",
+          "hidden": "true",
+          "stroke": "2px"
+        }
+      ],
+      "source": [
+        {
+          "color": "rgb(182, 190, 203)",
+          "visible": false,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        },
+        {
+          "color": "rgb(182, 190, 203)",
+          "visible": true,
+          "paths": [
+            "M7 7h10v10",
+            "M7 17 17 7"
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": []
+}
