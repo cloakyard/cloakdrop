@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.0.3",
+  "contractVersion": "1.0.4",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -14,7 +14,9 @@
         "real Finder icons and labels",
         "mounted read-only installer"
       ],
-      "viewports": ["760\u00d7570 pt / 1520\u00d71140 px fixed Finder canvas"],
+      "viewports": [
+        "760×570 pt / 1520×1140 px fixed Finder canvas"
+      ],
       "evidence": [
         "docs/audits/2026-10-19-installer.md",
         "docs/audits/images/2026-10-19-installer-air.png"
@@ -56,7 +58,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -84,7 +86,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -112,7 +114,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -140,7 +142,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -171,7 +173,7 @@
         "six static fallback profiles"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -200,7 +202,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -228,7 +230,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -256,7 +258,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -284,7 +286,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -312,7 +314,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -340,7 +342,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -368,7 +370,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -396,7 +398,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -424,7 +426,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -449,7 +451,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/evidence/website-air-2026-10-19.json",
@@ -485,10 +487,10 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
-        "docs/air/validation.md \u2014 shared reference checkpoints",
+        "docs/air/validation.md — shared reference checkpoints",
         "docs/air/components.html",
         "docs/air/evidence/website-air-2026-10-19.json",
         "docs/air/evidence/website-air-checks-2026-10-19.log"
@@ -515,7 +517,7 @@
         "six static fallback profiles"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -542,13 +544,13 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/evidence/website-air-2026-10-19.json",
         "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "Rendered and visually reviewed 1200\u00d7630 Air OG card using unchanged native screenshot; metadata and copied built asset verified."
+      "notes": "Rendered and visually reviewed 1200×630 Air OG card using unchanged native screenshot; metadata and copied built asset verified."
     }
   ]
 }
