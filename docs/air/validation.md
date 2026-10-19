@@ -172,3 +172,20 @@ spoken assistive checks remain open; software keyboard/IME are inapplicable to
 this static site. Native install/signing, transfers and deployed edge behavior are
 outside this change. Local commits only; no push or deployment. Resume is next,
 then the parked IMG draft and full migration last, per the user's corrected order.
+
+## 2026-10-19 — finite landing horizon
+
+The static Astro home mounts the pinned family light runtime below the hero copy
+and above the native screenshot. Arrival/pointer motion stops at rest and releases
+the device offscreen. Policy/404 routes do not load the renderer. No new dependency
+or native-app/image/OG change; 350 kB gzip lazy-shader budget and shipped license.
+
+432 layouts, 34 journeys, 35 captures, real GPU lifecycle and six fallback profiles
+pass. The first Back assertion incorrectly expected visible motion after restoring
+the footer scroll; corrected to assert offscreen release, then scroll/reactivation.
+No runtime workaround or reduced assertions. Asset sync, Astro check/build,
+19-source inventory, 18 portability and exact family sync pass. Desktop/laptop/
+phone light/dark captures and native Safari rendered horizon/anchor focus inspected.
+Evidence: `evidence/landing-horizon-2026-10-19/`; full 35 captures in the website
+JSON's temporary evidence directory. Physical touch, spoken assistive and physical
+GPU/battery/thermal acceptance remain open. Local commit only; no deployment.

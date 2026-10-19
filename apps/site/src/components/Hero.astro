@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { hero, downloads } from '../data/site';
 import { readPngDimensions } from '../lib/heroGeometry';
 import Icon from './Icon.astro';
+import AirHorizon from './AirHorizon.astro';
 const shot = readPngDimensions(resolve(process.cwd(), 'public/hero.png'));
 ---
 <section class="hero frame" aria-labelledby="hero-title">
@@ -16,6 +17,7 @@ const shot = readPngDimensions(resolve(process.cwd(), 'public/hero.png'));
     <a class="air-button air-button--quiet" href="#product">Explore features <Icon name="arrow" size={16} /></a>
   </div>
   <p class="availability">{downloads.note}<span>{hero.micro}</span></p>
+  <AirHorizon />
   <figure class="product-preview">
     <picture>
       <source srcset="/hero.webp" type="image/webp" />

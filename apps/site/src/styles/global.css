@@ -172,9 +172,33 @@ summary:focus-visible {
   display: block;
   margin-top: var(--air-space-4);
 }
+.drop-horizon {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  margin-top: var(--air-space-16);
+  color: var(--air-accent);
+  background-color: var(--air-page);
+  outline-color: var(--air-surface-soft);
+  pointer-events: none;
+  overflow: clip;
+}
+.drop-horizon svg,
+.drop-horizon canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.drop-horizon canvas {
+  visibility: hidden;
+}
+.drop-horizon[data-light-ready="true"] canvas {
+  visibility: visible;
+}
 .product-preview {
   max-width: 1024px;
-  margin: var(--air-space-48) auto 0;
+  margin: var(--air-space-16) auto 0;
 }
 .product-preview picture {
   display: block;
@@ -526,8 +550,8 @@ h3 {
   .hero h1 {
     margin-top: var(--air-space-16);
   }
-  .product-preview {
-    margin-top: var(--air-space-32);
+  .drop-horizon {
+    height: 104px;
   }
   .product-preview picture {
     padding: var(--air-space-8);
@@ -546,6 +570,9 @@ h3 {
   }
 }
 @media (max-height: 500px) and (orientation: landscape) {
+  .drop-horizon {
+    height: 64px;
+  }
   .hero {
     padding-top: var(--air-space-16);
   }
@@ -555,5 +582,11 @@ h3 {
   .hero-lead,
   .hero-actions {
     margin-top: var(--air-space-16);
+  }
+}
+
+@media (forced-colors: active) {
+  .drop-horizon {
+    display: none;
   }
 }

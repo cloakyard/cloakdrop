@@ -96,13 +96,17 @@ then run from the repository root:
 
 ```bash
 SITE_URL=http://127.0.0.1:8144 node scripts/test-air-site.mjs
+SITE_URL=http://127.0.0.1:8144 node scripts/test-air-horizon.mjs
 ```
 
 This test requires Chrome and an available `puppeteer-core` installation. Set
 `CHROME_PATH` and `PUPPETEER_MODULE` (absolute module path or file URL) when those
 are not locally resolvable. It adds no production dependency. `AIR_EVIDENCE_DIR`
-defaults to `/tmp/cloakdrop-air`; evidence includes the full size/theme/root-font
+selects the parent for a private temporary evidence directory; the printed path includes the full size/theme/root-font
 matrix, open/closed menus, contrast, anchors, policy, 404, no-JS and metadata checks.
+The horizon suite checks real GPU arrival, pointer/idle, offscreen/Back restoration,
+theme/reduced-motion changes and six static fallbacks. The optional pinned renderer
+is lazy, capped at 350 kB gzip and absent from privacy/404 routes.
 Actual Firefox/Safari review and physical/assistive limits are recorded separately
 in [the Air validation record](../../docs/air/validation.md). Use a fresh port if an
 older app's service worker controls a reused local origin; do not clear user data.

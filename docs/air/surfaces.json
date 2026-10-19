@@ -4,6 +4,23 @@
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
+      "path": "apps/site/src/components/AirHorizon.astro",
+      "kind": "app-surface",
+      "sourceReviewed": true,
+      "airImplemented": true,
+      "validated": false,
+      "states": [
+        "finite GPU arrival/pointer/idle",
+        "offscreen/Back restoration",
+        "six static fallback profiles"
+      ],
+      "viewports": [],
+      "evidence": [
+        "docs/air/evidence/landing-horizon-2026-10-19/website.json"
+      ],
+      "notes": "Local website horizon follow-up passes software checks; physical/assistive and GPU hardware acceptance remain open. Native UI and screenshot bytes unchanged."
+    },
+    {
       "path": "apps/site/src/components/Brand.astro",
       "kind": "app-surface",
       "sourceReviewed": true,
@@ -129,7 +146,10 @@
         "normal and enlarged text",
         "keyboard/no-JS recovery",
         "coarse targets",
-        "reduced motion/forced colours"
+        "reduced motion/forced colours",
+        "finite GPU arrival/pointer/idle",
+        "offscreen/Back restoration",
+        "six static fallback profiles"
       ],
       "viewports": [
         "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
@@ -139,9 +159,10 @@
         "docs/air/evidence/website-baseline-2026-10-11.json",
         "docs/air/evidence/website-interactions-2026-10-12.json",
         "docs/air/evidence/website-air-2026-10-19.json",
-        "docs/air/evidence/website-air-checks-2026-10-19.log"
+        "docs/air/evidence/website-air-checks-2026-10-19.log",
+        "docs/air/evidence/landing-horizon-2026-10-19/website.json"
       ],
-      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
+      "notes": "Local website horizon follow-up passes software checks; physical/assistive and GPU hardware acceptance remain open. Native UI and screenshot bytes unchanged."
     },
     {
       "path": "apps/site/src/components/Icon.astro",
@@ -469,7 +490,10 @@
         "normal and enlarged text",
         "keyboard/no-JS recovery",
         "coarse targets",
-        "reduced motion/forced colours"
+        "reduced motion/forced colours",
+        "finite GPU arrival/pointer/idle",
+        "offscreen/Back restoration",
+        "six static fallback profiles"
       ],
       "viewports": [
         "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
@@ -479,9 +503,10 @@
         "docs/air/evidence/website-baseline-2026-10-11.json",
         "docs/air/evidence/website-interactions-2026-10-12.json",
         "docs/air/evidence/website-air-2026-10-19.json",
-        "docs/air/evidence/website-air-checks-2026-10-19.log"
+        "docs/air/evidence/website-air-checks-2026-10-19.log",
+        "docs/air/evidence/landing-horizon-2026-10-19/website.json"
       ],
-      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
+      "notes": "Local website horizon follow-up passes software checks; physical/assistive and GPU hardware acceptance remain open. Native UI and screenshot bytes unchanged."
     },
     {
       "path": "assets/social/og.html",

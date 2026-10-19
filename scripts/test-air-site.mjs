@@ -2,13 +2,16 @@
  * module URL when it is not locally resolvable; it is test tooling, never shipped.
  * Run after npm run build with SITE_URL pointing to Astro preview. No downloads/install. */
 import assert from "node:assert/strict";
-import { mkdir, writeFile, readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile, readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { resolve } from "node:path";
+import { tmpdir } from "node:os";
 const { default: puppeteer } = await import(process.env.PUPPETEER_MODULE || "puppeteer-core");
 const base = process.env.SITE_URL || "http://127.0.0.1:8144";
-const out = process.env.AIR_EVIDENCE_DIR || "/tmp/cloakdrop-air";
-await mkdir(out, { recursive: true });
+const parent = process.env.AIR_EVIDENCE_DIR || tmpdir();
+await mkdir(parent, { recursive: true });
+const out = await mkdtemp(resolve(parent, "cloakdrop-air-site-"));
+console.log(`Evidence: ${out}`);
 const browser = await puppeteer.launch({
   executablePath:
     process.env.CHROME_PATH || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
