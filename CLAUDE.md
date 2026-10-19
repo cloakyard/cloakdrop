@@ -9,7 +9,7 @@ CloakDrop is a native, sandboxed macOS Tahoe 26 multi-segment download manager b
 This is a **monorepo** with two independent deliverables under `apps/`:
 
 - **`apps/macos/`** — the native macOS app (this document's subject). Architecture paths below are relative to `apps/macos/` unless noted. Each command block starts from the repository root unless it says otherwise.
-- **`apps/site/`** — the CloakDrop brand site (Astro, static), deployed to Cloudflare Workers at `drop.cloakyard.com`. See [apps/site/README.md](apps/site/README.md). It shares nothing with the app build; configure Cloudflare to watch `apps/site/*`, `assets/*`, `scripts/sync-assets.mjs`, and `PRIVACY.md`, so site, shared-asset and rendered policy changes deploy while a Swift-only change does not rebuild the site.
+- **`apps/site/`** — the CloakDrop brand site (Astro, static), deployed to Cloudflare Workers at `drop.cloakyard.com`. See [apps/site/README.md](apps/site/README.md). It shares nothing with the app build; configure Cloudflare to watch `apps/site/*`, `assets/*`, `scripts/sync-assets.mjs`, `docs/air/*`, and `PRIVACY.md`, so site, shared-asset and rendered policy changes deploy while a Swift-only change does not rebuild the site.
 
 ## Commands
 

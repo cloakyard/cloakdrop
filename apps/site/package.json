@@ -2,7 +2,7 @@
   "name": "cloakdrop-site",
   "version": "1.0.0",
   "private": true,
-  "description": "CloakDrop brand site \u2014 drop.cloakyard.com",
+  "description": "CloakDrop brand site — drop.cloakyard.com",
   "type": "module",
   "scripts": {
     "sync:assets": "node ../../scripts/sync-assets.mjs",
@@ -20,26 +20,19 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
-    "astro": "^7.3.6"
+    "astro": "^7.4.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "typescript": "^6.0.3",
-    "wrangler": "^4.148.0"
-  },
-  "overrides": {
-    "fast-uri": "3.1.8",
-    "miniflare": {
-      "sharp": "0.35.5"
-    }
+    "wrangler": "^4.151.2"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.22.0"
   },
   "allowScripts": {
     "esbuild@0.28.2": true,
-    "esbuild@0.28.1": true,
-    "workerd@1.20261006.1": true,
+    "workerd@1.20261019.1": true,
     "fsevents@2.3.3": true
   }
 }

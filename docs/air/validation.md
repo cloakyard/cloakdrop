@@ -189,3 +189,21 @@ phone light/dark captures and native Safari rendered horizon/anchor focus inspec
 Evidence: `evidence/landing-horizon-2026-10-19/`; full 35 captures in the website
 JSON's temporary evidence directory. Physical touch, spoken assistive and physical
 GPU/battery/thermal acceptance remain open. Local commit only; no deployment.
+
+## 2026-10-19 — RC dependency and static delivery recheck
+
+Updated Astro 7.4.0, Wrangler 4.151.2 and compatible transitive packages. Removed
+the now-redundant fast-uri/sharp overrides and old install-script allowances.
+Node minimum now matches Astro (22.22.0); TypeScript remains supported 6.0.3.
+CI pins current actions and checks the website install, types, build and audit.
+Cloudflare watch documentation includes the imported Air runtime. Static responses
+request `no-transform`; local Wrangler returns that header on home, policy and 404.
+
+Clean npm install, valid full tree, zero audit findings, Astro check, three-route
+build, Wrangler dry run, 19-source design check and 18 portability checks pass.
+The final build passes 432 layouts, 34 journeys and the real-GPU horizon lifecycle
+with six fallback profiles; no script errors or foreign runtime requests. Desktop,
+laptop and phone light/dark screenshots were inspected. The Air OG and native UI
+remain unchanged. Evidence: `evidence/dependencies-2026-10-19/`; details in
+[the dependency audit](../audits/2026-10-19-dependencies.md). Physical/assistive gates
+and actual Cloudflare deployment verification remain separate. Local commits only.

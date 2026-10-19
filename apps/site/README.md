@@ -23,11 +23,12 @@ The landing page uses a real app screenshot, three concise feature summaries, an
 open-source/privacy sections, and installation guidance. The header uses an in-flow native
 disclosure; every destination, policy section and recovery link works without JavaScript.
 The small navigation script enhances Escape, active section markers and anchor focus.
-There are no decorative scroll/reveal effects or simulated transfers.
+The optional Air horizon has one finite arrival and pointer response, with a static
+fallback and no work at rest. There are no scroll reveals or simulated transfers.
 
 ## Develop
 
-Requires **Node 22.12.0 or later** and npm. Start from the repository root; the remaining
+Requires **Node 22.22.0 or later** and npm. Start from the repository root; the remaining
 commands in this guide run inside `apps/site/`.
 
 ```bash
@@ -121,7 +122,8 @@ there is no deployment workflow in this repository. Verify these settings on the
 2. **Root directory:** `apps/site`.
 3. **Build command:** `npm run build` · **Deploy command:** `npx wrangler deploy`.
 4. **Build watch include paths:** `apps/site/*`, `assets/*`, `scripts/sync-assets.mjs`,
-   `PRIVACY.md` (repository-relative). Include the policy because it is rendered at build time.
+   `PRIVACY.md`, `docs/air/*` (repository-relative). Include the policy and pinned
+   horizon runtime because they are imported at build time.
    A Swift-only commit should not rebuild the site.
 
 Production triggers and branch/PR previews depend on the dashboard configuration; do not assume
@@ -134,9 +136,12 @@ npm run deploy                  # builds and publishes (requires Cloudflare auth
 npx wrangler deploy --dry-run   # validate config without uploading
 ```
 
-Run `npm run build` before a standalone dry run so `dist/` contains the current source. Keep
+Run `npm run build` before a standalone dry run so `dist/` contains the current source.
+`public/_headers` preserves revalidation and requests `no-transform` so Cloudflare
+does not inject analytics or challenge scripts into the validated pages. Verify the
+actual production headers and asset hashes after deployment. Keep
 `package-lock.json` tracked. Check version compatibility and `npm audit` when updating packages;
-the [dependency audit](../../docs/audits/2026-09-06-dependencies.md) records the TypeScript compatibility
+the [dependency audit](../../docs/audits/2026-10-19-dependencies.md) records the TypeScript compatibility
 pin and the resolved dependency graph.
 
 ## Custom domain — drop.cloakyard.com
