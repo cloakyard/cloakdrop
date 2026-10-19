@@ -126,3 +126,49 @@ validation checkpoint. Required site asset sync, Astro check (19 files with zero
 
 The final correction keeps the keyboard focus contour at full opacity while muting
 only the unavailable icon; the synchronized bundle was rebuilt and rechecked.
+
+
+## 2026-10-19 — Complete Air website and social preview
+
+Home, navigation, product/craft/privacy, install/download, footer, policy and 404
+now use the pinned family CSS directly. The in-flow native menu works without JS;
+Escape and link activation preserve focus. Same-page links retain Back/Forward and
+sequential keyboard navigation. A native Firefox check caught focus returning to
+the top after a policy anchor; explicit history/focus handling fixes it in Firefox
+and Safari. Policy contents come from the original Markdown headings; meaning and
+the September 6 revision remain unchanged. Unknown routes still return HTTP 404.
+
+The Air OG source imports the pinned CSS and composes the unchanged real Mac app
+screenshot at 1200×630. Matching metadata replaces the previous range-map artwork.
+Original logos, screenshot renditions, Swift/macOS and policy source have no diff.
+No new dependency, font request, runtime service or shader. Deleted the old font
+pair (75,332 bytes), redundant stats/Kicker/unused icons, custom palette/skins,
+overlay menu, scroll-progress and content-reveal code. Maintained site/asset docs
+now describe Air; dated baseline/release audits remain historical.
+
+Production acceptance: **432 layout observations** across 23 sizes, all three
+routes, both themes, root-font enlargement and compact menus; **34 journey records**,
+**374 passing text-contrast pairs**, 18 policy active-destination checks, 35 primary
+captures plus targeted viewport/native views. Checks include actual text bounds,
+44px coarse targets, skip/Enter/Space/Tab/Escape, all 24 cross-route header journeys,
+contents, history, repeat anchors, no-JS, reduced motion, forced colours, long labels,
+404/home, nine built assets and metadata. No script errors or foreign runtime requests.
+Two early UI findings (menu alignment and short Craft hit target) were fixed before
+the complete passing rerun. Harness failures/repairs and the old local PDF service
+worker on reused port 8134 are recorded; Drop review moved to fresh port 8144 without
+clearing user storage. Safari light/home/policy/recovery and Firefox actual 200%
+zoom/download/policy/keyboard/recovery pass; tabs closed and Firefox zoom restored.
+
+Asset sync, Astro check (17 files, zero errors/warnings/hints), all three built
+routes, design integrity and 18 portability assertions pass. Exact family sync
+passes. CSS is 44,786 bytes / 8,882 gzip including shared Air controls; inline
+navigation is 1,628 / 783 gzip. External Puppeteer is test tooling only. Official
+[release index](https://github.com/cloakyard/cloakdrop/releases) still exposes the
+beta and the preserved platform/signing/install guidance; no installer was run.
+
+Evidence: `evidence/website-air-2026-10-19.json`, checks log and four PNGs. Full
+captures and preserved failed attempts: `/tmp/cloakdrop-air/`. Physical touch and
+spoken assistive checks remain open; software keyboard/IME are inapplicable to
+this static site. Native install/signing, transfers and deployed edge behavior are
+outside this change. Local commits only; no push or deployment. Resume is next,
+then the parked IMG draft and full migration last, per the user's corrected order.

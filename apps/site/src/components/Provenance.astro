@@ -1,69 +1,30 @@
 ---
 import { site } from '../data/site';
-import Kicker from './Kicker.astro';
 import Icon from './Icon.astro';
 ---
-
-<section id="provenance" class="section craft" data-reveal>
-  <div class="container">
-    <div class="chamber">
-      <div class="craft-copy">
-        <Kicker num="02" label="Made with care" tone="band" />
-        <h2>Quality is in<br />the details.</h2>
-        <p>A proper Mac app, from keyboard shortcuts to the last progress pixel.
-          A separately tested Swift engine underneath. Open code, so the care is there to inspect.</p>
-        <a class="text-link" href={site.repo}>Explore the source <Icon name="arrow" size={18} /></a>
-      </div>
-      <div class="principles">
-        <div class="principle">
-          <span class="principle-icon"><Icon name="menubar" size={23} /></span>
-          <div><h3>At home on your Mac.</h3>
-            <p>SwiftUI, familiar controls, and quiet updates in your menu bar and Dock.</p></div>
-        </div>
-        <div class="principle" id="privacy">
-          <span class="principle-icon"><Icon name="shield" size={23} /></span>
-          <div><h3>Your Mac. Your business.</h3>
-            <p>No app telemetry, accounts, or automatic crash uploads. Your download library stays on your Mac.</p>
-            <a class="text-link" href={site.privacyPolicy}>Read the privacy policy <Icon name="arrow" size={16} /></a></div>
-        </div>
-        <div class="principle">
-          <span class="principle-icon"><Icon name="github" size={22} /></span>
-          <div><h3>Better, together.</h3>
-            <p>Free under the MIT licence. Inspect it, build it, or help make the next detail better.</p></div>
-        </div>
-      </div>
+<section id="provenance" class="section frame" tabindex="-1" aria-labelledby="craft-title">
+  <div class="craft-grid">
+    <div class="section-intro">
+      <p class="eyebrow">Made with care</p>
+      <h2 id="craft-title">The details make the difference.</h2>
+      <p>A proper Mac app, from keyboard shortcuts to the last progress pixel.
+        A separately tested Swift engine underneath. Open code, so the care is there to inspect.</p>
+      <a class="text-link" href={site.repo}>Explore the source <Icon name="arrow" size={16} /></a>
+    </div>
+    <div class="principles">
+      <article>
+        <h3>At home on your Mac.</h3>
+        <p>SwiftUI, familiar controls, and quiet updates in your menu bar and Dock.</p>
+      </article>
+      <article id="privacy" tabindex="-1" aria-labelledby="privacy-title">
+        <h3 id="privacy-title">Your Mac. Your business.</h3>
+        <p>No app telemetry, accounts, or automatic crash uploads. Your download library stays on your Mac.</p>
+        <a class="text-link" href={site.privacyPolicy}>Read the privacy policy <Icon name="arrow" size={16} /></a>
+      </article>
+      <article>
+        <h3>Better, together.</h3>
+        <p>Free under the MIT licence. Inspect it, build it, or help make the next detail better.</p>
+      </article>
     </div>
   </div>
 </section>
-
-<style>
-  .craft { padding-top: 0; }
-  .chamber {
-    position: relative; isolation: isolate; overflow: clip;
-    display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2.5rem, 7vw, 7rem);
-    padding: clamp(1.5rem, 4.5vw, 4rem);
-    color: #b8c6cc; background: #091216;
-    border: 1px solid #26383f; border-radius: var(--radius-xl);
-  }
-  .chamber::before {
-    content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-    background: radial-gradient(ellipse at 5% 0%, #20475890, transparent 65%),
-      linear-gradient(#ffffff04 1px, transparent 1px), linear-gradient(90deg, #ffffff04 1px, transparent 1px);
-    background-size: auto, 32px 32px, 32px 32px;
-  }
-  h2 { margin-top: 1.4rem; color: #f3f8fa; font-size: clamp(2.5rem, 4.4vw, 4.4rem); }
-  .craft-copy > p { max-width: 43ch; margin-top: 1.5rem; font-size: 1.0625rem; }
-  .text-link { display: inline-flex; align-items: center; gap: .6rem; min-height: 44px; margin-top: .7rem; color: #8cc8da; font-size: 1rem; font-weight: 650; }
-  .text-link :global(svg) { flex: none; transition: transform .2s ease; }
-  .text-link:hover :global(svg) { transform: translateX(4px); }
-  .principles { display: grid; align-content: center; }
-  .principle { display: grid; grid-template-columns: 2rem 1fr; gap: 1rem; padding-block: 1.3rem; border-top: 1px solid #ffffff20; }
-  .principle:last-child { padding-bottom: 0; }
-  .principle-icon { color: #8cc8da; padding-top: .1rem; }
-  h3 { color: #f3f8fa; font-size: 1.25rem; letter-spacing: -.025em; }
-  .principle p { max-width: 42ch; margin-top: .5rem; font-size: 1rem; line-height: 1.55; }
-  @media (max-width: 760px) {
-    .chamber { grid-template-columns: 1fr; gap: 2rem; }
-    .craft-copy > p { max-width: 50ch; }
-  }
-</style>

@@ -111,14 +111,22 @@ to the current website. Native install/signing/checksum verification is outside
 this website refresh. None of the production surfaces is marked Air-implemented
 or validated on the strength of this baseline.
 
+## Migration checkpoint — 2026-10-19
+
+The original findings above are historical. The complete static website now uses
+Air; its software acceptance is recorded in `evidence/website-air-2026-10-19.json`
+and the dated validation record. Physical touch and spoken assistive acceptance
+remain open. No native app UI or behavior changed.
+
 ## Migration checklist
 
-- [ ] Fix the source-linked contrast, reflow, input-target and motion findings.
-- [ ] Adopt Air for home, navigation, footer, download, privacy and 404 together;
+- [x] Fix the source-linked contrast, reflow, input-target and motion findings.
+- [x] Adopt Air for home, navigation, footer, download, privacy and 404 together;
       keep truthful release/install/OS information and the real native screenshot.
-- [ ] Remove replaced styles, unused tokens/classes, old font assets when unused,
+- [x] Remove replaced styles, unused tokens/classes, old font assets when unused,
       old artwork and authoritative editorial styling instructions.
-- [ ] Re-run the normal matrix, enlarged-text cases, keyboard/no-JS/route flows and
-      named screenshot views; add actual zoom and physical/cross-engine checks.
-- [ ] Preserve source policy rendering, HTTP 404 and release-index destination.
-- [ ] Run sync/check/build and design gates, inspect diffs, then commit the piece.
+- [x] Re-run the full matrix, enlarged-text, keyboard/no-JS/routes and named views;
+      native Safari and Firefox actual 200% zoom checked.
+- [ ] Physical touch and spoken assistive acceptance remain open.
+- [x] Preserve source policy rendering, HTTP 404 and release-index destination.
+- [x] Run sync/check/build and design gates, inspect diffs, then commit the piece.

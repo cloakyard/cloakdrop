@@ -3,8 +3,8 @@
 #
 # The card is HTML so it stays in sync with the site's design system (same fonts, colours and
 # tracking) and so a copy change never means re-doing pixels. Chrome screenshots it at 1×;
-# --allow-file-access-from-files is what lets the file:// page load the woff2 fonts and the SVG
-# mark next to it.
+# --allow-file-access-from-files is what lets the file:// page load the local Air stylesheet, SVG
+# mark and actual native screenshot.
 #
 # Usage:  scripts/make-og.sh            # then: node scripts/sync-assets.mjs
 #

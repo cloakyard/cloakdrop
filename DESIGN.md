@@ -1024,3 +1024,16 @@ journeys across all apps; it is not inferred from the pilot alone.
   `npm run build`, anchor/download/privacy/404 checks, and the full responsive,
   light/dark, keyboard/touch/reduced-motion and long-content matrix.
 - Confirm the change has no native-app or KERR diff. Record evidence in `docs/air/`.
+
+- The production home, policy and 404 share the quiet header/footer and an in-flow
+  native compact menu. Focus/anchor/Escape enhancement lives in `navigation.ts`;
+  no content reveal or decorative scroll handler may hide or delay navigation.
+- Policy contents derive from the same imported Markdown headings. Preserve the
+  displayed revision, real HTTP 404 and native link/no-JS recovery. Same-page
+  enhancement preserves Back/Forward and the next keyboard destination.
+- `assets/social/og.html` imports the pinned Air CSS and composes the real native
+  screenshot; `scripts/make-og.sh` renders 1200×630. Keep source/capture/metadata
+  aligned without editing logos, native screenshots or installation guarantees.
+- `scripts/test-air-site.mjs` checks the built site with external Puppeteer tooling;
+  it is not a runtime dependency. Supplement it with native browser/zoom review and
+  keep physical/assistive acceptance distinct from browser input emulation.

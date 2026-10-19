@@ -7,358 +7,415 @@
       "path": "apps/site/src/components/Brand.astro",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
-        "source review"
+        "source review",
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
       ],
       "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
+        "docs/air/evidence/website-interactions-2026-10-12.json",
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "40px coarse target and fragmented wordmark under 200% root-font stress require migration. Baseline evidence does not certify Air conformance."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
     {
       "path": "apps/site/src/components/Download.astro",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
-        "source review"
+        "source review",
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
       ],
       "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
+        "docs/air/evidence/website-interactions-2026-10-12.json",
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "CTA reaches official releases index; beta DMG link verified without downloading/installing. Baseline evidence does not certify Air conformance."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
     {
       "path": "apps/site/src/components/Footer.astro",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
-        "source review"
+        "source review",
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
       ],
       "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
+        "docs/air/evidence/website-interactions-2026-10-12.json",
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "Existing website source reviewed with route and section evidence. Production Air migration remains pending. Baseline evidence does not certify Air conformance."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
     {
       "path": "apps/site/src/components/Header.astro",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
-        "source review"
+        "source review",
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
       ],
       "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
+        "docs/air/evidence/website-interactions-2026-10-12.json",
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "24 anchor journeys, native keyboard/pointer menu and focus return verified. Coarse targets, keyboard animation and no-JS dismissal need refinement. Baseline evidence does not certify Air conformance."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
     {
       "path": "apps/site/src/components/Hero.astro",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
-        "source review"
+        "source review",
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
       ],
       "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
+        "docs/air/evidence/website-interactions-2026-10-12.json",
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "Normal layout fits; tablet spacing and landscape action placement require compact composition. Baseline evidence does not certify Air conformance."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
     {
       "path": "apps/site/src/components/Icon.astro",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
-        "source review"
+        "source review",
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
       ],
       "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
+        "docs/air/evidence/website-interactions-2026-10-12.json",
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "Existing website source reviewed with route and section evidence. Production Air migration remains pending. Baseline evidence does not certify Air conformance."
-    },
-    {
-      "path": "apps/site/src/components/Kicker.astro",
-      "kind": "app-surface",
-      "sourceReviewed": true,
-      "airImplemented": false,
-      "validated": false,
-      "states": [
-        "baseline light/dark",
-        "baseline normal layout",
-        "source review"
-      ],
-      "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
-      ],
-      "evidence": [
-        "docs/air/website-audit.md",
-        "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
-      ],
-      "notes": "Existing website source reviewed with route and section evidence. Production Air migration remains pending. Baseline evidence does not certify Air conformance."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
     {
       "path": "apps/site/src/components/Product.astro",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
-        "source review"
+        "source review",
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
       ],
       "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
+        "docs/air/evidence/website-interactions-2026-10-12.json",
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "Normal layout fits; 320px/200% root-font stress overflows. Baseline evidence does not certify Air conformance."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
     {
       "path": "apps/site/src/components/Provenance.astro",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
-        "source review"
+        "source review",
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
       ],
       "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
+        "docs/air/evidence/website-interactions-2026-10-12.json",
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "Normal layout fits; enlarged-text clipping, legacy band colours and ungated hover motion require migration. Baseline evidence does not certify Air conformance."
-    },
-    {
-      "path": "apps/site/src/components/SpecStrip.astro",
-      "kind": "app-surface",
-      "sourceReviewed": true,
-      "airImplemented": false,
-      "validated": false,
-      "states": [
-        "baseline light/dark",
-        "baseline normal layout",
-        "source review"
-      ],
-      "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
-      ],
-      "evidence": [
-        "docs/air/website-audit.md",
-        "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
-      ],
-      "notes": "Existing website source reviewed with route and section evidence. Production Air migration remains pending. Baseline evidence does not certify Air conformance."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
     {
       "path": "apps/site/src/data/site.ts",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
-        "source review"
+        "source review",
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
       ],
       "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
+        "docs/air/evidence/website-interactions-2026-10-12.json",
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "Existing website source reviewed with route and section evidence. Production Air migration remains pending. Baseline evidence does not certify Air conformance."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
     {
       "path": "apps/site/src/layouts/BaseLayout.astro",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
-        "source review"
+        "source review",
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
       ],
       "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
+        "docs/air/evidence/website-interactions-2026-10-12.json",
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "Existing website source reviewed with route and section evidence. Production Air migration remains pending. Baseline evidence does not certify Air conformance."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
     {
       "path": "apps/site/src/lib/heroGeometry.ts",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
-        "source review"
+        "source review",
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
       ],
       "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
+        "docs/air/evidence/website-interactions-2026-10-12.json",
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "Screenshot framing source reviewed; preserve native screenshot content when replacing website composition. Baseline evidence does not certify Air conformance."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
     {
       "path": "apps/site/src/pages/404.astro",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
-        "source review"
+        "source review",
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
       ],
       "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
+        "docs/air/evidence/website-interactions-2026-10-12.json",
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "Unknown route returns HTTP 404/noindex and recovery works; narrow enlarged-text layout overflows. Baseline evidence does not certify Air conformance."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
     {
       "path": "apps/site/src/pages/index.astro",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
-        "source review"
+        "source review",
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
       ],
       "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
+        "docs/air/evidence/website-interactions-2026-10-12.json",
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "Existing website source reviewed with route and section evidence. Production Air migration remains pending. Baseline evidence does not certify Air conformance."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
     {
       "path": "apps/site/src/pages/privacy.astro",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
-        "source review"
+        "source review",
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
       ],
       "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
+        "docs/air/evidence/website-interactions-2026-10-12.json",
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "Nine policy sections, revision, canonical and heading verified against source; narrow enlarged text fits. Baseline evidence does not certify Air conformance."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
     {
-      "path": "apps/site/src/scripts/motion.ts",
+      "path": "apps/site/src/scripts/navigation.ts",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
       "states": [
-        "baseline light/dark",
-        "baseline normal layout",
-        "source review"
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
       ],
       "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
-        "docs/air/website-audit.md",
-        "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "Anchor destinations and active state verified; JS-only menu dismissal and keyboard-triggered reveals recorded. Baseline evidence does not certify Air conformance."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
     {
       "path": "apps/site/src/styles/air.css",
@@ -380,51 +437,73 @@
         "narrow sheet",
         "light/dark",
         "reduced motion",
-        "coarse/fine pointer"
+        "coarse/fine pointer",
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
       ],
       "viewports": [
-        "320x568",
-        "375x812",
-        "390x844",
-        "430x932",
-        "844x390",
-        "768x1024",
-        "1024x768",
-        "1280x720",
-        "1366x768",
-        "1440x900",
-        "1920x1080",
-        "639x800",
-        "641x800",
-        "1023x768",
-        "1025x768"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
-        "docs/air/validation.md — shared reference checkpoints",
-        "docs/air/components.html"
+        "docs/air/validation.md \u2014 shared reference checkpoints",
+        "docs/air/components.html",
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "Refinement 03 candidate, opt-in reference only. Shared motion and shader evidence recorded in validation; product import, complete state validation and user design review remain pending."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
     {
       "path": "apps/site/src/styles/global.css",
       "kind": "app-surface",
       "sourceReviewed": true,
-      "airImplemented": false,
+      "airImplemented": true,
       "validated": false,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
-        "source review"
+        "source review",
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
       ],
       "viewports": [
-        "Baseline matrix: 15 sizes; see evidence/website-baseline-2026-10-11.json"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
-        "docs/air/evidence/website-interactions-2026-10-12.json"
+        "docs/air/evidence/website-interactions-2026-10-12.json",
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "Dark skip-link contrast fails at 2.33:1; focus motion and unused legacy token/class candidates recorded. Baseline evidence does not certify Air conformance."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
+    },
+    {
+      "path": "assets/social/og.html",
+      "kind": "app-surface",
+      "sourceReviewed": true,
+      "airImplemented": true,
+      "validated": true,
+      "states": [
+        "Air light/dark",
+        "normal and enlarged text",
+        "keyboard/no-JS recovery",
+        "coarse targets",
+        "reduced motion/forced colours"
+      ],
+      "viewports": [
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+      ],
+      "evidence": [
+        "docs/air/evidence/website-air-2026-10-19.json",
+        "docs/air/evidence/website-air-checks-2026-10-19.log"
+      ],
+      "notes": "Rendered and visually reviewed 1200\u00d7630 Air OG card using unchanged native screenshot; metadata and copied built asset verified."
     }
   ]
 }

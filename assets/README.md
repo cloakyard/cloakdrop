@@ -94,9 +94,9 @@ scripts/make-og.sh            # headless Chrome screenshots og.html → og.png (
 node scripts/sync-assets.mjs  # …then distribute it
 ```
 
-The card borrows its fonts, colours and tracking straight from the site's design system
-(`apps/site/src/styles/global.css`), so the two stay in step and a copy change costs a
-re-render rather than a redraw.
+The card imports the pinned `apps/site/src/styles/air.css` and composes the actual
+native screenshot with the same promise as the site. It contains no simulated
+transfer graphic. The original logo and native screenshot bytes remain unchanged.
 
 ## Adding a consumer
 

@@ -1,439 +1,116 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-air-theme="light">
   <head>
     <meta charset="utf-8" />
-    <meta name="color-scheme" content="light" />
-    <title>CloakDrop — Open Graph card</title>
-    <!--
-      Deterministic source for assets/social/og.png (1200×630). Render with
-      scripts/make-og.sh; never hand-edit the PNG.
-
-      This fixed canvas is a compact version of the website hero: the same
-      Archivo/JetBrains Mono type system, editorial ledger rules, cool-gray
-      surface palette, oversized two-tone promise, and range-map instrument.
-    -->
+    <title>CloakDrop social preview</title>
+    <link rel="stylesheet" href="../../apps/site/src/styles/air.css" />
     <style>
-      @font-face {
-        font-family: 'Archivo';
-        font-style: normal;
-        font-weight: 100 900;
-        src: url('../../apps/site/public/fonts/archivo-latin.woff2') format('woff2');
-      }
-
-      @font-face {
-        font-family: 'JetBrains Mono';
-        font-style: normal;
-        font-weight: 100 800;
-        src: url('../../apps/site/public/fonts/jetbrains-mono-latin.woff2') format('woff2');
-      }
-
-      :root {
-        --accent: #287f9b;
-        --accent-ink: #17647d;
-        --bg: #f3f5f4;
-        --surface: #fbfcfc;
-        --surface-2: #edf1f1;
-        --ink: #0a1114;
-        --ink-2: #3e4a50;
-        --ink-3: #5b676c;
-        --ink-4: #637075;
-        --line: #e2e7e7;
-        --line-2: #d5dddd;
-        --positive: #14814b;
-        --sans: 'Archivo', -apple-system, BlinkMacSystemFont, sans-serif;
-        --mono: 'JetBrains Mono', ui-monospace, monospace;
-      }
-
-      *,
-      *::before,
-      *::after {
+      * {
         box-sizing: border-box;
-        margin: 0;
       }
-
-      html,
       body {
         width: 1200px;
         height: 630px;
+        margin: 0;
         overflow: hidden;
+        background: var(--air-page);
+        color: var(--air-ink);
+        font-family: var(--air-font);
       }
-
-      body {
-        color: var(--ink-2);
-        background: var(--bg);
-        font-family: var(--sans);
-        -webkit-font-smoothing: antialiased;
-        text-rendering: optimizeLegibility;
+      header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 40px 48px;
+        font-size: 22px;
+        font-weight: 500;
+        letter-spacing: -0.04em;
       }
-
-      .card {
+      header span {
+        margin-left: auto;
+        color: var(--air-ink-muted);
+        font-size: 16px;
+        font-weight: 400;
+        letter-spacing: 0;
+      }
+      main {
         position: relative;
-        width: 100%;
-        height: 100%;
-        isolation: isolate;
+        margin: 64px 48px 0;
       }
-
-      .site-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        height: 72px;
-        padding: 0 48px;
-        border-bottom: 1px solid var(--line);
+      .copy {
+        width: 450px;
       }
-
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 11px;
+      p {
+        margin: 0;
+        color: var(--air-ink-secondary);
+        font-size: 18px;
+        line-height: 1.6;
       }
-
-      .brand-mark {
-        width: 40px;
-        height: 40px;
-        filter: drop-shadow(0 2px 4px rgba(15, 42, 60, 0.16));
-      }
-
-      .brand-name {
-        color: var(--ink);
-        font-size: 20px;
-        font-weight: 800;
-        letter-spacing: -0.025em;
-      }
-
-      .brand-name span {
-        color: var(--accent-ink);
-      }
-
-      .domain {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        color: var(--ink-4);
-        font-family: var(--mono);
-        font-size: 11px;
-        font-weight: 520;
-        letter-spacing: 0.055em;
-        text-transform: uppercase;
-      }
-
-      .domain::before {
-        width: 32px;
-        height: 1px;
-        background: var(--line-2);
-        content: '';
-      }
-
-      .hero-copy {
-        position: absolute;
-        top: 111px;
-        left: 48px;
-      }
-
-      .kicker {
-        display: flex;
-        align-items: center;
-        gap: 13px;
-        color: var(--accent-ink);
-        font-family: var(--mono);
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 0.085em;
-        text-transform: uppercase;
-      }
-
-      .kicker::before {
-        width: 27px;
-        height: 1px;
-        background: currentColor;
-        content: '';
-      }
-
       h1 {
-        margin-top: 24px;
-        color: var(--ink);
-        font-size: 72px;
-        font-weight: 850;
-        letter-spacing: -0.064em;
-        line-height: 0.9;
+        margin: 24px 0;
+        font-size: 64px;
+        font-weight: 400;
+        line-height: 1.08;
+        letter-spacing: -0.065em;
       }
-
       h1 span {
         display: block;
-        white-space: nowrap;
+        color: var(--air-ink-secondary);
       }
-
-      h1 .accent {
-        margin-top: 7px;
-        color: var(--accent-ink);
+      .description {
+        max-width: 350px;
       }
-
-      .summary {
+      figure {
         position: absolute;
-        top: 121px;
-        right: 48px;
-        width: 270px;
-        padding-top: 19px;
-        border-top: 1px solid var(--line-2);
+        left: 476px;
+        top: 16px;
+        width: 628px;
+        margin: 0;
+        padding: 12px;
+        border: 1px solid var(--air-line);
+        border-radius: var(--air-radius-panel);
+        background: var(--air-surface-soft);
       }
-
-      .summary-copy {
-        color: var(--ink-2);
-        font-size: 17px;
-        font-weight: 430;
-        line-height: 1.5;
+      figure img {
+        display: block;
+        width: 100%;
+        height: auto;
       }
-
-      .proof {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 18px;
-        list-style: none;
-        padding: 0;
-      }
-
-      .proof li {
-        display: inline-flex;
-        align-items: center;
-        min-height: 27px;
-        padding: 0 9px;
-        border: 1px solid var(--line-2);
-        border-radius: 8px;
-        color: var(--ink-4);
-        background: rgba(251, 252, 252, 0.78);
-        font-family: var(--mono);
-        font-size: 8px;
-        font-weight: 570;
-        letter-spacing: 0.045em;
-        text-transform: uppercase;
-      }
-
-      .instrument-label {
+      footer {
         position: absolute;
-        top: 343px;
         left: 48px;
         right: 48px;
+        bottom: 32px;
+        padding-top: 20px;
+        border-top: 1px solid var(--air-line);
         display: flex;
-        align-items: center;
         justify-content: space-between;
-        color: var(--ink-4);
-        font-family: var(--mono);
-        font-size: 9px;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-      }
-
-      .instrument-label .status {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .instrument-label .status::before {
-        width: 5px;
-        height: 5px;
-        border-radius: 50%;
-        background: var(--positive);
-        box-shadow: 0 0 0 3px rgba(20, 129, 75, 0.1);
-        content: '';
-      }
-
-      .instrument {
-        position: absolute;
-        top: 366px;
-        left: 48px;
-        width: 1104px;
-        height: 236px;
-        display: grid;
-        grid-template-columns: 208px 1fr;
-        overflow: hidden;
-        border: 1px solid var(--line-2);
-        border-radius: 22px;
-        background: var(--surface);
-        box-shadow: 0 28px 72px -46px rgba(12, 17, 20, 0.5);
-      }
-
-      .range-map {
-        display: flex;
-        flex-direction: column;
-        padding: 18px 20px 15px;
-        border-right: 1px solid var(--line-2);
-        color: var(--ink-4);
-        background: color-mix(in srgb, var(--surface-2) 72%, var(--surface));
-        font-family: var(--mono);
-        font-size: 8px;
-        letter-spacing: 0.055em;
-        text-transform: uppercase;
-      }
-
-      .map-head,
-      .source,
-      .merge {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .map-head {
-        padding-bottom: 12px;
-        border-bottom: 1px solid var(--line-2);
-      }
-
-      .map-head b {
-        color: var(--accent-ink);
-        font-size: 10px;
-        font-weight: 650;
-      }
-
-      .source {
-        padding-top: 12px;
-      }
-
-      .source strong {
-        color: var(--ink-3);
-        font-weight: 650;
-      }
-
-      .ranges {
-        display: grid;
-        gap: 7px;
-        margin: 17px 0 14px;
-        padding: 0;
-        list-style: none;
-      }
-
-      .ranges li {
-        display: grid;
-        grid-template-columns: 18px 1fr;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .track {
-        position: relative;
-        height: 1px;
-        overflow: visible;
-        background: #cbd4d5;
-      }
-
-      .track i {
-        position: absolute;
-        inset: 0 auto 0 0;
-        width: var(--progress);
-        background: var(--accent);
-      }
-
-      .track i::after {
-        position: absolute;
-        top: 50%;
-        right: -2px;
-        width: 4px;
-        height: 4px;
-        border-radius: 50%;
-        background: var(--accent-ink);
-        transform: translateY(-50%);
-        content: '';
-      }
-
-      .merge {
-        margin-top: auto;
-        padding-top: 11px;
-        border-top: 1px solid var(--line-2);
-      }
-
-      .merge b {
-        color: var(--accent-ink);
-        font-size: 10px;
-      }
-
-      .app-stage {
-        position: relative;
-        overflow: hidden;
-        background:
-          linear-gradient(90deg, rgba(237, 241, 241, 0.7), rgba(251, 252, 252, 0.12) 24%),
-          var(--surface);
-      }
-
-      .app-stage img {
-        position: absolute;
-        top: 20px;
-        left: 24px;
-        width: 850px;
-        max-width: none;
-        filter: drop-shadow(0 6px 5px rgba(14, 26, 31, 0.18));
-      }
-
-      .app-stage::after {
-        position: absolute;
-        z-index: 2;
-        inset: auto 0 0;
-        height: 38px;
-        background: linear-gradient(transparent, var(--surface));
-        pointer-events: none;
-        content: '';
+        color: var(--air-ink-muted);
+        font-size: 16px;
       }
     </style>
   </head>
   <body>
-    <main class="card" aria-label="CloakDrop social preview">
-      <header class="site-header">
-        <div class="brand">
-          <img class="brand-mark" src="../logo/cloakdrop-mark.svg" alt="" />
-          <p class="brand-name">Cloak<span>Drop</span></p>
-        </div>
-        <p class="domain">drop.cloakyard.com</p>
-      </header>
-
-      <section class="hero-copy">
-        <p class="kicker">Native macOS · Open source</p>
-        <h1>
-          <span>Built to resume.</span>
-          <span class="accent">Finished with a record.</span>
-        </h1>
-      </section>
-
-      <aside class="summary">
-        <p class="summary-copy">
-          Adaptive parallel ranges. Relaunch-safe resume. Optional local verification.
-        </p>
-        <ul class="proof">
-          <li>Apple silicon</li>
-          <li>Zero telemetry</li>
-        </ul>
-      </aside>
-
-      <div class="instrument-label" aria-hidden="true">
-        <span>Native app preview · Adaptive range transfer</span>
-        <span class="status">Example · 8 ranges planned</span>
+    <header>
+      <img src="../logo/cloakdrop-mark.svg" width="32" height="32" alt="" />CloakDrop<span
+        >drop.cloakyard.com</span
+      >
+    </header>
+    <main>
+      <div class="copy">
+        <p>Native Mac app. Open source.</p>
+        <h1>Your downloads.<span>Under control.</span></h1>
+        <p class="description">Parallel transfers, saved progress, and video capture.</p>
       </div>
-
-      <figure class="instrument" aria-label="CloakDrop app with an eight-range transfer map">
-        <div class="range-map" aria-hidden="true">
-          <div class="map-head">
-            <span>Adaptive range map</span>
-            <b>N→1</b>
-          </div>
-          <div class="source">
-            <span>Remote object</span>
-            <strong>6.52 GB</strong>
-          </div>
-          <ol class="ranges">
-            <li><span>01</span><span class="track"><i style="--progress: 51%"></i></span></li>
-            <li><span>02</span><span class="track"><i style="--progress: 68%"></i></span></li>
-            <li><span>03</span><span class="track"><i style="--progress: 79%"></i></span></li>
-            <li><span>04</span><span class="track"><i style="--progress: 63%"></i></span></li>
-            <li><span>05</span><span class="track"><i style="--progress: 47%"></i></span></li>
-            <li><span>06</span><span class="track"><i style="--progress: 72%"></i></span></li>
-            <li><span>07</span><span class="track"><i style="--progress: 70%"></i></span></li>
-            <li><span>08</span><span class="track"><i style="--progress: 49%"></i></span></li>
-          </ol>
-          <div class="merge"><span>Planned ranges</span><b>08 → 01</b></div>
-        </div>
-        <div class="app-stage">
-          <img src="../screenshots/hero.png" alt="" />
-        </div>
+      <figure>
+        <img
+          src="../screenshots/hero.png"
+          alt="CloakDrop running on macOS with an example download library"
+        />
       </figure>
     </main>
+    <footer>
+      <span>Free · No account · No app telemetry</span><span>Actual app · Example library</span>
+    </footer>
   </body>
 </html>

@@ -25,7 +25,7 @@ async function scan(directory) {
   );
   return nested.flat();
 }
-const paths = (await scan(scanRoot)).sort();
+const paths = [...(await scan(scanRoot)), "assets/social/og.html"].sort();
 const surfaces = paths.map(
   (path) =>
     saved.get(path) ?? {

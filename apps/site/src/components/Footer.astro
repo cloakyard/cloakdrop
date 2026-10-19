@@ -4,24 +4,14 @@ import Icon from './Icon.astro';
 interface Props { linkPrefix?: string; }
 const { linkPrefix = '' } = Astro.props;
 ---
-<footer class="footer">
-  <div class="container inner">
-    <p><strong translate="no">CloakDrop</strong><span>Made with care by <a href="https://github.com/sumitsahoo">Sumit Sahoo</a>.</span></p>
+<footer class="site-footer frame">
+  <div class="footer-inner">
+    <p><span translate="no">CloakDrop</span> · Made with care by <a href="https://github.com/sumitsahoo">Sumit Sahoo</a>.</p>
     <nav aria-label="Footer">
-      <a href={linkPrefix + downloads.sectionHref}>{downloads.label}</a>
-      <a href={site.repo}>GitHub</a>
-      <a href={site.privacyPolicy}>Privacy</a>
+      <a href={linkPrefix + downloads.sectionHref}>Download</a>
+      <a href={site.repo}>Source</a>
+      <a href={site.privacyPolicy} aria-current={Astro.url.pathname === '/privacy/' ? 'page' : undefined}>Privacy</a>
       <a href="https://cloakyard.com">Cloakyard <Icon name="arrow" size={15} /></a>
     </nav>
   </div>
 </footer>
-<style>
-  .footer { border-top: 1px solid var(--line-2); background: var(--surface-2); }
-  .inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem 2rem; padding-block: 1.7rem; }
-  p { display: grid; gap: .3rem; font-size: .875rem; color: var(--ink-3); }
-  strong { font-size: 1.05rem; }
-  p a { text-decoration: underline; text-underline-offset: 3px; }
-  nav { display: flex; flex-wrap: wrap; gap: .25rem 1.5rem; }
-  nav a { display: inline-flex; align-items: center; gap: .4rem; min-height: 44px; font-size: .875rem; font-weight: 600; }
-  a:hover { color: var(--accent-ink); }
-</style>

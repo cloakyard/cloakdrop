@@ -1,0 +1,92 @@
+
+assets
+
+> cloakdrop-site@1.0.0 sync:assets
+> node ../../scripts/sync-assets.mjs
+
+sync-assets: 0 copied, 7 up to date.
+
+check
+
+> cloakdrop-site@1.0.0 check
+> astro check
+
+13:27:12 [types] Generated 29ms
+13:27:12 [check] Getting diagnostics for Astro files in /Users/sumitsahoo/Developer/cloakdrop/apps/site...
+Result (17 files): 
+- 0 errors
+- 0 warnings
+- 0 hints
+
+
+build
+
+> cloakdrop-site@1.0.0 prebuild
+> npm run sync:assets
+
+
+> cloakdrop-site@1.0.0 sync:assets
+> node ../../scripts/sync-assets.mjs
+
+sync-assets: 0 copied, 7 up to date.
+
+> cloakdrop-site@1.0.0 build
+> astro build
+
+13:27:14 [types] Generated 22ms
+13:27:14 [build] output: "static"
+13:27:14 [build] mode: "static"
+13:27:14 [build] directory: /Users/sumitsahoo/Developer/cloakdrop/apps/site/dist/
+13:27:14 [build] Collecting build info...
+13:27:14 [build] ✓ Completed in 48ms.
+13:27:14 [build] Building static entrypoints...
+13:27:14 [vite] ✓ built in 136ms
+13:27:14 [vite] ✓ built in 13ms
+13:27:14 [build] Rearranging server assets...
+
+ generating static routes 
+13:27:14   ├─ /404.html (+11ms) 
+13:27:14   ├─ /privacy/index.html (+3ms) 
+13:27:14   ├─ /index.html (+2ms) 
+13:27:14 ✓ Completed in 40ms.
+
+13:27:14 [build] ✓ Completed in 207ms.
+13:27:15 [@astrojs/sitemap] `sitemap-index.xml` created at `dist`
+13:27:15 [build] 3 page(s) built in 262ms
+13:27:15 [build] Complete!
+
+test-final
+PASS 432 layouts; 34 journey records; 35 captures; no script errors or foreign runtime requests.
+
+details
+PASS 18 policy active destinations; extra viewport and enlarged-text captures saved.
+
+design
+Air contract and 18 inventory records are valid. Runtime conformance is audited separately.
+
+portability
+{
+  "product": "cloakdrop",
+  "checks": [
+    "isolated bundle passes with no dependencies or sibling files",
+    "missing light lifecycle hash rejected",
+    "altered light lifecycle rejected",
+    "unsynchronized canonical source rejected when present",
+    "bundle paired with a different contract rejected",
+    "mismatched document version rejected",
+    "missing motion hash rejected",
+    "altered motion module rejected",
+    "altered colour math rejected",
+    "missing overlay bundle hash rejected",
+    "altered overlay module rejected",
+    "missing reading/recovery behavior hash rejected",
+    "altered reading page rejected",
+    "missing file lifecycle behavior hash rejected",
+    "altered file study rejected",
+    "altered collection study rejected",
+    "missing manifest rejected",
+    "restored bundle passes"
+  ],
+  "files": 24,
+  "fixture": null
+}

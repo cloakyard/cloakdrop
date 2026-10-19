@@ -1,49 +1,28 @@
 ---
 import { downloads, site } from '../data/site';
-import Kicker from './Kicker.astro';
 import Icon from './Icon.astro';
 ---
-
-<section id="download" class="download section" data-reveal>
-  <div class="container download-grid">
-    <div class="copy">
-      <Kicker num="03" label="Yours to download" />
-      <h2>A little more care.<br /><span class="accent">For every download.</span></h2>
-      <p class="requirements">{downloads.note}<br />Free · Open source</p>
-      <a class="btn btn--primary" href={downloads.href}>
-        <Icon name="download" size={18} stroke={2} />{downloads.actionLabel}
+<section id="download" class="section frame" tabindex="-1" aria-labelledby="download-title">
+  <div class="download-grid">
+    <div class="section-intro">
+      <p class="eyebrow">Yours to download</p>
+      <h2 id="download-title">A little more care. For every download.</h2>
+      <p>{downloads.note}<br />Free · Open source</p>
+      <a class="air-button air-button--primary" href={downloads.href}>
+        <Icon name="download" size={18} />{downloads.actionLabel}
       </a>
-      <p class="release-note">{downloads.status}</p>
+      <p class="detail release-note">{downloads.status}</p>
     </div>
     <div class="install" aria-labelledby="install-title">
       <h3 id="install-title">On your Mac in a few steps.</h3>
       <ol>
-        <li><span>01</span><p>Download the <strong>.dmg</strong> asset from <a href={downloads.href}>GitHub Releases</a>.</p></li>
-        <li><span>02</span><p>Open it, drag <strong>CloakDrop</strong> to <strong>Applications</strong>, then open the app.</p></li>
-        <li><span>03</span><p>If macOS blocks it and you trust the download, go to <strong>System Settings → Privacy &amp; Security → Open Anyway</strong>, then confirm <strong>Open</strong>.</p></li>
+        <li>Download the <strong>.dmg</strong> asset from <a href={downloads.href}>GitHub Releases</a>.</li>
+        <li>Open it, drag <strong>CloakDrop</strong> to <strong>Applications</strong>, then open the app.</li>
+        <li>If macOS blocks it and you trust the download, go to <strong>System Settings → Privacy &amp; Security → Open Anyway</strong>, then confirm <strong>Open</strong>.</li>
       </ol>
-      <p class="install-note">Current builds are locally signed and <strong>not notarized</strong>.
+      <p class="detail">Current builds are locally signed and <strong>not notarized</strong>.
         Check the release notes for the signing status of the build you download.
         <a href="https://support.apple.com/en-us/102445">Apple’s opening guide</a> · <a href={site.repo + '/issues'}>Share feedback</a></p>
     </div>
   </div>
 </section>
-
-<style>
-  .download { padding-top: 0; }
-  .download-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(2.5rem, 7vw, 7rem); padding-top: clamp(3rem, 5vw, 5rem); border-top: 1px solid var(--line-2); }
-  h2 { margin-top: 1.4rem; font-size: clamp(2.3rem, 4.2vw, 4.1rem); }
-  .requirements { margin-top: 1.6rem; color: var(--ink-3); font-size: 1rem; }
-  .btn { margin-top: 1.5rem; }
-  .release-note { max-width: 43ch; margin-top: 1rem; color: var(--ink-4); font-size: .875rem; line-height: 1.55; }
-  .install { padding-top: .25rem; }
-  h3 { font-size: 1.4rem; }
-  ol { padding: 0; margin-top: 1.5rem; list-style: none; }
-  li { display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: .75rem; padding-block: 1rem; border-top: 1px solid var(--line-2); }
-  li > span { padding-top: .1rem; color: var(--accent-ink); font: 550 .875rem/1.6 var(--font-mono); }
-  li p { font-size: 1rem; line-height: 1.55; }
-  .install a { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 3px; }
-  .install-note { margin-top: .5rem; color: var(--ink-3); font-size: .875rem; line-height: 1.65; }
-  @media (max-width: 760px) { .download-grid { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; } }
-  @media (max-width: 480px) { .btn { width: 100%; padding-inline: .65rem; } }
-</style>
