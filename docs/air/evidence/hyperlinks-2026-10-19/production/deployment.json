@@ -1,0 +1,31 @@
+{
+  "app": "cloakdrop",
+  "pr": 41,
+  "source": "78cd914ed63131f9bef8764de7a3a1a1078e6f1b",
+  "main": "e3edf4ebfccea3f1a9d9531776fa573e302f02c8",
+  "version": "f55dfdb2",
+  "build": "5c203b9f-e464-4e13-89bd-c7e13056a2a0",
+  "trafficPercent": 100,
+  "verifiedAt": "2026-10-19T14:59:41.627510+00:00",
+  "prUrl": "https://github.com/cloakyard/cloakdrop/pull/41",
+  "checks": [
+    {
+      "name": "Workers Builds: cloakdrop",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://dash.cloudflare.com/73a3338267f567d02c3b79c9bcedc6a6/workers/services/view/cloakdrop/production/builds/5c203b9f-e464-4e13-89bd-c7e13056a2a0"
+    },
+    {
+      "name": "contract",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/cloakyard/cloakdrop/actions/runs/39272527923/job/118128294627"
+    },
+    {
+      "name": "website",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/cloakyard/cloakdrop/actions/runs/39272527923/job/118128293437"
+    }
+  ]
+}
