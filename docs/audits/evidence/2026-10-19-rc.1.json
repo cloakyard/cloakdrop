@@ -1,0 +1,45 @@
+{
+  "candidate": "v1.0.0-rc.1",
+  "appVersion": "1.0.0",
+  "build": "20261019",
+  "sourceCommit": "27953ff74b73fb6400e6a7c81cf72d54d153bdd5",
+  "artifact": "CloakDrop-v1.0.0-rc.1.dmg",
+  "sha256": "c363dc38e9cd48ade60b74458f0f3f83c5dd666f60332af274134086556c9471",
+  "bytes": 48181551,
+  "architecture": "arm64",
+  "minimumMacOS": "26.0",
+  "configuration": "Release",
+  "toolchain": "Xcode 27.0 (27A266a), Swift 6.4, macOS SDK 27.0",
+  "signing": "ad hoc; teamless App Sandbox and hardened runtime; not notarized",
+  "matchingFileAndLinkEntries": 295,
+  "helperVersions": {
+    "GRDB": "7.11.1",
+    "ffmpeg": "9.0.2",
+    "yt-dlp": "2026.08.19"
+  },
+  "officialFrozenRuntimeException": true,
+  "published": false,
+  "installerSourceCommit": "df413b2981b78025c2c2d0b2a93903cf55fd2807",
+  "installerBackgroundSHA256": "441831f7e8f5e94d6557d578880a2aaebbab643a8026ec93ec2b07737c7203cf",
+  "tests": {
+    "coreTests": 626,
+    "coreSuites": 87,
+    "websiteLayouts": 432,
+    "websiteJourneys": 34,
+    "horizonStaticFallbacks": 6,
+    "airInventory": 20,
+    "portabilityAssertions": 18,
+    "npmAuditVulnerabilities": 0
+  },
+  "nativeSmoke": {
+    "launchedFromDMG": true,
+    "aboutVersion": "1.0.0 (20261019)",
+    "downloadBytes": 8388608,
+    "downloadSHA256": "7d212b9c884f5c77896de960ae17cc341cda43b14d6a971f34ca29ebd4badf7f",
+    "appChecksumVerified": true,
+    "independentHashMatched": true,
+    "ownedTestRecordAndPayloadRemoved": true,
+    "lifetimeStatistics": "One 8 MiB verification transfer remains in aggregate statistics; no statistics reset."
+  },
+  "helperSmoke": "Exact copies of packaged helpers report expected versions from a temporary sandboxed parent with the app base entitlements."
+}
