@@ -1,19 +1,19 @@
 ---
 name: CloakDrop website — Cloakyard Air
-version: 1.0.3
+version: 1.0.5
 status: approved
 date: 2026-10-19
 scope: complete-web-product
 source-repository: https://github.com/cloakyard/cloakyard
 source-directory: design/air
-family-contract-sha256: abcaee334ca7f5e7806fbab230349bb0522020c9670a9c19504e707d4c9f1424
+family-contract-sha256: 94c5e537752f7efaf3f16c706c32be45e532875b313ad38c49f00a17aa2c5acc
 ---
 
 <!-- BEGIN CLOAKYARD AIR CONTRACT -->
 
 # Cloakyard Air design contract
 
-Version: **1.0.3 — app-coloured landing light** · Direction: **Air** · Updated: **2026-10-19**
+Version: **1.0.5 — restored hyperlink treatment** · Direction: **Air** · Updated: **2026-10-19**
 
 The detailed Air system is **locked for implementation**. On 2026-10-13 the user
 authorized one final agent review followed by implementation; that review is
@@ -688,6 +688,20 @@ platform, and how to open it. KERR is a text exploration link with brief context
 no screenshot, simulation, orbital illustration, animated preview, or embedded app.
 
 ### Landing navigation and text resilience
+
+- Hyperlinks with a directional cue use the angled Lucide ArrowUpRight shape
+  (or its matching static SVG): Source, product/family destinations and reading
+  links. Preserve the approved angled cue; consistency work must not substitute
+  a different direction. Plain text links do not need an added icon.
+- Forward app actions and same-page jumps retain ArrowRight. Back, download and
+  disclosure controls keep their meaningful icons; editor artwork remains data.
+  Preserve destinations, new-tab behavior and decorative icon hiding. Existing
+  fine-pointer hover motion follows the arrow (2px right/up for angled links);
+  keyboard focus and reduced motion stay still.
+- Header/footer navigation and footer credits retain their approved neutral ink; Source uses
+  `ink-secondary`. A generic body-link class must not override that colour. Meaningful
+  body/prose links retain shared blue; focus and active indicators keep their
+  existing Air treatment. Validate the cascade in both themes and compact menus.
 
 - Keep every destination available at every width. A compact header uses a native,
   in-flow disclosure; its links expand below the brand row without covering the

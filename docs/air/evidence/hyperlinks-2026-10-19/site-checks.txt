@@ -1,0 +1,2 @@
+Evidence: /tmp/air-hyperlinks-2026-10-19/cloakdrop-air-site-zgErps
+PASS 432 layouts; 34 journey records; 35 captures; no script errors or foreign runtime requests.

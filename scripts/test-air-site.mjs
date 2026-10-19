@@ -106,7 +106,18 @@ async function layout(state) {
       small,
       coarse: matchMedia("(pointer:coarse)").matches,
       menuOverlap: visible(toggle) && mark.right > toggleRect.left + 0.5,
+      duplicateSource: visible(toggle) && visible(document.querySelector(".desktop-source")),
+      footerCreditColourMatches: [...document.querySelectorAll(".site-footer p a")].every(
+        (link) => getComputedStyle(link).color === getComputedStyle(
+          matchMedia("(forced-colors: active)").matches
+            ? document.querySelector(".site-footer nav a")
+            : link.parentElement,
+        ).color,
+      ),
       bodyBackground: getComputedStyle(document.body).backgroundColor,
+      navigationColours: [...new Set([...document.querySelectorAll(
+        ".desktop-nav a, .desktop-source, .mobile-nav nav a",
+      )].filter(visible).map((link) => getComputedStyle(link).color))],
       visibleH1: [...document.querySelectorAll("h1")].filter(visible).length,
       brokenImages: [...document.images]
         .filter((i) => !i.complete || !i.naturalWidth)
@@ -118,6 +129,9 @@ async function layout(state) {
   assert.deepEqual(result.outside, [], `${JSON.stringify(state)} text bounds`);
   assert.deepEqual(result.small, [], `${JSON.stringify(state)} target sizes`);
   assert.equal(result.menuOverlap, false, `${JSON.stringify(state)} menu overlaps brand`);
+  assert.ok(result.navigationColours.length <= 1, `${JSON.stringify(state)} navigation colour drift`);
+  assert.equal(result.duplicateSource, false, `${JSON.stringify(state)} duplicate compact navigation`);
+  assert.ok(result.footerCreditColourMatches, `${JSON.stringify(state)} footer credit colour drift`);
   assert.equal(result.visibleH1, 1);
   assert.deepEqual(result.brokenImages, []);
 }

@@ -240,3 +240,25 @@ phone policy/recovery captures were visually inspected. Astro check/build/dry ru
 build, hashes and screenshots. Main/dev remain unchanged and need Air integration
 before another main-triggered deployment. Native/RC artifacts are unchanged;
 physical/assistive/device gates remain open.
+
+## 2026-10-19 — brand-coloured production deployment
+
+Dev → main PR #40 merged as `5ee9a01`; Cloudflare version
+`38ca8179` is active at 100%. Fresh checks/builds and remote CI pass.
+Exact live asset hashes, twelve responsive/theme cases, both real GPU themes
+and idle checks pass; desktop/laptop/phone light/dark states were inspected.
+[Deployment audit](brand-deployment-2026-10-19.md) contains the source/build identity
+and evidence. Resume/IMG remain local; physical/assistive acceptance remains open.
+
+## 2026-10-19 — consistent landing arrows
+
+Air 1.0.4 uses straight forward-navigation arrows. See
+[scope, validation and evidence](link-arrows-2026-10-19.md). Twenty-two responsive
+light/dark cases and two enlarged-text cases pass, including compact-menu
+keyboard return; desktop/laptop/phone captures were visually inspected.
+
+## 2026-10-19 — approved angled hyperlinks and neutral navigation
+
+Air 1.0.5 restores the approved angled hyperlink cue and neutral header/footer
+treatment. See [scope and evidence](hyperlinks-2026-10-19.md). Twenty-four local
+responsive/theme/text cases pass; desktop/laptop/phone captures were inspected.
