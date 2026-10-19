@@ -129,6 +129,12 @@ there is no deployment workflow in this repository. Verify these settings on the
 Production triggers and branch/PR previews depend on the dashboard configuration; do not assume
 they are enabled from the local Wrangler file alone. A local build or dry run does not publish.
 
+Observed October19,2026: production branch `main`, non-production builds enabled,
+watch include `*`, root `apps/site`, and the commands above. The Air source on
+`codex/air-refresh` was built and its version promoted to 100% production traffic.
+Main/dev still need Air integration before a later main-triggered deployment.
+See the [production deployment audit](../../docs/audits/2026-10-19-website-deployment.md).
+
 ### Manual deploy (optional)
 
 ```bash

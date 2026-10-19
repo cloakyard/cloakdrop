@@ -26,6 +26,8 @@ describe each shipped build.
 
 ## Release verification
 
+- [October 19, 2026: Air website production deployment](audits/2026-10-19-website-deployment.md).
+
 - [1.0.0-rc.1 release notes](releases/v1.0.0-rc.1.md): installer, checksums and known limits.
 - [October 19, 2026: RC build, packaging and native verification](audits/2026-10-19-rc.1.md).
 - [October 19, 2026: Air installer artwork](audits/2026-10-19-installer.md).

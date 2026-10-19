@@ -223,3 +223,20 @@ with real icons/labels and no clipping; the background is 1520×1140 at 144 dpi.
 Source/render, mounted-DMG review, code signatures, 20-source design integrity,
 18 portability checks and exact family specification sync pass.
 See [installer evidence](../audits/2026-10-19-installer.md).
+
+
+## 2026-10-19 — production Air website deployment
+
+After explicit deployment authorization, Cloudflare built source `6ac533f` and
+version `f99e2602-7fef-4351-8d53-d51b90c0a455` was promoted to 100% production traffic.
+Eighteen live response hashes match the local build; `no-transform` is present on
+all checked responses. Home/privacy200 and unknown404 are verified. Live 432 layouts,
+34 journeys, 35 captures, real GPU lifecycle and six fallback profiles pass without
+script errors or foreign runtime requests. Desktop/laptop/phone light/dark and
+phone policy/recovery captures were visually inspected. Astro check/build/dry run,
+20-source design, 18 portability, exact sync and remote website/contract checks pass.
+
+[Full deployment audit](../audits/2026-10-19-website-deployment.md) records the source,
+build, hashes and screenshots. Main/dev remain unchanged and need Air integration
+before another main-triggered deployment. Native/RC artifacts are unchanged;
+physical/assistive/device gates remain open.

@@ -1,0 +1,166 @@
+{
+  "checkedAt": "2026-10-19T12:53:24.159Z",
+  "base": "https://drop.cloakyard.com",
+  "checks": [
+    {
+      "path": "/404.html",
+      "status": 200,
+      "contentType": "text/html",
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "bytes": 7204,
+      "sha256": "8770af75a93f40be0a3f1f59e9e0cc2625769d8e90f146651cdc86cdf5417beb",
+      "expectedSha256": "8770af75a93f40be0a3f1f59e9e0cc2625769d8e90f146651cdc86cdf5417beb"
+    },
+    {
+      "path": "/air-light.LICENSE.txt",
+      "status": 200,
+      "contentType": "text/plain",
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "bytes": 15864,
+      "sha256": "c0624d0848ea3de0ef47c127a134566f1dfd23fd95580f2c39eb8fb123d78d8a",
+      "expectedSha256": "c0624d0848ea3de0ef47c127a134566f1dfd23fd95580f2c39eb8fb123d78d8a"
+    },
+    {
+      "path": "/apple-touch-icon.png",
+      "status": 200,
+      "contentType": "image/png",
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "bytes": 96552,
+      "sha256": "ec5ecf474a00c63922a493f6112c71191d50aec90a1ec2e9727d734745d83c34",
+      "expectedSha256": "ec5ecf474a00c63922a493f6112c71191d50aec90a1ec2e9727d734745d83c34"
+    },
+    {
+      "path": "/cloakdrop-mark.svg",
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "bytes": 1989,
+      "sha256": "d47058d6f2e955d2bdb5d093ca2378a07c3191c1d8d5b09b928f739d9238e68b",
+      "expectedSha256": "d47058d6f2e955d2bdb5d093ca2378a07c3191c1d8d5b09b928f739d9238e68b"
+    },
+    {
+      "path": "/favicon.png",
+      "status": 200,
+      "contentType": "image/png",
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "bytes": 29216,
+      "sha256": "140f80a65ef2b9422d7b923e30600924cd138240c1806a65d5d8a60f380583b9",
+      "expectedSha256": "140f80a65ef2b9422d7b923e30600924cd138240c1806a65d5d8a60f380583b9"
+    },
+    {
+      "path": "/hero.png",
+      "status": 200,
+      "contentType": "image/png",
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "bytes": 445053,
+      "sha256": "cac6e7b8991985c974405f11bd348e36eb25fc9d1fe25559a071fc5a644395ca",
+      "expectedSha256": "cac6e7b8991985c974405f11bd348e36eb25fc9d1fe25559a071fc5a644395ca"
+    },
+    {
+      "path": "/hero.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "bytes": 89652,
+      "sha256": "d81b91458d28ae9d0557ce3798c15fcf49615ce634ae2656f035fd6744eb9aab",
+      "expectedSha256": "d81b91458d28ae9d0557ce3798c15fcf49615ce634ae2656f035fd6744eb9aab"
+    },
+    {
+      "path": "/",
+      "status": 200,
+      "contentType": "text/html",
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "bytes": 14565,
+      "sha256": "a1fd8005e2dcf6e7da6a4873712c21b020c53d12a47d8fa01deaa9b84ee55e02",
+      "expectedSha256": "a1fd8005e2dcf6e7da6a4873712c21b020c53d12a47d8fa01deaa9b84ee55e02"
+    },
+    {
+      "path": "/og.png",
+      "status": 200,
+      "contentType": "image/png",
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "bytes": 106885,
+      "sha256": "7a920c2312904b39ab4dfe5e89cf866c7328b4de21ff80dc052caceb750cc73a",
+      "expectedSha256": "7a920c2312904b39ab4dfe5e89cf866c7328b4de21ff80dc052caceb750cc73a"
+    },
+    {
+      "path": "/robots.txt",
+      "status": 200,
+      "contentType": "text/plain",
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "bytes": 78,
+      "sha256": "ba3048b0e802a6f9093eb98023b66fffe1fa42b8ebb61c93864a5f0ee1cba97e",
+      "expectedSha256": "ba3048b0e802a6f9093eb98023b66fffe1fa42b8ebb61c93864a5f0ee1cba97e"
+    },
+    {
+      "path": "/sitemap-0.xml",
+      "status": 200,
+      "contentType": "application/xml",
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "bytes": 440,
+      "sha256": "c477e24dc2eba33a1c5229580a2cc4206180b86035e56f9509a394d1c25625f5",
+      "expectedSha256": "c477e24dc2eba33a1c5229580a2cc4206180b86035e56f9509a394d1c25625f5"
+    },
+    {
+      "path": "/sitemap-index.xml",
+      "status": 200,
+      "contentType": "application/xml",
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "bytes": 189,
+      "sha256": "cc3cad167f02f41b0221f8691cc3ff468ddeb39a9c4795e6d2515b19f139995f",
+      "expectedSha256": "cc3cad167f02f41b0221f8691cc3ff468ddeb39a9c4795e6d2515b19f139995f"
+    },
+    {
+      "path": "/privacy/",
+      "status": 200,
+      "contentType": "text/html",
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "bytes": 17010,
+      "sha256": "9229bc4dccc66acfe44be1da92bf97c05a5f9a8356bcfcb452316f8fe8222672",
+      "expectedSha256": "9229bc4dccc66acfe44be1da92bf97c05a5f9a8356bcfcb452316f8fe8222672"
+    },
+    {
+      "path": "/icons/favicon.svg",
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "bytes": 2059,
+      "sha256": "078a85597e9786a8f3ba9fee7d8e46bf9fbd42c7ca6d20e1bedb9cd024afefec",
+      "expectedSha256": "078a85597e9786a8f3ba9fee7d8e46bf9fbd42c7ca6d20e1bedb9cd024afefec"
+    },
+    {
+      "path": "/_astro/AirHorizon.astro_astro_type_script_index_0_lang.NTD0FiGH.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "bytes": 6690,
+      "sha256": "900348a2f7d9f8bb224332fafae2ce7fd94e581ab83a5bf0d8d8ac92846c645e",
+      "expectedSha256": "900348a2f7d9f8bb224332fafae2ce7fd94e581ab83a5bf0d8d8ac92846c645e"
+    },
+    {
+      "path": "/_astro/Header.CeQiRzlN.css",
+      "status": 200,
+      "contentType": "text/css",
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "bytes": 45255,
+      "sha256": "789bd16f8c232c37de5ee9655fe041ac031760f0138188c31bef70c00e251061",
+      "expectedSha256": "789bd16f8c232c37de5ee9655fe041ac031760f0138188c31bef70c00e251061"
+    },
+    {
+      "path": "/_astro/air-light-shader.CRQ1md_g.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "bytes": 1261560,
+      "sha256": "01d853162f685ea21854ce2634c833b3c76b19b6baba72d0ac7c596333f56c0f",
+      "expectedSha256": "01d853162f685ea21854ce2634c833b3c76b19b6baba72d0ac7c596333f56c0f"
+    },
+    {
+      "path": "/missing-air-review",
+      "status": 404,
+      "cacheControl": "public, max-age=0, must-revalidate, no-transform",
+      "sha256": "8770af75a93f40be0a3f1f59e9e0cc2625769d8e90f146651cdc86cdf5417beb",
+      "expectedSha256": "8770af75a93f40be0a3f1f59e9e0cc2625769d8e90f146651cdc86cdf5417beb"
+    }
+  ]
+}

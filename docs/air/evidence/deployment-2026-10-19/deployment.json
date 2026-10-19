@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-19",
+  "source": "6ac533ffc8dc2a7a5094223dd6d180300ab16ed7",
+  "branch": "codex/air-refresh",
+  "production": "https://drop.cloakyard.com",
+  "worker": "cloakdrop",
+  "version": "f99e2602-7fef-4351-8d53-d51b90c0a455",
+  "trafficPercent": 100,
+  "buildId": "3edba187-3214-4435-9980-4b63375f7fb7",
+  "buildDurationSeconds": 28,
+  "buildNode": "24.21.0",
+  "buildNpm": "10.9.2",
+  "method": "Existing Cloudflare Workers Builds integration; branch version built and promoted to 100% production traffic in dashboard.",
+  "buildSettings": {
+    "root": "apps/site",
+    "build": "npm run build",
+    "productionDeploy": "npx wrangler deploy",
+    "branchUpload": "npx wrangler versions upload",
+    "productionBranch": "main",
+    "nonProductionBuilds": true,
+    "watchIncludes": [
+      "*"
+    ]
+  },
+  "checks": {
+    "astroDiagnostics": 0,
+    "staticRoutes": 3,
+    "dryRun": "pass",
+    "designInventory": 20,
+    "portabilityChecks": 18,
+    "exactContractSync": "pass",
+    "productionResponsesMatchingLocalBytes": 18,
+    "liveLayouts": 432,
+    "liveJourneys": 34,
+    "captures": 35,
+    "consoleErrors": 0,
+    "foreignRuntimeRequests": 0,
+    "gpuLifecycle": "pass",
+    "staticFallbackProfiles": 6,
+    "githubWebsite": "success",
+    "githubContract": "success",
+    "cloudflareBuild": "success"
+  },
+  "githubChecks": "https://github.com/cloakyard/cloakdrop/actions/runs/39255213152",
+  "visualReview": [
+    "desktop 1440 light/dark",
+    "laptop 1280 light/dark",
+    "phone 390 light/dark",
+    "phone privacy dark",
+    "phone 404 light"
+  ],
+  "limits": [
+    "main/dev remain unchanged; integrate Air before the next main-triggered website deployment",
+    "physical touch, spoken assistive and GPU/battery/thermal device acceptance remain open",
+    "no native app or published RC artifact changed"
+  ],
+  "scratch": "/tmp/cloakdrop-deploy-2026-10-19"
+}
