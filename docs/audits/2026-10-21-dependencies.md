@@ -27,3 +27,9 @@ Native inputs are unchanged; earlier 626-test/Debug/Release results are in the
 [Evidence and build hashes](../air/evidence/dependencies-2026-10-21.json).
 Rollout remains prepared locally; no push/deployment. RC signing/notarization,
 physical-device and assistive acceptance limitations remain as documented.
+
+Final compatible transitive refresh updates Vite 8.3.5, Undici 8.12.3,
+fast-uri 3.1.9, tinyps 0.5.1 and Shiki's TextMate 10.1.0. A second clean
+install/check/build/audit passes. Every executable and visible build asset is
+byte-identical to the inspected build; only the synchronized shader license
+inventory changes. The existing responsive/feature proof therefore remains valid.

@@ -1,0 +1,35 @@
+npm notice run cloakdrop-site@1.0.0 npx
+npm notice run 'npm' run build
+npm notice run cloakdrop-site@1.0.0 prebuild
+npm notice run npm run sync:assets
+npm notice run cloakdrop-site@1.0.0 sync:assets
+npm notice run node ../../scripts/sync-assets.mjs
+sync-assets: 0 copied, 7 up to date.
+npm notice run cloakdrop-site@1.0.0 build
+npm notice run astro build
+17:00:43 [types] Generated 19ms
+17:00:43 [build] output: "static"
+17:00:43 [build] mode: "static"
+17:00:43 [build] directory: /Users/sumitsahoo/Developer/cloakdrop/apps/site/dist/
+17:00:43 [build] Collecting build info...
+17:00:43 [build] ✓ Completed in 41ms.
+17:00:43 [build] Building static entrypoints...
+17:00:43 [vite] ✓ built in 221ms
+17:00:43 [WARN] [vite] [plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+17:00:43 [vite] ✓ built in 180ms
+17:00:43 [build] Rearranging server assets...
+
+ generating static routes 
+17:00:43   ├─ /404.html (+9ms) 
+17:00:43   ├─ /privacy/index.html (+2ms) 
+17:00:43   ├─ /index.html (+2ms) 
+17:00:43 ✓ Completed in 18ms.
+
+17:00:43 [build] ✓ Completed in 437ms.
+17:00:43 [@astrojs/sitemap] `sitemap-index.xml` created at `dist`
+17:00:43 [build] 3 page(s) built in 502ms
+17:00:43 [build] Complete!
