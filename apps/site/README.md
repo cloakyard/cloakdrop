@@ -28,12 +28,13 @@ fallback and no work at rest. There are no scroll reveals or simulated transfers
 
 ## Develop
 
-Requires **Node 22.22.0 or later** and npm. Start from the repository root; the remaining
+Requires **Node 22.22.2+, 24.15.0+ or 26+** and **npm 12.2.0**, matching
+`package.json`. Start from the repository root; the remaining
 commands in this guide run inside `apps/site/`.
 
 ```bash
 cd apps/site
-npm ci               # reproducible install from package-lock.json
+npx --yes npm@12.2.0 ci # reproducible install from package-lock.json
 npm run dev          # http://localhost:4321 (hot reload)
 ```
 

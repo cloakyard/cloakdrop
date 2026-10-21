@@ -1,0 +1,9 @@
+{
+  "exact": false,
+  "changed": {
+    "air-light.LICENSE.txt": {
+      "before": "c0624d0848ea3de0ef47c127a134566f1dfd23fd95580f2c39eb8fb123d78d8a",
+      "after": "3b8981e3bcdd59a5fc36c26520dede3fc570039c444974bc80559681fad7f052"
+    }
+  }
+}

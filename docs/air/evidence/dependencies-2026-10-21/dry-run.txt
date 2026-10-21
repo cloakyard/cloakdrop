@@ -1,0 +1,13 @@
+npm notice run cloakdrop-site@1.0.0 npx
+npm notice run 'npm' exec -- wrangler deploy --dry-run --outdir /tmp/cloakyard-rollout-2026-10-21/cloakdrop/worker-dry-run
+npm notice run cloakdrop-site@1.0.0 npx
+npm notice run 'wrangler' deploy --dry-run --outdir /tmp/cloakyard-rollout-2026-10-21/cloakdrop/worker-dry-run
+
+ ⛅️ wrangler 4.151.3
+────────────────────
+
+Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+✨ Read 21 files from the assets directory /Users/sumitsahoo/Developer/cloakdrop/apps/site/dist
+Total Upload: 0.31 KiB / gzip: 0.22 KiB
+No bindings found.
+--dry-run: exiting now.
