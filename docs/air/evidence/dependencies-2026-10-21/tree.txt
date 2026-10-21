@@ -1,0 +1,598 @@
+npm notice run cloakdrop-site@1.0.0 npx
+npm notice run 'npm' ls --all
+cloakdrop-site@1.0.0 /Users/sumitsahoo/Developer/cloakdrop/apps/site
+├─┬ @astrojs/check@0.9.11
+│ ├─┬ @astrojs/language-server@2.17.2
+│ │ ├─┬ @astrojs/astro2tsx@0.1.3
+│ │ │ ├─┬ @emnapi/core@1.11.3
+│ │ │ │ ├─┬ @emnapi/wasi-threads@1.2.3
+│ │ │ │ │ └── tslib@2.8.1 deduped
+│ │ │ │ └── tslib@2.8.1
+│ │ │ └─┬ @napi-rs/wasm-runtime@1.2.4
+│ │ │   ├── @emnapi/core@1.11.3 deduped
+│ │ │   ├─┬ @emnapi/runtime@1.11.3
+│ │ │   │ └── tslib@2.8.1 deduped
+│ │ │   └─┬ @tybys/wasm-util@0.10.4
+│ │ │     └── tslib@2.8.1 deduped
+│ │ ├─┬ @astrojs/yaml2ts@0.2.4
+│ │ │ └── yaml@2.9.1 deduped
+│ │ ├─┬ @volar/kit@2.4.28
+│ │ │ ├── @volar/language-service@2.4.28 deduped
+│ │ │ ├─┬ @volar/typescript@2.4.28
+│ │ │ │ ├── @volar/language-core@2.4.28 deduped
+│ │ │ │ ├── path-browserify@1.0.1 deduped
+│ │ │ │ └── vscode-uri@3.2.0 deduped
+│ │ │ ├── typesafe-path@0.2.2
+│ │ │ ├── typescript@6.0.3 deduped
+│ │ │ ├── vscode-languageserver-textdocument@1.0.15
+│ │ │ └── vscode-uri@3.2.0 deduped
+│ │ ├─┬ @volar/language-core@2.4.28
+│ │ │ └── @volar/source-map@2.4.28
+│ │ ├─┬ @volar/language-server@2.4.28
+│ │ │ ├── @volar/language-core@2.4.28 deduped
+│ │ │ ├── @volar/language-service@2.4.28 deduped
+│ │ │ ├── @volar/typescript@2.4.28 deduped
+│ │ │ ├── path-browserify@1.0.1
+│ │ │ ├── request-light@0.7.0
+│ │ │ ├─┬ vscode-languageserver-protocol@3.18.4
+│ │ │ │ ├── vscode-jsonrpc@9.0.3
+│ │ │ │ └── vscode-languageserver-types@3.18.4 deduped
+│ │ │ ├── vscode-languageserver-textdocument@1.0.15 deduped
+│ │ │ ├─┬ vscode-languageserver@9.0.1
+│ │ │ │ └─┬ vscode-languageserver-protocol@3.17.5
+│ │ │ │   ├── vscode-jsonrpc@8.2.0
+│ │ │ │   └── vscode-languageserver-types@3.17.5
+│ │ │ └── vscode-uri@3.2.0 deduped
+│ │ ├─┬ @volar/language-service@2.4.28
+│ │ │ ├── @volar/language-core@2.4.28 deduped
+│ │ │ ├── vscode-languageserver-protocol@3.18.4 deduped
+│ │ │ ├── vscode-languageserver-textdocument@1.0.15 deduped
+│ │ │ └── vscode-uri@3.2.0 deduped
+│ │ ├── muggle-string@0.4.1
+│ │ ├── UNMET OPTIONAL DEPENDENCY prettier-plugin-astro@>=0.11.0
+│ │ ├── prettier@3.9.10
+│ │ ├── tinyglobby@0.2.17 deduped
+│ │ ├─┬ volar-service-css@0.0.71
+│ │ │ ├── @volar/language-service@2.4.28 deduped
+│ │ │ ├─┬ vscode-css-languageservice@6.3.10
+│ │ │ │ ├── @vscode/l10n@0.0.18 deduped
+│ │ │ │ ├── vscode-languageserver-textdocument@1.0.15 deduped
+│ │ │ │ ├── vscode-languageserver-types@3.17.5
+│ │ │ │ └── vscode-uri@3.2.0 deduped
+│ │ │ ├── vscode-languageserver-textdocument@1.0.15 deduped
+│ │ │ └── vscode-uri@3.2.0 deduped
+│ │ ├─┬ volar-service-emmet@0.0.71
+│ │ │ ├─┬ @emmetio/css-parser@0.4.1
+│ │ │ │ ├── @emmetio/stream-reader-utils@0.1.0
+│ │ │ │ └── @emmetio/stream-reader@2.2.0
+│ │ │ ├─┬ @emmetio/html-matcher@1.3.0
+│ │ │ │ └── @emmetio/scanner@1.0.4
+│ │ │ ├── @volar/language-service@2.4.28 deduped
+│ │ │ ├─┬ @vscode/emmet-helper@2.11.0
+│ │ │ │ ├─┬ emmet@2.4.11
+│ │ │ │ │ ├─┬ @emmetio/abbreviation@2.3.3
+│ │ │ │ │ │ └── @emmetio/scanner@1.0.4 deduped
+│ │ │ │ │ └─┬ @emmetio/css-abbreviation@2.1.8
+│ │ │ │ │   └── @emmetio/scanner@1.0.4 deduped
+│ │ │ │ ├── jsonc-parser@2.3.1
+│ │ │ │ ├── vscode-languageserver-textdocument@1.0.15 deduped
+│ │ │ │ ├── vscode-languageserver-types@3.18.4 deduped
+│ │ │ │ └── vscode-uri@3.2.0 deduped
+│ │ │ └── vscode-uri@3.2.0 deduped
+│ │ ├─┬ volar-service-html@0.0.71
+│ │ │ ├── @volar/language-service@2.4.28 deduped
+│ │ │ ├── vscode-html-languageservice@5.6.2 deduped
+│ │ │ ├── vscode-languageserver-textdocument@1.0.15 deduped
+│ │ │ └── vscode-uri@3.2.0 deduped
+│ │ ├─┬ volar-service-prettier@0.0.71
+│ │ │ ├── @volar/language-service@2.4.28 deduped
+│ │ │ ├── prettier@3.9.10 deduped
+│ │ │ └── vscode-uri@3.2.0 deduped
+│ │ ├─┬ volar-service-typescript-twoslash-queries@0.0.71
+│ │ │ ├── @volar/language-service@2.4.28 deduped
+│ │ │ └── vscode-uri@3.2.0 deduped
+│ │ ├─┬ volar-service-typescript@0.0.71
+│ │ │ ├── @volar/language-service@2.4.28 deduped
+│ │ │ ├── path-browserify@1.0.1 deduped
+│ │ │ ├── semver@7.8.5 deduped
+│ │ │ ├─┬ typescript-auto-import-cache@0.3.6
+│ │ │ │ └── semver@7.8.5 deduped
+│ │ │ ├── vscode-languageserver-textdocument@1.0.15 deduped
+│ │ │ ├── vscode-nls@5.2.0
+│ │ │ └── vscode-uri@3.2.0 deduped
+│ │ ├─┬ volar-service-yaml@0.0.71
+│ │ │ ├── @volar/language-service@2.4.28 deduped
+│ │ │ ├── vscode-uri@3.2.0 deduped
+│ │ │ └─┬ yaml-language-server@1.23.0
+│ │ │   ├── @vscode/l10n@0.0.18 deduped
+│ │ │   ├─┬ ajv-draft-04@1.0.0
+│ │ │   │ └── ajv@8.20.0 deduped
+│ │ │   ├─┬ ajv-i18n@4.2.0
+│ │ │   │ └── ajv@8.20.0 deduped
+│ │ │   ├─┬ ajv@8.20.0
+│ │ │   │ ├── fast-deep-equal@3.1.3
+│ │ │   │ ├── fast-uri@3.1.8
+│ │ │   │ ├── json-schema-traverse@1.0.0
+│ │ │   │ └── require-from-string@2.0.2
+│ │ │   ├── prettier@3.9.10 deduped
+│ │ │   ├── request-light@0.5.8
+│ │ │   ├─┬ vscode-json-languageservice@4.1.8
+│ │ │   │ ├── jsonc-parser@3.3.1 deduped
+│ │ │   │ ├── vscode-languageserver-textdocument@1.0.15 deduped
+│ │ │   │ ├── vscode-languageserver-types@3.18.4 deduped
+│ │ │   │ ├── vscode-nls@5.2.0 deduped
+│ │ │   │ └── vscode-uri@3.2.0 deduped
+│ │ │   ├── vscode-languageserver-textdocument@1.0.15 deduped
+│ │ │   ├── vscode-languageserver-types@3.18.4 deduped
+│ │ │   ├── vscode-languageserver@9.0.1 deduped
+│ │ │   ├── vscode-uri@3.2.0 deduped
+│ │ │   └── yaml@2.8.3
+│ │ ├─┬ vscode-html-languageservice@5.6.2
+│ │ │ ├── @vscode/l10n@0.0.18
+│ │ │ ├── vscode-languageserver-textdocument@1.0.15 deduped
+│ │ │ ├── vscode-languageserver-types@3.18.4
+│ │ │ └── vscode-uri@3.2.0 deduped
+│ │ └── vscode-uri@3.2.0
+│ ├─┬ chokidar@5.0.0
+│ │ └── readdirp@5.1.1
+│ ├── kleur@4.1.5
+│ ├── typescript@6.0.3 deduped
+│ └─┬ yargs@18.2.0
+│   ├─┬ cliui@9.0.1
+│   │ ├─┬ string-width@7.2.0
+│   │ │ ├── emoji-regex@10.6.0
+│   │ │ ├── get-east-asian-width@1.7.0 deduped
+│   │ │ └── strip-ansi@7.2.0 deduped
+│   │ ├─┬ strip-ansi@7.2.0
+│   │ │ └── ansi-regex@6.4.0
+│   │ └─┬ wrap-ansi@9.0.2
+│   │   ├── ansi-styles@6.2.3
+│   │   ├─┬ string-width@7.2.0
+│   │   │ ├── emoji-regex@10.6.0 deduped
+│   │   │ ├── get-east-asian-width@1.7.0 deduped
+│   │   │ └── strip-ansi@7.2.0 deduped
+│   │   └── strip-ansi@7.2.0 deduped
+│   ├── escalade@3.2.0
+│   ├── get-caller-file@2.0.5
+│   ├─┬ string-width@8.3.0
+│   │ ├── get-east-asian-width@1.7.0
+│   │ └── strip-ansi@7.2.0 deduped
+│   ├── y18n@5.0.8
+│   └── yargs-parser@22.0.0 deduped
+├─┬ @astrojs/sitemap@3.7.4
+│ ├─┬ sitemap@9.0.1
+│ │ ├─┬ @types/node@24.19.2
+│ │ │ └── undici-types@7.24.6
+│ │ ├─┬ @types/sax@1.2.7
+│ │ │ └── @types/node@24.19.2 deduped
+│ │ ├── arg@5.0.2
+│ │ └── sax@1.6.1
+│ └── zod@4.6.7
+├─┬ astro@7.4.1
+│ ├─┬ @astrojs/compiler-rs@0.5.2
+│ │ └─┬ @astrojs/compiler-binding@0.5.2
+│ │   ├── UNMET OPTIONAL DEPENDENCY @astrojs/compiler-binding-android-arm64@0.5.2
+│ │   ├── @astrojs/compiler-binding-darwin-arm64@0.5.2
+│ │   ├── UNMET OPTIONAL DEPENDENCY @astrojs/compiler-binding-darwin-x64@0.5.2
+│ │   ├── UNMET OPTIONAL DEPENDENCY @astrojs/compiler-binding-linux-arm64-gnu@0.5.2
+│ │   ├── UNMET OPTIONAL DEPENDENCY @astrojs/compiler-binding-linux-arm64-musl@0.5.2
+│ │   ├── UNMET OPTIONAL DEPENDENCY @astrojs/compiler-binding-linux-x64-gnu@0.5.2
+│ │   ├── UNMET OPTIONAL DEPENDENCY @astrojs/compiler-binding-linux-x64-musl@0.5.2
+│ │   ├── UNMET OPTIONAL DEPENDENCY @astrojs/compiler-binding-wasm32-wasi@0.5.2
+│ │   ├── UNMET OPTIONAL DEPENDENCY @astrojs/compiler-binding-win32-arm64-msvc@0.5.2
+│ │   └── UNMET OPTIONAL DEPENDENCY @astrojs/compiler-binding-win32-x64-msvc@0.5.2
+│ ├─┬ @astrojs/internal-helpers@0.13.0
+│ │ ├─┬ @types/hast@3.0.5
+│ │ │ └── @types/unist@3.0.3
+│ │ ├─┬ @types/mdast@4.0.4
+│ │ │ └── @types/unist@3.0.3 deduped
+│ │ ├── picomatch@4.0.7 deduped
+│ │ ├─┬ retext-smartypants@6.2.0
+│ │ │ ├─┬ @types/nlcst@2.0.3
+│ │ │ │ └── @types/unist@3.0.3 deduped
+│ │ │ ├─┬ nlcst-to-string@4.0.0
+│ │ │ │ └── @types/nlcst@2.0.3 deduped
+│ │ │ └─┬ unist-util-visit@5.1.0
+│ │ │   ├── @types/unist@3.0.3 deduped
+│ │ │   ├─┬ unist-util-is@6.0.1
+│ │ │   │ └── @types/unist@3.0.3 deduped
+│ │ │   └─┬ unist-util-visit-parents@6.0.2
+│ │ │     ├── @types/unist@3.0.3 deduped
+│ │ │     └── unist-util-is@6.0.1 deduped
+│ │ ├── shiki@4.5.0 deduped
+│ │ ├── smol-toml@1.9.1 deduped
+│ │ ├─┬ unified@11.0.5
+│ │ │ ├── @types/unist@3.0.3 deduped
+│ │ │ ├── bail@2.0.2
+│ │ │ ├─┬ devlop@1.1.0
+│ │ │ │ └── dequal@2.0.3
+│ │ │ ├── extend@3.0.2
+│ │ │ ├── is-plain-obj@4.1.0
+│ │ │ ├── trough@2.2.0
+│ │ │ └─┬ vfile@6.0.3
+│ │ │   ├── @types/unist@3.0.3 deduped
+│ │ │   └─┬ vfile-message@4.0.3
+│ │ │     ├── @types/unist@3.0.3 deduped
+│ │ │     └─┬ unist-util-stringify-position@4.0.0
+│ │ │       └── @types/unist@3.0.3 deduped
+│ │ └── yaml@2.9.1
+│ ├── UNMET OPTIONAL DEPENDENCY @astrojs/markdown-remark@^7.3.0
+│ ├─┬ @astrojs/markdown-satteri@0.4.4
+│ │ ├── @astrojs/internal-helpers@0.13.0 deduped
+│ │ ├─┬ @astrojs/prism@4.1.0
+│ │ │ └── prismjs@1.30.0
+│ │ ├── github-slugger@2.0.0 deduped
+│ │ └─┬ satteri@0.10.5
+│ │   ├── @bruits/satteri-darwin-arm64@0.10.5
+│ │   ├── UNMET OPTIONAL DEPENDENCY @bruits/satteri-darwin-x64@0.10.5
+│ │   ├── UNMET OPTIONAL DEPENDENCY @bruits/satteri-linux-arm64-gnu@0.10.5
+│ │   ├── UNMET OPTIONAL DEPENDENCY @bruits/satteri-linux-arm64-musl@0.10.5
+│ │   ├── UNMET OPTIONAL DEPENDENCY @bruits/satteri-linux-x64-gnu@0.10.5
+│ │   ├── UNMET OPTIONAL DEPENDENCY @bruits/satteri-linux-x64-musl@0.10.5
+│ │   ├── UNMET OPTIONAL DEPENDENCY @bruits/satteri-wasm32-wasi@0.10.5
+│ │   ├── UNMET OPTIONAL DEPENDENCY @bruits/satteri-win32-arm64-msvc@0.10.5
+│ │   ├── UNMET OPTIONAL DEPENDENCY @bruits/satteri-win32-x64-msvc@0.10.5
+│ │   ├─┬ @types/estree-jsx@1.0.5
+│ │   │ └── @types/estree@1.0.9
+│ │   ├── @types/hast@3.0.5 deduped
+│ │   ├── @types/mdast@4.0.4 deduped
+│ │   └── @types/unist@3.0.3 deduped
+│ ├─┬ @astrojs/telemetry@3.4.0
+│ │ ├── ci-info@4.4.0 deduped
+│ │ ├── dset@3.1.4 deduped
+│ │ ├── is-docker@4.0.0
+│ │ └── package-manager-detector@1.9.0 deduped
+│ ├─┬ @capsizecss/unpack@4.0.1
+│ │ └─┬ fontkitten@1.0.3
+│ │   └── tiny-inflate@1.0.3
+│ ├─┬ @clack/prompts@1.8.1
+│ │ ├─┬ @clack/core@1.5.1
+│ │ │ ├── fast-wrap-ansi@0.2.2 deduped
+│ │ │ └── sisteransi@1.0.5 deduped
+│ │ ├─┬ fast-string-width@3.0.2
+│ │ │ └── fast-string-truncated-width@3.0.3
+│ │ ├─┬ fast-wrap-ansi@0.2.2
+│ │ │ └── fast-string-width@3.0.2 deduped
+│ │ └── sisteransi@1.0.5
+│ ├── @oslojs/encoding@1.1.0
+│ ├─┬ am-i-vibing@0.5.0
+│ │ └── process-ancestry@0.1.0
+│ ├── aria-query@5.3.2
+│ ├── axobject-query@4.1.0
+│ ├── ci-info@4.4.0
+│ ├── clsx@2.1.1
+│ ├── common-ancestor-path@2.0.0
+│ ├── cookie@2.0.1
+│ ├── devalue@6.0.3
+│ ├── diff@9.0.0
+│ ├── dset@3.1.4
+│ ├── es-module-lexer@3.0.4
+│ ├── flattie@1.1.1
+│ ├─┬ fontace@0.4.1
+│ │ └── fontkitten@1.0.3 deduped
+│ ├─┬ get-tsconfig@5.0.0-beta.6
+│ │ └── resolve-pkg-maps@1.0.0
+│ ├── github-slugger@2.0.0
+│ ├── html-escaper@3.0.3
+│ ├── http-cache-semantics@4.3.0
+│ ├── jsonc-parser@3.3.1
+│ ├─┬ magic-string@1.4.3
+│ │ └── @jridgewell/sourcemap-codec@1.6.0
+│ ├─┬ magicast@0.5.5
+│ │ ├─┬ @babel/parser@7.29.9
+│ │ │ └── @babel/types@7.29.8 deduped
+│ │ ├─┬ @babel/types@7.29.8
+│ │ │ ├── @babel/helper-string-parser@7.29.7
+│ │ │ └── @babel/helper-validator-identifier@7.29.7
+│ │ └── source-map-js@1.2.2
+│ ├── mrmime@2.0.1
+│ ├── neotraverse@1.0.1
+│ ├── obug@3.0.0
+│ ├─┬ p-limit@7.3.3
+│ │ └── yocto-queue@1.2.2
+│ ├─┬ p-queue@9.3.5
+│ │ ├── eventemitter3@5.0.4
+│ │ └── p-timeout@7.0.2
+│ ├── package-manager-detector@1.9.0
+│ ├── piccolore@0.1.3
+│ ├── picomatch@4.0.7
+│ ├─┬ rolldown@1.2.14
+│ │ ├── @oxc-project/types@0.154.0
+│ │ ├── UNMET OPTIONAL DEPENDENCY @rolldown/binding-android-arm-eabi@1.2.14
+│ │ ├── UNMET OPTIONAL DEPENDENCY @rolldown/binding-android-arm64@1.2.14
+│ │ ├── @rolldown/binding-darwin-arm64@1.2.14
+│ │ ├── UNMET OPTIONAL DEPENDENCY @rolldown/binding-darwin-x64@1.2.14
+│ │ ├── UNMET OPTIONAL DEPENDENCY @rolldown/binding-freebsd-x64@1.2.14
+│ │ ├── UNMET OPTIONAL DEPENDENCY @rolldown/binding-linux-arm-gnueabihf@1.2.14
+│ │ ├── UNMET OPTIONAL DEPENDENCY @rolldown/binding-linux-arm64-gnu@1.2.14
+│ │ ├── UNMET OPTIONAL DEPENDENCY @rolldown/binding-linux-arm64-musl@1.2.14
+│ │ ├── UNMET OPTIONAL DEPENDENCY @rolldown/binding-linux-ppc64-gnu@1.2.14
+│ │ ├── UNMET OPTIONAL DEPENDENCY @rolldown/binding-linux-s390x-gnu@1.2.14
+│ │ ├── UNMET OPTIONAL DEPENDENCY @rolldown/binding-linux-x64-gnu@1.2.14
+│ │ ├── UNMET OPTIONAL DEPENDENCY @rolldown/binding-linux-x64-musl@1.2.14
+│ │ ├── UNMET OPTIONAL DEPENDENCY @rolldown/binding-openharmony-arm64@1.2.14
+│ │ ├── UNMET OPTIONAL DEPENDENCY @rolldown/binding-win32-arm64-msvc@1.2.14
+│ │ ├── UNMET OPTIONAL DEPENDENCY @rolldown/binding-win32-x64-msvc@1.2.14
+│ │ └── @rolldown/pluginutils@1.0.1
+│ ├─┬ sharp@0.35.5
+│ │ ├── @img/colour@1.1.0
+│ │ ├─┬ @img/sharp-darwin-arm64@0.35.5
+│ │ │ └── @img/sharp-libvips-darwin-arm64@1.3.4 deduped
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-darwin-x64@0.35.5
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-freebsd-wasm32@0.35.5
+│ │ ├── @img/sharp-libvips-darwin-arm64@1.3.4
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-libvips-darwin-x64@1.3.4
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-libvips-linux-arm@1.3.4
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-libvips-linux-arm64@1.3.4
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-libvips-linux-ppc64@1.3.4
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-libvips-linux-riscv64@1.3.4
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-libvips-linux-s390x@1.3.4
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-libvips-linux-x64@1.3.4
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-libvips-linuxmusl-arm64@1.3.4
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-libvips-linuxmusl-x64@1.3.4
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-linux-arm@0.35.5
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-linux-arm64@0.35.5
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-linux-ppc64@0.35.5
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-linux-riscv64@0.35.5
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-linux-s390x@0.35.5
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-linux-x64@0.35.5
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-linuxmusl-arm64@0.35.5
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-linuxmusl-x64@0.35.5
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-webcontainers-wasm32@0.35.5
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-win32-arm64@0.35.5
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-win32-ia32@0.35.5
+│ │ ├── UNMET OPTIONAL DEPENDENCY @img/sharp-win32-x64@0.35.5
+│ │ ├── detect-libc@2.1.2
+│ │ └── semver@7.8.5
+│ ├─┬ shiki@4.5.0
+│ │ ├─┬ @shikijs/core@4.5.0
+│ │ │ ├─┬ @shikijs/primitive@4.5.0
+│ │ │ │ ├── @shikijs/types@4.5.0 deduped
+│ │ │ │ ├── @shikijs/vscode-textmate@10.0.2 deduped
+│ │ │ │ └── @types/hast@3.0.5 deduped
+│ │ │ ├── @shikijs/types@4.5.0 deduped
+│ │ │ ├── @shikijs/vscode-textmate@10.0.2 deduped
+│ │ │ ├── @types/hast@3.0.5 deduped
+│ │ │ └─┬ hast-util-to-html@9.0.5
+│ │ │   ├── @types/hast@3.0.5 deduped
+│ │ │   ├── @types/unist@3.0.3 deduped
+│ │ │   ├── ccount@2.0.1
+│ │ │   ├── comma-separated-tokens@2.0.3
+│ │ │   ├─┬ hast-util-whitespace@3.0.0
+│ │ │   │ └── @types/hast@3.0.5 deduped
+│ │ │   ├── html-void-elements@3.0.0
+│ │ │   ├─┬ mdast-util-to-hast@13.2.1
+│ │ │   │ ├── @types/hast@3.0.5 deduped
+│ │ │   │ ├── @types/mdast@4.0.4 deduped
+│ │ │   │ ├── @ungap/structured-clone@1.4.0
+│ │ │   │ ├── devlop@1.1.0 deduped
+│ │ │   │ ├─┬ micromark-util-sanitize-uri@2.0.1
+│ │ │   │ │ ├─┬ micromark-util-character@2.1.1
+│ │ │   │ │ │ ├── micromark-util-symbol@2.0.1 deduped
+│ │ │   │ │ │ └── micromark-util-types@2.0.3
+│ │ │   │ │ ├── micromark-util-encode@2.0.1
+│ │ │   │ │ └── micromark-util-symbol@2.0.1
+│ │ │   │ ├── trim-lines@3.0.1
+│ │ │   │ ├─┬ unist-util-position@5.0.0
+│ │ │   │ │ └── @types/unist@3.0.3 deduped
+│ │ │   │ ├── unist-util-visit@5.1.0 deduped
+│ │ │   │ └── vfile@6.0.3 deduped
+│ │ │   ├── property-information@7.2.0
+│ │ │   ├── space-separated-tokens@2.0.2
+│ │ │   ├─┬ stringify-entities@4.0.4
+│ │ │   │ ├── character-entities-html4@2.1.0
+│ │ │   │ └── character-entities-legacy@3.0.0
+│ │ │   └── zwitch@2.0.4
+│ │ ├─┬ @shikijs/engine-javascript@4.5.0
+│ │ │ ├── @shikijs/types@4.5.0 deduped
+│ │ │ ├── @shikijs/vscode-textmate@10.0.2 deduped
+│ │ │ └─┬ oniguruma-to-es@4.3.6
+│ │ │   ├── oniguruma-parser@0.12.2
+│ │ │   ├─┬ regex-recursion@6.0.2
+│ │ │   │ └── regex-utilities@2.3.0
+│ │ │   └─┬ regex@6.1.0
+│ │ │     └── regex-utilities@2.3.0 deduped
+│ │ ├─┬ @shikijs/engine-oniguruma@4.5.0
+│ │ │ ├── @shikijs/types@4.5.0 deduped
+│ │ │ └── @shikijs/vscode-textmate@10.0.2 deduped
+│ │ ├─┬ @shikijs/langs@4.5.0
+│ │ │ └── @shikijs/types@4.5.0 deduped
+│ │ ├─┬ @shikijs/themes@4.5.0
+│ │ │ └── @shikijs/types@4.5.0 deduped
+│ │ ├─┬ @shikijs/types@4.5.0
+│ │ │ ├── @shikijs/vscode-textmate@10.0.2 deduped
+│ │ │ └── @types/hast@3.0.5 deduped
+│ │ ├── @shikijs/vscode-textmate@10.0.2
+│ │ └── @types/hast@3.0.5 deduped
+│ ├── smol-toml@1.9.1
+│ ├─┬ svgo@4.1.0
+│ │ ├── commander@11.1.0
+│ │ ├─┬ css-select@6.0.0
+│ │ │ ├── boolbase@1.0.0
+│ │ │ ├── css-what@7.0.0 deduped
+│ │ │ ├─┬ domhandler@5.0.3
+│ │ │ │ └── domelementtype@2.3.0
+│ │ │ ├─┬ domutils@3.2.2
+│ │ │ │ ├─┬ dom-serializer@2.0.0
+│ │ │ │ │ ├── domelementtype@2.3.0 deduped
+│ │ │ │ │ ├── domhandler@5.0.3 deduped
+│ │ │ │ │ └── entities@4.5.0
+│ │ │ │ ├── domelementtype@2.3.0 deduped
+│ │ │ │ └── domhandler@5.0.3 deduped
+│ │ │ └─┬ nth-check@2.1.1
+│ │ │   └── boolbase@1.0.0 deduped
+│ │ ├─┬ css-tree@3.2.1
+│ │ │ ├── mdn-data@2.27.1
+│ │ │ └── source-map-js@1.2.2 deduped
+│ │ ├── css-what@7.0.0
+│ │ ├─┬ csso@5.0.5
+│ │ │ └─┬ css-tree@2.2.1
+│ │ │   ├── mdn-data@2.0.28
+│ │ │   └── source-map-js@1.2.2 deduped
+│ │ ├── picocolors@1.1.1
+│ │ └── sax@1.6.1 deduped
+│ ├── tinyclip@1.0.3
+│ ├── tinyexec@1.3.1
+│ ├─┬ tinyglobby@0.2.17
+│ │ ├─┬ fdir@6.5.0
+│ │ │ └── picomatch@4.0.7 deduped
+│ │ └── picomatch@4.0.7 deduped
+│ ├── tinyps@0.5.0
+│ ├── ultrahtml@1.7.0
+│ ├─┬ unifont@1.0.3
+│ │ ├── css-tree@3.2.1 deduped
+│ │ ├── fnv1a-64@0.1.2
+│ │ ├── std-env@4.3.0
+│ │ └── undici@8.12.2
+│ ├─┬ unstorage@1.17.6
+│ │ ├── UNMET OPTIONAL DEPENDENCY @azure/app-configuration@^1.8.0
+│ │ ├── UNMET OPTIONAL DEPENDENCY @azure/cosmos@^4.2.0
+│ │ ├── UNMET OPTIONAL DEPENDENCY @azure/data-tables@^13.3.0
+│ │ ├── UNMET OPTIONAL DEPENDENCY @azure/identity@^4.6.0
+│ │ ├── UNMET OPTIONAL DEPENDENCY @azure/keyvault-secrets@^4.9.0
+│ │ ├── UNMET OPTIONAL DEPENDENCY @azure/storage-blob@^12.26.0
+│ │ ├── UNMET OPTIONAL DEPENDENCY @capacitor/preferences@^6 || ^7 || ^8
+│ │ ├── UNMET OPTIONAL DEPENDENCY @deno/kv@>=0.9.0
+│ │ ├── UNMET OPTIONAL DEPENDENCY @netlify/blobs@^6.5.0 || ^7.0.0 || ^8.1.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
+│ │ ├── UNMET OPTIONAL DEPENDENCY @planetscale/database@^1.19.0
+│ │ ├── UNMET OPTIONAL DEPENDENCY @upstash/redis@^1.34.3
+│ │ ├── UNMET OPTIONAL DEPENDENCY @vercel/blob@>=0.27.1
+│ │ ├── UNMET OPTIONAL DEPENDENCY @vercel/functions@^2.2.12 || ^3.0.0
+│ │ ├── UNMET OPTIONAL DEPENDENCY @vercel/kv@^1 || ^2 || ^3
+│ │ ├─┬ anymatch@3.1.3
+│ │ │ ├── normalize-path@3.0.0
+│ │ │ └── picomatch@2.3.2
+│ │ ├── UNMET OPTIONAL DEPENDENCY aws4fetch@^1.0.20
+│ │ ├── chokidar@5.0.0 deduped
+│ │ ├── UNMET OPTIONAL DEPENDENCY db0@>=0.2.1
+│ │ ├── destr@2.0.5
+│ │ ├─┬ h3@1.15.11
+│ │ │ ├── cookie-es@1.2.3
+│ │ │ ├─┬ crossws@0.3.5
+│ │ │ │ └── uncrypto@0.1.3 deduped
+│ │ │ ├── defu@6.1.7
+│ │ │ ├── destr@2.0.5 deduped
+│ │ │ ├── iron-webcrypto@1.2.1
+│ │ │ ├── node-mock-http@1.0.5
+│ │ │ ├── radix3@1.1.2
+│ │ │ ├── ufo@1.6.4 deduped
+│ │ │ └── uncrypto@0.1.3
+│ │ ├── UNMET OPTIONAL DEPENDENCY idb-keyval@^6.2.1
+│ │ ├── UNMET OPTIONAL DEPENDENCY ioredis@^5.4.2
+│ │ ├── lru-cache@11.5.3
+│ │ ├── node-fetch-native@1.6.7
+│ │ ├─┬ ofetch@1.5.1
+│ │ │ ├── destr@2.0.5 deduped
+│ │ │ ├── node-fetch-native@1.6.7 deduped
+│ │ │ └── ufo@1.6.4 deduped
+│ │ ├── ufo@1.6.4
+│ │ └── UNMET OPTIONAL DEPENDENCY uploadthing@^7.4.4
+│ ├── verkit@0.5.0
+│ ├─┬ vite@8.3.4
+│ │ ├── @types/node@24.19.2 deduped
+│ │ ├── UNMET OPTIONAL DEPENDENCY @vitejs/devtools@^0.7.1
+│ │ ├── esbuild@0.28.2 deduped
+│ │ ├── fsevents@2.3.3 deduped
+│ │ ├── UNMET OPTIONAL DEPENDENCY jiti@>=1.21.0
+│ │ ├── UNMET OPTIONAL DEPENDENCY less@^4.0.0
+│ │ ├─┬ lightningcss@1.33.0
+│ │ │ ├── detect-libc@2.1.2 deduped
+│ │ │ ├── UNMET OPTIONAL DEPENDENCY lightningcss-android-arm64@1.33.0
+│ │ │ ├── lightningcss-darwin-arm64@1.33.0
+│ │ │ ├── UNMET OPTIONAL DEPENDENCY lightningcss-darwin-x64@1.33.0
+│ │ │ ├── UNMET OPTIONAL DEPENDENCY lightningcss-freebsd-x64@1.33.0
+│ │ │ ├── UNMET OPTIONAL DEPENDENCY lightningcss-linux-arm-gnueabihf@1.33.0
+│ │ │ ├── UNMET OPTIONAL DEPENDENCY lightningcss-linux-arm64-gnu@1.33.0
+│ │ │ ├── UNMET OPTIONAL DEPENDENCY lightningcss-linux-arm64-musl@1.33.0
+│ │ │ ├── UNMET OPTIONAL DEPENDENCY lightningcss-linux-x64-gnu@1.33.0
+│ │ │ ├── UNMET OPTIONAL DEPENDENCY lightningcss-linux-x64-musl@1.33.0
+│ │ │ ├── UNMET OPTIONAL DEPENDENCY lightningcss-win32-arm64-msvc@1.33.0
+│ │ │ └── UNMET OPTIONAL DEPENDENCY lightningcss-win32-x64-msvc@1.33.0
+│ │ ├── picomatch@4.0.7 deduped
+│ │ ├─┬ postcss@8.5.31
+│ │ │ ├── nanoid@3.3.20
+│ │ │ ├── picocolors@1.1.1 deduped
+│ │ │ └── source-map-js@1.2.2 deduped
+│ │ ├── rolldown@1.2.14 deduped
+│ │ ├── UNMET OPTIONAL DEPENDENCY sass-embedded@^1.70.0
+│ │ ├── UNMET OPTIONAL DEPENDENCY sass@^1.70.0
+│ │ ├── UNMET OPTIONAL DEPENDENCY stylus@>=0.54.8
+│ │ ├── UNMET OPTIONAL DEPENDENCY sugarss@^5.0.0
+│ │ ├── UNMET OPTIONAL DEPENDENCY terser@^5.16.0
+│ │ ├── tinyglobby@0.2.17 deduped
+│ │ ├── UNMET OPTIONAL DEPENDENCY tsx@^4.8.1
+│ │ └── yaml@2.9.1 deduped
+│ ├─┬ vitefu@1.1.3
+│ │ └── vite@8.3.4 deduped
+│ ├── xxhash-wasm@1.1.0
+│ ├── yargs-parser@22.0.0
+│ └── zod@4.6.7 deduped
+├── typescript@6.0.3
+└─┬ wrangler@4.151.3
+  ├── @cloudflare/kv-asset-handler@0.5.0
+  ├─┬ @cloudflare/unenv-preset@2.16.2
+  │ ├── unenv@2.0.0-rc.24 deduped
+  │ └── workerd@1.20261019.1 deduped
+  ├── UNMET OPTIONAL DEPENDENCY @cloudflare/workers-types@^5.20261019.1
+  ├── blake3-wasm@2.1.5
+  ├─┬ esbuild@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/aix-ppc64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/android-arm@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/android-arm64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/android-x64@0.28.2
+  │ ├── @esbuild/darwin-arm64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/darwin-x64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/freebsd-arm64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/freebsd-x64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/linux-arm@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/linux-arm64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/linux-ia32@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/linux-loong64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/linux-mips64el@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/linux-ppc64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/linux-riscv64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/linux-s390x@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/linux-x64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/netbsd-arm64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/netbsd-x64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/openbsd-arm64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/openbsd-x64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/openharmony-arm64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/sunos-x64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/win32-arm64@0.28.2
+  │ ├── UNMET OPTIONAL DEPENDENCY @esbuild/win32-ia32@0.28.2
+  │ └── UNMET OPTIONAL DEPENDENCY @esbuild/win32-x64@0.28.2
+  ├── fsevents@2.3.3
+  ├─┬ miniflare@5.20261019.1-beta
+  │ ├─┬ @cspotcode/source-map-support@0.8.1
+  │ │ └─┬ @jridgewell/trace-mapping@0.3.9
+  │ │   ├── @jridgewell/resolve-uri@3.1.2
+  │ │   └── @jridgewell/sourcemap-codec@1.6.0 deduped
+  │ ├── sharp@0.35.5 deduped
+  │ ├── undici@7.29.1
+  │ ├── workerd@1.20261019.1 deduped
+  │ ├─┬ ws@8.21.0
+  │ │ ├── UNMET OPTIONAL DEPENDENCY bufferutil@^4.0.1
+  │ │ └── UNMET OPTIONAL DEPENDENCY utf-8-validate@>=5.0.2
+  │ └─┬ youch@4.1.0-beta.10
+  │   ├─┬ @poppinss/colors@4.1.6
+  │   │ └── kleur@4.1.5 deduped
+  │   ├─┬ @poppinss/dumper@0.6.5
+  │   │ ├── @poppinss/colors@4.1.6 deduped
+  │   │ ├── @sindresorhus/is@7.2.0
+  │   │ └── supports-color@10.2.2
+  │   ├── @speed-highlight/core@1.2.24
+  │   ├── cookie@1.1.1
+  │   └─┬ youch-core@0.3.3
+  │     ├── @poppinss/exception@1.2.3
+  │     └── error-stack-parser-es@1.0.5
+  ├── path-to-regexp@6.3.0
+  ├─┬ unenv@2.0.0-rc.24
+  │ └── pathe@2.0.3
+  └─┬ workerd@1.20261019.1
+    ├── UNMET OPTIONAL DEPENDENCY @cloudflare/workerd-darwin-64@1.20261019.1
+    ├── @cloudflare/workerd-darwin-arm64@1.20261019.1
+    ├── UNMET OPTIONAL DEPENDENCY @cloudflare/workerd-linux-64@1.20261019.1
+    ├── UNMET OPTIONAL DEPENDENCY @cloudflare/workerd-linux-arm64@1.20261019.1
+    └── UNMET OPTIONAL DEPENDENCY @cloudflare/workerd-windows-64@1.20261019.1
+
