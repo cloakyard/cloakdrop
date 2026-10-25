@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-25",
+  "scope": "cloakdrop public pages; portable family comparison against Air 1.1.0",
+  "contract": "Air 1.1.0",
+  "contractHashPrefix": "a3201bc6e664",
+  "baseCommits": {
+    "cloakyard": "5ee16fe",
+    "cloakpdf": "f6a2503",
+    "cloakdrop": "3755dcc"
+  },
+  "links": {
+    "states": 328,
+    "keyboard": 116,
+    "errors": 0
+  },
+  "features": {
+    "dropSiteLayouts": 432,
+    "dropJourneys": 34,
+    "dropArtworkLayouts": 68
+  },
+  "safari": "Native macOS dark-theme spot review: all three home pages, PDF/Drop privacy, enlarged compact menus, Drop pause/resume. Not a full matrix.",
+  "remaining": [
+    "Physical touch/software keyboard",
+    "Spoken assistive-technology acceptance",
+    "Hardware power/thermal acceptance",
+    "Unrelated tracked full-product gates",
+    "Previously accepted Compact long-document AI limitation"
+  ],
+  "deployment": "None; local corrections only",
+  "resume": "Exploratory storyline study; no production change or approval",
+  "sourceSha256": {
+    "apps/site/src/styles/global.css": "e25580d333bbc47d400f50993fa64b05bc823ed4bd3b6dc61d67fd26c19c8334"
+  },
+  "familyComparison": {
+    "Chrome/156.0.8078.48": 240,
+    "Firefox/158.0.1 light": 120,
+    "Firefox/158.0.1 dark": 120,
+    "deviations": 0,
+    "browserErrors": 0,
+    "widths": 20,
+    "rootFonts": [16, 32],
+    "themes": ["light", "dark"]
+  },
+  "comparison": {
+    "Chrome": 80,
+    "Firefox light": 40,
+    "Firefox dark": 40,
+    "deviations": 0,
+    "browserErrors": 0
+  }
+}

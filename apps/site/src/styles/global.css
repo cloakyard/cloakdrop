@@ -43,8 +43,7 @@ img {
 a:focus-visible,
 summary:focus-visible {
   outline: 2px solid var(--air-accent);
-  outline-offset: 4px;
-  border-radius: var(--air-radius-check);
+  outline-offset: 3px;
 }
 [id][tabindex="-1"] {
   scroll-margin-top: var(--air-space-24);
@@ -247,7 +246,7 @@ figcaption {
 h2 {
   font-size: var(--air-text-section);
   line-height: 1.15;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.03em;
 }
 .section-intro h2 {
   margin-top: var(--air-space-12);
@@ -344,6 +343,11 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: var(--air-space-16);
+}
+.footer-inner p a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 .footer-inner nav a {
   min-width: 44px;
@@ -479,6 +483,14 @@ h3 {
   margin-top: var(--air-space-24);
 }
 @media (hover: hover) and (pointer: fine) {
+  .desktop-nav a:hover,
+  .mobile-nav nav a:hover,
+  .footer-inner nav a:hover {
+    color: var(--air-ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
   .text-link:hover {
     text-decoration: underline;
     text-decoration-thickness: 1px;
