@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.0.6",
+  "contractVersion": "1.1.0",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -22,24 +22,6 @@
         "docs/audits/images/2026-10-19-installer-air.png"
       ],
       "notes": "User explicitly extended Air to installer artwork. Fixed light bitmap; app controls and output unchanged. Finder target positions and install guide preserved."
-    },
-    {
-      "path": "apps/site/src/components/AirHorizon.astro",
-      "kind": "app-surface",
-      "sourceReviewed": true,
-      "airImplemented": true,
-      "validated": false,
-      "states": [
-        "finite GPU arrival/pointer/idle",
-        "offscreen/Back restoration",
-        "six static fallback profiles"
-      ],
-      "viewports": [],
-      "evidence": [
-        "docs/air/evidence/landing-horizon-2026-10-19/website.json",
-        "docs/air/evidence/brand-horizons-2026-10-19/checks.json"
-      ],
-      "notes": "Local website horizon follow-up passes software checks; physical/assistive and GPU hardware acceptance remain open. Native UI and screenshot bytes unchanged. 2026-10-19: app logo colour in both GPU and static artwork; 12 theme/viewport cases and both GPU themes pass. Physical GPU/battery acceptance remains open."
     },
     {
       "path": "apps/site/src/components/Brand.astro",
@@ -160,7 +142,7 @@
       "kind": "app-surface",
       "sourceReviewed": true,
       "airImplemented": true,
-      "validated": false,
+      "validated": true,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
@@ -172,10 +154,19 @@
         "reduced motion/forced colours",
         "finite GPU arrival/pointer/idle",
         "offscreen/Back restoration",
-        "six static fallback profiles"
+        "six static fallback profiles",
+        "FILE/PKG/ISO/ZIP",
+        "pause/resume and keyboard",
+        "offscreen/hidden",
+        "no-JS/static fallbacks",
+        "real download paths",
+        "neutral links/hover",
+        "200% text and browser zoom"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed",
+        "320–1920px; 17 widths/heights; light/dark; 16/32px root font",
+        "native Chrome 200%"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -183,9 +174,10 @@
         "docs/air/evidence/website-interactions-2026-10-12.json",
         "docs/air/evidence/website-air-2026-10-19.json",
         "docs/air/evidence/website-air-checks-2026-10-19.log",
-        "docs/air/evidence/landing-horizon-2026-10-19/website.json"
+        "docs/air/evidence/landing-horizon-2026-10-19/website.json",
+        "evidence/product-artwork-2026-10-25/"
       ],
-      "notes": "Local website horizon follow-up passes software checks; physical/assistive and GPU hardware acceptance remain open. Native UI and screenshot bytes unchanged."
+      "notes": "Local website horizon follow-up passes software checks; physical/assistive and GPU hardware acceptance remain open. Native UI and screenshot bytes unchanged. Approved product artwork implemented and validated 2026-10-25; see latest validation record for scope and remaining physical/assistive acceptance."
     },
     {
       "path": "apps/site/src/components/Icon.astro",
@@ -217,11 +209,35 @@
       "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
     {
+      "path": "apps/site/src/components/PixelFiles.astro",
+      "kind": "app-surface",
+      "sourceReviewed": true,
+      "airImplemented": true,
+      "validated": true,
+      "states": [
+        "FILE/PKG/ISO/ZIP",
+        "pause/resume and keyboard",
+        "offscreen/hidden",
+        "no-JS/static fallbacks",
+        "real download paths",
+        "neutral links/hover",
+        "200% text and browser zoom"
+      ],
+      "viewports": [
+        "320–1920px; 17 widths/heights; light/dark; 16/32px root font",
+        "native Chrome 200%"
+      ],
+      "evidence": [
+        "evidence/product-artwork-2026-10-25/"
+      ],
+      "notes": " Approved product artwork implemented and validated 2026-10-25; see latest validation record for scope and remaining physical/assistive acceptance."
+    },
+    {
       "path": "apps/site/src/components/Product.astro",
       "kind": "app-surface",
       "sourceReviewed": true,
       "airImplemented": true,
-      "validated": false,
+      "validated": true,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
@@ -230,19 +246,29 @@
         "normal and enlarged text",
         "keyboard/no-JS recovery",
         "coarse targets",
-        "reduced motion/forced colours"
+        "reduced motion/forced colours",
+        "FILE/PKG/ISO/ZIP",
+        "pause/resume and keyboard",
+        "offscreen/hidden",
+        "no-JS/static fallbacks",
+        "real download paths",
+        "neutral links/hover",
+        "200% text and browser zoom"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed",
+        "320–1920px; 17 widths/heights; light/dark; 16/32px root font",
+        "native Chrome 200%"
       ],
       "evidence": [
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
         "docs/air/evidence/website-interactions-2026-10-12.json",
         "docs/air/evidence/website-air-2026-10-19.json",
-        "docs/air/evidence/website-air-checks-2026-10-19.log"
+        "docs/air/evidence/website-air-checks-2026-10-19.log",
+        "evidence/product-artwork-2026-10-25/"
       ],
-      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. Approved product artwork implemented and validated 2026-10-25; see latest validation record for scope and remaining physical/assistive acceptance."
     },
     {
       "path": "apps/site/src/components/Provenance.astro",
@@ -356,6 +382,17 @@
         "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
       "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
+    },
+    {
+      "path": "apps/site/src/lib/pixelForms.ts",
+      "kind": "app-surface",
+      "sourceReviewed": false,
+      "airImplemented": false,
+      "validated": false,
+      "states": [],
+      "viewports": [],
+      "evidence": [],
+      "notes": ""
     },
     {
       "path": "apps/site/src/pages/404.astro",
@@ -507,7 +544,7 @@
       "kind": "app-surface",
       "sourceReviewed": true,
       "airImplemented": true,
-      "validated": false,
+      "validated": true,
       "states": [
         "baseline light/dark",
         "baseline normal layout",
@@ -519,10 +556,19 @@
         "reduced motion/forced colours",
         "finite GPU arrival/pointer/idle",
         "offscreen/Back restoration",
-        "six static fallback profiles"
+        "six static fallback profiles",
+        "FILE/PKG/ISO/ZIP",
+        "pause/resume and keyboard",
+        "offscreen/hidden",
+        "no-JS/static fallbacks",
+        "real download paths",
+        "neutral links/hover",
+        "200% text and browser zoom"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed",
+        "320–1920px; 17 widths/heights; light/dark; 16/32px root font",
+        "native Chrome 200%"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -533,9 +579,10 @@
         "docs/air/evidence/landing-horizon-2026-10-19/website.json",
         "docs/air/evidence/brand-horizons-2026-10-19/checks.json",
         "docs/air/hyperlinks-2026-10-19.md",
-        "docs/air/neutral-links-2026-10-19.md"
+        "docs/air/neutral-links-2026-10-19.md",
+        "evidence/product-artwork-2026-10-25/"
       ],
-      "notes": "Local website horizon follow-up passes software checks; physical/assistive and GPU hardware acceptance remain open. Native UI and screenshot bytes unchanged. 2026-10-19: app logo colour in both GPU and static artwork; 12 theme/viewport cases and both GPU themes pass. Physical GPU/battery acceptance remains open."
+      "notes": "Local website horizon follow-up passes software checks; physical/assistive and GPU hardware acceptance remain open. Native UI and screenshot bytes unchanged. 2026-10-19: app logo colour in both GPU and static artwork; 12 theme/viewport cases and both GPU themes pass. Physical GPU/battery acceptance remains open. Approved product artwork implemented and validated 2026-10-25; see latest validation record for scope and remaining physical/assistive acceptance."
     },
     {
       "path": "assets/social/og.html",

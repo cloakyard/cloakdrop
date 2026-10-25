@@ -1,19 +1,19 @@
 ---
 name: CloakDrop website — Cloakyard Air
-version: 1.0.6
+version: 1.1.0
 status: approved
-date: 2026-10-19
+date: 2026-10-25
 scope: complete-web-product
 source-repository: https://github.com/cloakyard/cloakyard
 source-directory: design/air
-family-contract-sha256: e7c8a4bcfbc5af9d852a9ec15a38649c9bdaa052e3392db3ff9fd52cd91193af
+family-contract-sha256: a3201bc6e66483e19de257e8be66a814c6221ad266029b1c006c21d975edabfd
 ---
 
 <!-- BEGIN CLOAKYARD AIR CONTRACT -->
 
 # Cloakyard Air design contract
 
-Version: **1.0.6 — neutral hyperlinks** · Direction: **Air** · Updated: **2026-10-19**
+Version: **1.1.0 — product landing artwork** · Direction: **Air** · Updated: **2026-10-25**
 
 The detailed Air system is **locked for implementation**. On 2026-10-13 the user
 authorized one final agent review followed by implementation; that review is
@@ -125,7 +125,8 @@ quiet blue indicator. It does not depend on a framework's default component skin
   Selected segments use the same neutral surface and a small blue marker.
 - Focus outlines and selection use shared blue; hyperlinks use neutral ink. Logo colours may remain;
   they never tint the whole app or create a rainbow of tool categories.
-- The landing signature is a low-contrast light horizon: two offset, softly lit
+- A landing may express its product through the material artwork defined below.
+  The existing low-contrast light horizon remains a family option: two offset, softly lit
   planes echo the family mark's overlapping geometry. It occupies the space below
   hero copy and above product entries. Its light follows the app mark, using the
   primary gradient stop in light mode and the highlight stop in dark mode. Text
@@ -687,6 +688,42 @@ The family home is a product directory. Each card says what the app does, its
 platform, and how to open it. KERR is a text exploration link with brief context;
 no screenshot, simulation, orbital illustration, animated preview, or embedded app.
 
+### Product landing artwork
+
+The approved extension keeps Air's header, typography, spacing, neutral links,
+controls and surrounding surfaces. One contained composition between the promise
+and primary entry gives an app its own identity. It replaces that landing's horizon;
+do not stack multiple decorative effects or use an app screenshot as the hero hook.
+An accurate product screenshot may remain in the following feature section.
+
+- **PDF:** five white pages start as a compact stack. The four rear sheets spread
+  left and right over 2,200ms with the shared spatial curve and 60ms stagger,
+  keeping their stacking order. The front page and real dropzone stay anchored.
+  Settle open after one unveiling; do not loop, reorder, or animate file intake.
+- **Drop:** square teal pixels descend into file, package, disc and archive forms.
+  Each form holds before dispersing downward and assembling the next. Use 850ms
+  pixel arrivals, a 50ms bottom-to-top row stagger, 480ms dispersal and a 1,500ms
+  hold. Use shared spatial/exit curves and linear descent with a gentle landing.
+  Keep a visible, keyboard/touch-accessible Air pause/resume action for repetition.
+  These are illustrative file types, never a simulated real transfer or progress bar.
+- Artwork uses only the product's existing `light-{app}` colour, neutral planes
+  and truthful paper/image colours. The UI's focus, links and controls retain Air.
+  Document lettering inside decorative paper is artwork, not a new UI font.
+  White paper uses the fixed light `paper-ink` and `paper-line` tokens in either
+  theme, alongside the existing `paper-accent`; surrounding controls use live themes.
+- Static artwork renders without the animation module. Reduced motion, forced
+  colours and constrained/save-data visits do not start decorative motion.
+  Live preference changes settle immediately. Pause offscreen and hidden; user
+  pause survives visibility changes. Cancel animations/listeners on departure.
+- Keep the action usable before, during and after motion. Reserve the artwork's
+  layout space, contain only its moving marks, and shrink ornamental space first
+  in short landscape. Text and controls reflow at enlarged sizes. No fake upload,
+  automatic file access, moving headline, or animation-dependent navigation.
+- Use local transform/opacity animation with no new graphics/runtime dependency
+  when it can express the approved material. Remove superseded production shader
+  wrappers, styles, build artifacts and checks; preserve canonical reference assets
+  still used by other products. Adopt new motifs only after their own visual review.
+
 ### Landing navigation and text resilience
 
 - Hyperlinks with a directional cue use the angled Lucide ArrowUpRight shape
@@ -1084,11 +1121,12 @@ journeys across all apps; it is not inferred from the pilot alone.
   it is not a runtime dependency. Supplement it with native browser/zoom review and
   keep physical/assistive acceptance distinct from browser input emulation.
 
-- The hero includes the canonical finite Air horizon between the entry actions and
-  actual native screenshot. Its static SVG is usable without JavaScript; the local
-  renderer loads lazily only for capable, visible, motion-enabled visits. Keep its
-  350 kB gzip build ceiling and license. Stop at rest, release offscreen/hidden and
-  preserve browser Back/Forward restoration. No React runtime or native UI change.
+- The hero assembles teal square pixels into FILE, PKG, ISO and ZIP silhouettes
+  using the portable artwork lifecycle and precomputed Lucide-derived pixel masks.
+  Include a visible neutral Air pause/resume control; static/no-JS visits show FILE.
+  Pause offscreen/hidden and preserve manual pause across Back/Forward restoration.
+  Keep real download actions immediately available and the actual native screenshot
+  in the product section below the hero. No shader, React runtime or native UI change.
 
 - On 2026-10-19 the user extended Air to the **installer background**.
   `apps/macos/scripts/dmg/background.swift` renders the fixed 760×570-point Finder

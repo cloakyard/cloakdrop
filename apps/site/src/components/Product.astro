@@ -1,11 +1,21 @@
 ---
-import { product } from '../data/site';
+import { resolve } from 'node:path';
+import { product, hero } from '../data/site';
+import { readPngDimensions } from '../lib/heroGeometry';
+const shot = readPngDimensions(resolve(process.cwd(), 'public/hero.png'));
 ---
 <section id="product" class="section frame" tabindex="-1" aria-labelledby="product-title">
   <header class="section-intro">
     <p class="eyebrow">{product.label}</p>
     <h2 id="product-title">From the first connection to the finished file.</h2>
   </header>
+  <figure class="product-preview">
+    <picture>
+      <source srcset="/hero.webp" type="image/webp" />
+      <img src="/hero.png" width={shot.width} height={shot.height} alt={hero.shotAlt} loading="lazy" decoding="async" />
+    </picture>
+    <figcaption>Actual Mac app. Example library; displayed speeds are illustrative.</figcaption>
+  </figure>
   <div class="features">
     {product.features.map((feature) => (
       <article>

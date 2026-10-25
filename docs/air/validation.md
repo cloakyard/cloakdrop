@@ -1,5 +1,32 @@
 # Air validation record
 
+## 2026-10-25 — falling pixel files
+
+Implemented the approved FILE/PKG/ISO/ZIP sequence with local transform/opacity
+animations and precomputed Lucide pixel masks. The neutral Air pause/resume button
+works with pointer and keyboard. Motion freezes offscreen/hidden, retains manual
+pause through visibility changes, and settles immediately on reduced motion.
+No-JS, forced-colour, constrained and Save-Data visits retain a static FILE. Real
+download/install actions and truthful copy are unchanged; the actual screenshot
+now sits in the product section with intrinsic dimensions and lazy loading.
+
+Passing: asset sync, Astro check (zero errors/warnings/hints), production build,
+432 site layouts, 34 journeys, 68 artwork layouts and all four forms, frozen pause
+time, Back restoration, reduced-motion replay and all static fallbacks. Neutral
+links pass 328 layout/state and 116 keyboard checks. Air contract and 20 isolated
+portability checks pass. Desktop/laptop/mobile light/dark captures were visually
+inspected; native Chrome 200% zoom keeps pause and download actions reachable
+without horizontal overflow. Physical-device, assistive and final family
+cross-browser acceptance remain separate gates.
+
+Removed the production horizon component/CSS, shader build/license integration,
+GPU-only test and current README references. No new runtime dependency; pixel
+script is about 2 kB gzip and absent from privacy/404. Lucide attribution ships at
+`/pixel-art.LICENSE.txt`. Family reference shaders remain pinned for other products.
+No native Swift/app/installer, output, release artifact or deployment changes.
+
+Evidence: [artwork, site, links, payload and captures](evidence/product-artwork-2026-10-25/).
+
 ## 2026-10-11 — portable contract and inventory
 
 Website Astro check: 19 files, zero errors/warnings/hints. Asset sync and production build pass (home, privacy, 404). No native source changed.

@@ -1,0 +1,83 @@
+---
+import { pixelForms, pixelPoints } from '../lib/pixelForms';
+const points = pixelPoints(pixelForms[0].rows);
+---
+<div class="drop-artwork">
+  <div class="drop-pixel-stage" aria-hidden="true">
+    <div class="drop-pixel-plane">
+      <div class="drop-pixels">
+        {points.map((point, i) => <span class="drop-pixel" style={`transform:translate(${point.x}px,${point.y}px);opacity:${.62 + ((i * 17) % 29) / 100}`} />)}
+      </div>
+      <span class="drop-pixel-type">FILE</span>
+    </div>
+  </div>
+  <div class="drop-artwork-control">
+    <button type="button" class="air-button air-button--quiet" hidden>Pause animation</button>
+  </div>
+</div>
+
+<script>
+  import { mountAirArtwork } from '../../../../docs/air/artwork.mjs';
+  import { pixelForms, pixelPoints } from '../lib/pixelForms';
+
+  const root = document.querySelector<HTMLElement>('.drop-artwork')!;
+  const cloud = root.querySelector<HTMLElement>('.drop-pixels')!;
+  const label = root.querySelector<HTMLElement>('.drop-pixel-type')!;
+  const styles = getComputedStyle(root);
+  const move = styles.getPropertyValue('--air-ease-in-out').trim();
+  const out = styles.getPropertyValue('--air-ease-out').trim();
+  const transform = (x: number, y: number) => `translate(${x}px,${y}px)`;
+  function paint(index: number) {
+    const form = pixelForms[index];
+    const pixels = pixelPoints(form.rows).map((point, i) => {
+      const element = document.createElement('span');
+      element.className = 'drop-pixel';
+      element.style.transform = transform(point.x, point.y);
+      const opacity = .62 + ((i * 17) % 29) / 100;
+      element.style.opacity = String(opacity);
+      return { element, point, opacity };
+    });
+    cloud.replaceChildren(...pixels.map(({element}) => element));
+    label.textContent = form.name;
+    return pixels;
+  }
+  mountAirArtwork(root, {
+    control: root.querySelector<HTMLButtonElement>('button'),
+    settle: () => { paint(0); },
+    async run(animate) {
+      for (let index = 0; ; index = (index + 1) % pixelForms.length) {
+        const pixels = paint(index);
+        await animate([
+          ...pixels.map(({element, point, opacity}, i) => {
+            const startX = point.x + ((i * 37) % 81) - 40;
+            const startY = -12 - ((i * 11) % 40);
+            return {
+              element,
+              keyframes: [
+                {transform:transform(startX,startY),opacity:0,offset:0,easing:'linear'},
+                {transform:transform(startX+(point.x-startX)*.12,startY+18),opacity,offset:.12,easing:'linear'},
+                {transform:transform(point.x,point.y-15),opacity,offset:.78,easing:out},
+                {transform:transform(point.x,point.y),opacity,offset:1},
+              ],
+              options: {duration:850, delay:(23-point.row)*50+((i*29)%90)},
+            };
+          }),
+          {element:label,keyframes:[{opacity:0},{opacity:1}],options:{duration:250,delay:800}},
+        ]);
+        // WAAPI also owns the hold, so pause/visibility never leave a timer running.
+        await animate([{element:label,keyframes:[{opacity:1},{opacity:1}],options:{duration:1500}}]);
+        await animate([
+          ...pixels.map(({element,point,opacity}, i) => ({
+            element,
+            keyframes:[
+              {transform:transform(point.x,point.y),opacity},
+              {transform:transform(point.x+((i*13)%15)-7,point.y+38),opacity:0},
+            ],
+            options:{duration:480,delay:(i%7)*32,easing:move},
+          })),
+          {element:label,keyframes:[{opacity:1},{opacity:0}],options:{duration:240}},
+        ]);
+      }
+    },
+  });
+</script>
