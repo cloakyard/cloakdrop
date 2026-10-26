@@ -1,5 +1,16 @@
 # Air validation record
 
+## 2026-10-26 — Automatic landing artwork without playback controls
+
+Removes the control and its unused CSS. FILE, PKG, ISO and ZIP assemble once, then rest; measured uninterrupted completion was 4,858ms. The 68-layout artwork matrix, all four forms, lifecycle/static profiles and 432 website layouts / 34 journeys pass. Native app, RC, installer and official-bundle exception are unchanged.
+
+Air 1.2.1 requires automatic finite landing artwork without Play/Pause/Replay.
+Hidden/offscreen suspension and reduced-motion/static fallbacks remain. Shared
+Chrome/Firefox checks pass 1,104 layouts. Applicable checks, build, dead-code,
+design and portable-bundle checks pass. See `evidence/finite-artwork-2026-10-26/`.
+Physical/assistive/device and earlier product acceptance remain open. Deployment
+is tracked by the family release ledger after passing dev → main PRs.
+
 ## 2026-10-26 — Full web cleanup audit
 
 Audited the complete website import/dependency graph, custom CSS, source assets,

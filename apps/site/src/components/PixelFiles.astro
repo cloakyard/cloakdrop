@@ -11,9 +11,7 @@ const points = pixelPoints(pixelForms[0].rows);
       <span class="drop-pixel-type">FILE</span>
     </div>
   </div>
-  <div class="drop-artwork-control">
-    <button type="button" class="air-button air-button--quiet" hidden>Pause animation</button>
-  </div>
+
 </div>
 
 <script>
@@ -27,7 +25,9 @@ const points = pixelPoints(pixelForms[0].rows);
   const move = styles.getPropertyValue('--air-ease-in-out').trim();
   const out = styles.getPropertyValue('--air-ease-out').trim();
   const transform = (x: number, y: number) => `translate(${x}px,${y}px)`;
+  let currentForm = 0;
   function paint(index: number) {
+    currentForm = index;
     const form = pixelForms[index];
     const pixels = pixelPoints(form.rows).map((point, i) => {
       const element = document.createElement('span');
@@ -42,10 +42,9 @@ const points = pixelPoints(pixelForms[0].rows);
     return pixels;
   }
   mountAirArtwork(root, {
-    control: root.querySelector<HTMLButtonElement>('button'),
-    settle: () => { paint(0); },
+    settle: () => { paint(currentForm); },
     async run(animate) {
-      for (let index = 0; ; index = (index + 1) % pixelForms.length) {
+      for (let index = 0; index < pixelForms.length; index++) {
         const pixels = paint(index);
         await animate([
           ...pixels.map(({element, point, opacity}, i) => {
@@ -59,13 +58,15 @@ const points = pixelPoints(pixelForms[0].rows);
                 {transform:transform(point.x,point.y-15),opacity,offset:.78,easing:out},
                 {transform:transform(point.x,point.y),opacity,offset:1},
               ],
-              options: {duration:850, delay:(23-point.row)*50+((i*29)%90)},
+              options: {duration:600, delay:(23-point.row)*8+((i*29)%30)},
             };
           }),
-          {element:label,keyframes:[{opacity:0},{opacity:1}],options:{duration:250,delay:800}},
+          {element:label,keyframes:[{opacity:0},{opacity:1}],options:{duration:150,delay:400}},
         ]);
-        // WAAPI also owns the hold, so pause/visibility never leave a timer running.
-        await animate([{element:label,keyframes:[{opacity:1},{opacity:1}],options:{duration:1500}}]);
+        // One bounded sequence: under five seconds, then the final file stays still.
+        if (index === pixelForms.length - 1) break;
+        // WAAPI holds stop with the page lifecycle; no background timer.
+        await animate([{element:label,keyframes:[{opacity:1},{opacity:1}],options:{duration:300}}]);
         await animate([
           ...pixels.map(({element,point,opacity}, i) => ({
             element,
@@ -73,9 +74,9 @@ const points = pixelPoints(pixelForms[0].rows);
               {transform:transform(point.x,point.y),opacity},
               {transform:transform(point.x+((i*13)%15)-7,point.y+38),opacity:0},
             ],
-            options:{duration:480,delay:(i%7)*32,easing:move},
+            options:{duration:160,delay:(i%7)*8,easing:move},
           })),
-          {element:label,keyframes:[{opacity:1},{opacity:0}],options:{duration:240}},
+          {element:label,keyframes:[{opacity:1},{opacity:0}],options:{duration:150}},
         ]);
       }
     },

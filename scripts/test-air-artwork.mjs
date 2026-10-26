@@ -26,7 +26,7 @@ try {
           await new Promise(requestAnimationFrame);
           const art=document.querySelector(".drop-artwork");
           const b=art.getBoundingClientRect();
-          return {overflow:document.documentElement.scrollWidth>innerWidth+1,contained:b.left>=0&&b.right<=innerWidth+1,state:art.dataset.artState,count:art.querySelectorAll(".drop-pixel").length,animations:art.getAnimations({subtree:true}).length,hidden:art.querySelector(".drop-pixel-stage").getAttribute("aria-hidden"),controlHidden:art.querySelector("button").hidden};
+          return {overflow:document.documentElement.scrollWidth>innerWidth+1,contained:b.left>=0&&b.right<=innerWidth+1,state:art.dataset.artState,count:art.querySelectorAll(".drop-pixel").length,animations:art.getAnimations({subtree:true}).length,hidden:art.querySelector(".drop-pixel-stage").getAttribute("aria-hidden"),controlsAbsent:!art.querySelector("button")};
         },font);
         assert.equal(state.overflow,false,JSON.stringify({width,height,theme,font,state}));
         assert.equal(state.contained,true);
@@ -34,7 +34,7 @@ try {
         assert.equal(state.count,149);
         assert.equal(state.animations,0);
         assert.equal(state.hidden,"true");
-        assert.equal(state.controlHidden,true);
+        assert.equal(state.controlsAbsent,true);
         evidence.layouts.push({width,height,theme,font,...state});
         if(font===16&&[320,390,1280,1440].includes(width)) await page.screenshot({path:resolve(output,`home-${width}-${theme}.png`),fullPage:true});
       }
@@ -58,43 +58,52 @@ try {
       const cdp=await p.createCDPSession();
       await cdp.send("Emulation.setEmulatedMedia",{features:[{name:"forced-colors",value:"active"}]});
     }
-    await p.goto(base,{waitUntil:"networkidle0"});
+    await p.goto(base,{waitUntil:"domcontentloaded"});
+    await p.waitForSelector(".drop-artwork");
     if(mode==="normal") {
       const stateIs = state => p.waitForFunction(state=>document.querySelector(".drop-artwork").dataset.artState===state,{},state);
       await stateIs("playing");
       const geometry=()=>p.$eval(".hero-actions",e=>{const b=e.getBoundingClientRect();return {x:b.x,y:b.y,width:b.width,height:b.height};});
       const before=await geometry();
-      // Inspect every completed silhouette without slowing the regular test suite.
+      // Observe all four forms at their assembled poses; no playback UI is needed.
       for(const form of ["FILE","PKG","ISO","ZIP"]) {
         await p.waitForFunction(form=>{
           const art=document.querySelector(".drop-artwork");
-          art.getAnimations({subtree:true}).forEach(a=>a.updatePlaybackRate(4));
-          return art.querySelector(".drop-pixel-type").textContent===form&&art.getAnimations({subtree:true}).length===1;
+          return art.querySelector(".drop-pixel-type").textContent===form &&
+            (form === "ZIP" ? art.dataset.artState === "complete" : art.getAnimations({subtree:true}).length===1);
         },{},form);
-        await p.click(".drop-artwork button");
-        await stateIs("paused");
-        assert.equal(await p.$eval(".drop-artwork button", button =>
-          getComputedStyle(button).color === getComputedStyle(document.querySelector("h1")).color), true,
-          "The hovered pause/resume action must retain neutral Air ink");
+        await p.$eval(".drop-artwork",e=>e.getAnimations({subtree:true}).forEach(a=>a.pause()));
         const count=await p.$$eval(".drop-pixel",nodes=>nodes.length);
         assert.ok(count>=70);
         await p.screenshot({path:resolve(output,`${form.toLowerCase()}-assembled.png`)});
         evidence.forms.push({form,count});
-        await p.click(".drop-artwork button");
+        await p.$eval(".drop-artwork",e=>e.getAnimations({subtree:true}).forEach(a=>a.play()));
       }
       assert.deepEqual(await geometry(),before,"Animation must not move the download actions");
-      await p.click(".drop-artwork button");
-      await stateIs("paused");
-      await p.waitForFunction(()=>document.querySelector(".drop-artwork").getAnimations({subtree:true}).every(a=>!a.pending));
-      const time=()=>p.$eval(".drop-artwork",e=>e.getAnimations({subtree:true}).map(a=>a.currentTime));
-      const paused=await time();
-      await new Promise(r=>setTimeout(r,350));
-      assert.deepEqual(await time(),paused);
+      assert.equal(await p.$(".drop-artwork button"),null);
+      assert.equal(await p.$eval(".drop-artwork",e=>e.getAnimations({subtree:true}).length),0);
+      await p.evaluate(()=>dispatchEvent(new PageTransitionEvent("pagehide",{persisted:true})));
+      await p.evaluate(()=>dispatchEvent(new PageTransitionEvent("pageshow",{persisted:true})));
+      await stateIs("complete");
+      // A fresh uninterrupted arrival must finish within the no-control budget.
+      await p.reload({waitUntil:"domcontentloaded"});
+      await stateIs("playing");
+      const start=Date.now();
+      await stateIs("complete");
+      const elapsed=Date.now()-start;
+      assert.ok(elapsed<=5000,`Finite sequence exceeded five seconds: ${elapsed}ms`);
+      evidence.lifecycle.push({check:"finite arrival",elapsed});
+      await p.reload({waitUntil:"domcontentloaded"});
+      await stateIs("playing");
       await p.evaluate(()=>dispatchEvent(new PageTransitionEvent("pagehide",{persisted:true})));
       await stateIs("hidden");
+      await p.waitForFunction(()=>document.querySelector(".drop-artwork").getAnimations({subtree:true}).every(a=>!a.pending));
+      const time=()=>p.$eval(".drop-artwork",e=>e.getAnimations({subtree:true}).map(a=>a.currentTime));
+      const hidden=await time();
+      await new Promise(r=>setTimeout(r,180));
+      assert.deepEqual(await time(),hidden);
       await p.evaluate(()=>dispatchEvent(new PageTransitionEvent("pageshow",{persisted:true})));
-      await stateIs("paused");
-      await p.click(".drop-artwork button");
+      await stateIs("playing");
       await p.evaluate(()=>scrollTo(0,document.body.scrollHeight));
       await stateIs("offscreen");
       assert.equal(await p.$eval(".drop-artwork",e=>e.getAnimations({subtree:true}).every(a=>a.playState==="paused")),true);
@@ -105,23 +114,22 @@ try {
       assert.equal(await p.$eval(".drop-artwork",e=>e.getAnimations({subtree:true}).length),0);
       await p.emulateMediaFeatures([{name:"prefers-reduced-motion",value:"no-preference"}]);
       await stateIs("complete");
-      await p.click(".drop-artwork button");
-      await stateIs("playing");
       await p.goto(`${base}/privacy/`,{waitUntil:"networkidle0"});
       assert.equal(await p.$(".drop-artwork"),null);
-      await p.goBack({waitUntil:"networkidle0"});
-      await stateIs("playing");
-      evidence.lifecycle.push("all silhouettes; fixed actions; pause time frozen; manual pause survives pagehide/pageshow; offscreen; reduced-motion cancel/replay; privacy/back");
+      await p.goBack({waitUntil:"domcontentloaded"});
+      await p.waitForSelector(".drop-artwork");
+      assert.equal(await p.$(".drop-artwork button"),null);
+      evidence.lifecycle.push("all silhouettes; fixed actions; no controls; finite rest; hidden time frozen; offscreen; live reduced-motion settle; privacy/back");
     } else {
       if(mode!=="no-js") await p.waitForFunction(mode=>document.querySelector(".drop-artwork").dataset.artState===mode,{},mode);
       assert.equal(await p.$eval(".drop-artwork",e=>e.getAnimations({subtree:true}).length),0);
       assert.equal(await p.$$eval(".drop-pixel",nodes=>nodes.length),149);
-      assert.equal(await p.$eval(".drop-artwork button",e=>e.hidden),true);
+      assert.equal(await p.$(".drop-artwork button"),null);
       evidence.lifecycle.push(mode);
     }
     await context.close();
   }
   assert.deepEqual(evidence.errors,[]);
   await writeFile(resolve(output,"results.json"),JSON.stringify(evidence,null,2));
-  console.log(`PASS: ${evidence.layouts.length} layouts, ${evidence.forms.length} forms, pause/lifecycle and static fallbacks.`);
+  console.log(`PASS: ${evidence.layouts.length} layouts, ${evidence.forms.length} forms, finite lifecycle, no controls and static fallbacks.`);
 } finally {await browser.close();}

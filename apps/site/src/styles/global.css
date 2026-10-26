@@ -195,14 +195,6 @@ summary:focus-visible {
   letter-spacing: 0.12em;
   color: var(--air-ink-secondary);
 }
-.drop-artwork-control {
-  min-height: 44px;
-  display: flex;
-  justify-content: center;
-}
-.drop-artwork-control [hidden] {
-  display: none;
-}
 .product-preview {
   max-width: 1024px;
   margin: var(--air-space-32) auto;

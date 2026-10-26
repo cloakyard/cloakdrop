@@ -147,7 +147,7 @@ async function layout(state) {
   assert.ok(result.footerCreditColourMatches, `${JSON.stringify(state)} footer credit colour drift`);
   assert.deepEqual(result.nonNeutralLinks, [], `${JSON.stringify(state)} content link colour drift`);
   assert.equal(result.visibleH1, 1);
-  assert.deepEqual(result.brokenImages, []);
+  assert.deepEqual(result.brokenImages, [], `${JSON.stringify(state)} image readiness`);
 }
 async function setup(width, height, theme, root = 16) {
   await page.setViewport({ width, height, hasTouch: width <= 1100, isMobile: false });
@@ -157,6 +157,14 @@ async function setup(width, height, theme, root = 16) {
     document.querySelector("[data-navigation]").open = false;
   }, root);
   await page.evaluate(() => new Promise(requestAnimationFrame));
+  // Touch emulation can reload the page; network idle alone does not load
+  // below-fold images. Exercise lazy loading after each viewport change.
+  for (const image of await page.$$("img")) {
+    await image.scrollIntoView();
+    await page.waitForFunction((node) => node.complete && node.naturalWidth > 0, {}, image);
+    await image.evaluate((node) => node.decode());
+  }
+  await page.evaluate(() => scrollTo(0, 0));
 }
 async function contrast() {
   return page.evaluate(() => {
@@ -300,13 +308,7 @@ try {
   await page.keyboard.press("Enter");
   assert.equal(await page.evaluate(() => document.activeElement.id), "main");
   await page.keyboard.press("Tab");
-  if (await page.evaluate(() => document.activeElement.matches(".drop-artwork button"))) {
-    await page.keyboard.press("Enter");
-    assert.equal(await page.$eval(".drop-artwork button", (n) => n.textContent), "Play animation");
-    await page.keyboard.press("Space");
-    assert.equal(await page.$eval(".drop-artwork button", (n) => n.textContent), "Pause animation");
-    await page.keyboard.press("Tab");
-  }
+  assert.equal(await page.$(".drop-artwork button"), null);
   assert.equal(await page.evaluate(() => document.activeElement.getAttribute("href")), "#download");
   evidence.journeys.push({
     check: "keyboard disclosure Enter/Space/Tab/Escape and skip link",
