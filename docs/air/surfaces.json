@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.2.2",
+  "contractVersion": "1.2.3",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -15,7 +15,7 @@
         "mounted read-only installer"
       ],
       "viewports": [
-        "760\u00d7570 pt / 1520\u00d71140 px fixed Finder canvas"
+        "760×570 pt / 1520×1140 px fixed Finder canvas"
       ],
       "evidence": [
         "docs/audits/2026-10-19-installer.md",
@@ -40,7 +40,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -69,7 +69,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -97,7 +97,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -107,9 +107,10 @@
         "docs/air/evidence/website-air-checks-2026-10-19.log",
         "docs/air/hyperlinks-2026-10-19.md",
         "evidence/storyline-family-2026-10-26/chrome.json.gz",
-        "evidence/public-shell-2026-10-26/checks.json.gz"
+        "evidence/public-shell-2026-10-26/checks.json.gz",
+        "evidence/consistency-2026-10-26/checks.json.gz"
       ],
-      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. 2026-10-26: Air 1.2.0 public-shell/Storyline software audit passes; see current validation. Physical/assistive gates stay separate. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. 2026-10-26: Air 1.2.0 public-shell/Storyline software audit passes; see current validation. Physical/assistive gates stay separate. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates. Air 1.2.3 compares footer heights/content directly across products and uses the pinned PWA notice; current software checks pass. Separate product/device gates remain open."
     },
     {
       "path": "apps/site/src/components/Header.astro",
@@ -128,7 +129,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -169,8 +170,8 @@
         "200% text and browser zoom"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed",
-        "320\u20131920px; 17 widths/heights; light/dark; 16/32px root font",
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed",
+        "320–1920px; 17 widths/heights; light/dark; 16/32px root font",
         "native Chrome 200%"
       ],
       "evidence": [
@@ -201,7 +202,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -229,7 +230,7 @@
         "200% text and browser zoom"
       ],
       "viewports": [
-        "320\u20131920px; 17 widths/heights; light/dark; 16/32px root font",
+        "320–1920px; 17 widths/heights; light/dark; 16/32px root font",
         "native Chrome 200%"
       ],
       "evidence": [
@@ -261,8 +262,8 @@
         "200% text and browser zoom"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed",
-        "320\u20131920px; 17 widths/heights; light/dark; 16/32px root font",
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed",
+        "320–1920px; 17 widths/heights; light/dark; 16/32px root font",
         "native Chrome 200%"
       ],
       "evidence": [
@@ -292,7 +293,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -321,7 +322,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -349,7 +350,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -377,7 +378,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -416,7 +417,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -424,9 +425,10 @@
         "docs/air/evidence/website-interactions-2026-10-12.json",
         "docs/air/evidence/website-air-2026-10-19.json",
         "docs/air/evidence/website-air-checks-2026-10-19.log",
-        "evidence/public-shell-2026-10-26/checks.json.gz"
+        "evidence/public-shell-2026-10-26/checks.json.gz",
+        "evidence/consistency-2026-10-26/checks.json.gz"
       ],
-      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates. Air 1.2.3 compares footer heights/content directly across products and uses the pinned PWA notice; current software checks pass. Separate product/device gates remain open."
     },
     {
       "path": "apps/site/src/pages/index.astro",
@@ -445,7 +447,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -473,7 +475,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/website-audit.md",
@@ -481,9 +483,10 @@
         "docs/air/evidence/website-interactions-2026-10-12.json",
         "docs/air/evidence/website-air-2026-10-19.json",
         "docs/air/evidence/website-air-checks-2026-10-19.log",
-        "evidence/public-shell-2026-10-26/checks.json.gz"
+        "evidence/public-shell-2026-10-26/checks.json.gz",
+        "evidence/consistency-2026-10-26/checks.json.gz"
       ],
-      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates. Air 1.2.3 compares footer heights/content directly across products and uses the pinned PWA notice; current software checks pass. Separate product/device gates remain open."
     },
     {
       "path": "apps/site/src/scripts/navigation.ts",
@@ -499,7 +502,7 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/evidence/website-air-2026-10-19.json",
@@ -535,17 +538,18 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
-        "docs/air/validation.md \u2014 shared reference checkpoints",
+        "docs/air/validation.md — shared reference checkpoints",
         "docs/air/components.html",
         "docs/air/evidence/website-air-2026-10-19.json",
         "docs/air/evidence/website-air-checks-2026-10-19.log",
         "docs/air/neutral-links-2026-10-19.md",
-        "evidence/public-shell-2026-10-26/checks.json.gz"
+        "evidence/public-shell-2026-10-26/checks.json.gz",
+        "evidence/consistency-2026-10-26/checks.json.gz"
       ],
-      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates. Air 1.2.3 compares footer heights/content directly across products and uses the pinned PWA notice; current software checks pass. Separate product/device gates remain open."
     },
     {
       "path": "apps/site/src/styles/global.css",
@@ -574,8 +578,8 @@
         "200% text and browser zoom"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed",
-        "320\u20131920px; 17 widths/heights; light/dark; 16/32px root font",
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed",
+        "320–1920px; 17 widths/heights; light/dark; 16/32px root font",
         "native Chrome 200%"
       ],
       "evidence": [
@@ -609,13 +613,13 @@
         "reduced motion/forced colours"
       ],
       "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark \u00d7 16/32px root font; compact menu open/closed"
+        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
         "docs/air/evidence/website-air-2026-10-19.json",
         "docs/air/evidence/website-air-checks-2026-10-19.log"
       ],
-      "notes": "Rendered and visually reviewed 1200\u00d7630 Air OG card using unchanged native screenshot; metadata and copied built asset verified."
+      "notes": "Rendered and visually reviewed 1200×630 Air OG card using unchanged native screenshot; metadata and copied built asset verified."
     }
   ]
 }
