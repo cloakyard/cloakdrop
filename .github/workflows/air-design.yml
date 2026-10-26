@@ -30,7 +30,7 @@ jobs:
           node-version: "24"
           cache: npm
           cache-dependency-path: apps/site/package-lock.json
-      - run: npx --yes npm@12.2.0 ci
-      - run: npx --yes npm@12.2.0 run check
-      - run: npx --yes npm@12.2.0 run build
-      - run: npx --yes npm@12.2.0 audit --audit-level=high
+      - run: npx --yes npm@12.2.1 ci
+      - run: npx --yes npm@12.2.1 run check
+      - run: npx --yes npm@12.2.1 run build
+      - run: npx --yes npm@12.2.1 audit --audit-level=high
