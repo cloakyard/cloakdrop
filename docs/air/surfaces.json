@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.2.1",
+  "contractVersion": "1.2.2",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -106,9 +106,10 @@
         "docs/air/evidence/website-air-2026-10-19.json",
         "docs/air/evidence/website-air-checks-2026-10-19.log",
         "docs/air/hyperlinks-2026-10-19.md",
-        "evidence/storyline-family-2026-10-26/chrome.json.gz"
+        "evidence/storyline-family-2026-10-26/chrome.json.gz",
+        "evidence/public-shell-2026-10-26/checks.json.gz"
       ],
-      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. 2026-10-26: Air 1.2.0 public-shell/Storyline software audit passes; see current validation. Physical/assistive gates stay separate."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. 2026-10-26: Air 1.2.0 public-shell/Storyline software audit passes; see current validation. Physical/assistive gates stay separate. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates."
     },
     {
       "path": "apps/site/src/components/Header.astro",
@@ -136,9 +137,10 @@
         "docs/air/evidence/website-air-2026-10-19.json",
         "docs/air/evidence/website-air-checks-2026-10-19.log",
         "docs/air/hyperlinks-2026-10-19.md",
-        "evidence/storyline-family-2026-10-26/chrome.json.gz"
+        "evidence/storyline-family-2026-10-26/chrome.json.gz",
+        "evidence/public-shell-2026-10-26/checks.json.gz"
       ],
-      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. 2026-10-26: Air 1.2.0 public-shell/Storyline software audit passes; see current validation. Physical/assistive gates stay separate."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. 2026-10-26: Air 1.2.0 public-shell/Storyline software audit passes; see current validation. Physical/assistive gates stay separate. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates."
     },
     {
       "path": "apps/site/src/components/Hero.astro",
@@ -421,9 +423,10 @@
         "docs/air/evidence/website-baseline-2026-10-11.json",
         "docs/air/evidence/website-interactions-2026-10-12.json",
         "docs/air/evidence/website-air-2026-10-19.json",
-        "docs/air/evidence/website-air-checks-2026-10-19.log"
+        "docs/air/evidence/website-air-checks-2026-10-19.log",
+        "evidence/public-shell-2026-10-26/checks.json.gz"
       ],
-      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates."
     },
     {
       "path": "apps/site/src/pages/index.astro",
@@ -477,9 +480,10 @@
         "docs/air/evidence/website-baseline-2026-10-11.json",
         "docs/air/evidence/website-interactions-2026-10-12.json",
         "docs/air/evidence/website-air-2026-10-19.json",
-        "docs/air/evidence/website-air-checks-2026-10-19.log"
+        "docs/air/evidence/website-air-checks-2026-10-19.log",
+        "evidence/public-shell-2026-10-26/checks.json.gz"
       ],
-      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates."
     },
     {
       "path": "apps/site/src/scripts/navigation.ts",
@@ -538,9 +542,10 @@
         "docs/air/components.html",
         "docs/air/evidence/website-air-2026-10-19.json",
         "docs/air/evidence/website-air-checks-2026-10-19.log",
-        "docs/air/neutral-links-2026-10-19.md"
+        "docs/air/neutral-links-2026-10-19.md",
+        "evidence/public-shell-2026-10-26/checks.json.gz"
       ],
-      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates."
     },
     {
       "path": "apps/site/src/styles/global.css",
@@ -585,9 +590,10 @@
         "docs/air/neutral-links-2026-10-19.md",
         "evidence/product-artwork-2026-10-25/",
         "docs/air/evidence/family-comparison-2026-10-25/",
-        "evidence/storyline-family-2026-10-26/chrome.json.gz"
+        "evidence/storyline-family-2026-10-26/chrome.json.gz",
+        "evidence/public-shell-2026-10-26/checks.json.gz"
       ],
-      "notes": "Local website horizon follow-up passes software checks; physical/assistive and GPU hardware acceptance remain open. Native UI and screenshot bytes unchanged. 2026-10-19: app logo colour in both GPU and static artwork; 12 theme/viewport cases and both GPU themes pass. Physical GPU/battery acceptance remains open. Approved product artwork implemented and validated 2026-10-25; see latest validation record for scope and remaining physical/assistive acceptance. 2026-10-25: Public family comparison: canonical heading tracking/focus offset/radius and neutral underlined credits/hover corrected. Chrome/Firefox 160 local layouts plus Safari spot review pass; 432 site layouts/34 journeys and 68 artwork layouts pass. Existing physical/assistive gates remain open. 2026-10-26: Air 1.2.0 public-shell/Storyline software audit passes; see current validation. Physical/assistive gates stay separate."
+      "notes": "Local website horizon follow-up passes software checks; physical/assistive and GPU hardware acceptance remain open. Native UI and screenshot bytes unchanged. 2026-10-19: app logo colour in both GPU and static artwork; 12 theme/viewport cases and both GPU themes pass. Physical GPU/battery acceptance remains open. Approved product artwork implemented and validated 2026-10-25; see latest validation record for scope and remaining physical/assistive acceptance. 2026-10-25: Public family comparison: canonical heading tracking/focus offset/radius and neutral underlined credits/hover corrected. Chrome/Firefox 160 local layouts plus Safari spot review pass; 432 site layouts/34 journeys and 68 artwork layouts pass. Existing physical/assistive gates remain open. 2026-10-26: Air 1.2.0 public-shell/Storyline software audit passes; see current validation. Physical/assistive gates stay separate. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates."
     },
     {
       "path": "assets/social/og.html",

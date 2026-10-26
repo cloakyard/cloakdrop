@@ -5,13 +5,12 @@ interface Props { linkPrefix?: string; }
 const { linkPrefix = '' } = Astro.props;
 ---
 <footer class="air-page-footer site-footer frame">
-  <div class="footer-inner">
-    <p><span translate="no">CloakDrop</span> · Made with care by <a href="https://github.com/sumitsahoo">Sumit Sahoo</a>.</p>
-    <nav aria-label="Footer">
+    <p class="air-page-identity"><span translate="no">CloakDrop</span><span>Built by <a href="https://github.com/sumitsahoo">Sumit Sahoo</a></span></p>
+    <nav aria-label="Footer navigation">
       <a href={linkPrefix + downloads.sectionHref}>Download</a>
+      <a href={site.privacyPolicy} aria-current={Astro.url.pathname === '/privacy/' ? 'page' : undefined}>Privacy policy</a>
       <a href={site.repo}>Source</a>
-      <a href={site.privacyPolicy} aria-current={Astro.url.pathname === '/privacy/' ? 'page' : undefined}>Privacy</a>
+      <a href={`${site.repo}/blob/main/LICENSE`}>MIT license</a>
       <a href="https://cloakyard.com">Cloakyard <Icon name="link" size={16} /></a>
     </nav>
-  </div>
 </footer>

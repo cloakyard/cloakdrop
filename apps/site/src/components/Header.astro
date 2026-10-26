@@ -8,13 +8,13 @@ const href = (anchor: string) => `${linkPrefix}${anchor}`;
 ---
 <header class="air-page-header site-header frame">
   <Brand />
-  <nav class="air-page-nav desktop-nav" aria-label="Primary">
+  <nav class="air-page-nav desktop-nav" aria-label="Primary navigation">
     {nav.map((link) => <a href={href(link.href)} data-nav-link>{link.label}</a>)}
   </nav>
   <a class="desktop-source text-link" href={site.repo}>Source <Icon name="link" size={16} stroke={1.6} /></a>
   <details class="mobile-nav" data-navigation>
-    <summary class="air-button air-button--quiet">Menu <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" /></svg></summary>
-    <nav class="air-page-nav" aria-label="Primary">
+    <summary class="air-button air-button--quiet">Menu <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.6" /></svg></summary>
+    <nav class="air-page-nav" aria-label="Primary navigation">
       {nav.map((link) => <a href={href(link.href)} data-nav-link>{link.label}</a>)}
       <a href={site.repo}>Source <Icon name="link" size={16} /></a>
     </nav>

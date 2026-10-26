@@ -302,9 +302,7 @@ h3 {
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
-.site-footer { align-items: center; }
-.footer-inner { display: contents; }
-.footer-inner a[aria-current] {
+.site-footer a[aria-current] {
   text-decoration: underline;
   text-decoration-color: var(--air-accent);
   text-decoration-thickness: 2px;
@@ -433,7 +431,7 @@ h3 {
 @media (hover: hover) and (pointer: fine) {
   .desktop-nav a:hover,
   .mobile-nav nav a:hover,
-  .footer-inner nav a:hover {
+  .site-footer nav a:hover {
     color: var(--air-ink);
     text-decoration: underline;
     text-decoration-thickness: 1px;
