@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.1.0",
+  "contractVersion": "1.2.0",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -14,7 +14,9 @@
         "real Finder icons and labels",
         "mounted read-only installer"
       ],
-      "viewports": ["760\u00d7570 pt / 1520\u00d71140 px fixed Finder canvas"],
+      "viewports": [
+        "760\u00d7570 pt / 1520\u00d71140 px fixed Finder canvas"
+      ],
       "evidence": [
         "docs/audits/2026-10-19-installer.md",
         "docs/audits/images/2026-10-19-installer-air.png"
@@ -45,9 +47,10 @@
         "docs/air/evidence/website-baseline-2026-10-11.json",
         "docs/air/evidence/website-interactions-2026-10-12.json",
         "docs/air/evidence/website-air-2026-10-19.json",
-        "docs/air/evidence/website-air-checks-2026-10-19.log"
+        "docs/air/evidence/website-air-checks-2026-10-19.log",
+        "evidence/storyline-family-2026-10-26/chrome.json.gz"
       ],
-      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. 2026-10-26: Air 1.2.0 public-shell/Storyline software audit passes; see current validation. Physical/assistive gates stay separate."
     },
     {
       "path": "apps/site/src/components/Download.astro",
@@ -102,9 +105,10 @@
         "docs/air/evidence/website-interactions-2026-10-12.json",
         "docs/air/evidence/website-air-2026-10-19.json",
         "docs/air/evidence/website-air-checks-2026-10-19.log",
-        "docs/air/hyperlinks-2026-10-19.md"
+        "docs/air/hyperlinks-2026-10-19.md",
+        "evidence/storyline-family-2026-10-26/chrome.json.gz"
       ],
-      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. 2026-10-26: Air 1.2.0 public-shell/Storyline software audit passes; see current validation. Physical/assistive gates stay separate."
     },
     {
       "path": "apps/site/src/components/Header.astro",
@@ -131,9 +135,10 @@
         "docs/air/evidence/website-interactions-2026-10-12.json",
         "docs/air/evidence/website-air-2026-10-19.json",
         "docs/air/evidence/website-air-checks-2026-10-19.log",
-        "docs/air/hyperlinks-2026-10-19.md"
+        "docs/air/hyperlinks-2026-10-19.md",
+        "evidence/storyline-family-2026-10-26/chrome.json.gz"
       ],
-      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. 2026-10-26: Air 1.2.0 public-shell/Storyline software audit passes; see current validation. Physical/assistive gates stay separate."
     },
     {
       "path": "apps/site/src/components/Hero.astro",
@@ -225,7 +230,9 @@
         "320\u20131920px; 17 widths/heights; light/dark; 16/32px root font",
         "native Chrome 200%"
       ],
-      "evidence": ["evidence/product-artwork-2026-10-25/"],
+      "evidence": [
+        "evidence/product-artwork-2026-10-25/"
+      ],
       "notes": " Approved product artwork implemented and validated 2026-10-25; see latest validation record for scope and remaining physical/assistive acceptance."
     },
     {
@@ -577,9 +584,10 @@
         "docs/air/hyperlinks-2026-10-19.md",
         "docs/air/neutral-links-2026-10-19.md",
         "evidence/product-artwork-2026-10-25/",
-        "docs/air/evidence/family-comparison-2026-10-25/"
+        "docs/air/evidence/family-comparison-2026-10-25/",
+        "evidence/storyline-family-2026-10-26/chrome.json.gz"
       ],
-      "notes": "Local website horizon follow-up passes software checks; physical/assistive and GPU hardware acceptance remain open. Native UI and screenshot bytes unchanged. 2026-10-19: app logo colour in both GPU and static artwork; 12 theme/viewport cases and both GPU themes pass. Physical GPU/battery acceptance remains open. Approved product artwork implemented and validated 2026-10-25; see latest validation record for scope and remaining physical/assistive acceptance. 2026-10-25: Public family comparison: canonical heading tracking/focus offset/radius and neutral underlined credits/hover corrected. Chrome/Firefox 160 local layouts plus Safari spot review pass; 432 site layouts/34 journeys and 68 artwork layouts pass. Existing physical/assistive gates remain open."
+      "notes": "Local website horizon follow-up passes software checks; physical/assistive and GPU hardware acceptance remain open. Native UI and screenshot bytes unchanged. 2026-10-19: app logo colour in both GPU and static artwork; 12 theme/viewport cases and both GPU themes pass. Physical GPU/battery acceptance remains open. Approved product artwork implemented and validated 2026-10-25; see latest validation record for scope and remaining physical/assistive acceptance. 2026-10-25: Public family comparison: canonical heading tracking/focus offset/radius and neutral underlined credits/hover corrected. Chrome/Firefox 160 local layouts plus Safari spot review pass; 432 site layouts/34 journeys and 68 artwork layouts pass. Existing physical/assistive gates remain open. 2026-10-26: Air 1.2.0 public-shell/Storyline software audit passes; see current validation. Physical/assistive gates stay separate."
     },
     {
       "path": "assets/social/og.html",

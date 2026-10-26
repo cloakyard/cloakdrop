@@ -1,5 +1,18 @@
 # Air validation record
 
+## 2026-10-26 — Storyline and family chrome
+
+Adopted the Air 1.2.0 shared public header/footer: 36px mark, canonical wordmark,
+neutral navigation, footer cadence/gutters and 16px destination cues. Removed
+superseded local skins; approved pixel forms and native app/download behavior stay
+unchanged. Astro check/build, 432 site layouts / 34 journeys / 35 captures, 68 artwork
+layouts / four forms, 328 link states / 116 keyboard checks, 20 portability checks
+and the family Chrome/Firefox shell matrix pass. Desktop/laptop/phone light/dark
+rendered review passes. Native app and release artifacts are outside this piece.
+Physical/assistive/hardware gates and the official-bundle exception stay open/local.
+
+Evidence: `docs/air/evidence/storyline-family-2026-10-26/`.
+
 ## 2026-10-25 — family public-page conformance
 
 Corrected marketing-heading tracking, focus offset and the focus-only radius

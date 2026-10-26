@@ -77,22 +77,8 @@ summary:focus-visible {
   min-height: var(--air-header);
   padding-block: var(--air-space-12);
 }
-.brand {
-  display: inline-flex;
-  align-items: center;
-  min-width: 44px;
-  min-height: 44px;
-  gap: var(--air-space-12);
-}
-.brand img {
-  flex: none;
-}
-.brand span {
-  font-size: 1.25rem;
-  font-weight: 500;
-  letter-spacing: -0.04em;
-  white-space: nowrap;
-}
+.brand { flex-shrink: 0; }
+.brand span { white-space: nowrap; }
 .text-link {
   display: inline-flex;
   align-items: center;
@@ -115,7 +101,7 @@ summary:focus-visible {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  font-size: var(--air-text-body);
+  font: 500 var(--air-text-body)/1.5 var(--air-font);
   color: var(--air-ink-secondary);
 }
 [data-nav-link] {
@@ -324,38 +310,8 @@ h3 {
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
-.site-footer {
-  padding-top: var(--air-space-32);
-  padding-bottom: var(--air-space-32);
-}
-.footer-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--air-space-16) var(--air-space-32);
-  border-top: 1px solid var(--air-line);
-  padding-top: var(--air-space-24);
-  color: var(--air-ink-secondary);
-  font-size: var(--air-text-body);
-}
-.footer-inner nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--air-space-16);
-}
-.footer-inner p a {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-}
-.footer-inner nav a {
-  min-width: 44px;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--air-space-8);
-  min-height: 44px;
-}
+.site-footer { align-items: center; }
+.footer-inner { display: contents; }
 .footer-inner a[aria-current] {
   text-decoration: underline;
   text-decoration-color: var(--air-accent);
