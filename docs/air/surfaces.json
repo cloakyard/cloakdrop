@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.2.0",
+  "contractVersion": "1.2.1",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -159,7 +159,7 @@
         "offscreen/Back restoration",
         "six static fallback profiles",
         "FILE/PKG/ISO/ZIP",
-        "pause/resume and keyboard",
+        "finite arrival without playback controls",
         "offscreen/hidden",
         "no-JS/static fallbacks",
         "real download paths",
@@ -219,7 +219,7 @@
       "validated": true,
       "states": [
         "FILE/PKG/ISO/ZIP",
-        "pause/resume and keyboard",
+        "finite arrival without playback controls",
         "offscreen/hidden",
         "no-JS/static fallbacks",
         "real download paths",
@@ -251,7 +251,7 @@
         "coarse targets",
         "reduced motion/forced colours",
         "FILE/PKG/ISO/ZIP",
-        "pause/resume and keyboard",
+        "finite arrival without playback controls",
         "offscreen/hidden",
         "no-JS/static fallbacks",
         "real download paths",
@@ -561,7 +561,7 @@
         "offscreen/Back restoration",
         "six static fallback profiles",
         "FILE/PKG/ISO/ZIP",
-        "pause/resume and keyboard",
+        "finite arrival without playback controls",
         "offscreen/hidden",
         "no-JS/static fallbacks",
         "real download paths",

@@ -308,13 +308,7 @@ try {
   await page.keyboard.press("Enter");
   assert.equal(await page.evaluate(() => document.activeElement.id), "main");
   await page.keyboard.press("Tab");
-  if (await page.evaluate(() => document.activeElement.matches(".drop-artwork button"))) {
-    await page.keyboard.press("Enter");
-    assert.equal(await page.$eval(".drop-artwork button", (n) => n.textContent), "Play animation");
-    await page.keyboard.press("Space");
-    assert.equal(await page.$eval(".drop-artwork button", (n) => n.textContent), "Pause animation");
-    await page.keyboard.press("Tab");
-  }
+  assert.equal(await page.$(".drop-artwork button"), null);
   assert.equal(await page.evaluate(() => document.activeElement.getAttribute("href")), "#download");
   evidence.journeys.push({
     check: "keyboard disclosure Enter/Space/Tab/Escape and skip link",

@@ -24,8 +24,9 @@ open-source/privacy sections, and installation guidance. The header uses an in-f
 disclosure; every destination, policy section and recovery link works without JavaScript.
 The small navigation script enhances Escape, active section markers and anchor focus.
 The Air hero assembles teal square pixels into FILE, PKG, ISO and ZIP silhouettes.
-It uses native Web Animations with a visible pause/resume control, stops offscreen
-or hidden, and keeps a static FILE for no-JS/reduced-motion/constrained visits.
+It uses native Web Animations for one sequence under five seconds, then rests on
+ZIP without playback controls. It suspends offscreen or hidden, and keeps a static
+FILE for no-JS/reduced-motion/constrained visits.
 These are decorative Lucide-derived pixel masks, not simulated transfers. No
 animation library, shader or client-side framework is shipped.
 
@@ -109,7 +110,7 @@ This test requires Chrome and an available `puppeteer-core` installation. Set
 are not locally resolvable. It adds no production dependency. `AIR_EVIDENCE_DIR`
 selects the parent for a private temporary evidence directory; the printed path includes the full size/theme/root-font
 matrix, open/closed menus, contrast, anchors, policy, 404, no-JS and metadata checks.
-The artwork suite checks all four silhouettes, fixed download actions, pause/resume,
+The artwork suite checks all four silhouettes, fixed download actions, finite completion,
 offscreen/Back restoration, live reduced-motion changes and static fallbacks. It
 also validates desktop/laptop/mobile, both themes and enlarged text. The pixel
 script is absent from privacy/404 routes; its source attribution ships at
