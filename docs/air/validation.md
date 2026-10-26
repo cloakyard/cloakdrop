@@ -1,5 +1,19 @@
 # Air validation record
 
+## 2026-10-26 — Full web cleanup audit
+
+Audited the complete website import/dependency graph, custom CSS, source assets,
+copy manifest, generated assets and supported commands. No unused website module,
+dependency, custom selector/keyframe or orphaned web asset was proven. Kept the
+actual download/native screenshot fallbacks, mark/launcher source assets, portable
+Air bundle and supported CLI tools. No runtime or native-app changes were needed.
+
+Astro check, asset sync/build, zero-issue Knip, design and 20 portability checks
+pass. The final family audit passes 552 Chrome home/secondary layouts with zero
+deviations or browser errors. Desktop/laptop/phone light/dark rendered review passes.
+This documentation-only audit does not repeat the unchanged native-app release tests. Evidence: `docs/air/evidence/code-cleanup-2026-10-26/`.
+Physical/assistive and existing product follow-ups remain open. Local only.
+
 ## 2026-10-26 — Storyline and family chrome
 
 Adopted the Air 1.2.0 shared public header/footer: 36px mark, canonical wordmark,
