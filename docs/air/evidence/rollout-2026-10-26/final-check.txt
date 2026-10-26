@@ -1,0 +1,11 @@
+
+> cloakdrop-site@1.0.0 check
+> astro check
+
+13:42:14 [types] Generated 25ms
+13:42:14 [check] Getting diagnostics for Astro files in /Users/sumitsahoo/Developer/cloakdrop/apps/site...
+Result (19 files): 
+- 0 errors
+- 0 warnings
+- 0 hints
+

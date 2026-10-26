@@ -4,14 +4,14 @@ import Icon from './Icon.astro';
 interface Props { linkPrefix?: string; }
 const { linkPrefix = '' } = Astro.props;
 ---
-<footer class="site-footer frame">
+<footer class="air-page-footer site-footer frame">
   <div class="footer-inner">
     <p><span translate="no">CloakDrop</span> · Made with care by <a href="https://github.com/sumitsahoo">Sumit Sahoo</a>.</p>
     <nav aria-label="Footer">
       <a href={linkPrefix + downloads.sectionHref}>Download</a>
       <a href={site.repo}>Source</a>
       <a href={site.privacyPolicy} aria-current={Astro.url.pathname === '/privacy/' ? 'page' : undefined}>Privacy</a>
-      <a href="https://cloakyard.com">Cloakyard <Icon name="link" size={15} /></a>
+      <a href="https://cloakyard.com">Cloakyard <Icon name="link" size={16} /></a>
     </nav>
   </div>
 </footer>

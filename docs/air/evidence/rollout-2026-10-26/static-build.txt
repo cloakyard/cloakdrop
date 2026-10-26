@@ -1,0 +1,65 @@
+npm notice run cloakdrop-site@1.0.0 npx
+npm notice run 'npm' run check
+npm notice run cloakdrop-site@1.0.0 check
+npm notice run astro check
+12:59:01 [types] Generated 70ms
+12:59:01 [check] Getting diagnostics for Astro files in /Users/sumitsahoo/Developer/cloakdrop/apps/site...
+Result (19 files): 
+- 0 errors
+- 0 warnings
+- 0 hints
+
+npm notice run cloakdrop-site@1.0.0 npx
+npm notice run 'npm' run build
+npm notice run cloakdrop-site@1.0.0 prebuild
+npm notice run npm run sync:assets
+npm notice run cloakdrop-site@1.0.0 sync:assets
+npm notice run node ../../scripts/sync-assets.mjs
+sync-assets: 0 copied, 7 up to date.
+npm notice run cloakdrop-site@1.0.0 build
+npm notice run astro build
+12:59:04 [types] Generated 21ms
+12:59:04 [build] output: "static"
+12:59:04 [build] mode: "static"
+12:59:04 [build] directory: /Users/sumitsahoo/Developer/cloakdrop/apps/site/dist/
+12:59:04 [build] Collecting build info...
+12:59:04 [build] ✓ Completed in 44ms.
+12:59:04 [build] Building static entrypoints...
+12:59:04 [vite] ✓ built in 147ms
+12:59:04 [vite] ✓ built in 14ms
+12:59:04 [build] Rearranging server assets...
+
+ generating static routes 
+12:59:04   ├─ /404.html (+10ms) 
+12:59:04   ├─ /privacy/index.html (+2ms) 
+12:59:04   ├─ /index.html (+2ms) 
+12:59:04 ✓ Completed in 21ms.
+
+12:59:04 [build] ✓ Completed in 201ms.
+12:59:04 [@astrojs/sitemap] `sitemap-index.xml` created at `dist`
+12:59:04 [build] 3 page(s) built in 252ms
+12:59:04 [build] Complete!
+npm notice run cloakdrop-site@1.0.0 npx
+npm notice run 'npm' audit --json
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {},
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "dependencies": {
+      "prod": 193,
+      "dev": 103,
+      "optional": 107,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 397
+    }
+  }
+}

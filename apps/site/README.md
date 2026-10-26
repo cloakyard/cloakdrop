@@ -23,8 +23,11 @@ The landing page uses a real app screenshot, three concise feature summaries, an
 open-source/privacy sections, and installation guidance. The header uses an in-flow native
 disclosure; every destination, policy section and recovery link works without JavaScript.
 The small navigation script enhances Escape, active section markers and anchor focus.
-The optional Air horizon has one finite arrival and pointer response, with a static
-fallback and no work at rest. There are no scroll reveals or simulated transfers.
+The Air hero assembles teal square pixels into FILE, PKG, ISO and ZIP silhouettes.
+It uses native Web Animations with a visible pause/resume control, stops offscreen
+or hidden, and keeps a static FILE for no-JS/reduced-motion/constrained visits.
+These are decorative Lucide-derived pixel masks, not simulated transfers. No
+animation library, shader or client-side framework is shipped.
 
 ## Develop
 
@@ -88,7 +91,7 @@ of the sources in [`/assets`](../../assets) — edit them there, not in `public/
 `npm run build` (or `npm run sync:assets`). The web logo is the circular
 `cloakdrop-mark.svg` family mark. It shares the macOS launcher's filled drop-shield and
 download-arrow geometry while keeping the platform-appropriate circular web container.
-The hero is a real, transparent-background screenshot
+The product section retains a real, transparent-background screenshot
 of the app mid-download (WebP with a PNG fallback), and `og.png` is a 1200×630 share card.
 
 ## Air browser acceptance
@@ -98,7 +101,7 @@ then run from the repository root:
 
 ```bash
 SITE_URL=http://127.0.0.1:8144 node scripts/test-air-site.mjs
-SITE_URL=http://127.0.0.1:8144 node scripts/test-air-horizon.mjs
+SITE_URL=http://127.0.0.1:8144 node scripts/test-air-artwork.mjs
 ```
 
 This test requires Chrome and an available `puppeteer-core` installation. Set
@@ -106,9 +109,11 @@ This test requires Chrome and an available `puppeteer-core` installation. Set
 are not locally resolvable. It adds no production dependency. `AIR_EVIDENCE_DIR`
 selects the parent for a private temporary evidence directory; the printed path includes the full size/theme/root-font
 matrix, open/closed menus, contrast, anchors, policy, 404, no-JS and metadata checks.
-The horizon suite checks real GPU arrival, pointer/idle, offscreen/Back restoration,
-theme/reduced-motion changes and six static fallbacks. The optional pinned renderer
-is lazy, capped at 350 kB gzip and absent from privacy/404 routes.
+The artwork suite checks all four silhouettes, fixed download actions, pause/resume,
+offscreen/Back restoration, live reduced-motion changes and static fallbacks. It
+also validates desktop/laptop/mobile, both themes and enlarged text. The pixel
+script is absent from privacy/404 routes; its source attribution ships at
+`/pixel-art.LICENSE.txt`.
 Actual Firefox/Safari review and physical/assistive limits are recorded separately
 in [the Air validation record](../../docs/air/validation.md). Use a fresh port if an
 older app's service worker controls a reused local origin; do not clear user data.
@@ -124,7 +129,7 @@ there is no deployment workflow in this repository. Verify these settings on the
 3. **Build command:** `npm run build` · **Deploy command:** `npx wrangler deploy`.
 4. **Build watch include paths:** `apps/site/*`, `assets/*`, `scripts/sync-assets.mjs`,
    `PRIVACY.md`, `docs/air/*` (repository-relative). Include the policy and pinned
-   horizon runtime because they are imported at build time.
+   artwork lifecycle because they are imported at build time.
    A Swift-only commit should not rebuild the site.
 
 Production triggers and branch/PR previews depend on the dashboard configuration; do not assume

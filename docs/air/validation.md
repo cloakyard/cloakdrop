@@ -1,5 +1,74 @@
 # Air validation record
 
+## 2026-10-26 — Full web cleanup audit
+
+Audited the complete website import/dependency graph, custom CSS, source assets,
+copy manifest, generated assets and supported commands. No unused website module,
+dependency, custom selector/keyframe or orphaned web asset was proven. Kept the
+actual download/native screenshot fallbacks, mark/launcher source assets, portable
+Air bundle and supported CLI tools. No runtime or native-app changes were needed.
+
+Astro check, asset sync/build, zero-issue Knip, design and 20 portability checks
+pass. The final family audit passes 552 Chrome home/secondary layouts with zero
+deviations or browser errors. Desktop/laptop/phone light/dark rendered review passes.
+This documentation-only audit does not repeat the unchanged native-app release tests. Evidence: `docs/air/evidence/code-cleanup-2026-10-26/`.
+Physical/assistive and existing product follow-ups remain open. Local only.
+
+## 2026-10-26 — Storyline and family chrome
+
+Adopted the Air 1.2.0 shared public header/footer: 36px mark, canonical wordmark,
+neutral navigation, footer cadence/gutters and 16px destination cues. Removed
+superseded local skins; approved pixel forms and native app/download behavior stay
+unchanged. Astro check/build, 432 site layouts / 34 journeys / 35 captures, 68 artwork
+layouts / four forms, 328 link states / 116 keyboard checks, 20 portability checks
+and the family Chrome/Firefox shell matrix pass. Desktop/laptop/phone light/dark
+rendered review passes. Native app and release artifacts are outside this piece.
+Physical/assistive/hardware gates and the official-bundle exception stay open/local.
+
+Evidence: `docs/air/evidence/storyline-family-2026-10-26/`.
+
+## 2026-10-25 — family public-page conformance
+
+Corrected marketing-heading tracking, focus offset and the focus-only radius
+change; inline credits stay underlined and navigation hover remains neutral.
+Approved pixels, real downloads, native app and installer are unchanged.
+No dependency or runtime code was added.
+
+Passing: asset sync, Astro check/build, 432 site layouts / 34 journeys, 68 artwork
+layouts/four forms/pause/lifecycle checks, 328 link states and 116 keyboard checks.
+Drop contributes 160 Chrome/Firefox layouts to the 480-layout family comparison.
+Desktop/laptop/mobile light/dark and native Safari home/privacy/pause captures
+were visually reviewed. Zero final comparison deviations/browser errors. Air
+stays at 1.1.0. Evidence: [family comparison](evidence/family-comparison-2026-10-25/).
+Physical/assistive acceptance remains open; this is local, without deployment.
+
+## 2026-10-25 — falling pixel files
+
+Implemented the approved FILE/PKG/ISO/ZIP sequence with local transform/opacity
+animations and precomputed Lucide pixel masks. The neutral Air pause/resume button
+works with pointer and keyboard. Motion freezes offscreen/hidden, retains manual
+pause through visibility changes, and settles immediately on reduced motion.
+No-JS, forced-colour, constrained and Save-Data visits retain a static FILE. Real
+download/install actions and truthful copy are unchanged; the actual screenshot
+now sits in the product section with intrinsic dimensions and lazy loading.
+
+Passing: asset sync, Astro check (zero errors/warnings/hints), production build,
+432 site layouts, 34 journeys, 68 artwork layouts and all four forms, frozen pause
+time, Back restoration, reduced-motion replay and all static fallbacks. Neutral
+links pass 328 layout/state and 116 keyboard checks. Air contract and 20 isolated
+portability checks pass. Desktop/laptop/mobile light/dark captures were visually
+inspected; native Chrome 200% zoom keeps pause and download actions reachable
+without horizontal overflow. Physical-device, assistive and final family
+cross-browser acceptance remain separate gates.
+
+Removed the production horizon component/CSS, shader build/license integration,
+GPU-only test and current README references. No new runtime dependency; pixel
+script is about 2 kB gzip and absent from privacy/404. Lucide attribution ships at
+`/pixel-art.LICENSE.txt`. Family reference shaders remain pinned for other products.
+No native Swift/app/installer, output, release artifact or deployment changes.
+
+Evidence: [artwork, site, links, payload and captures](evidence/product-artwork-2026-10-25/).
+
 ## 2026-10-11 — portable contract and inventory
 
 Website Astro check: 19 files, zero errors/warnings/hints. Asset sync and production build pass (home, privacy, 404). No native source changed.
@@ -37,7 +106,6 @@ sweeps, 200% browser zoom and software-keyboard behaviour remain separate gates.
 The CSS is imported only by the standalone HTML reference. The Astro production
 site does not import it; production adoption remains a separate reviewed piece.
 
-
 ## 2026-10-12 — complete website baseline audit
 
 [The source-linked audit](website-audit.md) records the current website and its
@@ -67,7 +135,6 @@ diagnostics), three-route production build, portable contract/bundle checker,
 five isolated portability assertions, evidence-preserving inventory regeneration
 and `git diff --check` pass. No tracked native or production UI files changed.
 
-
 ## 2026-10-12 — refinement 03 reference checkpoint
 
 Saved the canonical Air candidate from Cloakyard checkpoint `340aee8`, contract
@@ -91,7 +158,6 @@ all seven assets current. No native macOS sources are changed.
 Existing product behavior and appearance are unchanged. Runtime editor/AI/export
 E2E sweeps are reserved for affected production pieces; this checkpoint does not
 claim those have passed. No push or deployment was performed.
-
 
 ## 2026-10-14 — Portable Air 1.0.1
 
@@ -126,7 +192,6 @@ validation checkpoint. Required site asset sync, Astro check (19 files with zero
 
 The final correction keeps the keyboard focus contour at full opacity while muting
 only the unavailable icon; the synchronized bundle was rebuilt and rechecked.
-
 
 ## 2026-10-19 — Complete Air website and social preview
 
@@ -223,7 +288,6 @@ with real icons/labels and no clipping; the background is 1520×1140 at 144 dpi.
 Source/render, mounted-DMG review, code signatures, 20-source design integrity,
 18 portability checks and exact family specification sync pass.
 See [installer evidence](../audits/2026-10-19-installer.md).
-
 
 ## 2026-10-19 — production Air website deployment
 

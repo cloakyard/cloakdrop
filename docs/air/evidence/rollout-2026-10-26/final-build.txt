@@ -1,0 +1,34 @@
+
+> cloakdrop-site@1.0.0 prebuild
+> npm run sync:assets
+
+
+> cloakdrop-site@1.0.0 sync:assets
+> node ../../scripts/sync-assets.mjs
+
+sync-assets: 0 copied, 7 up to date.
+
+> cloakdrop-site@1.0.0 build
+> astro build
+
+13:42:16 [types] Generated 19ms
+13:42:16 [build] output: "static"
+13:42:16 [build] mode: "static"
+13:42:16 [build] directory: /Users/sumitsahoo/Developer/cloakdrop/apps/site/dist/
+13:42:16 [build] Collecting build info...
+13:42:16 [build] ✓ Completed in 42ms.
+13:42:16 [build] Building static entrypoints...
+13:42:16 [vite] ✓ built in 145ms
+13:42:16 [vite] ✓ built in 13ms
+13:42:16 [build] Rearranging server assets...
+
+ generating static routes 
+13:42:16   ├─ /404.html (+11ms) 
+13:42:16   ├─ /privacy/index.html (+2ms) 
+13:42:16   ├─ /index.html (+2ms) 
+13:42:16 ✓ Completed in 22ms.
+
+13:42:16 [build] ✓ Completed in 199ms.
+13:42:16 [@astrojs/sitemap] `sitemap-index.xml` created at `dist`
+13:42:16 [build] 3 page(s) built in 247ms
+13:42:16 [build] Complete!

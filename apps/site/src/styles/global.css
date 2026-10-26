@@ -43,8 +43,7 @@ img {
 a:focus-visible,
 summary:focus-visible {
   outline: 2px solid var(--air-accent);
-  outline-offset: 4px;
-  border-radius: var(--air-radius-check);
+  outline-offset: 3px;
 }
 [id][tabindex="-1"] {
   scroll-margin-top: var(--air-space-24);
@@ -78,22 +77,8 @@ summary:focus-visible {
   min-height: var(--air-header);
   padding-block: var(--air-space-12);
 }
-.brand {
-  display: inline-flex;
-  align-items: center;
-  min-width: 44px;
-  min-height: 44px;
-  gap: var(--air-space-12);
-}
-.brand img {
-  flex: none;
-}
-.brand span {
-  font-size: 1.25rem;
-  font-weight: 500;
-  letter-spacing: -0.04em;
-  white-space: nowrap;
-}
+.brand { flex-shrink: 0; }
+.brand span { white-space: nowrap; }
 .text-link {
   display: inline-flex;
   align-items: center;
@@ -116,7 +101,7 @@ summary:focus-visible {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  font-size: var(--air-text-body);
+  font: 500 var(--air-text-body)/1.5 var(--air-font);
   color: var(--air-ink-secondary);
 }
 [data-nav-link] {
@@ -143,8 +128,8 @@ summary:focus-visible {
 .hero h1 {
   margin-top: var(--air-space-24);
   font-size: var(--air-text-hero);
-  line-height: 1.08;
-  letter-spacing: -0.065em;
+  line-height: 1.05;
+  letter-spacing: -0.045em;
 }
 .hero h1 span {
   display: block;
@@ -172,33 +157,55 @@ summary:focus-visible {
   display: block;
   margin-top: var(--air-space-4);
 }
-.drop-horizon {
+.drop-pixel-stage {
   position: relative;
   width: 100%;
-  height: 160px;
-  margin-top: var(--air-space-16);
+  height: 320px;
+  margin-top: var(--air-space-8);
   color: var(--air-light-cloakdrop);
-  background-color: var(--air-page);
-  outline-color: var(--air-surface-soft);
   pointer-events: none;
   overflow: clip;
 }
-.drop-horizon svg,
-.drop-horizon canvas {
+.drop-pixel-plane {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.drop-pixels {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
 }
-.drop-horizon canvas {
-  visibility: hidden;
+.drop-pixel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 6px;
+  height: 6px;
+  background: currentColor;
 }
-.drop-horizon[data-light-ready="true"] canvas {
-  visibility: visible;
+.drop-pixel-type {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  font-size: var(--air-text-label);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--air-ink-secondary);
+}
+.drop-artwork-control {
+  min-height: 44px;
+  display: flex;
+  justify-content: center;
+}
+.drop-artwork-control [hidden] {
+  display: none;
 }
 .product-preview {
   max-width: 1024px;
-  margin: var(--air-space-16) auto 0;
+  margin: var(--air-space-32) auto;
 }
 .product-preview picture {
   display: block;
@@ -225,7 +232,7 @@ figcaption {
 h2 {
   font-size: var(--air-text-section);
   line-height: 1.15;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.03em;
 }
 .section-intro h2 {
   margin-top: var(--air-space-12);
@@ -303,33 +310,8 @@ h3 {
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
-.site-footer {
-  padding-top: var(--air-space-32);
-  padding-bottom: var(--air-space-32);
-}
-.footer-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--air-space-16) var(--air-space-32);
-  border-top: 1px solid var(--air-line);
-  padding-top: var(--air-space-24);
-  color: var(--air-ink-secondary);
-  font-size: var(--air-text-body);
-}
-.footer-inner nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--air-space-16);
-}
-.footer-inner nav a {
-  min-width: 44px;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--air-space-8);
-  min-height: 44px;
-}
+.site-footer { align-items: center; }
+.footer-inner { display: contents; }
 .footer-inner a[aria-current] {
   text-decoration: underline;
   text-decoration-color: var(--air-accent);
@@ -457,6 +439,14 @@ h3 {
   margin-top: var(--air-space-24);
 }
 @media (hover: hover) and (pointer: fine) {
+  .desktop-nav a:hover,
+  .mobile-nav nav a:hover,
+  .footer-inner nav a:hover {
+    color: var(--air-ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
   .text-link:hover {
     text-decoration: underline;
     text-decoration-thickness: 1px;
@@ -557,8 +547,12 @@ h3 {
   .hero h1 {
     margin-top: var(--air-space-16);
   }
-  .drop-horizon {
-    height: 104px;
+  .drop-pixel-stage {
+    height: 288px;
+  }
+  .drop-pixel-plane {
+    top: -8px;
+    transform: translateX(-50%) scale(0.9);
   }
   .product-preview picture {
     padding: var(--air-space-8);
@@ -577,8 +571,12 @@ h3 {
   }
 }
 @media (max-height: 500px) and (orientation: landscape) {
-  .drop-horizon {
-    height: 64px;
+  .drop-pixel-stage {
+    height: 160px;
+  }
+  .drop-pixel-plane {
+    top: -80px;
+    transform: translateX(-50%) scale(0.5);
   }
   .hero {
     padding-top: var(--air-space-16);
@@ -593,7 +591,7 @@ h3 {
 }
 
 @media (forced-colors: active) {
-  .drop-horizon {
-    display: none;
+  .drop-pixel-stage {
+    color: CanvasText;
   }
 }
