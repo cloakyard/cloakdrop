@@ -512,19 +512,6 @@ h3 {
   }
   .mobile-nav nav {
     pointer-events: auto;
-    display: grid;
-    margin-top: var(--air-space-12);
-    border-top: 1px solid var(--air-line);
-    padding-top: var(--air-space-8);
-  }
-  .mobile-nav nav a {
-    display: flex;
-    align-items: center;
-    gap: var(--air-space-8);
-    min-height: 44px;
-    padding: var(--air-space-8) var(--air-space-12);
-    font-size: var(--air-text-body);
-    color: var(--air-ink-secondary);
   }
   .mobile-nav [aria-current]::after {
     left: 12px;
