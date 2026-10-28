@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.2.3",
+  "contractVersion": "1.2.4",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -14,9 +14,7 @@
         "real Finder icons and labels",
         "mounted read-only installer"
       ],
-      "viewports": [
-        "760×570 pt / 1520×1140 px fixed Finder canvas"
-      ],
+      "viewports": ["760×570 pt / 1520×1140 px fixed Finder canvas"],
       "evidence": [
         "docs/audits/2026-10-19-installer.md",
         "docs/audits/images/2026-10-19-installer-air.png"
@@ -108,7 +106,8 @@
         "docs/air/hyperlinks-2026-10-19.md",
         "evidence/storyline-family-2026-10-26/chrome.json.gz",
         "evidence/public-shell-2026-10-26/checks.json.gz",
-        "evidence/consistency-2026-10-26/checks.json.gz"
+        "evidence/consistency-2026-10-26/checks.json.gz",
+        "docs/air/consistency-2026-10-28.md"
       ],
       "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. 2026-10-26: Air 1.2.0 public-shell/Storyline software audit passes; see current validation. Physical/assistive gates stay separate. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates. Air 1.2.3 compares footer heights/content directly across products and uses the pinned PWA notice; current software checks pass. Separate product/device gates remain open."
     },
@@ -139,7 +138,8 @@
         "docs/air/evidence/website-air-checks-2026-10-19.log",
         "docs/air/hyperlinks-2026-10-19.md",
         "evidence/storyline-family-2026-10-26/chrome.json.gz",
-        "evidence/public-shell-2026-10-26/checks.json.gz"
+        "evidence/public-shell-2026-10-26/checks.json.gz",
+        "docs/air/consistency-2026-10-28.md"
       ],
       "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. 2026-10-26: Air 1.2.0 public-shell/Storyline software audit passes; see current validation. Physical/assistive gates stay separate. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates."
     },
@@ -233,9 +233,7 @@
         "320–1920px; 17 widths/heights; light/dark; 16/32px root font",
         "native Chrome 200%"
       ],
-      "evidence": [
-        "evidence/product-artwork-2026-10-25/"
-      ],
+      "evidence": ["evidence/product-artwork-2026-10-25/"],
       "notes": " Approved product artwork implemented and validated 2026-10-25; see latest validation record for scope and remaining physical/assistive acceptance."
     },
     {
@@ -454,7 +452,8 @@
         "docs/air/evidence/website-baseline-2026-10-11.json",
         "docs/air/evidence/website-interactions-2026-10-12.json",
         "docs/air/evidence/website-air-2026-10-19.json",
-        "docs/air/evidence/website-air-checks-2026-10-19.log"
+        "docs/air/evidence/website-air-checks-2026-10-19.log",
+        "docs/air/consistency-2026-10-28.md"
       ],
       "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged."
     },
@@ -484,7 +483,8 @@
         "docs/air/evidence/website-air-2026-10-19.json",
         "docs/air/evidence/website-air-checks-2026-10-19.log",
         "evidence/public-shell-2026-10-26/checks.json.gz",
-        "evidence/consistency-2026-10-26/checks.json.gz"
+        "evidence/consistency-2026-10-26/checks.json.gz",
+        "docs/air/consistency-2026-10-28.md"
       ],
       "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates. Air 1.2.3 compares footer heights/content directly across products and uses the pinned PWA notice; current software checks pass. Separate product/device gates remain open."
     },
