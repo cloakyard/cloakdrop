@@ -21,9 +21,6 @@ const points = pixelPoints(pixelForms[0].rows);
   const root = document.querySelector<HTMLElement>('.drop-artwork')!;
   const cloud = root.querySelector<HTMLElement>('.drop-pixels')!;
   const label = root.querySelector<HTMLElement>('.drop-pixel-type')!;
-  const styles = getComputedStyle(root);
-  const move = styles.getPropertyValue('--air-ease-in-out').trim();
-  const out = styles.getPropertyValue('--air-ease-out').trim();
   const transform = (x: number, y: number) => `translate(${x}px,${y}px)`;
   let currentForm = 0;
   function paint(index: number) {
@@ -44,6 +41,9 @@ const points = pixelPoints(pixelForms[0].rows);
   mountAirArtwork(root, {
     settle: () => { paint(currentForm); },
     async run(animate) {
+      const styles = getComputedStyle(root);
+      const move = styles.getPropertyValue('--air-ease-in-out').trim();
+      const out = styles.getPropertyValue('--air-ease-out').trim();
       for (let index = 0; index < pixelForms.length; index++) {
         const pixels = paint(index);
         await animate([
