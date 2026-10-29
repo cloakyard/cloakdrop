@@ -26,7 +26,7 @@ try {
           await new Promise(requestAnimationFrame);
           const art=document.querySelector(".drop-artwork");
           const b=art.getBoundingClientRect();
-          return {overflow:document.documentElement.scrollWidth>innerWidth+1,contained:b.left>=0&&b.right<=innerWidth+1,state:art.dataset.artState,count:art.querySelectorAll(".drop-pixel").length,animations:art.getAnimations({subtree:true}).length,hidden:art.querySelector(".drop-pixel-stage").getAttribute("aria-hidden"),controlsAbsent:!art.querySelector("button")};
+          return {overflow:document.documentElement.scrollWidth>innerWidth+1,contained:b.left>=0&&b.right<=innerWidth+1,state:art.dataset.artState,count:art.querySelectorAll(".drop-pixel").length,animations:art.getAnimations({subtree:true}).length,hidden:art.querySelector(".drop-pixel-stage").getAttribute("aria-hidden"),replayHidden:art.querySelector(".air-artwork-replay").hidden};
         },font);
         assert.equal(state.overflow,false,JSON.stringify({width,height,theme,font,state}));
         assert.equal(state.contained,true);
@@ -34,7 +34,7 @@ try {
         assert.equal(state.count,149);
         assert.equal(state.animations,0);
         assert.equal(state.hidden,"true");
-        assert.equal(state.controlsAbsent,true);
+        assert.equal(state.replayHidden,true);
         evidence.layouts.push({width,height,theme,font,...state});
         if(font===16&&[320,390,1280,1440].includes(width)) await page.screenshot({path:resolve(output,`home-${width}-${theme}.png`),fullPage:true});
       }
@@ -80,7 +80,7 @@ try {
         await p.$eval(".drop-artwork",e=>e.getAnimations({subtree:true}).forEach(a=>a.play()));
       }
       assert.deepEqual(await geometry(),before,"Animation must not move the download actions");
-      assert.equal(await p.$(".drop-artwork button"),null);
+      assert.equal(await p.$$eval(".drop-artwork button", buttons=>buttons.length===1 && buttons[0].className==="air-artwork-replay"),true);
       assert.equal(await p.$eval(".drop-artwork",e=>e.getAnimations({subtree:true}).length),0);
       await p.evaluate(()=>dispatchEvent(new PageTransitionEvent("pagehide",{persisted:true})));
       await p.evaluate(()=>dispatchEvent(new PageTransitionEvent("pageshow",{persisted:true})));
@@ -118,18 +118,19 @@ try {
       assert.equal(await p.$(".drop-artwork"),null);
       await p.goBack({waitUntil:"domcontentloaded"});
       await p.waitForSelector(".drop-artwork");
-      assert.equal(await p.$(".drop-artwork button"),null);
-      evidence.lifecycle.push("all silhouettes; fixed actions; no controls; finite rest; hidden time frozen; offscreen; live reduced-motion settle; privacy/back");
+      assert.equal(await p.$$eval(".drop-artwork button", buttons=>buttons.length===1 && buttons[0].className==="air-artwork-replay"),true);
+      evidence.lifecycle.push("all silhouettes; fixed actions; no separate controls; finite rest; hidden time frozen; offscreen; live reduced-motion settle; privacy/back");
     } else {
+      assert.equal(await p.$eval(".air-artwork-replay", b=>b.hidden),true);
       if(mode!=="no-js") await p.waitForFunction(mode=>document.querySelector(".drop-artwork").dataset.artState===mode,{},mode);
       assert.equal(await p.$eval(".drop-artwork",e=>e.getAnimations({subtree:true}).length),0);
       assert.equal(await p.$$eval(".drop-pixel",nodes=>nodes.length),149);
-      assert.equal(await p.$(".drop-artwork button"),null);
+      assert.equal(await p.$$eval(".drop-artwork button", buttons=>buttons.length===1 && buttons[0].className==="air-artwork-replay"),true);
       evidence.lifecycle.push(mode);
     }
     await context.close();
   }
   assert.deepEqual(evidence.errors,[]);
   await writeFile(resolve(output,"results.json"),JSON.stringify(evidence,null,2));
-  console.log(`PASS: ${evidence.layouts.length} layouts, ${evidence.forms.length} forms, finite lifecycle, no controls and static fallbacks.`);
+  console.log(`PASS: ${evidence.layouts.length} layouts, ${evidence.forms.length} forms, finite lifecycle, no separate playback controls and static fallbacks.`);
 } finally {await browser.close();}
