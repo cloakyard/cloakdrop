@@ -1,0 +1,7 @@
+{
+  "chunk_id": "98608f",
+  "wall_time_seconds": 0.000014125,
+  "exit_code": 0,
+  "original_token_count": 315,
+  "output": "12:48:13 [types] Generated 35ms\n12:48:13 [check] Getting diagnostics for Astro files in /Users/sumitsahoo/Developer/cloakdrop/apps/site...\nResult (19 files): \n- 0 errors\n- 0 warnings\n- 0 hints\n\nnpm notice run cloakdrop-site@1.0.0 prebuild\nnpm notice run npm run sync:assets\nnpm notice run cloakdrop-site@1.0.0 sync:assets\nnpm notice run node ../../scripts/sync-assets.mjs\nsync-assets: 0 copied, 7 up to date.\nnpm notice run cloakdrop-site@1.0.0 build\nnpm notice run astro build\n12:48:15 [types] Generated 30ms\n12:48:15 [build] output: \"static\"\n12:48:15 [build] mode: \"static\"\n12:48:15 [build] directory: /Users/sumitsahoo/Developer/cloakdrop/apps/site/dist/\n12:48:15 [build] Collecting build info...\n12:48:15 [build] ✓ Completed in 39ms.\n12:48:15 [build] Building static entrypoints...\n12:48:16 [vite] ✓ built in 170ms\n12:48:16 [vite] ✓ built in 13ms\n12:48:16 [build] Rearranging server assets...\n\n generating static routes \n12:48:16   ├─ /404.html (+9ms) \n12:48:16   ├─ /privacy/index.html (+2ms) \n12:48:16   ├─ /index.html (+2ms) \n12:48:16 ✓ Completed in 18ms.\n\n12:48:16 [build] ✓ Completed in 220ms.\n12:48:16 [@astrojs/sitemap] `sitemap-index.xml` created at `dist`\n12:48:16 [build] 3 page(s) built in 267ms\n12:48:16 [build] Complete!\n"
+}

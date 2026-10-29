@@ -17,7 +17,7 @@ function hashTarget(hash: string): HTMLElement | null {
   }
 }
 function markContents() {
-  for (const link of document.querySelectorAll<HTMLAnchorElement>(".policy-contents a")) {
+  for (const link of document.querySelectorAll<HTMLAnchorElement>(".air-contents a")) {
     if (link.hash === location.hash) link.setAttribute("aria-current", "location");
     else link.removeAttribute("aria-current");
   }
