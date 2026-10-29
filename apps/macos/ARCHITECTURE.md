@@ -170,9 +170,10 @@ serial delegate queues and narrowly scoped locks to bridge callbacks into asynch
   protocol has two backends behind a `CompositeRemuxer` (tries each in order): `AVFoundationRemuxer`
   first — fast, in-process, no dependency, H.264/HEVC + AAC → `.mp4`/`.m4a` — falling back to a
   bundled `FFmpegMuxer` (stream-copy via a `Process`) for the codecs AVFoundation can't carry
-  (VP9/AV1/Opus → `.mkv`). No re-encoding occurs. Unlike required-audio resolution, assembly remains
-  best effort: if every mux backend fails, finalization tries video-only remux and can publish the
-  video assembly without its separate audio. Subtitle fetch/conversion failure also does not fail a
+  (VP9/AV1/Opus → `.mkv`). Apple video passthrough explicitly permits H.264/HEVC only: AV1 can
+  export successfully with incorrect sample timing. FFmpeg preserves complete track tails.
+  No re-encoding occurs. If every mux backend fails, the download fails and retains both staged
+  streams for retry without publishing a video-only result. Subtitle fetch/conversion failure does not fail a
   completed grab. `MediaThumbnailer` renders a poster frame. These operations sit behind protocols /
   injected seams, so the transfer path stays testable against `MockHTTPClient`.
 - **Page extraction (yt-dlp)** — `MediaExtractor` (protocol) resolves a *page* URL (a YouTube

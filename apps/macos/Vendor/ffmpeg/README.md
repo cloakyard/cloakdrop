@@ -22,7 +22,9 @@ Rebuild CloakDrop afterward. The [project build phase](../../project.yml) copies
 the signature. It removes a stale bundled helper when the vendor binary is absent.
 Without this binary the app still works: AVFoundation handles compatible H.264/HEVC
 and AAC media. Unsupported single-stream input is kept in its original container; a split video/audio
-rendition can finish video-only when no available muxer accepts its codecs.
+rendition fails with both staged tracks retained when no available muxer accepts its codecs.
+AV1/VP9 always bypass Apple passthrough, which can report success while corrupting AV1 timing.
+Muxing preserves each track's full timeline rather than trimming to the shorter track.
 
 ## Build configuration and verification
 

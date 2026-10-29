@@ -5,11 +5,29 @@ import Testing
 @testable import DownloadPersistence
 @testable import DownloadEngine
 
-/// Exercises the real `AVFoundationRemuxer` against genuine, synthesized media (no network, no
-/// fixtures on disk): a tiny H.264 MP4 and an AAC `.m4a` are written with AVFoundation itself,
-/// then remuxed and re-opened to prove the passthrough produced a clean, correctly-typed file.
+/// Exercises the real remuxer using synthesized H.264/AAC and a tiny synthetic AV1 fixture.
+/// No network is required; outputs are reopened to verify their tracks and container.
 @Suite("Remux (AVFoundation passthrough to a clean container)")
 struct RemuxerTests {
+    @Test("AV1 in MP4 bypasses Apple passthrough for both mux and remux")
+    func av1UsesFallbackBeforeExport() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let fixture = try #require(Bundle.module.url(forResource: "av1-30fps", withExtension: "mp4", subdirectory: "Fixtures"))
+        let video = dir.appendingPathComponent("av1.mp4")
+        try FileManager.default.copyItem(at: fixture, to: video)
+        let audio = dir.appendingPathComponent("audio.m4a")
+        try MediaFixtures.writeAudioM4A(to: audio)
+
+        await #expect(throws: RemuxError.unsupported) {
+            _ = try await AVFoundationRemuxer().remux(sourcePath: video.path)
+        }
+        await #expect(throws: RemuxError.unsupported) {
+            _ = try await AVFoundationRemuxer().mux(videoPath: video.path, audioPath: audio.path)
+        }
+        #expect(!FileManager.default.fileExists(atPath: dir.appendingPathComponent("av1.muxed.mp4").path))
+    }
+
     private func tempDir() throws -> URL {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("cloakdrop-remux-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)

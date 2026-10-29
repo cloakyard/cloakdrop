@@ -6,6 +6,27 @@ import Testing
 
 @Suite("Media transfer (segment grab through the engine)")
 struct MediaTransferTests {
+    @Test("A failed paired mux preserves both parts and never publishes a silent completed video")
+    func failedMuxDoesNotPublishVideoOnly() async throws {
+        let directory = try tempDir()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let video = URL(string: "https://cdn.example/video.mp4")!
+        let audio = URL(string: "https://cdn.example/audio.m4a")!
+        let mock = MockHTTPClient(resources: [video: .init(data: payload(1)), audio: .init(data: payload(2))])
+        let manager = try await makeManager(store: GRDBDownloadStore.inMemory(), mock: mock)
+        // PassthroughRemuxer can repackage video but cannot combine the required audio.
+        let added = await manager.addMedia(
+            DownloadRequest(url: video, suggestedFileName: "paired.mp4", destinationDirectoryPath: directory.path),
+            plan: .pairedFiles(video: video, audio: audio)
+        )
+        let result = try await waitFor(manager, added.id) { $0.status.isTerminal || $0.status.isResumable }
+        guard case .failed = result.status else { Issue.record("Failed mux was reported as complete"); return }
+        #expect(!FileManager.default.fileExists(atPath: result.destinationFilePath))
+        for part in ["seg-0.part", "audio-0.part"] {
+            #expect(FileManager.default.fileExists(atPath: (result.mediaPartDirectoryPath as NSString).appendingPathComponent(part)))
+        }
+    }
+
     @Test("Duplicate media IDs fail before concurrent workers can overwrite shared staging files",
           arguments: [false, true])
     func duplicateSegmentIDsAreRejected(inAudio: Bool) async throws {
@@ -629,7 +650,7 @@ struct MediaTransferTests {
         let plan = MediaPlan.pairedFiles(video: videoURL, audio: audioURL)
 
         let store = try GRDBDownloadStore.inMemory()
-        let manager = try await makeManager(store: store, mock: mock)
+        let manager = try await makeManager(store: store, mock: mock, remuxer: ByteCountingMuxer())
 
         // Collect progress events while the grab runs.
         let collector = Task { () -> Bool in
@@ -969,6 +990,21 @@ struct MediaTransferTests {
         #expect(plan.subtitles?.count == 1)
         #expect(plan.subtitles?.first?.language == "en")
         #expect(plan.subtitles?.first?.segments.first?.url.absoluteString == "https://cdn/x/subs/en.vtt")
+    }
+}
+
+/// Progress-only fixture: retain both arbitrary byte streams without requiring real encoded media.
+private struct ByteCountingMuxer: Remuxer {
+    func remux(sourcePath: String) async throws -> RemuxResult {
+        try await PassthroughRemuxer().remux(sourcePath: sourcePath)
+    }
+
+    func mux(videoPath: String, audioPath: String) async throws -> RemuxResult {
+        var data = try Data(contentsOf: URL(fileURLWithPath: videoPath))
+        data.append(try Data(contentsOf: URL(fileURLWithPath: audioPath)))
+        let output = videoPath + ".muxed.mp4"
+        try data.write(to: URL(fileURLWithPath: output))
+        return RemuxResult(outputPath: output, fileExtension: "mp4")
     }
 }
 

@@ -28,11 +28,11 @@
 set -euo pipefail
 
 # --- Pinned release ----------------------------------------------------------------------------
-YTDLP_VERSION="2026.08.19"
+YTDLP_VERSION="2026.10.26"
 YTDLP_URL="https://github.com/yt-dlp/yt-dlp/releases/download/${YTDLP_VERSION}/yt-dlp_macos.zip"
 # SHA-256 of the official yt-dlp_macos.zip (onedir) for the pinned version. Cross-check against the
 # release's SHA2-256SUMS before trusting a bump. Set YTDLP_SHA256="" to print the hash and stop.
-YTDLP_SHA256="${YTDLP_SHA256-07e54b0865303c864006925913bce2604f8ee8cc6f18699bac9c309f9328a6d8}"
+YTDLP_SHA256="${YTDLP_SHA256-20d98fa608998eff87d1d35a6e9fb65e4b874639a6cc89addc19da3becde3ef1}"
 
 # --- Paths -------------------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

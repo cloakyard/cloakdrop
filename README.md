@@ -78,8 +78,8 @@ per page. Continuous live recording, automatic re-resolution of expired media UR
 authentication headers for every media resource are not implemented.
 
 If a split video requires an external audio track that cannot be resolved, preparation fails rather
-than silently choosing silent video. A later muxing failure is a separate limitation: if every
-available muxer rejects the downloaded pair, the current finalizer can keep a video-only result.
+than silently choosing silent video. If every available muxer rejects the downloaded pair, the
+download fails and keeps both staged streams for retry; it never publishes a video-only success.
 Subtitle sidecars are best effort.
 
 App proxy settings cover HTTP transfers and speed tests. The browser supports system/manual proxy

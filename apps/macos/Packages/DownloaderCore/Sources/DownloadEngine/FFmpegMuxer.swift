@@ -43,15 +43,14 @@ public struct FFmpegMuxer: Remuxer {
 
     public func mux(videoPath: String, audioPath: String) async throws -> RemuxResult {
         let output = (videoPath as NSString).deletingPathExtension + ".muxed.mkv"
-        // Take video from input 0 and audio from input 1, stream-copied into Matroska. `-shortest`
-        // clamps the result to the shorter of the two tracks so a length mismatch can't desync the
-        // audio or leave a trailing silent/black tail (mirrors the AVFoundation path's clamp).
+        // Keep both complete streams, including a video/audio tail beyond the other track's end.
+        // `-shortest` would silently discard downloaded packets when their durations differ.
         try await run(
             arguments: [
                 "-nostdin", "-y",
                 "-i", videoPath, "-i", audioPath,
                 "-map", "0:v:0", "-map", "1:a:0",
-                "-c", "copy", "-shortest", output
+                "-c", "copy", output
             ],
             output: output
         )

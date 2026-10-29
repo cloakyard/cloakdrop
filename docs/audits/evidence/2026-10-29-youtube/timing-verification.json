@@ -1,0 +1,66 @@
+{
+  "original": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "av1",
+        "codec_type": "video",
+        "avg_frame_rate": "30/1",
+        "duration": "44.433333",
+        "nb_read_packets": "1333"
+      }
+    ],
+    "format": {
+      "duration": "44.433333",
+      "size": "1815178"
+    }
+  },
+  "broken": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "av1",
+        "codec_type": "video",
+        "avg_frame_rate": "15/1",
+        "duration": "88.866667",
+        "nb_read_packets": "1333"
+      },
+      {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "avg_frame_rate": "0/0",
+        "duration": "44.441542",
+        "nb_read_packets": "1914"
+      }
+    ],
+    "format": {
+      "duration": "88.866667",
+      "size": "2530215"
+    }
+  },
+  "fixed": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "av1",
+        "codec_type": "video",
+        "avg_frame_rate": "30/1",
+        "nb_read_packets": "1333"
+      },
+      {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "avg_frame_rate": "0/0",
+        "nb_read_packets": "1916"
+      }
+    ],
+    "format": {
+      "duration": "44.489000",
+      "size": "2535553"
+    }
+  },
+  "video_packets_preserved": false
+}

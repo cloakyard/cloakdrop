@@ -7,6 +7,35 @@ import Testing
 /// when a real `ffmpeg` is installed on the machine (they synthesize genuine media and shell out).
 @Suite("FFmpeg backend & composite remuxer")
 struct FFmpegMuxerTests {
+    @Test("AV1 fallback preserves all 30 frames and the full video when audio is shorter",
+          .enabled(if: Tools.ffmpeg != nil && Tools.ffprobe != nil))
+    func av1FallbackPreservesTimingAndTail() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let fixture = try #require(Bundle.module.url(forResource: "av1-30fps", withExtension: "mp4", subdirectory: "Fixtures"))
+        let video = dir.appendingPathComponent("av1.mp4")
+        try FileManager.default.copyItem(at: fixture, to: video)
+        let audio = dir.appendingPathComponent("audio.m4a")
+        try MediaFixtures.writeAudioM4A(to: audio) // 0.5 seconds, deliberately shorter than video
+        let composite = CompositeRemuxer([
+            AVFoundationRemuxer(), FFmpegMuxer(executableURL: try #require(Tools.ffmpeg))
+        ])
+        let result = try await composite.mux(videoPath: video.path, audioPath: audio.path)
+        #expect(result.fileExtension == "mkv")
+        try assertHasVideoAndAudio(result.outputPath)
+        let probe = try Tools.runCapturingStdout(try #require(Tools.ffprobe), [
+            "-v", "error", "-count_packets", "-select_streams", "v:0",
+            "-show_entries", "stream=nb_read_packets:format=duration", "-of", "json", result.outputPath
+        ])
+        let data = try #require(probe.data(using: .utf8))
+        let info = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let streams = try #require(info["streams"] as? [[String: Any]])
+        #expect(streams.first?["nb_read_packets"] as? String == "30")
+        let format = try #require(info["format"] as? [String: Any])
+        let duration = try #require((format["duration"] as? String).flatMap(Double.init))
+        #expect(abs(duration - 1) < 0.1)
+    }
+
     // MARK: - FFmpegMuxer (bundled-binary tier)
 
     @Test("With no runnable binary, mux reports .unsupported so a composite can fall through")

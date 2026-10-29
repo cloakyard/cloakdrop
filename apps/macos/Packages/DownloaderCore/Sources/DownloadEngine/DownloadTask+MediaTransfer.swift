@@ -221,15 +221,15 @@ extension DownloadTask {
             let audioAssembly = (partDir as NSString).appendingPathComponent("assembly-audio.\(audioExt)")
             try concatenate(initNamed: "audio-init.part", segments: audioSegments,
                             pathFor: { audioSegmentPath(partDir, $0) }, partDir: partDir, into: audioAssembly)
-            if let muxed = try await attemptRepackage({
+            guard let muxed = try await attemptRepackage({
                 try await remuxer.mux(videoPath: videoAssembly, audioPath: audioAssembly)
-            }) {
-                sourcePath = muxed.outputPath
-                container = muxed.fileExtension
-            } else if let result = try await attemptRepackage({ try await remuxer.remux(sourcePath: videoAssembly) }) {
-                sourcePath = result.outputPath
-                container = result.fileExtension
+            }) else {
+                // Both streams are required. Keep staging for retry instead of marking a silent,
+                // video-only fallback complete and deleting the successfully downloaded audio.
+                throw DownloadError.underlying(reason: "Could not combine the video and audio. The downloaded parts were kept for retry.")
             }
+            sourcePath = muxed.outputPath
+            container = muxed.fileExtension
         } else if let result = try await attemptRepackage({ try await remuxer.remux(sourcePath: videoAssembly) }) {
             sourcePath = result.outputPath
             container = result.fileExtension

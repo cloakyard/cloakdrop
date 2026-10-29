@@ -28,8 +28,8 @@ public protocol Remuxer: Sendable {
 }
 
 public extension Remuxer {
-    /// Default: no muxing capability (the passthrough/test remuxer). Callers fall back to shipping
-    /// the video-only file when this throws.
+    /// Default: no muxing capability (the passthrough/test remuxer). A paired download must fail
+    /// and retain its staged streams if no backend can combine them.
     func mux(videoPath: String, audioPath: String) async throws -> RemuxResult {
         throw RemuxError.unsupported
     }
@@ -64,8 +64,8 @@ public enum RemuxError: Error, Sendable, Equatable {
 /// This is how CloakDrop pairs a fast in-process backend with a heavier, more capable one:
 /// `AVFoundationRemuxer` first (no subprocess, no bundled dependency — handles H.264/HEVC + AAC),
 /// then a bundled `FFmpegMuxer` for the codecs AVFoundation rejects (VP9/AV1/Opus). A "video" grab
-/// gets its audio muxed in whenever *either* backend can do it, and only ships video-only when
-/// neither can.
+/// gets its audio muxed in whenever *either* backend can do it, and fails with staging retained
+/// when neither can.
 public struct CompositeRemuxer: Remuxer {
     private let remuxers: [any Remuxer]
 
