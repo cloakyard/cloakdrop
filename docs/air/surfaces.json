@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.2.6",
+  "contractVersion": "1.2.7",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -239,7 +239,8 @@
         "native Chrome 200%"
       ],
       "evidence": [
-        "evidence/product-artwork-2026-10-25/"
+        "evidence/product-artwork-2026-10-25/",
+        "docs/air/safari-startup-2026-10-29.md"
       ],
       "notes": " Approved product artwork implemented and validated 2026-10-25; see latest validation record for scope and remaining physical/assistive acceptance."
     },
