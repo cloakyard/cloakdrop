@@ -11,7 +11,7 @@ scripts/fetch-ytdlp.sh
 ```
 
 The [fetch script](../../scripts/fetch-ytdlp.sh) is the source of truth for the version, official
-release URL, and SHA-256. It currently vendors **yt-dlp 2026.08.19** from `yt-dlp_macos.zip`.
+release URL, and SHA-256. It currently vendors **yt-dlp 2026.10.26** from `yt-dlp_macos.zip`.
 The resulting executable, `_internal/` runtime, and `build/` cache are git-ignored.
 
 ## Runtime and isolation
@@ -55,10 +55,13 @@ Keep the complete runtime together rather than replacing individual frozen Pytho
 Bundled dependencies retain their own licenses; preserve the upstream notices when distributing.
 
 The [6 September 2026 dependency audit](../../../../docs/audits/2026-09-06-dependencies.md) records
-archive provenance, nested-signature checks, and the full runtime inventory. The current stable
-bundle still includes older Python, OpenSSL, SQLite, and Python packages; **OpenSSL 3.5.7 has a
-newer security patch available**. The checked nightly/master bundles have the same runtime gap.
-A custom runtime rebuild was considered and declined in favour of the official bundle. A current yt-dlp release does not imply every frozen dependency is current.
+archive provenance, nested-signature checks, and the older runtime inventory. The
+[October 29 update](../../../../docs/audits/2026-10-29-youtube.md) verifies the new signed stable
+archive and a sandboxed download of the reported YouTube video. It updates Python to 3.14.7,
+brotli to 1.2.1, certifi to 2026.10.23 and curl_cffi to 0.17.0, among other bundled packages.
+It still freezes **OpenSSL 3.5.7 and SQLite 3.50.4**, and Python 3.14.7 is behind current 3.14
+patches. A current yt-dlp release does not imply every frozen dependency is current.
+A custom runtime rebuild was previously considered and declined in favour of the official bundle.
 The [12 September recheck](../../../../docs/audits/2026-09-12-progress-and-dependencies.md#remaining-runtime-update--requires-new-build-dependencies)
 confirms that this gap remains and records current custom-build targets.
 On [October 7](../../../../docs/audits/2026-10-07-dependencies.md), the maintainer

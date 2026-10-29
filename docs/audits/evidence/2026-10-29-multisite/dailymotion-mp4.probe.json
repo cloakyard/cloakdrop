@@ -1,0 +1,31 @@
+{
+    "programs": [
+
+    ],
+    "stream_groups": [
+
+    ],
+    "streams": [
+        {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "avg_frame_rate": "503730000/16807807",
+            "duration": "186.753411",
+            "nb_read_frames": "5597",
+            "nb_read_packets": "5597"
+        },
+        {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "avg_frame_rate": "0/0",
+            "duration": "186.641995",
+            "nb_read_frames": "4019",
+            "nb_read_packets": "4019"
+        }
+    ],
+    "format": {
+        "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": "186.868111",
+        "size": "10892727"
+    }
+}

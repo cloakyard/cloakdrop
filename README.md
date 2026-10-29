@@ -65,7 +65,7 @@ It documents the remaining signing, Share Extension and official-bundle runtime 
 | **Queues and bandwidth** | Per-queue concurrency, global and per-download speed caps, time-of-day profiles, scheduling, categories and routing rules. |
 | **Capture from your workflow** | Clipboard watching, drag and drop, Services, a Share Extension, and a link grabber with deduplication and pattern expansion. Remembered credentials use Keychain; request-specific state is retained locally for resume. |
 | **Built-in browser** | WebKit with persistent logins, no saved browsing history, and a one-click site-data wipe. Detects manifests, direct media and file downloads, including players in shadow DOM; filters known ad hosts and stream chunks. Optional blocklists are fetched only when selected or updated. |
-| **Video and audio grabbing** | HLS/DASH quality selection, supported AES-128 streams, subtitle sidecars and independently downloadable audio renditions. Optional yt-dlp resolves supported video pages and audio-only pages; CloakDrop’s own engine transfers the selected payload. |
+| **Video and audio grabbing** | HLS/DASH quality selection, supported AES-128 streams, subtitle sidecars and independently downloadable audio renditions. Optional yt-dlp resolves supported video pages and audio-only pages; CloakDrop’s own engine transfers the selected payload. Pasted video pages and browser page captures offer compatible MP4 (H.264/AAC, when available) or original quality; both preserve the selected source streams without re-encoding. |
 | **Local media processing** | AVFoundation passthrough for compatible media, with an optional network-free ffmpeg helper for additional formats such as VP9, AV1 and Opus. No re-encoding. |
 | **Useful finishing touches** | Guarded ZIP extraction, download quarantine, completion actions, local statistics, and a speed test that runs only when started by you. |
 | **Native macOS UI** | SwiftUI and Liquid Glass, light/dark appearance, keyboard and VoiceOver support, reduced-motion handling, menu-bar and Dock progress, and an interface localized into 11 languages. |
@@ -78,8 +78,8 @@ per page. Continuous live recording, automatic re-resolution of expired media UR
 authentication headers for every media resource are not implemented.
 
 If a split video requires an external audio track that cannot be resolved, preparation fails rather
-than silently choosing silent video. A later muxing failure is a separate limitation: if every
-available muxer rejects the downloaded pair, the current finalizer can keep a video-only result.
+than silently choosing silent video. If every available muxer rejects the downloaded pair, the
+download fails and keeps both staged streams for retry; it never publishes a video-only success.
 Subtitle sidecars are best effort.
 
 App proxy settings cover HTTP transfers and speed tests. The browser supports system/manual proxy

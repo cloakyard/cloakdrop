@@ -56,6 +56,7 @@ let package = Package(
         .testTarget(
             name: "DownloadEngineTests",
             dependencies: ["DownloadEngine"],
+            resources: [.copy("Fixtures")],
             swiftSettings: [.swiftLanguageMode(.v6)]
         )
     ]

@@ -87,7 +87,7 @@ async function layout(state) {
         }
     }
     for (const node of document.querySelectorAll(
-      ".site-header a, summary, .site-footer nav a, .text-link, .air-button, .policy-contents a",
+      ".site-header a, summary, .site-footer nav a, .text-link, .air-button, .air-contents a",
     )) {
       if (!visible(node)) continue;
       const r = node.getBoundingClientRect();
@@ -320,21 +320,21 @@ try {
   const source = await readFile(new URL("../PRIVACY.md", import.meta.url), "utf8");
   const sections = [...source.matchAll(/^## (.+)$/gm)].map((match) => match[1]);
   assert.deepEqual(
-    await page.$$eval(".policy-document h2", (nodes) => nodes.map((n) => n.textContent)),
+    await page.$$eval(".air-policy .air-prose h2", (nodes) => nodes.map((n) => n.textContent)),
     sections,
   );
   assert.equal(await page.$eval("time", (n) => n.dateTime), "2026-09-06");
-  for (const link of await page.$$eval(".policy-contents a", (nodes) =>
+  for (const link of await page.$$eval(".air-contents a", (nodes) =>
     nodes.map((n) => n.getAttribute("href")),
   )) {
-    await page.click(`.policy-contents a[href="${link}"]`);
+    await page.click(`.air-contents a[href="${link}"]`);
     assert.equal(await page.evaluate(() => document.activeElement.id), link.slice(1));
   }
-  await page.focus(".policy-contents summary");
+  await page.focus(".air-contents summary");
   await page.keyboard.press("Escape");
-  assert.equal(await page.$eval(".policy-contents", (n) => n.open), false);
+  assert.equal(await page.$eval(".air-contents", (n) => n.open), false);
   await page.keyboard.press("Enter");
-  assert.equal(await page.$eval(".policy-contents", (n) => n.open), true);
+  assert.equal(await page.$eval(".air-contents", (n) => n.open), true);
   evidence.journeys.push({
     check: "all source policy headings, nine contents anchors, revision and disclosure",
     sections: sections.length,

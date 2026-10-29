@@ -1,0 +1,11 @@
+{
+  "direct_video_frames": 1333,
+  "source_decoded_frames": 1333,
+  "all_decoded_frame_hashes_match": true,
+  "direct_and_browser_files_byte_identical": true,
+  "output_sha256": "57ae0d54389239755143e15bf9f1a8525bb07f063b99f5b88cf94fde52e62633",
+  "bytes": 2453267,
+  "video_duration_seconds": 44.433333,
+  "audio_duration_seconds": 44.489433,
+  "video_fps": 30
+}

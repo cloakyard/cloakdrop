@@ -295,126 +295,20 @@ h3 {
   color: var(--air-ink-muted);
   font-size: var(--air-text-body);
 }
-.install a,
-.policy-document a {
+.install a {
   color: inherit;
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
-.site-footer a[aria-current] {
-  text-decoration: underline;
-  text-decoration-color: var(--air-accent);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.3em;
-}
-.policy-page {
-  padding-block: var(--air-space-64);
-}
-.policy-intro {
-  max-width: 65ch;
-  margin-bottom: var(--air-space-48);
-}
-.policy-intro h1,
 .not-found h1 {
   margin: var(--air-space-16) 0 var(--air-space-24);
   font-size: var(--air-text-section);
   letter-spacing: -0.045em;
   line-height: 1.15;
 }
-.policy-lead {
-  max-width: 58ch;
-  color: var(--air-ink-secondary);
-  font-size: 1.125rem;
-  line-height: 1.65;
-}
-.policy-date {
-  margin-top: var(--air-space-24);
-  color: var(--air-ink-muted);
-  font-size: var(--air-text-body);
-}
-.policy-layout {
-  display: grid;
-  grid-template-columns: 14rem minmax(0, 65ch);
-  gap: var(--air-space-64);
-  align-items: start;
-}
-.policy-contents {
-  min-width: 0;
-}
-.policy-contents summary {
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  gap: var(--air-space-8);
-  list-style: none;
-  cursor: pointer;
-  font-size: var(--air-text-body);
-  font-weight: 500;
-}
-.policy-contents summary::-webkit-details-marker {
-  display: none;
-}
-.policy-contents summary::after {
-  content: "+";
-  margin-left: auto;
-}
-.policy-contents[open] summary::after {
-  content: "−";
-}
-.policy-contents nav {
-  display: grid;
-  padding-block: var(--air-space-8);
-}
-.policy-contents a {
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-  padding-block: var(--air-space-8);
-  font-size: var(--air-text-body);
-  color: var(--air-ink-secondary);
-}
-.policy-contents a[aria-current] {
-  color: var(--air-ink);
-  text-decoration: underline;
-  text-decoration-color: var(--air-accent);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.3em;
-}
-.policy-document {
-  min-width: 0;
-  max-width: 65ch;
-}
-.policy-document h1,
-.policy-document h1 + p {
-  display: none;
-}
-.policy-document h2 {
-  margin-top: var(--air-space-48);
-  padding-top: var(--air-space-48);
-  border-top: 1px solid var(--air-line);
-  font-size: 1.5rem;
-  font-weight: 500;
-  letter-spacing: -0.025em;
-  scroll-margin-top: var(--air-space-24);
-}
-.policy-document h2:first-of-type {
-  margin-top: var(--air-space-32);
-}
-.policy-document p,
-.policy-document ul {
-  margin-top: var(--air-space-16);
-  color: var(--air-ink-secondary);
-}
-.policy-document ul {
-  padding-inline-start: 1.5em;
-}
-.policy-document li + li {
-  margin-top: var(--air-space-8);
-}
-.policy-document code {
-  font: 0.92em var(--air-font-mono);
-}
+/* The source Markdown owns its title/date; the page header presents them once. */
+.air-policy-source > h1, .air-policy-source > h1 + p { display: none; }
 .not-found {
   padding-block: var(--air-space-96);
   min-height: 60svh;
@@ -450,14 +344,6 @@ h3 {
   .craft-grid,
   .download-grid {
     gap: var(--air-space-32);
-  }
-  .policy-layout {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--air-space-32);
-  }
-  .policy-contents {
-    max-width: 65ch;
-    border-block: 1px solid var(--air-line);
   }
 }
 @container (max-width: 48rem) {
@@ -534,8 +420,7 @@ h3 {
   .product-preview picture {
     padding: var(--air-space-8);
   }
-  .section,
-  .policy-page {
+  .section {
     padding-block: var(--air-space-48);
   }
   .not-found {

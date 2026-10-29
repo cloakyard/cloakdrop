@@ -10,11 +10,15 @@ struct MediaSelection: Identifiable {
     let stream: MediaStream
     let request: DownloadRequest
     var extracted: ExtractedMedia?
+
+    var compatibleMP4Stream: MediaStream? {
+        extracted?.toMediaStream(pageURL: stream.sourceURL, outputFormat: .compatibleMP4) ?? stream.compatibleMP4Stream
+    }
 }
 
 /// Media intake: streaming manifests (HLS/DASH) and page URLs supported by yt-dlp
-/// funnel through the same `DownloadManager`. With "Ask me quality" off (the default), the best tier
-/// downloads immediately — one click, no picker; with it on, the picker offers every resolution.
+/// funnel through the same `DownloadManager`. Manual page and browser grabs open the shared picker
+/// for quality and output format; other manifest intake follows the "Ask me quality" preference.
 extension AppModel {
     /// Whether a URL looks like an adaptive-streaming manifest worth offering to grab as media.
     static func isMediaManifest(_ url: URL) -> Bool {
@@ -25,6 +29,11 @@ extension AppModel {
     /// normally. If resolution fails or the manifest carries no renditions, it falls back to a normal
     /// download.
     func grab(_ request: DownloadRequest, preview: LinkPreview? = nil) {
+        if VideoPageDetector.detect(request.url) != nil {
+            grabPage(url: request.url, destinationDirectoryPath: request.destinationDirectoryPath,
+                     destinationBookmark: request.destinationBookmark, referrer: request.referrer, cookies: request.cookies)
+            return
+        }
         guard Self.isMediaManifest(request.url) else {
             add(request, preview: preview)
             return
@@ -115,7 +124,7 @@ extension AppModel {
                     let headers = Self.mediaHeaders(for: request)
                     if let stream = try? await manager.resolveMediaStream(url: manifestURL, headers: headers),
                        !stream.variants.isEmpty {
-                        routeStream(stream, request: request, extracted: media, forcePicker: forcePicker)
+                        routeStream(media.applyingAudioIdentity(to: stream), request: request, extracted: media, forcePicker: forcePicker)
                         return
                     }
                 }
@@ -152,7 +161,7 @@ extension AppModel {
             presentMediaError(String(localized: "Couldn’t prepare this download — check the referrer and cookies."))
             return
         }
-        grabFromPage(validated, destinationDirectoryPath: destinationDirectoryPath,
+        grabFromPage(validated, forcePicker: true, destinationDirectoryPath: destinationDirectoryPath,
                      destinationBookmark: destinationBookmark)
     }
 
@@ -160,7 +169,8 @@ extension AppModel {
     /// qualities, or subtitles to pick) and either "Ask me quality" is on or the caller forces it
     /// (browser grabs always let the user pick the resolution).
     private func routeStream(_ stream: MediaStream, request: DownloadRequest, extracted: ExtractedMedia?, forcePicker: Bool = false) {
-        if askQualityEnabled || forcePicker, stream.variants.count > 1 || !stream.subtitleTracks.isEmpty {
+        if askQualityEnabled || forcePicker,
+           stream.variants.count > 1 || !stream.subtitleTracks.isEmpty || extracted != nil {
             pendingMediaSelection = MediaSelection(stream: stream, request: request, extracted: extracted)
             return
         }
@@ -199,18 +209,25 @@ extension AppModel {
     /// plus any subtitles, and enqueue the grab. In audio-only mode `variantID` names the audio track.
     func confirmMediaSelection(
         variantID: String, subtitleTrackIDs: [String] = [],
-        audioOnly: Bool = false, audioTrackID: String? = nil
+        audioOnly: Bool = false, audioTrackID: String? = nil, outputFormat: MediaOutputFormat = .original
     ) {
         guard let selection = pendingMediaSelection else { return }
         pendingMediaSelection = nil
         Task {
-            guard let plan = await buildPlan(from: selection.stream, variantID: variantID,
+            let stream = !audioOnly && outputFormat == .compatibleMP4 ? selection.compatibleMP4Stream : selection.stream
+            guard let stream,
+                  var plan = await buildPlan(from: stream, variantID: variantID,
                                              subtitleTrackIDs: subtitleTrackIDs, audioOnly: audioOnly,
                                              audioTrackID: audioTrackID,
                                              request: selection.request) else {
                 // The sheet is already dismissed — a silent no-op would read as a successful grab.
                 presentMediaError(String(localized: "Couldn’t prepare this download."))
                 return
+            }
+            if audioOnly || plan.outputFormat == .originalAudio {
+                plan.outputFormat = .originalAudio
+            } else {
+                plan.outputFormat = outputFormat
             }
             await manager.addMedia(named(selection.request, from: selection.extracted, variantID: variantID), plan: plan)
         }
@@ -245,7 +262,7 @@ extension AppModel {
         // Pre-resolved (extractor / DASH / inline playlist): the model distinguishes a direct
         // progressive tier from a DASH representation, including manifests found by the extractor.
         let audio: MediaTrack?
-        if let audioTrackID, let chosen = stream.audioTracks.first(where: { $0.id == audioTrackID }) {
+        if let audioTrackID, let chosen = stream.selectableAudioTracks(for: variant).first(where: { $0.id == audioTrackID }) {
             audio = chosen
         } else {
             audio = stream.audioTrack(for: variant)

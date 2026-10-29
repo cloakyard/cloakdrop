@@ -22,7 +22,9 @@ Rebuild CloakDrop afterward. The [project build phase](../../project.yml) copies
 the signature. It removes a stale bundled helper when the vendor binary is absent.
 Without this binary the app still works: AVFoundation handles compatible H.264/HEVC
 and AAC media. Unsupported single-stream input is kept in its original container; a split video/audio
-rendition can finish video-only when no available muxer accepts its codecs.
+rendition fails with both staged tracks retained when no available muxer accepts its codecs.
+AV1/VP9 always bypass Apple passthrough, which can report success while corrupting AV1 timing.
+Muxing preserves each track's full timeline rather than trimming to the shorter track.
 
 ## Build configuration and verification
 
@@ -30,8 +32,10 @@ rendition can finish video-only when no available muxer accepts its codecs.
 - `--disable-autodetect`: installed Homebrew libraries do not silently change the build.
   System zlib, bzip2, and iconv are explicitly enabled, with `--extra-libs=-liconv`.
 - `--disable-network --disable-protocols --enable-protocol=file,pipe,fd`: local input/output only.
-- Encoders, decoders, hardware acceleration, devices, and optional filters are disabled.
-  FFmpeg retains its required CLI filter primitives and remuxes with stream copy.
+- Encoders, hardware acceleration, devices, and optional filters are disabled.
+  All decoders except native AAC are disabled. AAC probing supplies sample rate/channel
+  parameters for ADTS/MPEG-TS; all output still uses stream-copy. FFmpeg retains only
+  the required CLI filter primitives. See the [multi-site audit](../../../../docs/audits/2026-10-29-multisite.md).
 - FFmpeg's own libraries are statically linked into the executable (`--enable-static
   --disable-shared`). **The executable still links macOS system libraries/frameworks**;
   it is not a completely static binary. No third-party dynamic library is accepted.
@@ -60,3 +64,19 @@ and nonfree components does not remove redistribution obligations; follow
 
 Local ad-hoc signing is distinct from Developer ID signing and Apple notarization. Locally signed
 builds are not notarized; see the [security policy](../../../../SECURITY.md).
+
+### Compatible MP4 output
+
+The picker can select H.264/AAC source renditions for compatible MP4. The helper
+uses stream-copy and `-movflags +faststart`. HLS H.264/AAC variants are eligible when
+the manifest declares both codecs and its referenced audio group is available.
+Native AAC decoding is enabled solely for reliable input probing, with no encoders.
+Fragmented MP4 and MPEG-TS inputs also use this backend because Apple’s reader can
+misinterpret their timing or drop packets even with H.264. Original-quality output still uses Matroska when the
+native backend cannot safely package the source. See the
+[MP4 verification audit](../../../../docs/audits/2026-10-29-mp4-output.md).
+
+Audio-only plans persist their identity and try M4A stream-copy before Matroska audio
+(`.mka`) for codecs M4A cannot carry. An audio request cannot finish as video-classified
+MKV/MP4 if packaging fails. Explicit MP4 remuxes validate the copied output before
+publication because AVFoundation cannot inspect every source container.

@@ -1,4 +1,5 @@
 import Foundation
+import DownloadModels
 
 /// A `Remuxer` backed by a bundled **ffmpeg** binary, for the containers AVFoundation can't mux or
 /// repackage without re-encoding — VP9/AV1 video and Opus audio (YouTube WebM, high-resolution
@@ -8,7 +9,8 @@ import Foundation
 ///
 /// It's the fallback tier behind `AVFoundationRemuxer` in a `CompositeRemuxer`: the common
 /// H.264/HEVC + AAC case stays in-process (no subprocess, no bundled dependency), and ffmpeg only
-/// runs when the first backend reports it can't handle the codecs. When no runnable binary is
+/// runs when the first backend cannot safely handle the codecs or fragmented container timing.
+/// Explicit compatible-MP4 requests use H.264/AAC stream-copy into MP4 instead of Matroska. When no runnable binary is
 /// present (`executableURL` doesn't point at an executable), every operation throws `.unsupported`
 /// so the composite falls through cleanly — the app simply behaves as if only AVFoundation existed.
 ///
@@ -36,26 +38,73 @@ public struct FFmpegMuxer: Remuxer {
     }
 
     public func remux(sourcePath: String) async throws -> RemuxResult {
-        let output = (sourcePath as NSString).deletingPathExtension + ".remuxed.mkv"
-        try await run(arguments: ["-nostdin", "-y", "-i", sourcePath, "-c", "copy", output], output: output)
-        return RemuxResult(outputPath: output, fileExtension: "mkv")
+        try await remux(sourcePath: sourcePath, outputFormat: .original)
+    }
+
+    public func remux(sourcePath: String, outputFormat: MediaOutputFormat) async throws -> RemuxResult {
+        if outputFormat == .originalAudio { return try await remuxAudio(sourcePath: sourcePath) }
+        let ext = outputFormat == .compatibleMP4 ? "mp4" : "mkv"
+        let output = (sourcePath as NSString).deletingPathExtension + ".remuxed.\(ext)"
+        let flags = outputFormat == .compatibleMP4 ? ["-movflags", "+faststart"] : []
+        try await run(arguments: ["-nostdin", "-y", "-i", sourcePath, "-c", "copy"] + flags + [output], output: output)
+        if outputFormat == .compatibleMP4 {
+            // AVFoundation cannot reliably inspect every source container (notably MPEG-TS).
+            // Inspect the copied MP4 before publishing; incompatible codecs remove this staging output.
+            do { try await CompatibleMP4.validate(videoPath: output) } catch {
+                try? FileManager.default.removeItem(atPath: output)
+                throw error
+            }
+        }
+        return RemuxResult(outputPath: output, fileExtension: ext)
     }
 
     public func mux(videoPath: String, audioPath: String) async throws -> RemuxResult {
-        let output = (videoPath as NSString).deletingPathExtension + ".muxed.mkv"
-        // Take video from input 0 and audio from input 1, stream-copied into Matroska. `-shortest`
-        // clamps the result to the shorter of the two tracks so a length mismatch can't desync the
-        // audio or leave a trailing silent/black tail (mirrors the AVFoundation path's clamp).
+        try await mux(videoPath: videoPath, audioPath: audioPath, outputFormat: .original)
+    }
+
+    public func mux(videoPath: String, audioPath: String, outputFormat: MediaOutputFormat) async throws -> RemuxResult {
+        guard outputFormat != .originalAudio else { throw RemuxError.unsupported }
+        let ext = outputFormat == .compatibleMP4 ? "mp4" : "mkv"
+        let output = (videoPath as NSString).deletingPathExtension + ".muxed.\(ext)"
+        let flags = outputFormat == .compatibleMP4 ? ["-movflags", "+faststart"] : []
+        // Keep both complete streams, including a video/audio tail beyond the other track's end.
+        // `-shortest` would silently discard downloaded packets when their durations differ.
         try await run(
             arguments: [
                 "-nostdin", "-y",
                 "-i", videoPath, "-i", audioPath,
                 "-map", "0:v:0", "-map", "1:a:0",
-                "-c", "copy", "-shortest", output
-            ],
+                "-c", "copy"
+            ] + flags + [output],
             output: output
         )
-        return RemuxResult(outputPath: output, fileExtension: "mkv")
+        if outputFormat == .compatibleMP4 {
+            do { try await CompatibleMP4.validate(videoPath: output, audioPath: output) } catch {
+                try? FileManager.default.removeItem(atPath: output)
+                throw error
+            }
+        }
+        return RemuxResult(outputPath: output, fileExtension: ext)
+    }
+
+    /// AAC/ALAC can stay in M4A even when fragmented input must bypass AVFoundation.
+    /// Other source codecs retain their bits in Matroska audio, never a video-classified MKV.
+    private func remuxAudio(sourcePath: String) async throws -> RemuxResult {
+        var lastError: any Error = RemuxError.unsupported
+        for ext in ["m4a", "mka"] {
+            let output = (sourcePath as NSString).deletingPathExtension + ".remuxed.\(ext)"
+            do {
+                try await run(arguments: ["-nostdin", "-y", "-i", sourcePath, "-map", "0:a:0", "-vn", "-c", "copy", output],
+                              output: output)
+                return RemuxResult(outputPath: output, fileExtension: ext)
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                try Task.checkCancellation()
+                lastError = error
+            }
+        }
+        throw lastError
     }
 
     /// Run ffmpeg with `arguments`, clearing a stale `output` first (and on failure). Throws

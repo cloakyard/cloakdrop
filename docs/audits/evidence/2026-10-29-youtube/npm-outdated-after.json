@@ -1,0 +1,9 @@
+{
+  "typescript": {
+    "current": "6.0.3",
+    "wanted": "6.0.3",
+    "latest": "7.0.2",
+    "dependent": "site",
+    "location": "/Users/sumitsahoo/Developer/cloakdrop/apps/site/node_modules/typescript"
+  }
+}

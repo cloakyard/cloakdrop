@@ -1,0 +1,46 @@
+core-tests-final.log
+✔ Test run with 14 tests in 2 suites passed after 0.010 seconds.
+✔ Test run with 341 tests in 44 suites passed after 1.641 seconds.
+✔ Test run with 274 tests in 41 suites passed after 2.089 seconds.
+
+xcodebuild-final.log
+** BUILD SUCCEEDED **
+
+swiftlint-final.log
+Linting 'SchemeRoutingHTTPClient.swift' (170/174)
+Linting 'FTPClient.swift' (171/174)
+Linting 'FTPProtocol.swift' (172/174)
+Linting 'MockProcessRunner.swift' (173/174)
+Linting 'SegmentWorkers.swift' (174/174)
+Done linting! Found 0 violations, 0 serious in 174 files.
+
+localizations.log
+OK: 494 strings × 10 languages (ar, de, es, fr, hi, ja, ko, pt-BR, ru, zh-Hans) — all translated, placeholders consistent.
+
+site-check.log
+11:05:53 [check] Getting diagnostics for Astro files in /Users/sumitsahoo/Developer/cloakdrop/apps/site...
+Result (19 files): 
+- 0 errors
+- 0 warnings
+- 0 hints
+
+
+site-build.log
+11:05:56 ✓ Completed in 21ms.
+
+11:05:56 [build] ✓ Completed in 223ms.
+11:05:56 [@astrojs/sitemap] `sitemap-index.xml` created at `dist`
+11:05:56 [build] 3 page(s) built in 273ms
+11:05:56 [build] Complete!
+
+site-dry-run.log
+
+Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+✨ Read 20 files from the assets directory /Users/sumitsahoo/Developer/cloakdrop/apps/site/dist
+Total Upload: 0.31 KiB / gzip: 0.22 KiB
+No bindings found.
+--dry-run: exiting now.
+
+signatures.log
+apps/macos/build/Verify/Build/Products/Debug/CloakDrop.app: valid on disk
+apps/macos/build/Verify/Build/Products/Debug/CloakDrop.app: satisfies its Designated Requirement

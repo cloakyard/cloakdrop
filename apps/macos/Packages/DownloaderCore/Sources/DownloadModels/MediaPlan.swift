@@ -1,5 +1,14 @@
 import Foundation
 
+public enum MediaOutputFormat: String, Sendable, Hashable, Codable {
+    /// Preserve the source codecs, choosing a suitable container at finalization.
+    case original
+    /// Preserve a selected audio-only stream in an audio container.
+    case originalAudio
+    /// Require H.264 video and AAC audio in an MP4 container, without re-encoding.
+    case compatibleMP4
+}
+
 /// The concrete, resolved plan for grabbing one chosen rendition of a media stream: the ordered
 /// segments to download (each with its own encryption), the shared fMP4 init segment, and a little
 /// metadata for display.
@@ -9,6 +18,8 @@ import Foundation
 /// fetching an HLS variant's media playlist so its `segments` are populated — happens before the
 /// plan is made (see `MediaResolver`).
 public struct MediaPlan: Sendable, Hashable, Codable {
+    /// Absent in older records; nil retains the original container-selection behavior.
+    public var outputFormat: MediaOutputFormat?
     public var format: MediaFormat
     public var initSegment: MediaInitSegment?
     /// The ordered video (or muxed) segments to download and concatenate.
@@ -36,8 +47,10 @@ public struct MediaPlan: Sendable, Hashable, Codable {
         bandwidth: Int = 0,
         audioInitSegment: MediaInitSegment? = nil,
         audioSegments: [MediaSegment]? = nil,
-        subtitles: [MediaSubtitle]? = nil
+        subtitles: [MediaSubtitle]? = nil,
+        outputFormat: MediaOutputFormat? = nil
     ) {
+        self.outputFormat = outputFormat
         self.format = format
         self.initSegment = initSegment
         self.segments = segments
@@ -104,7 +117,8 @@ public extension MediaStream {
             bandwidth: variant.bandwidth,
             audioInitSegment: audio?.initSegment,
             audioSegments: (audio?.segments).flatMap { $0.isEmpty ? nil : $0 },
-            subtitles: subtitles.isEmpty ? nil : subtitles
+            subtitles: subtitles.isEmpty ? nil : subtitles,
+            outputFormat: variant.isAudioOnly ? .originalAudio : nil
         )
     }
 
@@ -116,7 +130,8 @@ public extension MediaStream {
             format: format,
             initSegment: track.initSegment,
             segments: track.segments,
-            subtitles: subtitles.isEmpty ? nil : subtitles
+            subtitles: subtitles.isEmpty ? nil : subtitles,
+            outputFormat: .originalAudio
         )
     }
 
@@ -143,6 +158,18 @@ public extension MediaStream {
             // DASH video representations never carry audio; pair the default (else first) audio set.
             return audioTracks.first(where: \.isDefault) ?? audioTracks.first
         }
+    }
+
+    /// HLS languages belong to the selected variant's AUDIO group; another quality's group may
+    /// use a different timeline or codec. Extracted/DASH language alternatives remain selectable.
+    func selectableAudioTracks(for variant: MediaVariant) -> [MediaTrack] {
+        guard variant.hasVideo else { return [] }
+        if format == .hls {
+            guard let group = variant.audioGroupID else { return [] }
+            return audioTracks.filter { $0.groupID == group }
+        }
+        if variant.videoTrackPresent != nil, variant.audioGroupID == nil { return [] }
+        return audioTracks
     }
 
     /// A plan for the highest-quality *resolved* variant — the default when the user doesn't pick —

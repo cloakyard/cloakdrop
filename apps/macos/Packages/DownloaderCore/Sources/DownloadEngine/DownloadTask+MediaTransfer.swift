@@ -221,18 +221,33 @@ extension DownloadTask {
             let audioAssembly = (partDir as NSString).appendingPathComponent("assembly-audio.\(audioExt)")
             try concatenate(initNamed: "audio-init.part", segments: audioSegments,
                             pathFor: { audioSegmentPath(partDir, $0) }, partDir: partDir, into: audioAssembly)
-            if let muxed = try await attemptRepackage({
-                try await remuxer.mux(videoPath: videoAssembly, audioPath: audioAssembly)
-            }) {
-                sourcePath = muxed.outputPath
-                container = muxed.fileExtension
-            } else if let result = try await attemptRepackage({ try await remuxer.remux(sourcePath: videoAssembly) }) {
-                sourcePath = result.outputPath
-                container = result.fileExtension
+            guard let muxed = try await attemptRepackage({
+                try await remuxer.mux(videoPath: videoAssembly, audioPath: audioAssembly, outputFormat: plan.outputFormat ?? .original)
+            }) else {
+                // Both streams are required. Keep staging for retry instead of marking a silent,
+                // video-only fallback complete and deleting the successfully downloaded audio.
+                throw DownloadError.underlying(reason: "Could not combine the video and audio. The downloaded parts were kept for retry.")
             }
-        } else if let result = try await attemptRepackage({ try await remuxer.remux(sourcePath: videoAssembly) }) {
+            sourcePath = muxed.outputPath
+            container = muxed.fileExtension
+        } else if let result = try await attemptRepackage({
+            try await remuxer.remux(sourcePath: videoAssembly, outputFormat: plan.outputFormat ?? .original)
+        }) {
             sourcePath = result.outputPath
             container = result.fileExtension
+        } else if plan.outputFormat == .compatibleMP4 {
+            throw DownloadError.underlying(reason: "Could not create a compatible MP4. The downloaded parts were kept for retry.")
+        }
+        if plan.outputFormat == .compatibleMP4, container != "mp4" {
+            throw DownloadError.underlying(
+                reason: "The requested MP4 format could not be produced. The downloaded parts were kept for retry."
+            )
+        }
+
+        if plan.outputFormat == .originalAudio, FileCategory.classify(fileName: "audio.\(container)") != .audio {
+            throw DownloadError.underlying(
+                reason: "Could not create an audio file. The downloaded parts were kept for retry."
+            )
         }
 
         let finalFileName = (download.fileName as NSString).deletingPathExtension + ".\(container)"

@@ -1,4 +1,5 @@
 import Foundation
+import DownloadModels
 
 /// Repackages a grabbed media stream into a clean, widely-playable container.
 ///
@@ -25,11 +26,24 @@ public protocol Remuxer: Sendable {
     /// muxer can't combine the given codecs (the AVFoundation implementation handles H.264/HEVC +
     /// AAC; VP9/AV1/Opus need the ffmpeg backend). Neither input is mutated.
     func mux(videoPath: String, audioPath: String) async throws -> RemuxResult
+    func remux(sourcePath: String, outputFormat: MediaOutputFormat) async throws -> RemuxResult
+    func mux(videoPath: String, audioPath: String, outputFormat: MediaOutputFormat) async throws -> RemuxResult
 }
 
 public extension Remuxer {
-    /// Default: no muxing capability (the passthrough/test remuxer). Callers fall back to shipping
-    /// the video-only file when this throws.
+    /// Backends must explicitly support the requested container; never silently downgrade MP4.
+    func remux(sourcePath: String, outputFormat: MediaOutputFormat) async throws -> RemuxResult {
+        guard outputFormat != .compatibleMP4 else { throw RemuxError.unsupported }
+        return try await remux(sourcePath: sourcePath)
+    }
+
+    func mux(videoPath: String, audioPath: String, outputFormat: MediaOutputFormat) async throws -> RemuxResult {
+        guard outputFormat == .original else { throw RemuxError.unsupported }
+        return try await mux(videoPath: videoPath, audioPath: audioPath)
+    }
+
+    /// Default: no muxing capability (the passthrough/test remuxer). A paired download must fail
+    /// and retain its staged streams if no backend can combine them.
     func mux(videoPath: String, audioPath: String) async throws -> RemuxResult {
         throw RemuxError.unsupported
     }
@@ -51,7 +65,7 @@ public struct RemuxResult: Sendable, Equatable {
 
 public enum RemuxError: Error, Sendable, Equatable {
     /// The input isn't something this remuxer can repackage (not decodable, no A/V tracks, or an
-    /// incompatible preset/container combination). The caller should fall back to the raw file.
+    /// incompatible preset/container combination). Only original single-stream grabs may retain raw input.
     case unsupported
     /// The remux was attempted but failed midway.
     case failed(String)
@@ -63,9 +77,10 @@ public enum RemuxError: Error, Sendable, Equatable {
 ///
 /// This is how CloakDrop pairs a fast in-process backend with a heavier, more capable one:
 /// `AVFoundationRemuxer` first (no subprocess, no bundled dependency — handles H.264/HEVC + AAC),
-/// then a bundled `FFmpegMuxer` for the codecs AVFoundation rejects (VP9/AV1/Opus). A "video" grab
-/// gets its audio muxed in whenever *either* backend can do it, and only ships video-only when
-/// neither can.
+/// then a bundled `FFmpegMuxer` for fragmented MP4 timing and codecs AVFoundation rejects
+/// (VP9/AV1/Opus). A "video" grab
+/// gets its audio muxed in whenever *either* backend can do it, and fails with staging retained
+/// when neither can.
 public struct CompositeRemuxer: Remuxer {
     private let remuxers: [any Remuxer]
 
@@ -81,6 +96,14 @@ public struct CompositeRemuxer: Remuxer {
 
     public func mux(videoPath: String, audioPath: String) async throws -> RemuxResult {
         try await firstSuccess { try await $0.mux(videoPath: videoPath, audioPath: audioPath) }
+    }
+
+    public func remux(sourcePath: String, outputFormat: MediaOutputFormat) async throws -> RemuxResult {
+        try await firstSuccess { try await $0.remux(sourcePath: sourcePath, outputFormat: outputFormat) }
+    }
+
+    public func mux(videoPath: String, audioPath: String, outputFormat: MediaOutputFormat) async throws -> RemuxResult {
+        try await firstSuccess { try await $0.mux(videoPath: videoPath, audioPath: audioPath, outputFormat: outputFormat) }
     }
 
     /// Run `operation` against each backend in order, returning the first success and remembering the

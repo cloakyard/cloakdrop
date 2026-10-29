@@ -32,7 +32,7 @@ animation library, shader or client-side framework is shipped.
 
 ## Develop
 
-Requires **Node 22.22.2+, 24.15.0+ or 26+** and **npm 12.2.0**, matching
+Requires **Node 22.23.4+, 24.15.0+ or 26+** and **npm 12.2.1**, matching
 `package.json`. Start from the repository root; the remaining
 commands in this guide run inside `apps/site/`.
 

@@ -1,28 +1,27 @@
 ---
 import { Content as PrivacyDocument, getHeadings } from '../../../../PRIVACY.md';
+import Icon from '../components/Icon.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
-import { site } from '../data/site';
 import BaseLayout from '../layouts/BaseLayout.astro';
 const headings = getHeadings().filter((heading) => heading.depth === 2);
 ---
-<BaseLayout title={`Privacy policy — ${site.name}`} description="How CloakDrop stores local data, when its macOS app connects to the network, and the privacy controls available to you.">
+<BaseLayout title="Privacy policy — CloakDrop" description="App state stays on your Mac. Network requests happen for transfers and features you initiate or configure.">
   <Header linkPrefix="/" />
-  <main id="main" class="policy-page frame" tabindex="-1">
-    <header class="policy-intro">
-      <p class="eyebrow">CloakDrop · Privacy</p>
-      <h1>Privacy policy.</h1>
-      <p class="policy-lead">App state stays on your Mac. Network requests happen for transfers and features you initiate or configure.</p>
-      <p class="policy-date">Last updated <time datetime="2026-09-06">September 6, 2026</time></p>
+  <main id="main" class="air-page air-policy frame" tabindex="-1">
+    <a class="air-policy-back" href="/"><Icon name="back" size={16} />Back to CloakDrop</a>
+    <header class="air-policy-intro">
+      <p class="air-page-eyebrow">CloakDrop · Privacy</p>
+      <h1 id="privacy-title">Privacy policy</h1>
+      <p class="air-page-lede">App state stays on your Mac. Network requests happen for transfers and features you initiate or configure.</p>
+      <p class="air-page-meta">Last updated <time datetime="2026-09-06">September 6, 2026</time></p>
     </header>
-    <div class="policy-layout">
-      <details class="policy-contents" open>
-        <summary>On this page</summary>
-        <nav aria-label="Policy contents">
-          {headings.map((heading) => <a href={`#${heading.slug}`}>{heading.text}</a>)}
-        </nav>
+    <div class="air-reading-layout">
+      <details class="air-contents" open>
+        <summary>On this page <Icon name="chevron" size={18} /></summary>
+        <nav aria-label="Policy contents">{headings.map((heading) => <a href={`#${heading.slug}`}>{heading.text}</a>)}</nav>
       </details>
-      <article class="policy-document" aria-label="CloakDrop app privacy policy"><PrivacyDocument /></article>
+      <article class="air-prose air-policy-source" aria-label="CloakDrop privacy policy"><PrivacyDocument /></article>
     </div>
   </main>
   <Footer />

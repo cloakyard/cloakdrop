@@ -1,4 +1,5 @@
 import Foundation
+import DownloadModels
 import AVFoundation
 
 /// The production `Remuxer`: repackages the concatenated media into a clean container using
@@ -12,13 +13,29 @@ import AVFoundation
 public struct AVFoundationRemuxer: Remuxer {
     public init() {}
 
+    public func remux(sourcePath: String, outputFormat: MediaOutputFormat) async throws -> RemuxResult {
+        if outputFormat == .compatibleMP4 { try await CompatibleMP4.validate(videoPath: sourcePath) }
+        if outputFormat == .originalAudio {
+            let asset = AVURLAsset(url: URL(fileURLWithPath: sourcePath))
+            guard try await asset.loadTracks(withMediaType: .video).isEmpty else { throw RemuxError.unsupported }
+        }
+        return try await remux(sourcePath: sourcePath)
+    }
+
+    public func mux(videoPath: String, audioPath: String, outputFormat: MediaOutputFormat) async throws -> RemuxResult {
+        if outputFormat == .compatibleMP4 { try await CompatibleMP4.validate(videoPath: videoPath, audioPath: audioPath) }
+        return try await mux(videoPath: videoPath, audioPath: audioPath)
+    }
+
     public func remux(sourcePath: String) async throws -> RemuxResult {
+        try requireSafeInput(sourcePath)
         let asset = AVURLAsset(url: URL(fileURLWithPath: sourcePath))
 
         // Load the tracks; a file AVFoundation can't open throws here → treat as unsupported.
         let videoTracks = (try? await asset.loadTracks(withMediaType: .video)) ?? []
         let audioTracks = (try? await asset.loadTracks(withMediaType: .audio)) ?? []
         guard !videoTracks.isEmpty || !audioTracks.isEmpty else { throw RemuxError.unsupported }
+        try await requireSafeVideoPassthrough(videoTracks)
 
         // Video → .mp4; audio-only → .m4a. Passthrough keeps the existing elementary streams.
         let hasVideo = !videoTracks.isEmpty
@@ -42,15 +59,18 @@ public struct AVFoundationRemuxer: Remuxer {
     }
 
     public func mux(videoPath: String, audioPath: String) async throws -> RemuxResult {
+        try requireSafeInput(videoPath)
+        try requireSafeInput(audioPath)
         let videoAsset = AVURLAsset(url: URL(fileURLWithPath: videoPath))
         let audioAsset = AVURLAsset(url: URL(fileURLWithPath: audioPath))
 
         // Both tracks are copied into one composition, then exported passthrough (no re-encode).
-        // A file whose codecs AVFoundation can't carry in MP4 (VP9/AV1/Opus) fails to load or export
-        // here → unsupported, and the ffmpeg backend takes over.
+        // Recognizing a track does not prove safe passthrough: Apple's AV1 exporter can succeed
+        // while doubling sample durations. Inspect the codec before building the composition.
         guard let sourceVideo = (try? await videoAsset.loadTracks(withMediaType: .video))?.first else {
             throw RemuxError.unsupported
         }
+        try await requireSafeVideoPassthrough([sourceVideo])
         // Audio is mandatory: the whole point of muxing is to give the video sound. If AVFoundation
         // can't read the audio (e.g. Opus), report `.unsupported` and let the ffmpeg backend mux it
         // rather than silently exporting a soundless video — which would satisfy the caller and
@@ -87,5 +107,36 @@ public struct AVFoundationRemuxer: Remuxer {
             throw RemuxError.failed(error.localizedDescription)
         }
         return RemuxResult(outputPath: outputPath, fileExtension: "mp4")
+    }
+
+    /// Apple's reader can double the timeline of fragmented YouTube MP4s, including H.264.
+    /// Its own duration/sample timestamps already contain the error, so comparing an export to
+    /// that AVAsset cannot detect it. MPEG-TS export can also silently drop packets while keeping
+    /// a plausible duration. Let FFmpeg copy these containers from their original packet timing.
+    private func requireSafeInput(_ path: String) throws {
+        if ["ts", "m2ts", "mts"].contains(URL(fileURLWithPath: path).pathExtension.lowercased()) {
+            throw RemuxError.unsupported
+        }
+        let handle = try FileHandle(forReadingFrom: URL(fileURLWithPath: path))
+        defer { try? handle.close() }
+        let prefix = try handle.read(upToCount: 580) ?? Data()
+        // Some CDN segment URLs have no extension, so assembly may be named .mp4. Recognize
+        // three consecutive TS (188-byte) or M2TS (192-byte) packet sync bytes without a full scan.
+        for (offset, stride) in [(0, 188), (4, 192)] where prefix.count > offset + stride * 2 {
+            if (0..<3).allSatisfy({ prefix[offset + stride * $0] == 0x47 }) { throw RemuxError.unsupported }
+        }
+        if try MP4Container.isFragmented(at: path) { throw RemuxError.unsupported }
+    }
+
+    /// Limit Apple's video passthrough to the codecs verified by this backend. AV1/VP9 belong to
+    /// FFmpeg even when AVFoundation can decode them or reports a successful MP4 export.
+    private func requireSafeVideoPassthrough(_ tracks: [AVAssetTrack]) async throws {
+        for track in tracks {
+            let descriptions = try await track.load(.formatDescriptions)
+            guard !descriptions.isEmpty, descriptions.allSatisfy({ description in
+                let codec = CMFormatDescriptionGetMediaSubType(description)
+                return codec == kCMVideoCodecType_H264 || codec == kCMVideoCodecType_HEVC
+            }) else { throw RemuxError.unsupported }
+        }
     }
 }

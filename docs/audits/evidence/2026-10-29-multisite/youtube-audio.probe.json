@@ -1,0 +1,23 @@
+{
+    "programs": [
+
+    ],
+    "stream_groups": [
+
+    ],
+    "streams": [
+        {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "avg_frame_rate": "0/0",
+            "duration": "44.489433",
+            "nb_read_frames": "1916",
+            "nb_read_packets": "1916"
+        }
+    ],
+    "format": {
+        "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": "44.489433",
+        "size": "720384"
+    }
+}

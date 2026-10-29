@@ -147,7 +147,7 @@ extension AppModel {
     @discardableResult
     func quickAdd(urlString: String, into directory: URL = AppEnvironment.defaultDownloadsDirectory()) -> Bool {
         guard let url = Self.normalizedURL(urlString) else { return false }
-        add(DownloadRequest(url: url, destinationDirectoryPath: directory.path))
+        grab(DownloadRequest(url: url, destinationDirectoryPath: directory.path))
         return true
     }
 

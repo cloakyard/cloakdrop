@@ -1,0 +1,32 @@
+final-suite.log:
+✔ Test run with 14 tests in 2 suites passed after 0.008 seconds.
+✔ Test run with 341 tests in 44 suites passed after 1.560 seconds.
+➜ Test "Selected pages resolve, download, package and decode completely" skipped.
+✔ Test run with 295 tests in 44 suites passed after 2.093 seconds.
+
+live-final.log:
+[live-media] START youtube-mp4
+[live-media] PASS youtube-mp4 mode=mp4 output=youtube-mp4.mp4 fullDecode=true
+[live-media] START youtube-original
+[live-media] PASS youtube-original mode=original output=youtube-original.mkv fullDecode=true
+[live-media] START youtube-audio
+[live-media] PASS youtube-audio mode=audio output=youtube-audio.m4a fullDecode=true
+[live-media] START dailymotion-original
+[live-media] PASS dailymotion-original mode=original output=dailymotion-original.mkv fullDecode=true
+[live-media] START soundcloud-audio
+[live-media] PASS soundcloud-audio mode=audio output=soundcloud-audio.m4a fullDecode=true
+[live-media] START dailymotion-mp4
+[live-media] PASS dailymotion-mp4 mode=mp4 output=dailymotion-mp4.mp4 fullDecode=true
+✔ Test run with 1 test in 1 suite passed after 31.403 seconds.
+
+lint-final.log:
+Done linting! Found 0 violations, 0 serious in 178 files.
+
+localizations-final.log:
+OK: 501 strings × 10 languages (ar, de, es, fr, hi, ja, ko, pt-BR, ru, zh-Hans) — all translated, placeholders consistent.
+
+build-final.log:
+** BUILD SUCCEEDED **
+
+browser-regression.log:
+Browser playback regression passed: iframe playing → window closed → page unloaded; no restart

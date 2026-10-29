@@ -60,7 +60,7 @@ struct AddDownloadSheet: View {
 
     /// The video site this URL belongs to, when it's a recognized page the bundled extractor can
     /// resolve (and extraction is available) — a YouTube link, etc. When set, the sheet offers to grab
-    /// the video (best quality, or the picker when "Ask me quality" is on) instead of saving the page.
+    /// the video through the quality/format picker instead of saving the page.
     private var detectedVideoPage: VideoPageSite? {
         // Gate on the extractor's *presence* (as the browser's grab button does), not the async
         // launch-time version probe — otherwise a URL pasted in the first moments after launch would
@@ -218,8 +218,7 @@ struct AddDownloadSheet: View {
     // MARK: Video page
 
     /// Shown in place of the file preview when the URL is a recognized video page: a play glyph, the
-    /// site name, and what will happen on Add — the best quality straight away, or the quality picker
-    /// when "Ask me quality" is on.
+    /// site name and the quality picker that will open after resolution.
     private func videoPageRow(_ site: VideoPageSite) -> some View {
         HStack(spacing: 10) {
             Image(systemName: "play.rectangle.fill")
@@ -230,9 +229,7 @@ struct AddDownloadSheet: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(site.displayName) video")
                     .font(.callout)
-                Text(model.askQualityEnabled
-                     ? String(localized: "You’ll choose the quality after it’s read.")
-                     : String(localized: "The best quality will be downloaded."))
+                Text("You’ll choose the quality after it’s read.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -433,7 +430,7 @@ struct AddDownloadSheet: View {
     private func add() {
         guard canAdd, let url = resolvedURL else { return }
         // A recognized video page routes through the extractor: it resolves the real formats, then
-        // downloads the best tier or opens the quality picker (per "Ask me quality").
+        // opens the shared quality/output-format picker.
         if detectedVideoPage != nil {
             model.grabPage(
                 url: url,

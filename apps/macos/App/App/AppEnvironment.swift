@@ -53,8 +53,8 @@ enum AppEnvironment {
 
     /// The media remuxer that assembles adaptive grabs into a clean, single file with sound.
     /// AVFoundation runs first (fast, in-process, no bundled dependency — H.264/HEVC + AAC), falling
-    /// back to a bundled ffmpeg for the codecs it can't mux (VP9/AV1/Opus). Without a bundled ffmpeg
-    /// this is just AVFoundation, and grabs of those exotic codecs ship video-only.
+    /// back to bundled ffmpeg for fragmented MP4 timing and codecs it cannot mux (VP9/AV1/Opus).
+    /// If neither backend can combine a paired grab, it fails and retains staging for retry.
     private static func makeRemuxer() -> any Remuxer {
         var remuxers: [any Remuxer] = [AVFoundationRemuxer()]
         if let ffmpeg = FFmpegMuxer.locate() { remuxers.append(ffmpeg) }

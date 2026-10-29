@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import DownloadModels
 @testable import DownloadEngine
 
 /// Exercises the ffmpeg backend and the composite that wires it behind AVFoundation. The composite
@@ -7,6 +8,186 @@ import Testing
 /// when a real `ffmpeg` is installed on the machine (they synthesize genuine media and shell out).
 @Suite("FFmpeg backend & composite remuxer")
 struct FFmpegMuxerTests {
+    @Test("AV1 fallback preserves all 30 frames and the full video when audio is shorter",
+          .enabled(if: Tools.ffmpeg != nil && Tools.ffprobe != nil))
+    func av1FallbackPreservesTimingAndTail() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let fixture = try #require(Bundle.module.url(forResource: "av1-30fps", withExtension: "mp4", subdirectory: "Fixtures"))
+        let video = dir.appendingPathComponent("av1.mp4")
+        try FileManager.default.copyItem(at: fixture, to: video)
+        let audio = dir.appendingPathComponent("audio.m4a")
+        try MediaFixtures.writeAudioM4A(to: audio) // 0.5 seconds, deliberately shorter than video
+        let composite = CompositeRemuxer([
+            AVFoundationRemuxer(), FFmpegMuxer(executableURL: try #require(Tools.ffmpeg))
+        ])
+        let result = try await composite.mux(videoPath: video.path, audioPath: audio.path)
+        #expect(result.fileExtension == "mkv")
+        try assertHasVideoAndAudio(result.outputPath)
+        let probe = try Tools.runCapturingStdout(try #require(Tools.ffprobe), [
+            "-v", "error", "-count_packets", "-select_streams", "v:0",
+            "-show_entries", "stream=nb_read_packets:format=duration", "-of", "json", result.outputPath
+        ])
+        let data = try #require(probe.data(using: .utf8))
+        let info = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let streams = try #require(info["streams"] as? [[String: Any]])
+        #expect(streams.first?["nb_read_packets"] as? String == "30")
+        let format = try #require(info["format"] as? [String: Any])
+        let duration = try #require((format["duration"] as? String).flatMap(Double.init))
+        #expect(abs(duration - 1) < 0.1)
+    }
+
+    @Test("Explicit MP4 is H.264/AAC in an MP4 container even through the FFmpeg fallback",
+          .enabled(if: Tools.ffmpeg != nil && Tools.ffprobe != nil))
+    func compatibleMP4Fallback() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let video = dir.appendingPathComponent("v.mp4")
+        let audio = dir.appendingPathComponent("a.m4a")
+        try await MediaFixtures.writeVideoMP4(to: video)
+        try MediaFixtures.writeAudioM4A(to: audio)
+        let composite = CompositeRemuxer([PassthroughRemuxer(), FFmpegMuxer(executableURL: try #require(Tools.ffmpeg))])
+        let result = try await composite.mux(videoPath: video.path, audioPath: audio.path, outputFormat: .compatibleMP4)
+        #expect(result.fileExtension == "mp4")
+        try assertHasVideoAndAudio(result.outputPath)
+        let probe = try Tools.runCapturingStdout(try #require(Tools.ffprobe), [
+            "-v", "error", "-show_entries", "stream=codec_name:format=format_name", "-of", "json", result.outputPath
+        ])
+        let json = try #require(JSONSerialization.jsonObject(with: Data(probe.utf8)) as? [String: Any])
+        let streams = try #require(json["streams"] as? [[String: Any]])
+        #expect(streams.compactMap { $0["codec_name"] as? String } == ["h264", "aac"])
+        let format = try #require(json["format"] as? [String: Any])
+        #expect((format["format_name"] as? String)?.contains("mp4") == true)
+        #expect(FileManager.default.fileExists(atPath: video.path))
+        #expect(FileManager.default.fileExists(atPath: audio.path))
+        let remuxed = try await composite.remux(sourcePath: result.outputPath, outputFormat: .compatibleMP4)
+        #expect(remuxed.fileExtension == "mp4")
+        try assertHasVideoAndAudio(remuxed.outputPath)
+    }
+
+    @Test("Fragmented H.264 falls through to FFmpeg without changing frame count or timing",
+          .enabled(if: Tools.ffmpeg != nil && Tools.ffprobe != nil))
+    func fragmentedH264PreservesTiming() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let fixture = try #require(Bundle.module.url(forResource: "h264-fragmented", withExtension: "mp4", subdirectory: "Fixtures"))
+        let video = dir.appendingPathComponent("video.mp4")
+        try FileManager.default.copyItem(at: fixture, to: video)
+        let audio = dir.appendingPathComponent("audio.m4a")
+        try MediaFixtures.writeAudioM4A(to: audio)
+        let composite = CompositeRemuxer([AVFoundationRemuxer(), FFmpegMuxer(executableURL: try #require(Tools.ffmpeg))])
+        for outputFormat in [MediaOutputFormat.original, .compatibleMP4] {
+            let result = try await composite.mux(videoPath: video.path, audioPath: audio.path, outputFormat: outputFormat)
+            #expect(result.fileExtension == (outputFormat == .compatibleMP4 ? "mp4" : "mkv"))
+            try assertHasVideoAndAudio(result.outputPath)
+            let probe = try Tools.runCapturingStdout(try #require(Tools.ffprobe), [
+                "-v", "error", "-count_packets", "-select_streams", "v:0",
+                "-show_entries", "stream=nb_read_packets:format=duration", "-of", "json", result.outputPath
+            ])
+            let json = try #require(JSONSerialization.jsonObject(with: Data(probe.utf8)) as? [String: Any])
+            let streams = try #require(json["streams"] as? [[String: Any]])
+            #expect(streams.first?["nb_read_packets"] as? String == "30")
+            let format = try #require(json["format"] as? [String: Any])
+            let duration = try #require((format["duration"] as? String).flatMap(Double.init))
+            #expect(abs(duration - 1) < 0.1)
+        }
+    }
+
+    @Test("Bundled helper probes AAC in MPEG-TS and copies both tracks into compatible MP4",
+          .enabled(if: Tools.ffmpeg != nil && Tools.ffprobe != nil))
+    func mpegTSAACProbing() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let video = dir.appendingPathComponent("video.mp4")
+        let audio = dir.appendingPathComponent("audio.m4a")
+        let transport = dir.appendingPathComponent("source.ts")
+        try await MediaFixtures.writeVideoMP4(to: video)
+        try MediaFixtures.writeAudioM4A(to: audio)
+        _ = try Tools.runCapturingStdout(try #require(Tools.ffmpeg), [
+            "-nostdin", "-i", video.path, "-i", audio.path,
+            "-map", "0:v:0", "-map", "1:a:0", "-c", "copy", transport.path
+        ])
+        let mislabeled = dir.appendingPathComponent("transport.mp4")
+        try FileManager.default.copyItem(at: transport, to: mislabeled)
+        for path in [transport.path, mislabeled.path] {
+            await #expect(throws: RemuxError.unsupported) { _ = try await AVFoundationRemuxer().remux(sourcePath: path) }
+        }
+        let composite = CompositeRemuxer([AVFoundationRemuxer(), FFmpegMuxer(executableURL: try #require(Tools.ffmpeg))])
+        let result = try await composite.remux(sourcePath: mislabeled.path, outputFormat: .compatibleMP4)
+        #expect(result.fileExtension == "mp4")
+        try assertHasVideoAndAudio(result.outputPath)
+        try await CompatibleMP4.validate(videoPath: result.outputPath)
+        let probeArgs = ["-v", "error", "-count_packets", "-select_streams", "v:0",
+                         "-show_entries", "stream=nb_read_packets", "-of", "csv=p=0"]
+        let before = try Tools.runCapturingStdout(try #require(Tools.ffprobe), probeArgs + [video.path])
+        let after = try Tools.runCapturingStdout(try #require(Tools.ffprobe), probeArgs + [result.outputPath])
+        #expect(before == after)
+        #expect(FileManager.default.fileExists(atPath: transport.path))
+        let paired = try await FFmpegMuxer(executableURL: try #require(Tools.ffmpeg))
+            .mux(videoPath: transport.path, audioPath: audio.path, outputFormat: .compatibleMP4)
+        try assertHasVideoAndAudio(paired.outputPath)
+        try await CompatibleMP4.validate(videoPath: paired.outputPath, audioPath: paired.outputPath)
+    }
+
+    @Test("A remuxed MP4 with AV1 is rejected and its temporary output removed",
+          .enabled(if: Tools.ffmpeg != nil))
+    func rejectsIncompatibleRemuxOutput() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let fixture = try #require(Bundle.module.url(forResource: "av1-30fps", withExtension: "mp4", subdirectory: "Fixtures"))
+        let source = dir.appendingPathComponent("source.mp4")
+        try FileManager.default.copyItem(at: fixture, to: source)
+        let muxer = FFmpegMuxer(executableURL: try #require(Tools.ffmpeg))
+        await #expect(throws: RemuxError.unsupported) {
+            _ = try await muxer.remux(sourcePath: source.path, outputFormat: .compatibleMP4)
+        }
+        #expect(!FileManager.default.fileExists(atPath: dir.appendingPathComponent("source.remuxed.mp4").path))
+        #expect(FileManager.default.fileExists(atPath: source.path))
+    }
+
+    @Test("Fragmented AAC remains an audio file through the native-to-FFmpeg fallback",
+          .enabled(if: Tools.ffmpeg != nil && Tools.ffprobe != nil))
+    func fragmentedAudioRemainsAudio() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let source = dir.appendingPathComponent("source.m4a")
+        let fragmented = dir.appendingPathComponent("fragmented.mp4")
+        try MediaFixtures.writeAudioM4A(to: source)
+        _ = try Tools.runCapturingStdout(try #require(Tools.ffmpeg), [
+            "-nostdin", "-i", source.path, "-c", "copy", "-movflags", "frag_keyframe+empty_moov", fragmented.path
+        ])
+        #expect(try MP4Container.isFragmented(at: fragmented.path))
+        let composite = CompositeRemuxer([AVFoundationRemuxer(), FFmpegMuxer(executableURL: try #require(Tools.ffmpeg))])
+        let result = try await composite.remux(sourcePath: fragmented.path, outputFormat: .originalAudio)
+        #expect(result.fileExtension == "m4a")
+        #expect(try streamTypes(of: result.outputPath) == ["audio"])
+        let counts = try Tools.runCapturingStdout(try #require(Tools.ffprobe), [
+            "-v", "error", "-count_packets", "-show_entries", "stream=nb_read_packets", "-of", "csv=p=0", result.outputPath
+        ])
+        let originalCounts = try Tools.runCapturingStdout(try #require(Tools.ffprobe), [
+            "-v", "error", "-count_packets", "-show_entries", "stream=nb_read_packets", "-of", "csv=p=0", source.path
+        ])
+        #expect(counts == originalCounts)
+    }
+
+    @Test("Opus audio survives stream-copy in an audio-classified container",
+          .enabled(if: Tools.ffmpeg != nil && Tools.ffprobe != nil))
+    func opusAudioRemainsAudio() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let fixture = try #require(Bundle.module.url(forResource: "audio-opus", withExtension: "ogg", subdirectory: "Fixtures"))
+        let source = dir.appendingPathComponent("source.ogg")
+        try FileManager.default.copyItem(at: fixture, to: source)
+        let result = try await FFmpegMuxer(executableURL: try #require(Tools.ffmpeg))
+            .remux(sourcePath: source.path, outputFormat: .originalAudio)
+        #expect(FileCategory.classify(fileName: result.outputPath) == .audio)
+        #expect(try streamTypes(of: result.outputPath) == ["audio"])
+        let codec = try Tools.runCapturingStdout(try #require(Tools.ffprobe), [
+            "-v", "error", "-show_entries", "stream=codec_name", "-of", "csv=p=0", result.outputPath
+        ])
+        #expect(codec.trimmingCharacters(in: .whitespacesAndNewlines) == "opus")
+    }
+
     // MARK: - FFmpegMuxer (bundled-binary tier)
 
     @Test("With no runnable binary, mux reports .unsupported so a composite can fall through")
