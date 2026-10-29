@@ -6,20 +6,22 @@ import Testing
 
 @Suite("Media transfer (segment grab through the engine)")
 struct MediaTransferTests {
-    @Test("An explicit MP4 failure retains staging instead of publishing the raw file")
-    func failedMP4DoesNotPublishRawFile() async throws {
+    @Test("Explicit output failures retain staging instead of publishing the raw file",
+          arguments: [MediaOutputFormat.compatibleMP4, .originalAudio])
+    func failedMP4DoesNotPublishRawFile(outputFormat: MediaOutputFormat) async throws {
         let directory = try tempDir()
         defer { try? FileManager.default.removeItem(at: directory) }
         let url = URL(string: "https://cdn.example/video.webm")!
         let mock = MockHTTPClient(resources: [url: .init(data: payload(1))])
         let manager = try await makeManager(store: GRDBDownloadStore.inMemory(), mock: mock)
-        let plan = MediaPlan(format: .dash, segments: [MediaSegment(id: 0, url: url, duration: 0)], outputFormat: .compatibleMP4)
+        let plan = MediaPlan(format: .dash, segments: [MediaSegment(id: 0, url: url, duration: 0)], outputFormat: outputFormat)
         let added = await manager.addMedia(
             DownloadRequest(url: url, suggestedFileName: "video.webm", destinationDirectoryPath: directory.path), plan: plan
         )
         let result = try await waitFor(manager, added.id) { $0.status.isTerminal || $0.status.isResumable }
         guard case .failed = result.status else { Issue.record("MP4 failure was reported as complete"); return }
-        #expect(result.fileName == "video.mp4")
+        #expect(result.mediaPlan?.outputFormat == outputFormat)
+        #expect(result.fileName == (outputFormat == .originalAudio ? "video.m4a" : "video.mp4"))
         #expect(!FileManager.default.fileExists(atPath: result.destinationFilePath))
         #expect(FileManager.default.fileExists(atPath: (result.mediaPartDirectoryPath as NSString).appendingPathComponent("seg-0.part")))
     }
@@ -894,7 +896,7 @@ struct MediaTransferTests {
 
         // A DASH-style stream with a resolved audio track (segments already known).
         let audioSegs = (0..<3).map { payload($0) }
-        let audioURLs = (0..<3).map { URL(string: "https://cdn/a/aud\($0).m4s")! }
+        let audioURLs = (0..<3).map { URL(string: "https://cdn/a/aud\($0).aac")! }
         let mock = MockHTTPClient()
         for (index, url) in audioURLs.enumerated() { mock.setResource(.init(data: audioSegs[index]), for: url) }
 

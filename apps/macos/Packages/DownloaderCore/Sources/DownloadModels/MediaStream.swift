@@ -204,8 +204,8 @@ public struct MediaVariant: Sendable, Hashable, Codable, Identifiable {
         return codecs.contains { Self.videoCodecFamilies.contains($0.prefix { $0 != "." }.lowercased()) }
     }
 
-    /// An audio-only rendition: it declares codecs and none of them are video.
-    public var isAudioOnly: Bool { !codecs.isEmpty && !hasVideo }
+    /// An audio-only rendition: explicit extractor evidence, or declared codecs with no video.
+    public var isAudioOnly: Bool { videoTrackPresent == false || (!codecs.isEmpty && !hasVideo) }
 
     /// Stable quality ordering for pickers and automatic selection. Resolution is authoritative;
     /// bitrate only breaks ties. A lower-resolution progressive encode can have a slightly higher

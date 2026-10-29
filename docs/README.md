@@ -26,6 +26,8 @@ describe each shipped build.
 
 ## Release verification
 
+- [October 29, 2026: Multi-site media verification and packaging fixes](audits/2026-10-29-multisite.md).
+
 - [October 29, 2026: Compatible MP4 output and fragmented-MP4 timing](audits/2026-10-29-mp4-output.md).
 
 - [October 29, 2026: YouTube AV1 timing fix and dependency refresh](audits/2026-10-29-youtube.md).

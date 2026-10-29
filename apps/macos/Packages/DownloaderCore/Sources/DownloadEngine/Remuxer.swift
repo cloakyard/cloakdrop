@@ -33,7 +33,7 @@ public protocol Remuxer: Sendable {
 public extension Remuxer {
     /// Backends must explicitly support the requested container; never silently downgrade MP4.
     func remux(sourcePath: String, outputFormat: MediaOutputFormat) async throws -> RemuxResult {
-        guard outputFormat == .original else { throw RemuxError.unsupported }
+        guard outputFormat != .compatibleMP4 else { throw RemuxError.unsupported }
         return try await remux(sourcePath: sourcePath)
     }
 

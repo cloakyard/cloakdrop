@@ -184,7 +184,7 @@ public extension ExtractedMedia {
     /// further network. Returns `nil` when nothing direct is grabbable or a complete adaptive stream
     /// should be resolved instead (e.g. only SABR/ciphered streams, or unpaired direct video).
     func toMediaStream(pageURL: URL, outputFormat: MediaOutputFormat = .original) -> MediaStream? {
-        let direct = directFormats.filter { outputFormat == .original || $0.isCompatibleMP4 }
+        let direct = directFormats.filter { outputFormat != .compatibleMP4 || $0.isCompatibleMP4 }
         // Never lose audio just because its codec was filtered out for MP4.
         let requiresAudio = directFormats.contains { $0.isAudioOnly || $0.isProgressive }
         let audioOnly = direct.filter(\.isAudioOnly)
@@ -212,7 +212,7 @@ public extension ExtractedMedia {
             merge(&tiers, candidate: Tier(video: format, audio: audio, rank: rank, height: format.height!))
         }
         if tiers.isEmpty {
-            guard outputFormat == .original else { return nil }
+            guard outputFormat != .compatibleMP4 else { return nil }
             guard let best = audioOnly.max(by: { ($0.abr ?? $0.tbr ?? 0) < ($1.abr ?? $1.tbr ?? 0) }) else { return nil }
             let tier = Tier(video: best, audio: nil, rank: 0, height: 0)
             return MediaStream(sourceURL: pageURL, format: .dash, variants: [makeVariant(tier)],

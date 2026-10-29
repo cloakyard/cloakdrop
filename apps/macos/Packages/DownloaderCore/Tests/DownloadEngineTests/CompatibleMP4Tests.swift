@@ -19,6 +19,26 @@ struct CompatibleMP4Tests {
         """.utf8))
     }
 
+    @Test("HLS MP4 selection requires compatible codec evidence and its referenced audio group")
+    func compatibleHLS() throws {
+        let aac = MediaTrack(id: "aac", kind: .audio, groupID: "aac", playlistURL: page)
+        let other = MediaTrack(id: "other", kind: .audio, groupID: "other", playlistURL: page)
+        let variants = [
+            MediaVariant(id: "muxed", bandwidth: 1, codecs: ["avc1.640028", "mp4a.40.2"]),
+            MediaVariant(id: "paired", bandwidth: 2, codecs: ["avc1.640028", "mp4a.40.2"], audioGroupID: "aac"),
+            MediaVariant(id: "missing", bandwidth: 3, codecs: ["avc1.640028", "mp4a.40.2"], audioGroupID: "missing"),
+            MediaVariant(id: "hevc", bandwidth: 4, codecs: ["hvc1.1.6.L93", "mp4a.40.2"]),
+            MediaVariant(id: "unknown", bandwidth: 5, resolution: MediaResolution(width: 640, height: 360)),
+            MediaVariant(id: "he-aac", bandwidth: 6, codecs: ["avc1.640028", "mp4a.40.5"])
+        ]
+        let stream = MediaStream(sourceURL: page, format: .hls, variants: variants, audioTracks: [aac, other])
+        let compatible = try #require(stream.compatibleMP4Stream)
+        #expect(compatible.variants.map(\.id) == ["muxed", "paired"])
+        #expect(compatible.audioTracks.map(\.id) == ["aac"])
+        #expect(stream.variants.count == 6)
+        #expect(MediaStream(sourceURL: page, format: .dash, variants: variants).compatibleMP4Stream == nil)
+    }
+
     @Test("MP4 offers H.264 and AAC while Original retains AV1 and higher quality tiers")
     func compatibleSelectionAndLanguageTracks() throws {
         let extracted = try media()
@@ -51,8 +71,10 @@ struct CompatibleMP4Tests {
         var plan = MediaPlan.pairedFiles(video: page, audio: page)
         let legacy = try JSONEncoder().encode(plan)
         #expect(try JSONDecoder().decode(MediaPlan.self, from: legacy).outputFormat == nil)
-        plan.outputFormat = .compatibleMP4
-        #expect(try JSONDecoder().decode(MediaPlan.self, from: JSONEncoder().encode(plan)) == plan)
+        for format in [MediaOutputFormat.compatibleMP4, .originalAudio] {
+            plan.outputFormat = format
+            #expect(try JSONDecoder().decode(MediaPlan.self, from: JSONEncoder().encode(plan)) == plan)
+        }
     }
 
     @Test("MP4 rejects AV1 despite an MP4 extension, for both native and FFmpeg backends")

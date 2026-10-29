@@ -1,0 +1,29 @@
+{
+    "programs": [
+
+    ],
+    "stream_groups": [
+
+    ],
+    "streams": [
+        {
+            "codec_name": "av1",
+            "codec_type": "video",
+            "avg_frame_rate": "30/1",
+            "nb_read_frames": "1333",
+            "nb_read_packets": "1333"
+        },
+        {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "avg_frame_rate": "0/0",
+            "nb_read_frames": "1916",
+            "nb_read_packets": "1916"
+        }
+    ],
+    "format": {
+        "format_name": "matroska,webm",
+        "duration": "44.489000",
+        "size": "2535553"
+    }
+}

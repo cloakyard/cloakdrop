@@ -16,7 +16,9 @@ struct MediaPickerSheet: View {
         !audioOnly && outputFormat == .compatibleMP4 ? (selection.compatibleMP4Stream ?? selection.stream) : selection.stream
     }
 
-    private var offersOutputFormat: Bool { selection.extracted != nil && selection.stream.variants.contains { $0.hasVideo } }
+    private var offersOutputFormat: Bool {
+        (selection.extracted != nil || selection.compatibleMP4Stream != nil) && selection.stream.variants.contains { $0.hasVideo }
+    }
 
     private var variants: [MediaVariant] {
         let sorted = stream.variants.sorted(by: MediaVariant.higherQualityFirst)
@@ -29,10 +31,15 @@ struct MediaPickerSheet: View {
     }
 
     private var audioTracks: [MediaTrack] {
-        audioOnly ? stream.standaloneAudioTracks : stream.audioTracks
+        if audioOnly { return stream.standaloneAudioTracks }
+        guard let variant = stream.variants.first(where: { $0.id == chosenVariantID }) ?? stream.bestVariant else { return [] }
+        return stream.selectableAudioTracks(for: variant)
     }
 
-    /// Whether an "audio only" grab is offered (the stream has a separate audio track to extract).
+    /// An audio page has no video mode to offer.
+    private var isAudioSource: Bool { !selection.stream.variants.isEmpty && selection.stream.variants.allSatisfy(\.isAudioOnly) }
+
+    /// Whether sound can be downloaded independently.
     private var canGrabAudioOnly: Bool { selection.stream.hasGrabbableAudio }
 
     /// Whether to offer an audio-language choice (the stream carries more than one audio track).
@@ -43,7 +50,7 @@ struct MediaPickerSheet: View {
             header
             Divider()
 
-            if canGrabAudioOnly {
+            if canGrabAudioOnly && !isAudioSource {
                 modePicker
             }
             if offersOutputFormat && !audioOnly {
@@ -81,9 +88,10 @@ struct MediaPickerSheet: View {
         }
         .frame(width: 440, height: offersOutputFormat ? 550 : 460)
         .onAppear {
+            audioOnly = isAudioSource
             outputFormat = selection.compatibleMP4Stream == nil ? .original : .compatibleMP4
             chosenVariantID = stream.bestVariant?.id ?? variants.first?.id ?? ""
-            selectedAudioTrackID = stream.defaultAudioTrack?.id ?? ""
+            selectedAudioTrackID = audioTracks.first(where: \.isDefault)?.id ?? audioTracks.first?.id ?? ""
             // Default the subtitle selection to the user's "Download subtitles" preference.
             if model.grabSubtitlesEnabled, let track = subtitleTracks.first(where: \.isDefault) ?? subtitleTracks.first {
                 selectedSubtitleIDs = [track.id]
@@ -91,6 +99,7 @@ struct MediaPickerSheet: View {
         }
         .onChange(of: audioOnly) { _, _ in resetSelection() }
         .onChange(of: outputFormat) { _, _ in resetSelection() }
+        .onChange(of: chosenVariantID) { _, _ in resetSelection() }
     }
 
     /// The shared sheet chrome, with the host as subtitle and the stream format as the accessory.
@@ -98,11 +107,11 @@ struct MediaPickerSheet: View {
         SheetHeader(
             title: audioOnly ? "Download Audio" : "Choose Quality",
             systemImage: "play.rectangle.on.rectangle",
-            subtitle: Text(selection.request.url.host() ?? selection.request.url.absoluteString)
+            subtitle: Text(selection.extracted?.webpageURL?.host() ?? selection.request.url.host() ?? "")
         ) {
             Group {
                 if selection.extracted != nil {
-                    Text("Video")
+                    Text(isAudioSource ? "Audio" : "Video")
                 } else {
                     Text(verbatim: selection.stream.format == .hls ? "HLS" : "DASH")
                 }
@@ -209,7 +218,7 @@ struct MediaPickerSheet: View {
     private func confirm() {
         // In audio-only mode the primary id names the audio track to grab (fall back to the default);
         // in video mode it names the chosen resolution, with the audio choice passed alongside.
-        let defaultAudio = audioOnly ? stream.defaultStandaloneAudioTrack : stream.defaultAudioTrack
+        let defaultAudio = audioTracks.first(where: \.isDefault) ?? audioTracks.first
         let audioTrackID = selectedAudioTrackID.isEmpty ? (defaultAudio?.id ?? "") : selectedAudioTrackID
         model.confirmMediaSelection(
             variantID: audioOnly ? audioTrackID : chosenVariantID,
@@ -247,6 +256,13 @@ struct MediaPickerSheet: View {
     /// A human label for an audio track: a localized language name ("en" → "English"), else the
     /// manifest's own name (or container, for a page grab), else a generic "Audio".
     private func audioLabel(_ track: MediaTrack) -> String {
+        let label = baseAudioLabel(track)
+        let matches = audioTracks.filter { baseAudioLabel($0) == label }
+        guard matches.count > 1, let index = matches.firstIndex(where: { $0.id == track.id }) else { return label }
+        return "\(label) (\(index + 1))"
+    }
+
+    private func baseAudioLabel(_ track: MediaTrack) -> String {
         if let code = track.language, let localized = Locale.current.localizedString(forLanguageCode: code) {
             let matches = audioTracks.filter {
                 $0.language.flatMap { Locale.current.localizedString(forLanguageCode: $0) } == localized

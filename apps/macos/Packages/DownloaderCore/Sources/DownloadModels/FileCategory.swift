@@ -52,7 +52,7 @@ public enum FileCategory: String, Sendable, Hashable, Codable, CaseIterable, Ide
 
     private static let extensionTable: [(FileCategory, Set<String>)] = [
         (.video, ["mp4", "mkv", "mov", "avi", "wmv", "flv", "webm", "m4v", "mpg", "mpeg", "ts", "m2ts"]),
-        (.audio, ["mp3", "aac", "flac", "wav", "m4a", "ogg", "opus", "wma", "aiff", "alac"]),
+        (.audio, ["mp3", "aac", "flac", "wav", "m4a", "mka", "ogg", "opus", "wma", "aiff", "alac"]),
         (.document, ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "rtf", "epub", "pages", "numbers", "key", "csv", "md"]),
         (.archive, ["zip", "rar", "7z", "tar", "gz", "bz2", "xz", "dmg", "iso", "tgz", "zst"]),
         (.program, ["app", "pkg", "exe", "msi", "deb", "rpm", "appimage", "jar", "bin", "run"]),

@@ -244,6 +244,12 @@ extension DownloadTask {
             )
         }
 
+        if plan.outputFormat == .originalAudio, FileCategory.classify(fileName: "audio.\(container)") != .audio {
+            throw DownloadError.underlying(
+                reason: "Could not create an audio file. The downloaded parts were kept for retry."
+            )
+        }
+
         let finalFileName = (download.fileName as NSString).deletingPathExtension + ".\(container)"
         let finalCategory = FileCategory.classify(fileName: finalFileName)
         let finalDirectory = categorizedDirectory(

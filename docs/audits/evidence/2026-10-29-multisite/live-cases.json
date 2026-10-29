@@ -1,0 +1,64 @@
+[
+  {
+    "name": "youtube-mp4",
+    "url": "https://www.youtube.com/watch?v=7zfir0Ide0A",
+    "mode": "mp4",
+    "expectedDuration": 44.44,
+    "maxHeight": 720,
+    "expectVideo": true,
+    "expectAudio": true,
+    "expectedVideoPackets": 1333,
+    "expectedAudioPackets": 1916
+  },
+  {
+    "name": "youtube-original",
+    "url": "https://www.youtube.com/watch?v=7zfir0Ide0A",
+    "mode": "original",
+    "expectedDuration": 44.44,
+    "maxHeight": 720,
+    "expectVideo": true,
+    "expectAudio": true,
+    "expectedVideoPackets": 1333,
+    "expectedAudioPackets": 1916
+  },
+  {
+    "name": "youtube-audio",
+    "url": "https://www.youtube.com/watch?v=7zfir0Ide0A",
+    "mode": "audio",
+    "expectedDuration": 44.44,
+    "expectVideo": false,
+    "expectAudio": true,
+    "expectedAudioPackets": 1916
+  },
+  {
+    "name": "dailymotion-original",
+    "url": "https://www.dailymotion.com/video/x5kesuj",
+    "mode": "original",
+    "expectedDuration": 187,
+    "maxHeight": 360,
+    "expectVideo": true,
+    "expectAudio": true,
+    "expectedVideoPackets": 5597,
+    "expectedAudioPackets": 4019
+  },
+  {
+    "name": "soundcloud-audio",
+    "url": "https://soundcloud.com/the80m/the-following",
+    "mode": "audio",
+    "expectedDuration": 397.175,
+    "expectVideo": false,
+    "expectAudio": true,
+    "expectedAudioPackets": 17105
+  },
+  {
+    "name": "dailymotion-mp4",
+    "url": "https://www.dailymotion.com/video/x5kesuj",
+    "mode": "mp4",
+    "expectedDuration": 187,
+    "maxHeight": 360,
+    "expectVideo": true,
+    "expectAudio": true,
+    "expectedVideoPackets": 5597,
+    "expectedAudioPackets": 4019
+  }
+]

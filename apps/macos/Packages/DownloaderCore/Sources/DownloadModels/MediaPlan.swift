@@ -3,6 +3,8 @@ import Foundation
 public enum MediaOutputFormat: String, Sendable, Hashable, Codable {
     /// Preserve the source codecs, choosing a suitable container at finalization.
     case original
+    /// Preserve a selected audio-only stream in an audio container.
+    case originalAudio
     /// Require H.264 video and AAC audio in an MP4 container, without re-encoding.
     case compatibleMP4
 }
@@ -115,7 +117,8 @@ public extension MediaStream {
             bandwidth: variant.bandwidth,
             audioInitSegment: audio?.initSegment,
             audioSegments: (audio?.segments).flatMap { $0.isEmpty ? nil : $0 },
-            subtitles: subtitles.isEmpty ? nil : subtitles
+            subtitles: subtitles.isEmpty ? nil : subtitles,
+            outputFormat: variant.isAudioOnly ? .originalAudio : nil
         )
     }
 
@@ -127,7 +130,8 @@ public extension MediaStream {
             format: format,
             initSegment: track.initSegment,
             segments: track.segments,
-            subtitles: subtitles.isEmpty ? nil : subtitles
+            subtitles: subtitles.isEmpty ? nil : subtitles,
+            outputFormat: .originalAudio
         )
     }
 
@@ -154,6 +158,18 @@ public extension MediaStream {
             // DASH video representations never carry audio; pair the default (else first) audio set.
             return audioTracks.first(where: \.isDefault) ?? audioTracks.first
         }
+    }
+
+    /// HLS languages belong to the selected variant's AUDIO group; another quality's group may
+    /// use a different timeline or codec. Extracted/DASH language alternatives remain selectable.
+    func selectableAudioTracks(for variant: MediaVariant) -> [MediaTrack] {
+        guard variant.hasVideo else { return [] }
+        if format == .hls {
+            guard let group = variant.audioGroupID else { return [] }
+            return audioTracks.filter { $0.groupID == group }
+        }
+        if variant.videoTrackPresent != nil, variant.audioGroupID == nil { return [] }
+        return audioTracks
     }
 
     /// A plan for the highest-quality *resolved* variant — the default when the user doesn't pick —

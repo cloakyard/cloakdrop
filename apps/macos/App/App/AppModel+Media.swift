@@ -12,7 +12,7 @@ struct MediaSelection: Identifiable {
     var extracted: ExtractedMedia?
 
     var compatibleMP4Stream: MediaStream? {
-        extracted?.toMediaStream(pageURL: stream.sourceURL, outputFormat: .compatibleMP4)
+        extracted?.toMediaStream(pageURL: stream.sourceURL, outputFormat: .compatibleMP4) ?? stream.compatibleMP4Stream
     }
 }
 
@@ -124,7 +124,7 @@ extension AppModel {
                     let headers = Self.mediaHeaders(for: request)
                     if let stream = try? await manager.resolveMediaStream(url: manifestURL, headers: headers),
                        !stream.variants.isEmpty {
-                        routeStream(stream, request: request, extracted: media, forcePicker: forcePicker)
+                        routeStream(media.applyingAudioIdentity(to: stream), request: request, extracted: media, forcePicker: forcePicker)
                         return
                     }
                 }
@@ -224,7 +224,11 @@ extension AppModel {
                 presentMediaError(String(localized: "Couldn’t prepare this download."))
                 return
             }
-            plan.outputFormat = audioOnly ? .original : outputFormat
+            if audioOnly || plan.outputFormat == .originalAudio {
+                plan.outputFormat = .originalAudio
+            } else {
+                plan.outputFormat = outputFormat
+            }
             await manager.addMedia(named(selection.request, from: selection.extracted, variantID: variantID), plan: plan)
         }
     }
@@ -258,7 +262,7 @@ extension AppModel {
         // Pre-resolved (extractor / DASH / inline playlist): the model distinguishes a direct
         // progressive tier from a DASH representation, including manifests found by the extractor.
         let audio: MediaTrack?
-        if let audioTrackID, let chosen = stream.audioTracks.first(where: { $0.id == audioTrackID }) {
+        if let audioTrackID, let chosen = stream.selectableAudioTracks(for: variant).first(where: { $0.id == audioTrackID }) {
             audio = chosen
         } else {
             audio = stream.audioTrack(for: variant)

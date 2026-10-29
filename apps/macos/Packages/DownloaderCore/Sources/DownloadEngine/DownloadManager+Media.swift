@@ -28,7 +28,7 @@ public extension DownloadManager {
         // Pair the variant with the chosen (else default) separate audio track and resolve its playlist
         // too, so a chosen video quality always downloads with sound. Fail preparation if its separate
         // audio cannot be read instead of silently publishing a video without the requested sound.
-        var audio = audioTrackID.flatMap { id in stream.audioTracks.first { $0.id == id } }
+        var audio = audioTrackID.flatMap { id in stream.selectableAudioTracks(for: resolved).first { $0.id == id } }
             ?? stream.audioTrack(for: resolved)
         if let track = audio { audio = try await resolver.resolveAudioTrack(track, headers: headers) }
         let subtitles = await resolvedSubtitles(stream, ids: subtitleTrackIDs, headers: headers)
@@ -155,6 +155,7 @@ public extension DownloadManager {
     /// `.mp4`, raw `.ts` segments → `.ts`, else `.mp4`. (The remuxer may correct this to a clean
     /// `.mp4`/`.m4a` at finalize.)
     internal static func mediaContainerExtension(for plan: MediaPlan) -> String {
+        if plan.outputFormat == .originalAudio { return "m4a" }
         if plan.outputFormat == .compatibleMP4 { return "mp4" }
         return plan.initSegment == nil && plan.segments.first?.url.pathExtension.lowercased() == "ts" ? "ts" : "mp4"
     }

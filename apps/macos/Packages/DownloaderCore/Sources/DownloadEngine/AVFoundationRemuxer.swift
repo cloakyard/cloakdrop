@@ -15,6 +15,10 @@ public struct AVFoundationRemuxer: Remuxer {
 
     public func remux(sourcePath: String, outputFormat: MediaOutputFormat) async throws -> RemuxResult {
         if outputFormat == .compatibleMP4 { try await CompatibleMP4.validate(videoPath: sourcePath) }
+        if outputFormat == .originalAudio {
+            let asset = AVURLAsset(url: URL(fileURLWithPath: sourcePath))
+            guard try await asset.loadTracks(withMediaType: .video).isEmpty else { throw RemuxError.unsupported }
+        }
         return try await remux(sourcePath: sourcePath)
     }
 
@@ -24,7 +28,7 @@ public struct AVFoundationRemuxer: Remuxer {
     }
 
     public func remux(sourcePath: String) async throws -> RemuxResult {
-        try requireUnfragmentedInput(sourcePath)
+        try requireSafeInput(sourcePath)
         let asset = AVURLAsset(url: URL(fileURLWithPath: sourcePath))
 
         // Load the tracks; a file AVFoundation can't open throws here → treat as unsupported.
@@ -55,8 +59,8 @@ public struct AVFoundationRemuxer: Remuxer {
     }
 
     public func mux(videoPath: String, audioPath: String) async throws -> RemuxResult {
-        try requireUnfragmentedInput(videoPath)
-        try requireUnfragmentedInput(audioPath)
+        try requireSafeInput(videoPath)
+        try requireSafeInput(audioPath)
         let videoAsset = AVURLAsset(url: URL(fileURLWithPath: videoPath))
         let audioAsset = AVURLAsset(url: URL(fileURLWithPath: audioPath))
 
@@ -107,8 +111,20 @@ public struct AVFoundationRemuxer: Remuxer {
 
     /// Apple's reader can double the timeline of fragmented YouTube MP4s, including H.264.
     /// Its own duration/sample timestamps already contain the error, so comparing an export to
-    /// that AVAsset cannot detect it. Let FFmpeg normalize these containers from their box timing.
-    private func requireUnfragmentedInput(_ path: String) throws {
+    /// that AVAsset cannot detect it. MPEG-TS export can also silently drop packets while keeping
+    /// a plausible duration. Let FFmpeg copy these containers from their original packet timing.
+    private func requireSafeInput(_ path: String) throws {
+        if ["ts", "m2ts", "mts"].contains(URL(fileURLWithPath: path).pathExtension.lowercased()) {
+            throw RemuxError.unsupported
+        }
+        let handle = try FileHandle(forReadingFrom: URL(fileURLWithPath: path))
+        defer { try? handle.close() }
+        let prefix = try handle.read(upToCount: 580) ?? Data()
+        // Some CDN segment URLs have no extension, so assembly may be named .mp4. Recognize
+        // three consecutive TS (188-byte) or M2TS (192-byte) packet sync bytes without a full scan.
+        for (offset, stride) in [(0, 188), (4, 192)] where prefix.count > offset + stride * 2 {
+            if (0..<3).allSatisfy({ prefix[offset + stride * $0] == 0x47 }) { throw RemuxError.unsupported }
+        }
         if try MP4Container.isFragmented(at: path) { throw RemuxError.unsupported }
     }
 

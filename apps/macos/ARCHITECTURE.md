@@ -170,10 +170,11 @@ serial delegate queues and narrowly scoped locks to bridge callbacks into asynch
   protocol has two backends behind a `CompositeRemuxer` (tries each in order): `AVFoundationRemuxer`
   first — fast, in-process, no dependency, H.264/HEVC + AAC → `.mp4`/`.m4a` — falling back to a
   bundled `FFmpegMuxer` (stream-copy via a `Process`) for the codecs AVFoundation can't carry
-  (VP9/AV1/Opus → `.mkv`) and fragmented MP4 inputs. Apple video passthrough explicitly permits
+  (VP9/AV1/Opus → `.mkv`), MPEG-TS and fragmented MP4 inputs. Apple video passthrough explicitly permits
   H.264/HEVC only and rejects fragmented ISO BMFF inputs: Apple's reader can double the timeline
   even for H.264 before export. `MP4Container` scans bounded top-level box headers without loading
-  media payloads. FFmpeg preserves complete track tails; an explicit compatible-MP4 request uses
+  media payloads. MPEG-TS sync bytes are checked independently of filenames; Apple
+  MPEG-TS export can silently drop packets despite a plausible duration. FFmpeg preserves complete track tails; an explicit compatible-MP4 request uses
   stream-copy into `.mp4` with fast-start metadata instead of the default Matroska container.
   No re-encoding occurs. If every mux backend fails, the download fails and retains both staged
   streams for retry without publishing a video-only result. Subtitle fetch/conversion failure does not fail a
@@ -200,12 +201,18 @@ serial delegate queues and narrowly scoped locks to bridge callbacks into asynch
   (compatible)** when H.264 video and AAC-LC audio are available. Filtering happens before choosing
   resolution tiers and language tracks, so AV1/VP9/Opus never displace compatible alternatives.
   **Original quality** retains all source tiers/codecs (and can finish as MKV). Audio-only selection
-  uses the original audio catalog. Missing compatible renditions disable the MP4 choice; there is
+  uses the original audio catalog. HLS masters also offer MP4 when each eligible variant
+  declares H.264/AAC-LC and its referenced audio group exists. HLS audio choices stay
+  inside the selected quality’s group. Missing compatible renditions disable the MP4 choice; there is
   no transcoding or generic local-file converter. `MediaPlan.outputFormat` persists the choice
-  across resume, with absent values preserving legacy behavior. Backends validate actual input
-  codecs before compatible MP4 export; failure retains staging instead of publishing raw media or
+  across resume, with absent values preserving legacy behavior. Audio-only page evidence
+  survives codec-less HLS playlists; `.originalAudio` persists that intent and reserves an
+  audio filename before transfer. The FFmpeg fallback uses M4A or MKA, and publication rejects
+  a video-classified result. Backends validate actual codecs before compatible MP4 publication
+  (after stream-copy for containers such as MPEG-TS that Apple cannot inspect); failure retains staging instead of publishing raw media or
   silently switching containers. MP4 names are reserved before transfer with the existing
-  no-overwrite allocator.
+  no-overwrite allocator. The network-free FFmpeg build retains the native AAC decoder
+  for MPEG-TS/ADTS parameter probing; every output remains stream-copy with no encoders.
   `locate(in:)` detects an executable file at launch to enable extraction — mirroring
   `FFmpegMuxer.locate`; runtime and site failures are still surfaced when used. The bundled yt-dlp
   is refreshed through normal app updates. Its subprocess

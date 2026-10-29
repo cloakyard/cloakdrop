@@ -3,14 +3,14 @@
 # fetch-ffmpeg.sh — build a minimal, LGPL, network-free static `ffmpeg` for CloakDrop.
 #
 # CloakDrop only ever *stream-copies* (`ffmpeg -c copy`) an adaptive stream's separate video and
-# audio into one Matroska file — it never re-encodes. So this build:
+# audio into a local MP4, M4A or Matroska file — it never re-encodes. So this build:
 #
 #   • is LGPL-only (`--disable-gpl --disable-nonfree`) — no x264/x265/libfdk, which are the
 #     GPL/nonfree *encoders* we never call — so the binary is safe to ship in a Developer-ID app;
-#   • disables encoders, decoders, hardware acceleration, and every nonessential filter —
-#     stream-copy only needs demuxers, muxers, and the CLI's small required filter primitives;
+#   • disables encoders, hardware acceleration, and every nonessential filter; only the native
+#     AAC decoder is retained to probe sample rate/channels in ADTS/MPEG-TS before stream-copy;
 #   • disables network and non-file protocols — a privacy-first app's helper must not be able to
-#     open a socket. It reads local part files and writes a local `.mkv`, nothing else;
+#     open a socket. It reads and packages local part files;
 #   • is fully static (`--disable-shared`) — no third-party dylibs, so it passes Library Validation
 #     under the hardened runtime and needs no @rpath wrangling.
 #
@@ -90,8 +90,8 @@ info "Extracting"
 tar -xf "${TARBALL}" -C "${BUILD_DIR}"
 
 # --- Configure flags (shared across architectures) ---------------------------------------------
-# Minimal, LGPL, remux-only, no network. Probing is handled by demuxers, so stream-copy needs no
-# codecs or hardware accelerators; ffmpeg retains only its CLI-required filter primitives. Only
+# Minimal, LGPL, remux-only, no network. MPEG-TS/ADTS probing needs the native AAC decoder
+# to discover sample rate/channels; all output remains stream-copy with no encoders. Only
 # file/pipe/fd protocols are available.
 COMMON_FLAGS=(
   --disable-gpl --disable-nonfree           # LGPL only — no GPL/nonfree components in the binary
@@ -103,7 +103,8 @@ COMMON_FLAGS=(
   --disable-network                         # privacy: the helper cannot open a socket
   --disable-protocols --enable-protocol=file,pipe,fd
   --disable-avdevice --disable-devices      # no capture/render devices
-  --disable-encoders --disable-decoders     # we only stream-copy — never transform media payloads
+  --disable-encoders --disable-decoders     # no encoding; disable all decoding except AAC probing
+  --enable-decoder=aac                     # ADTS/MPEG-TS codec parameters are not always in headers
   --disable-filters                         # retain only the primitives the ffmpeg CLI selects
   --disable-hwaccels                        # hardware acceleration only pulls decoders back in
   # These legacy demuxers/parser are irrelevant to supported web-media containers and emit warnings

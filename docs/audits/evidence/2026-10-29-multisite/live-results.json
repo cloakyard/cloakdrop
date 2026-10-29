@@ -1,0 +1,138 @@
+[
+  {
+    "case": "dailymotion-mp4",
+    "file": "dailymotion-mp4.mp4",
+    "duration": 186.868111,
+    "size": 10892727,
+    "sha256": "cba2f3a567e6de73b9d5d3b4a25fe516701f103badf6e0242c6094dbb320ffdd",
+    "streams": [
+      {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "avg_frame_rate": "503730000/16807807",
+        "duration": "186.753411",
+        "nb_read_frames": "5597",
+        "nb_read_packets": "5597"
+      },
+      {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "avg_frame_rate": "0/0",
+        "duration": "186.641995",
+        "nb_read_frames": "4019",
+        "nb_read_packets": "4019"
+      }
+    ],
+    "fullDecode": true
+  },
+  {
+    "case": "dailymotion-original",
+    "file": "dailymotion-original.mkv",
+    "duration": 186.868,
+    "size": 10818428,
+    "sha256": "33a5fff8894f7bcf9095f90c663b9c6da6707a9ddd3c32ca879f99c8fd728411",
+    "streams": [
+      {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "avg_frame_rate": "30000/1001",
+        "nb_read_frames": "5597",
+        "nb_read_packets": "5597"
+      },
+      {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "avg_frame_rate": "0/0",
+        "nb_read_frames": "4019",
+        "nb_read_packets": "4019"
+      }
+    ],
+    "fullDecode": true
+  },
+  {
+    "case": "soundcloud-audio",
+    "file": "soundcloud-audio.m4a",
+    "duration": 397.175896,
+    "size": 8013063,
+    "sha256": "f3c4fff41329b0fbad15e95c83d69cbb79da7380416908c9df8effbb7c5ac2bd",
+    "streams": [
+      {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "avg_frame_rate": "0/0",
+        "duration": "397.175896",
+        "nb_read_frames": "17105",
+        "nb_read_packets": "17105"
+      }
+    ],
+    "fullDecode": true
+  },
+  {
+    "case": "youtube-audio",
+    "file": "youtube-audio.m4a",
+    "duration": 44.489433,
+    "size": 720384,
+    "sha256": "58d384fd66d376bab6a4de99006bb6ee7594b63965eb0343df5229d2710be79b",
+    "streams": [
+      {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "avg_frame_rate": "0/0",
+        "duration": "44.489433",
+        "nb_read_frames": "1916",
+        "nb_read_packets": "1916"
+      }
+    ],
+    "fullDecode": true
+  },
+  {
+    "case": "youtube-mp4",
+    "file": "youtube-mp4.mp4",
+    "duration": 44.489433,
+    "size": 2453267,
+    "sha256": "57ae0d54389239755143e15bf9f1a8525bb07f063b99f5b88cf94fde52e62633",
+    "streams": [
+      {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "avg_frame_rate": "30/1",
+        "duration": "44.433333",
+        "nb_read_frames": "1333",
+        "nb_read_packets": "1333"
+      },
+      {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "avg_frame_rate": "0/0",
+        "duration": "44.489433",
+        "nb_read_frames": "1916",
+        "nb_read_packets": "1916"
+      }
+    ],
+    "fullDecode": true
+  },
+  {
+    "case": "youtube-original",
+    "file": "youtube-original.mkv",
+    "duration": 44.489,
+    "size": 2535553,
+    "sha256": "d92e7be2165641ff041afa3efde42ee2b4312b6447b1ca5d5e1c934dca159656",
+    "streams": [
+      {
+        "codec_name": "av1",
+        "codec_type": "video",
+        "avg_frame_rate": "30/1",
+        "nb_read_frames": "1333",
+        "nb_read_packets": "1333"
+      },
+      {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "avg_frame_rate": "0/0",
+        "nb_read_frames": "1916",
+        "nb_read_packets": "1916"
+      }
+    ],
+    "fullDecode": true
+  }
+]

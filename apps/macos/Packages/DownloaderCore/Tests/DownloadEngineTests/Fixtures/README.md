@@ -28,3 +28,15 @@ reader doubles the reported duration of the real YouTube H.264 input in the
 2026-10-29 MP4 audit, so comparing an export against AVAsset's own duration would
 not catch the corruption. The synthetic fixture verifies dispatch, packet count
 and duration through FFmpeg; the audit supplies the observed real-file evidence.
+
+## Audio container regression
+
+`audio-opus.ogg` is a synthetic 440 Hz tone lasting 0.3 seconds, with no downloaded
+content. It tests lossless audio-container fallback using the bundled helper:
+
+```sh
+ffmpeg -f lavfi -i 'sine=frequency=440:duration=0.3' -c:a libopus -b:a 24k audio-opus.ogg
+```
+
+Fragmented AAC and MPEG-TS H.264/AAC fixtures are created during tests from the
+existing synthetic AVFoundation fixtures, using the configured FFmpeg helper.
