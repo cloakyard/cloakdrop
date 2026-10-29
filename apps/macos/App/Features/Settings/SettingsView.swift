@@ -151,9 +151,8 @@ struct SettingsView: View {
             } footer: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("""
-                    Applies wherever CloakDrop grabs a video — a link you paste, the built-in browser, \
-                    or a share. Off grabs the best quality automatically — one click. On shows a picker \
-                    for videos that offer several resolutions.
+                    Choose quality for streaming links. When off, the best quality downloads automatically. \
+                    Video pages and browser captures always open the picker for quality and format.
                     """)
                     Text("Subtitles are saved as a matching “.srt” file next to the video.")
                 }

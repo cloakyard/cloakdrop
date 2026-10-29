@@ -1,4 +1,5 @@
 import Foundation
+import DownloadModels
 import AVFoundation
 
 /// The production `Remuxer`: repackages the concatenated media into a clean container using
@@ -12,7 +13,18 @@ import AVFoundation
 public struct AVFoundationRemuxer: Remuxer {
     public init() {}
 
+    public func remux(sourcePath: String, outputFormat: MediaOutputFormat) async throws -> RemuxResult {
+        if outputFormat == .compatibleMP4 { try await CompatibleMP4.validate(videoPath: sourcePath) }
+        return try await remux(sourcePath: sourcePath)
+    }
+
+    public func mux(videoPath: String, audioPath: String, outputFormat: MediaOutputFormat) async throws -> RemuxResult {
+        if outputFormat == .compatibleMP4 { try await CompatibleMP4.validate(videoPath: videoPath, audioPath: audioPath) }
+        return try await mux(videoPath: videoPath, audioPath: audioPath)
+    }
+
     public func remux(sourcePath: String) async throws -> RemuxResult {
+        try requireUnfragmentedInput(sourcePath)
         let asset = AVURLAsset(url: URL(fileURLWithPath: sourcePath))
 
         // Load the tracks; a file AVFoundation can't open throws here → treat as unsupported.
@@ -43,6 +55,8 @@ public struct AVFoundationRemuxer: Remuxer {
     }
 
     public func mux(videoPath: String, audioPath: String) async throws -> RemuxResult {
+        try requireUnfragmentedInput(videoPath)
+        try requireUnfragmentedInput(audioPath)
         let videoAsset = AVURLAsset(url: URL(fileURLWithPath: videoPath))
         let audioAsset = AVURLAsset(url: URL(fileURLWithPath: audioPath))
 
@@ -89,6 +103,13 @@ public struct AVFoundationRemuxer: Remuxer {
             throw RemuxError.failed(error.localizedDescription)
         }
         return RemuxResult(outputPath: outputPath, fileExtension: "mp4")
+    }
+
+    /// Apple's reader can double the timeline of fragmented YouTube MP4s, including H.264.
+    /// Its own duration/sample timestamps already contain the error, so comparing an export to
+    /// that AVAsset cannot detect it. Let FFmpeg normalize these containers from their box timing.
+    private func requireUnfragmentedInput(_ path: String) throws {
+        if try MP4Container.isFragmented(at: path) { throw RemuxError.unsupported }
     }
 
     /// Limit Apple's video passthrough to the codecs verified by this backend. AV1/VP9 belong to

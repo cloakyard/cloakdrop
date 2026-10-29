@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import DownloadModels
 @testable import DownloadEngine
 
 /// Exercises the ffmpeg backend and the composite that wires it behind AVFoundation. The composite
@@ -34,6 +35,62 @@ struct FFmpegMuxerTests {
         let format = try #require(info["format"] as? [String: Any])
         let duration = try #require((format["duration"] as? String).flatMap(Double.init))
         #expect(abs(duration - 1) < 0.1)
+    }
+
+    @Test("Explicit MP4 is H.264/AAC in an MP4 container even through the FFmpeg fallback",
+          .enabled(if: Tools.ffmpeg != nil && Tools.ffprobe != nil))
+    func compatibleMP4Fallback() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let video = dir.appendingPathComponent("v.mp4")
+        let audio = dir.appendingPathComponent("a.m4a")
+        try await MediaFixtures.writeVideoMP4(to: video)
+        try MediaFixtures.writeAudioM4A(to: audio)
+        let composite = CompositeRemuxer([PassthroughRemuxer(), FFmpegMuxer(executableURL: try #require(Tools.ffmpeg))])
+        let result = try await composite.mux(videoPath: video.path, audioPath: audio.path, outputFormat: .compatibleMP4)
+        #expect(result.fileExtension == "mp4")
+        try assertHasVideoAndAudio(result.outputPath)
+        let probe = try Tools.runCapturingStdout(try #require(Tools.ffprobe), [
+            "-v", "error", "-show_entries", "stream=codec_name:format=format_name", "-of", "json", result.outputPath
+        ])
+        let json = try #require(JSONSerialization.jsonObject(with: Data(probe.utf8)) as? [String: Any])
+        let streams = try #require(json["streams"] as? [[String: Any]])
+        #expect(streams.compactMap { $0["codec_name"] as? String } == ["h264", "aac"])
+        let format = try #require(json["format"] as? [String: Any])
+        #expect((format["format_name"] as? String)?.contains("mp4") == true)
+        #expect(FileManager.default.fileExists(atPath: video.path))
+        #expect(FileManager.default.fileExists(atPath: audio.path))
+        let remuxed = try await composite.remux(sourcePath: result.outputPath, outputFormat: .compatibleMP4)
+        #expect(remuxed.fileExtension == "mp4")
+        try assertHasVideoAndAudio(remuxed.outputPath)
+    }
+
+    @Test("Fragmented H.264 falls through to FFmpeg without changing frame count or timing",
+          .enabled(if: Tools.ffmpeg != nil && Tools.ffprobe != nil))
+    func fragmentedH264PreservesTiming() async throws {
+        let dir = try tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let fixture = try #require(Bundle.module.url(forResource: "h264-fragmented", withExtension: "mp4", subdirectory: "Fixtures"))
+        let video = dir.appendingPathComponent("video.mp4")
+        try FileManager.default.copyItem(at: fixture, to: video)
+        let audio = dir.appendingPathComponent("audio.m4a")
+        try MediaFixtures.writeAudioM4A(to: audio)
+        let composite = CompositeRemuxer([AVFoundationRemuxer(), FFmpegMuxer(executableURL: try #require(Tools.ffmpeg))])
+        for outputFormat in [MediaOutputFormat.original, .compatibleMP4] {
+            let result = try await composite.mux(videoPath: video.path, audioPath: audio.path, outputFormat: outputFormat)
+            #expect(result.fileExtension == (outputFormat == .compatibleMP4 ? "mp4" : "mkv"))
+            try assertHasVideoAndAudio(result.outputPath)
+            let probe = try Tools.runCapturingStdout(try #require(Tools.ffprobe), [
+                "-v", "error", "-count_packets", "-select_streams", "v:0",
+                "-show_entries", "stream=nb_read_packets:format=duration", "-of", "json", result.outputPath
+            ])
+            let json = try #require(JSONSerialization.jsonObject(with: Data(probe.utf8)) as? [String: Any])
+            let streams = try #require(json["streams"] as? [[String: Any]])
+            #expect(streams.first?["nb_read_packets"] as? String == "30")
+            let format = try #require(json["format"] as? [String: Any])
+            let duration = try #require((format["duration"] as? String).flatMap(Double.init))
+            #expect(abs(duration - 1) < 0.1)
+        }
     }
 
     // MARK: - FFmpegMuxer (bundled-binary tier)

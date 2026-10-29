@@ -1,0 +1,14 @@
+full-tests
+✔ Test run with 14 tests in 2 suites passed after 0.009 seconds.
+✔ Test run with 341 tests in 44 suites passed after 1.639 seconds.
+✔ Test run with 286 tests in 42 suites passed after 2.088 seconds.
+final-targeted
+✔ Test run with 8 tests in 1 suite passed after 0.014 seconds.
+lint
+Done linting! Found 0 violations, 0 serious in 176 files.
+build
+** BUILD SUCCEEDED **
+Localization: 501 strings × 10 languages; all translated, placeholders consistent.
+Arm64 Debug build exit status: 0
+Final targeted tests exit status: 0
+Full core suite exit status: 0

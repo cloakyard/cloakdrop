@@ -6,6 +6,53 @@ import Testing
 
 @Suite("Media transfer (segment grab through the engine)")
 struct MediaTransferTests {
+    @Test("An explicit MP4 failure retains staging instead of publishing the raw file")
+    func failedMP4DoesNotPublishRawFile() async throws {
+        let directory = try tempDir()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = URL(string: "https://cdn.example/video.webm")!
+        let mock = MockHTTPClient(resources: [url: .init(data: payload(1))])
+        let manager = try await makeManager(store: GRDBDownloadStore.inMemory(), mock: mock)
+        let plan = MediaPlan(format: .dash, segments: [MediaSegment(id: 0, url: url, duration: 0)], outputFormat: .compatibleMP4)
+        let added = await manager.addMedia(
+            DownloadRequest(url: url, suggestedFileName: "video.webm", destinationDirectoryPath: directory.path), plan: plan
+        )
+        let result = try await waitFor(manager, added.id) { $0.status.isTerminal || $0.status.isResumable }
+        guard case .failed = result.status else { Issue.record("MP4 failure was reported as complete"); return }
+        #expect(result.fileName == "video.mp4")
+        #expect(!FileManager.default.fileExists(atPath: result.destinationFilePath))
+        #expect(FileManager.default.fileExists(atPath: (result.mediaPartDirectoryPath as NSString).appendingPathComponent("seg-0.part")))
+    }
+
+    @Test("A saved MP4 choice resumes through a new manager and preserves an existing destination")
+    func compatibleMP4AfterRelaunch() async throws {
+        let directory = try tempDir()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let videoFile = directory.appendingPathComponent("fixture.mp4")
+        let audioFile = directory.appendingPathComponent("fixture.m4a")
+        try await MediaFixtures.writeVideoMP4(to: videoFile)
+        try MediaFixtures.writeAudioM4A(to: audioFile)
+        let existing = directory.appendingPathComponent("video.mp4")
+        try Data("keep me".utf8).write(to: existing)
+        let video = URL(string: "https://cdn.example/video.mp4")!
+        let audio = URL(string: "https://cdn.example/audio.m4a")!
+        let mock = MockHTTPClient(resources: [video: .init(data: try Data(contentsOf: videoFile)), audio: .init(data: try Data(contentsOf: audioFile))])
+        let store = try GRDBDownloadStore.inMemory()
+        let first = try await makeManager(store: store, mock: mock, remuxer: AVFoundationRemuxer())
+        var plan = MediaPlan.pairedFiles(video: video, audio: audio)
+        plan.outputFormat = .compatibleMP4
+        let added = await first.addMedia(
+            DownloadRequest(url: video, suggestedFileName: "video.webm", destinationDirectoryPath: directory.path, startImmediately: false), plan: plan
+        )
+        let relaunched = try await makeManager(store: store, mock: mock, remuxer: AVFoundationRemuxer())
+        await relaunched.resume(id: added.id)
+        let result = try await waitFor(relaunched, added.id) { $0.status == .completed }
+        #expect(result.mediaPlan?.outputFormat == .compatibleMP4)
+        #expect(result.fileName == "video (2).mp4")
+        try await CompatibleMP4.validate(videoPath: result.destinationFilePath)
+        #expect(try Data(contentsOf: existing) == Data("keep me".utf8))
+    }
+
     @Test("A failed paired mux preserves both parts and never publishes a silent completed video")
     func failedMuxDoesNotPublishVideoOnly() async throws {
         let directory = try tempDir()

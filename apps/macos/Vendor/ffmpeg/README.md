@@ -62,3 +62,12 @@ and nonfree components does not remove redistribution obligations; follow
 
 Local ad-hoc signing is distinct from Developer ID signing and Apple notarization. Locally signed
 builds are not notarized; see the [security policy](../../../../SECURITY.md).
+
+### Compatible MP4 output
+
+The picker can select H.264/AAC source renditions for compatible MP4. The helper
+uses stream-copy and `-movflags +faststart`; no encoder or decoder is added.
+Fragmented MP4 inputs also use this backend because Apple's reader can misinterpret
+their timing even with H.264. Original-quality output still uses Matroska when the
+native backend cannot safely package the source. See the
+[MP4 verification audit](../../../../docs/audits/2026-10-29-mp4-output.md).

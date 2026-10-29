@@ -10,19 +10,26 @@ struct MediaPickerSheet: View {
     @State private var selectedSubtitleIDs: Set<String> = []
     @State private var selectedAudioTrackID: String = ""
     @State private var audioOnly = false
+    @State private var outputFormat: MediaOutputFormat = .original
+
+    private var stream: MediaStream {
+        !audioOnly && outputFormat == .compatibleMP4 ? (selection.compatibleMP4Stream ?? selection.stream) : selection.stream
+    }
+
+    private var offersOutputFormat: Bool { selection.extracted != nil && selection.stream.variants.contains { $0.hasVideo } }
 
     private var variants: [MediaVariant] {
-        let sorted = selection.stream.variants.sorted(by: MediaVariant.higherQualityFirst)
+        let sorted = stream.variants.sorted(by: MediaVariant.higherQualityFirst)
         let video = sorted.filter { !$0.isAudioOnly }
         return canGrabAudioOnly && !video.isEmpty ? video : sorted
     }
 
     private var subtitleTracks: [MediaTrack] {
-        selection.stream.subtitleTracks
+        stream.subtitleTracks
     }
 
     private var audioTracks: [MediaTrack] {
-        audioOnly ? selection.stream.standaloneAudioTracks : selection.stream.audioTracks
+        audioOnly ? stream.standaloneAudioTracks : stream.audioTracks
     }
 
     /// Whether an "audio only" grab is offered (the stream has a separate audio track to extract).
@@ -38,6 +45,9 @@ struct MediaPickerSheet: View {
 
             if canGrabAudioOnly {
                 modePicker
+            }
+            if offersOutputFormat && !audioOnly {
+                outputPicker
             }
 
             Group {
@@ -69,20 +79,18 @@ struct MediaPickerSheet: View {
             Divider()
             footer
         }
-        .frame(width: 440, height: 460)
+        .frame(width: 440, height: offersOutputFormat ? 550 : 460)
         .onAppear {
-            chosenVariantID = selection.stream.bestVariant?.id ?? variants.first?.id ?? ""
-            selectedAudioTrackID = selection.stream.defaultAudioTrack?.id ?? ""
+            outputFormat = selection.compatibleMP4Stream == nil ? .original : .compatibleMP4
+            chosenVariantID = stream.bestVariant?.id ?? variants.first?.id ?? ""
+            selectedAudioTrackID = stream.defaultAudioTrack?.id ?? ""
             // Default the subtitle selection to the user's "Download subtitles" preference.
             if model.grabSubtitlesEnabled, let track = subtitleTracks.first(where: \.isDefault) ?? subtitleTracks.first {
                 selectedSubtitleIDs = [track.id]
             }
         }
-        .onChange(of: audioOnly) { _, _ in
-            if !audioTracks.contains(where: { $0.id == selectedAudioTrackID }) {
-                selectedAudioTrackID = audioTracks.first(where: \.isDefault)?.id ?? audioTracks.first?.id ?? ""
-            }
-        }
+        .onChange(of: audioOnly) { _, _ in resetSelection() }
+        .onChange(of: outputFormat) { _, _ in resetSelection() }
     }
 
     /// The shared sheet chrome, with the host as subtitle and the stream format as the accessory.
@@ -117,6 +125,39 @@ struct MediaPickerSheet: View {
         .accessibilityLabel("Download format")
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
+    }
+
+    private var outputPicker: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Picker("File format", selection: $outputFormat) {
+                Text("MP4 (compatible)").tag(MediaOutputFormat.compatibleMP4)
+                    .disabled(selection.compatibleMP4Stream == nil)
+                Text("Original quality").tag(MediaOutputFormat.original)
+            }
+            .pickerStyle(.menu)
+            Text(outputFormatNote)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+    }
+
+    private var outputFormatNote: LocalizedStringKey {
+        if selection.compatibleMP4Stream == nil { return "MP4 is not available for this video." }
+        return outputFormat == .compatibleMP4
+            ? "Saves compatible video and audio without conversion. Available qualities may differ."
+            : "Keeps the source codecs; may save as MKV."
+    }
+
+    private func resetSelection() {
+        if !variants.contains(where: { $0.id == chosenVariantID }) {
+            chosenVariantID = variants.first?.id ?? ""
+        }
+        if !audioTracks.contains(where: { $0.id == selectedAudioTrackID }) {
+            selectedAudioTrackID = audioTracks.first(where: \.isDefault)?.id ?? audioTracks.first?.id ?? ""
+        }
     }
 
     private func variantRow(_ variant: MediaVariant) -> some View {
@@ -168,13 +209,14 @@ struct MediaPickerSheet: View {
     private func confirm() {
         // In audio-only mode the primary id names the audio track to grab (fall back to the default);
         // in video mode it names the chosen resolution, with the audio choice passed alongside.
-        let defaultAudio = audioOnly ? selection.stream.defaultStandaloneAudioTrack : selection.stream.defaultAudioTrack
+        let defaultAudio = audioOnly ? stream.defaultStandaloneAudioTrack : stream.defaultAudioTrack
         let audioTrackID = selectedAudioTrackID.isEmpty ? (defaultAudio?.id ?? "") : selectedAudioTrackID
         model.confirmMediaSelection(
             variantID: audioOnly ? audioTrackID : chosenVariantID,
             subtitleTrackIDs: Array(selectedSubtitleIDs),
             audioOnly: audioOnly,
-            audioTrackID: canChooseAudio ? audioTrackID : nil
+            audioTrackID: canChooseAudio ? audioTrackID : nil,
+            outputFormat: outputFormat
         )
     }
 
@@ -306,7 +348,7 @@ struct MediaPickerSheet: View {
     }
 
     private var trackNote: LocalizedStringKey? {
-        let audio = selection.stream.audioTracks.count
+        let audio = stream.audioTracks.count
         let subtitle = selection.stream.subtitleTracks.count
         guard audio > 0 || subtitle > 0 else { return nil }
         return "\(audio) audio · \(subtitle) subtitle tracks available"

@@ -155,6 +155,7 @@ public extension DownloadManager {
     /// `.mp4`, raw `.ts` segments → `.ts`, else `.mp4`. (The remuxer may correct this to a clean
     /// `.mp4`/`.m4a` at finalize.)
     internal static func mediaContainerExtension(for plan: MediaPlan) -> String {
-        plan.initSegment == nil && plan.segments.first?.url.pathExtension.lowercased() == "ts" ? "ts" : "mp4"
+        if plan.outputFormat == .compatibleMP4 { return "mp4" }
+        return plan.initSegment == nil && plan.segments.first?.url.pathExtension.lowercased() == "ts" ? "ts" : "mp4"
     }
 }

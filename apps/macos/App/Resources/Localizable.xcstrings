@@ -32106,6 +32106,461 @@
           }
         }
       }
+    },
+    "File format": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تنسيق الملف"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dateiformat"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formato de archivo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Format de fichier"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "फ़ाइल फ़ॉर्मैट"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイル形式"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파일 형식"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formato do arquivo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Формат файла"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件格式"
+          }
+        }
+      }
+    },
+    "Keeps the source codecs; may save as MKV.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يحتفظ ببرامج الترميز الأصلية؛ قد يُحفظ بتنسيق MKV."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Behält die ursprünglichen Codecs bei; kann als MKV gespeichert werden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conserva los códecs originales; puede guardarse como MKV."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conserve les codecs d’origine ; peut être enregistré en MKV."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मूल कोडेक रखता है; MKV के रूप में सहेजा जा सकता है।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "元のコーデックを維持します。MKVで保存される場合があります。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "원본 코덱을 유지합니다. MKV로 저장될 수 있습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantém os codecs originais; pode salvar como MKV."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохраняет исходные кодеки; файл может быть сохранён в MKV."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留源编解码器；可能保存为 MKV。"
+          }
+        }
+      }
+    },
+    "MP4 (compatible)": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MP4 (متوافق)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MP4 (kompatibel)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MP4 (compatible)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MP4 (compatible)"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MP4 (संगत)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MP4（互換性重視）"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MP4 (호환성 우선)"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MP4 (compatível)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MP4 (совместимый)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MP4（兼容格式）"
+          }
+        }
+      }
+    },
+    "MP4 is not available for this video.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تنسيق MP4 غير متاح لهذا الفيديو."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MP4 ist für dieses Video nicht verfügbar."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MP4 no está disponible para este vídeo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le format MP4 n’est pas disponible pour cette vidéo."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस वीडियो के लिए MP4 उपलब्ध नहीं है।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この動画ではMP4を利用できません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 동영상에는 MP4를 사용할 수 없습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MP4 não está disponível para este vídeo."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для этого видео формат MP4 недоступен."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此视频没有可用的 MP4 格式。"
+          }
+        }
+      }
+    },
+    "Original quality": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الجودة الأصلية"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Originalqualität"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calidad original"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qualité d’origine"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मूल गुणवत्ता"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "元の画質"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "원본 화질"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qualidade original"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Исходное качество"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始画质"
+          }
+        }
+      }
+    },
+    "Saves compatible video and audio without conversion. Available qualities may differ.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يحفظ الفيديو والصوت المتوافقين دون تحويل. قد تختلف مستويات الجودة المتاحة."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speichert kompatibles Video und Audio ohne Konvertierung. Verfügbare Qualitätsstufen können abweichen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guarda vídeo y audio compatibles sin conversión. Las calidades disponibles pueden variar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistre la vidéo et l’audio compatibles sans conversion. Les qualités disponibles peuvent varier."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "संगत वीडियो और ऑडियो बिना रूपांतरण के सहेजता है। उपलब्ध गुणवत्ता अलग हो सकती है।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "互換性のある映像と音声を変換せずに保存します。選べる画質は異なる場合があります。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "호환되는 영상과 음성을 변환 없이 저장합니다. 사용 가능한 화질이 다를 수 있습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva vídeo e áudio compatíveis sem conversão. As qualidades disponíveis podem variar."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохраняет совместимые видео и аудио без преобразования. Доступные варианты качества могут отличаться."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无需转换即可保存兼容的视频和音频。可用画质可能有所不同。"
+          }
+        }
+      }
+    },
+    "Choose quality for streaming links. When off, the best quality downloads automatically. Video pages and browser captures always open the picker for quality and format.": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اختر جودة روابط البث. عند إيقاف الخيار، تُنزَّل أفضل جودة تلقائيًا. تفتح صفحات الفيديو وعمليات الالتقاط من المتصفح دائمًا منتقي الجودة والتنسيق."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qualität für Streaming-Links auswählen. Wenn deaktiviert, wird automatisch die beste Qualität geladen. Videoseiten und Browser-Aufnahmen öffnen immer die Qualitäts- und Formatauswahl."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige la calidad de los enlaces de streaming. Si está desactivado, se descarga automáticamente la mejor calidad. Las páginas de vídeo y las capturas del navegador siempre abren el selector de calidad y formato."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisissez la qualité des liens de streaming. Si désactivé, la meilleure qualité est téléchargée automatiquement. Les pages vidéo et les captures du navigateur ouvrent toujours le sélecteur de qualité et de format."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्ट्रीमिंग लिंक के लिए गुणवत्ता चुनें। बंद होने पर सर्वोत्तम गुणवत्ता अपने आप डाउनलोड होती है। वीडियो पेज और ब्राउज़र कैप्चर हमेशा गुणवत्ता और फ़ॉर्मैट चुनने का विकल्प खोलते हैं।"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ストリーミングリンクの画質を選択します。オフの場合は最高画質で自動的にダウンロードします。動画ページとブラウザからの取得では、画質と形式の選択画面が常に開きます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스트리밍 링크의 화질을 선택합니다. 끄면 최고 화질로 자동 다운로드합니다. 동영상 페이지와 브라우저 캡처는 항상 화질 및 형식 선택기를 엽니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolha a qualidade dos links de streaming. Quando desativado, a melhor qualidade é baixada automaticamente. Páginas de vídeo e capturas do navegador sempre abrem o seletor de qualidade e formato."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбирайте качество для потоковых ссылок. Если выключено, автоматически загружается лучшее качество. Для видеостраниц и захватов из браузера всегда открывается выбор качества и формата."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为流媒体链接选择画质。关闭时自动下载最高画质。视频页面和浏览器捕获始终打开画质和格式选择器。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

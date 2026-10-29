@@ -38,6 +38,8 @@ extension DownloadManager {
         } else {
             proposed = Self.deriveMediaFileName(from: request.url, plan: plan)
         }
-        return reserveUniqueFileName(proposed, inDirectory: request.destinationDirectoryPath)
+        let outputName = plan.outputFormat == .compatibleMP4
+            ? (proposed as NSString).deletingPathExtension + ".mp4" : proposed
+        return reserveUniqueFileName(outputName, inDirectory: request.destinationDirectoryPath)
     }
 }

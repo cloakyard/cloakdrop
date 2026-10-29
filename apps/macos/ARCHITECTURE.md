@@ -170,8 +170,11 @@ serial delegate queues and narrowly scoped locks to bridge callbacks into asynch
   protocol has two backends behind a `CompositeRemuxer` (tries each in order): `AVFoundationRemuxer`
   first — fast, in-process, no dependency, H.264/HEVC + AAC → `.mp4`/`.m4a` — falling back to a
   bundled `FFmpegMuxer` (stream-copy via a `Process`) for the codecs AVFoundation can't carry
-  (VP9/AV1/Opus → `.mkv`). Apple video passthrough explicitly permits H.264/HEVC only: AV1 can
-  export successfully with incorrect sample timing. FFmpeg preserves complete track tails.
+  (VP9/AV1/Opus → `.mkv`) and fragmented MP4 inputs. Apple video passthrough explicitly permits
+  H.264/HEVC only and rejects fragmented ISO BMFF inputs: Apple's reader can double the timeline
+  even for H.264 before export. `MP4Container` scans bounded top-level box headers without loading
+  media payloads. FFmpeg preserves complete track tails; an explicit compatible-MP4 request uses
+  stream-copy into `.mp4` with fast-start metadata instead of the default Matroska container.
   No re-encoding occurs. If every mux backend fails, the download fails and retains both staged
   streams for retry without publishing a video-only result. Subtitle fetch/conversion failure does not fail a
   completed grab. `MediaThumbnailer` renders a poster frame. These operations sit behind protocols /
@@ -193,6 +196,16 @@ serial delegate queues and narrowly scoped locks to bridge callbacks into asynch
   taking precedence. Direct formats exclude explicit DRM, non-HTTP(S) URLs and playlist resources;
   audio-only sources and codec-omitted audio containers are supported. Audio groups preserve language
   identity, and an unpaired silent direct tier cannot displace an available complete tier.
+  The shared picker for manually pasted pages and browser page captures defaults to **MP4
+  (compatible)** when H.264 video and AAC-LC audio are available. Filtering happens before choosing
+  resolution tiers and language tracks, so AV1/VP9/Opus never displace compatible alternatives.
+  **Original quality** retains all source tiers/codecs (and can finish as MKV). Audio-only selection
+  uses the original audio catalog. Missing compatible renditions disable the MP4 choice; there is
+  no transcoding or generic local-file converter. `MediaPlan.outputFormat` persists the choice
+  across resume, with absent values preserving legacy behavior. Backends validate actual input
+  codecs before compatible MP4 export; failure retains staging instead of publishing raw media or
+  silently switching containers. MP4 names are reserved before transfer with the existing
+  no-overwrite allocator.
   `locate(in:)` detects an executable file at launch to enable extraction — mirroring
   `FFmpegMuxer.locate`; runtime and site failures are still surfaced when used. The bundled yt-dlp
   is refreshed through normal app updates. Its subprocess

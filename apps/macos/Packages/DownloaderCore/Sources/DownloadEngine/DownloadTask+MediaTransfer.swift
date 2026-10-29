@@ -222,7 +222,7 @@ extension DownloadTask {
             try concatenate(initNamed: "audio-init.part", segments: audioSegments,
                             pathFor: { audioSegmentPath(partDir, $0) }, partDir: partDir, into: audioAssembly)
             guard let muxed = try await attemptRepackage({
-                try await remuxer.mux(videoPath: videoAssembly, audioPath: audioAssembly)
+                try await remuxer.mux(videoPath: videoAssembly, audioPath: audioAssembly, outputFormat: plan.outputFormat ?? .original)
             }) else {
                 // Both streams are required. Keep staging for retry instead of marking a silent,
                 // video-only fallback complete and deleting the successfully downloaded audio.
@@ -230,9 +230,18 @@ extension DownloadTask {
             }
             sourcePath = muxed.outputPath
             container = muxed.fileExtension
-        } else if let result = try await attemptRepackage({ try await remuxer.remux(sourcePath: videoAssembly) }) {
+        } else if let result = try await attemptRepackage({
+            try await remuxer.remux(sourcePath: videoAssembly, outputFormat: plan.outputFormat ?? .original)
+        }) {
             sourcePath = result.outputPath
             container = result.fileExtension
+        } else if plan.outputFormat == .compatibleMP4 {
+            throw DownloadError.underlying(reason: "Could not create a compatible MP4. The downloaded parts were kept for retry.")
+        }
+        if plan.outputFormat == .compatibleMP4, container != "mp4" {
+            throw DownloadError.underlying(
+                reason: "The requested MP4 format could not be produced. The downloaded parts were kept for retry."
+            )
         }
 
         let finalFileName = (download.fileName as NSString).deletingPathExtension + ".\(container)"

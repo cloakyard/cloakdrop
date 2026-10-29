@@ -1,5 +1,12 @@
 import Foundation
 
+public enum MediaOutputFormat: String, Sendable, Hashable, Codable {
+    /// Preserve the source codecs, choosing a suitable container at finalization.
+    case original
+    /// Require H.264 video and AAC audio in an MP4 container, without re-encoding.
+    case compatibleMP4
+}
+
 /// The concrete, resolved plan for grabbing one chosen rendition of a media stream: the ordered
 /// segments to download (each with its own encryption), the shared fMP4 init segment, and a little
 /// metadata for display.
@@ -9,6 +16,8 @@ import Foundation
 /// fetching an HLS variant's media playlist so its `segments` are populated — happens before the
 /// plan is made (see `MediaResolver`).
 public struct MediaPlan: Sendable, Hashable, Codable {
+    /// Absent in older records; nil retains the original container-selection behavior.
+    public var outputFormat: MediaOutputFormat?
     public var format: MediaFormat
     public var initSegment: MediaInitSegment?
     /// The ordered video (or muxed) segments to download and concatenate.
@@ -36,8 +45,10 @@ public struct MediaPlan: Sendable, Hashable, Codable {
         bandwidth: Int = 0,
         audioInitSegment: MediaInitSegment? = nil,
         audioSegments: [MediaSegment]? = nil,
-        subtitles: [MediaSubtitle]? = nil
+        subtitles: [MediaSubtitle]? = nil,
+        outputFormat: MediaOutputFormat? = nil
     ) {
+        self.outputFormat = outputFormat
         self.format = format
         self.initSegment = initSegment
         self.segments = segments

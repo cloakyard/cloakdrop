@@ -183,8 +183,10 @@ public extension ExtractedMedia {
     /// `playlistURL`), so `MediaStream.plan(for:audio:)` produces a paired video+audio plan with no
     /// further network. Returns `nil` when nothing direct is grabbable or a complete adaptive stream
     /// should be resolved instead (e.g. only SABR/ciphered streams, or unpaired direct video).
-    func toMediaStream(pageURL: URL) -> MediaStream? {
-        let direct = directFormats
+    func toMediaStream(pageURL: URL, outputFormat: MediaOutputFormat = .original) -> MediaStream? {
+        let direct = directFormats.filter { outputFormat == .original || $0.isCompatibleMP4 }
+        // Never lose audio just because its codec was filtered out for MP4.
+        let requiresAudio = directFormats.contains { $0.isAudioOnly || $0.isProgressive }
         let audioOnly = direct.filter(\.isAudioOnly)
 
         // Some extractors advertise direct MP4 renditions that contain video only, with no separate
@@ -205,11 +207,12 @@ public extension ExtractedMedia {
         }
         for format in direct where format.isVideoOnly && format.height != nil {
             let audio = Self.bestAudio(forVideoExt: format.ext, from: audioOnly)
-            if audio == nil, direct.contains(where: \.isProgressive) { continue }
+            if audio == nil, direct.contains(where: \.isProgressive) || (outputFormat == .compatibleMP4 && requiresAudio) { continue }
             let rank = Self.containerFamily(of: format.ext) == "mp4" ? 2 : 1   // mp4→AVFoundation, webm→ffmpeg
             merge(&tiers, candidate: Tier(video: format, audio: audio, rank: rank, height: format.height!))
         }
         if tiers.isEmpty {
+            guard outputFormat == .original else { return nil }
             guard let best = audioOnly.max(by: { ($0.abr ?? $0.tbr ?? 0) < ($1.abr ?? $1.tbr ?? 0) }) else { return nil }
             let tier = Tier(video: best, audio: nil, rank: 0, height: 0)
             return MediaStream(sourceURL: pageURL, format: .dash, variants: [makeVariant(tier)],
@@ -338,5 +341,16 @@ public extension ExtractedMedia {
         case "webm", "mkv", "opus", "ogg", "oga", "weba": return "webm"
         default: return ext.lowercased()
         }
+    }
+}
+
+private extension ExtractedFormat {
+    /// Container names alone are not evidence of compatibility (MP4 can also carry AV1/Opus).
+    var isCompatibleMP4: Bool {
+        let video = (vcodec ?? "").lowercased()
+        let audio = (acodec ?? "").lowercased()
+        let h264 = video == "h264" || ["avc1", "avc2", "avc3", "avc4"].contains { video.hasPrefix($0) }
+        let aac = audio == "aac" || audio == "mp4a.40.2"
+        return (isVideoOnly && h264) || (isAudioOnly && aac) || (isProgressive && h264 && aac)
     }
 }
