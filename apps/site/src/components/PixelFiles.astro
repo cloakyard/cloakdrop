@@ -2,7 +2,7 @@
 import { pixelForms, pixelPoints } from '../lib/pixelForms';
 const points = pixelPoints(pixelForms[0].rows);
 ---
-<div class="drop-artwork">
+<div class="drop-artwork air-artwork">
   <div class="drop-pixel-stage" aria-hidden="true">
     <div class="drop-pixel-plane">
       <div class="drop-pixels">
@@ -11,7 +11,7 @@ const points = pixelPoints(pixelForms[0].rows);
       <span class="drop-pixel-type">FILE</span>
     </div>
   </div>
-
+  <button class="air-artwork-replay" type="button" aria-label="Replay CloakDrop animation" hidden />
 </div>
 
 <script>
@@ -58,15 +58,15 @@ const points = pixelPoints(pixelForms[0].rows);
                 {transform:transform(point.x,point.y-15),opacity,offset:.78,easing:out},
                 {transform:transform(point.x,point.y),opacity,offset:1},
               ],
-              options: {duration:600, delay:(23-point.row)*8+((i*29)%30)},
+              options: {duration:720, delay:(23-point.row)*3+((i*29)%10)},
             };
           }),
-          {element:label,keyframes:[{opacity:0},{opacity:1}],options:{duration:150,delay:400}},
+          {element:label,keyframes:[{opacity:0},{opacity:1}],options:{duration:150,delay:500}},
         ]);
         // One bounded sequence: under five seconds, then the final file stays still.
         if (index === pixelForms.length - 1) break;
         // WAAPI holds stop with the page lifecycle; no background timer.
-        await animate([{element:label,keyframes:[{opacity:1},{opacity:1}],options:{duration:300}}]);
+        await animate([{element:label,keyframes:[{opacity:1},{opacity:1}],options:{duration:320}}]);
         await animate([
           ...pixels.map(({element,point,opacity}, i) => ({
             element,
@@ -74,7 +74,7 @@ const points = pixelPoints(pixelForms[0].rows);
               {transform:transform(point.x,point.y),opacity},
               {transform:transform(point.x+((i*13)%15)-7,point.y+38),opacity:0},
             ],
-            options:{duration:160,delay:(i%7)*8,easing:move},
+            options:{duration:180,delay:(i%7)*4,easing:move},
           })),
           {element:label,keyframes:[{opacity:1},{opacity:0}],options:{duration:150}},
         ]);
