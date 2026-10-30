@@ -258,6 +258,7 @@ struct SettingsView: View {
                     url: AppLinks.repository
                 )
                 linkRow(symbol: "ladybug", label: Text("Report a Bug"), url: BugReport.issueURL)
+                linkRow(symbol: "cup.and.saucer", label: Text("Buy me a coffee"), url: AppLinks.support)
             }
         }
         .formStyle(.grouped)
