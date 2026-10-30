@@ -26,6 +26,9 @@ describe each shipped build.
 
 ## Release verification
 
+- [1.0.0-rc.2 release notes](releases/v1.0.0-rc.2.md): media fixes, About support link, DMG and checksum.
+- [October 30, 2026: RC2 build, installed-app verification and cleanup](audits/2026-10-30-rc.2.md).
+
 - [October 29, 2026: Multi-site media verification and packaging fixes](audits/2026-10-29-multisite.md).
 
 - [October 29, 2026: Compatible MP4 output and fragmented-MP4 timing](audits/2026-10-29-mp4-output.md).

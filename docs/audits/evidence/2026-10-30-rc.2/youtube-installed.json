@@ -1,0 +1,22 @@
+{
+  "source": "https://www.youtube.com/watch?v=7zfir0Ide0A",
+  "appVersion": "1.0.0 (20261030)",
+  "installedPath": "/Applications/CloakDrop.app",
+  "output": "MP4 (compatible), 720p",
+  "duration": "44.489433",
+  "streams": [
+    {
+      "codec": "h264",
+      "packets": 1333
+    },
+    {
+      "codec": "aac",
+      "packets": 1916
+    }
+  ],
+  "bytes": 2453267,
+  "sha256": "57ae0d54389239755143e15bf9f1a8525bb07f063b99f5b88cf94fde52e62633",
+  "fullDecodeExitCode": 0,
+  "fullDecodeStderr": "",
+  "matchingPreviousCompleteFile": true
+}

@@ -38,8 +38,8 @@ Current locally signed builds are **not notarized**. See
 [Apple’s opening guidance](https://support.apple.com/en-us/102445) and the release notes for the
 signing status of the build you download.
 
-This source tree is **1.0.0**; [**1.0.0-rc.1 (20261019)**](https://github.com/cloakyard/cloakdrop/releases/tag/v1.0.0-rc.1) is available as a prerelease.
-See the [RC notes](docs/releases/v1.0.0-rc.1.md) for its artifact and validation.
+This source tree is **1.0.0**; [**1.0.0-rc.2 (20261030)**](https://github.com/cloakyard/cloakdrop/releases/tag/v1.0.0-rc.2) is available as a prerelease.
+See the [RC notes](docs/releases/v1.0.0-rc.2.md) for its artifact and validation.
 GitHub Releases lists the available downloads; each release’s notes and assets are the source of truth for its features, checksums,
 and signing status.
 
@@ -49,9 +49,11 @@ This release focuses on transfer reliability and a simpler native experience: sa
 saved downloads and moved folders, stronger input validation, scoped remembered credentials,
 and updated macOS 27 controls.
 
-The [October 19 RC audit](docs/audits/2026-10-19-rc.1.md) records **626 passing tests**,
-fresh Debug/Release builds, an actual checksum-verified download and the Air installer.
-It documents the remaining signing, Share Extension and official-bundle runtime limits.
+The [October 30 RC2 audit](docs/audits/2026-10-30-rc.2.md) records **649 executed passing
+tests** (one opt-in live test skipped), fresh Debug/Release builds and a complete
+YouTube MP4 downloaded by the installed RC. RC2 adds compatible MP4 selection,
+media timing/packaging fixes and a Ko-fi support link in About. The audit documents
+the remaining signing, Share Extension and official-bundle runtime limits.
 
 ## What it does
 
@@ -203,11 +205,12 @@ cd apps/macos/Packages/DownloaderCore
 swift test
 ~~~
 
-The **October 19, 2026 RC audit passed 626 tests across 87 suites** in the optimized run,
+The **October 30, 2026 RC2 audit reports 650 tests across 90 suites: 649 executed and
+passed, one opt-in live-site test skipped** in the optimized run,
 covering segment scheduling, relaunch/resume, range and identity validation, retry truncation, cancellation races, credential
 scoping, HTTP/FTP loopback transfers, safe publication, checksums, bandwidth limiting, archive
 guards, manifest parsing and media extraction. See the
-[RC audit](docs/audits/2026-10-19-rc.1.md) for the exact commands, results and limits.
+[RC2 audit](docs/audits/2026-10-30-rc.2.md) for the exact commands, results and limits.
 The September 14 audit separately records the earlier Thread Sanitizer run.
 
 Normal tests use mocks or loopback servers; a cold package resolution may fetch GRDB. To opt into
