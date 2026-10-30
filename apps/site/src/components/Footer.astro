@@ -6,8 +6,8 @@ import Icon from './Icon.astro';
     <p class="air-page-identity"><span translate="no">CloakDrop</span><span>Built by <a href="https://github.com/sumitsahoo">Sumit Sahoo</a></span></p>
     <nav aria-label="Footer navigation">
       <a href={site.privacyPolicy} aria-current={Astro.url.pathname === '/privacy/' ? 'page' : undefined}>Privacy</a>
-      <a href={site.repo}>Source</a>
-      <a href={`${site.repo}/blob/main/LICENSE`}>MIT license</a>
+      <a href={site.repo}>Source <Icon name="link" size={16} /></a>
+      <a href={`${site.repo}/blob/main/LICENSE`}>MIT license <Icon name="link" size={16} /></a>
       <a href="https://cloakyard.com">Cloakyard <Icon name="link" size={16} /></a>
       <a href="https://ko-fi.com/sumitsahoo21" target="_blank" rel="noopener noreferrer">Buy me a coffee <Icon name="link" size={16} /></a>
     </nav>
