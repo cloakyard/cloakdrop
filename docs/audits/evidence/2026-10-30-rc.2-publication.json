@@ -1,0 +1,27 @@
+{
+  "url": "https://github.com/cloakyard/cloakdrop/releases/tag/v1.0.0-rc.2",
+  "isDraft": false,
+  "isPrerelease": true,
+  "tagName": "v1.0.0-rc.2",
+  "name": "v1.0.0 RC 2 (Build 20261030)",
+  "publishedAt": "2026-10-30T04:45:34Z",
+  "targetCommitish": "main",
+  "tagCommit": "2ffbf4a597d04e3f76fdef90acb70af88a6cb9a5",
+  "appSourceCommit": "055e22c1a1861196702ff50c36a7f1260637750c",
+  "notesMatchCommittedFile": true,
+  "bodySHA256": "a1b90548a267c740883ecaa2f60b52f7238b47bee02396c20f84b9e25aa715a2",
+  "assets": [
+    {
+      "name": "CloakDrop-v1.0.0-rc.2.dmg",
+      "size": 48626482,
+      "digest": "sha256:f9b832c9b3f42cc1f12040cc87f20960588d8fe1c48775a13d519c4df45df933",
+      "url": "https://github.com/cloakyard/cloakdrop/releases/download/v1.0.0-rc.2/CloakDrop-v1.0.0-rc.2.dmg"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 92,
+      "digest": "sha256:3d2da9bed4d3b4c7fda609813d650acf983da077646c7ff8757952b573ce7e76",
+      "url": "https://github.com/cloakyard/cloakdrop/releases/download/v1.0.0-rc.2/SHA256SUMS.txt"
+    }
+  ]
+}
