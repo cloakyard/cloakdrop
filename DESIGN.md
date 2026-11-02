@@ -1,19 +1,19 @@
 ---
 name: CloakDrop website — Cloakyard Air
-version: 1.3.2
+version: 1.3.3
 status: approved
-date: 2026-10-29
+date: 2026-11-02
 scope: complete-web-product
 source-repository: https://github.com/cloakyard/cloakyard
 source-directory: design/air
-family-contract-sha256: 94b1833a90cc87ac8ea2015a307e04717f4ebcb184ece557a7fa1f032824589a
+family-contract-sha256: 32aaa6dd8f858548d29309a87c7aae7878ddafb338b2fd0dce9e2d7e6b0b2a35
 ---
 
 <!-- BEGIN CLOAKYARD AIR CONTRACT -->
 
 # Cloakyard Air design contract
 
-Version: **1.3.2 — six-app shell consistency** · Direction: **Air** · Updated: **2026-10-30**
+Version: **1.3.3 — clear editor actions** · Direction: **Air** · Updated: **2026-11-02**
 
 The detailed Air system is **locked for implementation**. On 2026-10-13 the user
 authorized one final agent review followed by implementation; that review is
@@ -359,6 +359,24 @@ No glass blur behind forms, body copy, tables, or document content.
 
 ### Action states and stability
 
+- Prefer the fewest decisions that accurately describe the task. A transactional
+  tool has one visible **Cancel / Apply** pair, in that order: neutral secondary
+  Cancel, monochrome primary Apply. Use text labels, not a tick, X or ambiguous
+  Done. Place the pair in the shared `air-editor-actions` region outside scrolling
+  controls on phones/tablets. Never repeat the same commit in the header, panel
+  body or canvas. Different operations (such as detecting, printing or downloading)
+  retain their descriptive verbs and their real consent/output boundaries.
+- **Apply** accepts the current edit once; **Cancel** restores its entry state.
+  Await work, retain failed/invalid drafts for correction and block repeated
+  activation. An inspection or output panel with no staged edit uses **Close**;
+  autosaved writing stays autosaved, with no invented Apply/Cancel transaction.
+  Use **Save**, **Download** or another precise verb when that is the real action.
+  Done is reserved for finishing a transient picker whose value is already live.
+- Keep **Expand controls / Split view** separate from edit completion. Changing
+  the view never applies or cancels work; a swipe must not silently commit an edit.
+  The action region wraps at enlarged text, retains 44px touch targets and leaves
+  the photo/document plus a reachable scrolling control region on short screens.
+
 - Use a real button for actions. Ready, busy, success and recoverable failure
   retain the same geometry and hierarchy. Reserve the intrinsic size of all
   translated labels (including wrapped height), using shared `air-action-labels`;
@@ -592,11 +610,11 @@ same controls in IMG, Resume and future apps.
   detected matches and privacy counts use open rows with labels and aligned actions.
   Preserve user-supplied field-name casing. Empty, detecting, ready, no-match, failed,
   disabled and destructive states need separate examples and recovery paths.
-- **Apply semantics:** a tool with one staged operation has one Apply action. On
-  mobile the persistent Done action may execute it; it is disabled until ready.
+- **Apply semantics:** a tool with one staged operation has one labelled Apply
+  action, including mobile; it is disabled until ready.
   Cancel rolls back the tool's pending transaction. Tools with multiple operations
   keep their distinct actions, and export-time redaction must retain its explicit
-  permanence notice. Do not reinterpret Done as a harmless preview toggle in a real
+  permanence notice. Do not reinterpret Apply as a harmless preview toggle in a real
   transactional editor. The reduced study must label its narrower behaviour.
 
 A custom implementation is reviewed against the same contract. Native controls,
@@ -1013,7 +1031,7 @@ Public shell content follows the same recipe across the family:
   Do not invent an adjustment-layer model when the product bakes edits into history.
   Supply keyboard reorder actions alongside dragging and name every icon action.
 - Preserve each tool's commit boundary explicitly. Cancel restores both pending
-  values and edits made since tool entry; Done applies once and creates the expected
+  values and edits made since tool entry; Apply runs once and creates the expected
   history entry. Tool switches and export flush only the pending edits the product
   already promises to save. Test re-entry after Cancel, not only drawer dismissal.
 - Writing rows combine type, value and keyboard reorder actions with open grouping.
