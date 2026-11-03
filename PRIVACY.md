@@ -1,6 +1,6 @@
 # CloakDrop App Privacy Policy
 
-_Last updated: September 6, 2026_
+_Last updated: November 3, 2026_
 
 CloakDrop is a free, open-source download manager for macOS. This policy describes the data the app keeps on your Mac, the network activity its features can create, and the controls available to you.
 
@@ -37,7 +37,7 @@ CloakDrop can make the following network requests:
 
 - **Downloads:** probes and transfers for URLs you add, including redirects, mirrors, retries, scheduled or repeating transfers, and downloads resumed automatically after launch when that setting is enabled.
 - **Checksum discovery:** when automatic checksum verification and discovery are enabled, CloakDrop tries same-origin sibling files ending in `.sha256`, `.sha1`, and `.md5` after the bytes arrive and before publishing an ordinary download's final file. This setting is enabled by default and can be turned off in Settings.
-- **Video-page resolution:** when a build includes the optional yt-dlp helper and you submit a supported video-page URL, the helper contacts that page and related service endpoints to resolve metadata and media-format URLs.
+- **Video-page and playlist resolution:** when a build includes the optional yt-dlp helper and you submit a supported video-page or playlist URL, the helper contacts that page and related service endpoints to resolve metadata. Playlist import lists up to 100 items for selection; selected pages are resolved into media-format URLs when their queued downloads start. The helper does not transfer the selected media payload.
 - **Built-in browser:** WebKit loads pages you visit and the resources those pages request, which can include third-party images, scripts, frames, media, ads, or trackers. The optional blocker can reduce some of those requests.
 - **Address-bar search:** if search is enabled, the query is sent to your selected search engine only when you press Return.
 - **Proxies:** HTTP-based downloads and speed tests use your macOS system proxy by default, or direct/manual routing if you choose it. Manual routing is also mirrored into the built-in browser; other browser modes follow the system configuration, including when downloads are set to direct. The native FTP/FTPS client connects directly. The app's proxy setting is not passed to yt-dlp, whose routing depends on its runtime and environment. This setting does not route all app traffic through one proxy.

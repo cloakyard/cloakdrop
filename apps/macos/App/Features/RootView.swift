@@ -23,6 +23,18 @@ struct RootView: View {
         .sheet(isPresented: $model.isBatchSheetPresented) {
             BatchAddSheet()
         }
+        .sheet(item: $model.pendingDownloadRepair) { download in
+            DownloadRepairSheet(download: download)
+        }
+        .sheet(isPresented: $model.isPlaylistSheetPresented) { PlaylistImportSheet() }
+        .alert("Couldn’t Change Download", isPresented: Binding(
+            get: { model.downloadOperationError != nil },
+            set: { if !$0 { model.downloadOperationError = nil } }
+        )) {
+            Button("OK") { model.downloadOperationError = nil }
+        } message: {
+            Text(model.downloadOperationError ?? "")
+        }
         // A streaming manifest resolved into renditions — pick a quality before the grab is queued.
         .sheet(item: $model.pendingMediaSelection) { selection in
             MediaPickerSheet(selection: selection)
@@ -40,6 +52,8 @@ struct RootView: View {
                             .foregroundStyle(.orange)
                     }
                 }
+            } else if !model.movingDownloadIDs.isEmpty {
+                toast { ProgressView("Moving download…").controlSize(.small) }
             } else if model.isResolvingMedia {
                 toast { Label("Reading video…", systemImage: "sparkles.tv") }
             }

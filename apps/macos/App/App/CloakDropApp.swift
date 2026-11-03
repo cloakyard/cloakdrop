@@ -132,6 +132,8 @@ struct CloakDropCommands: Commands {
             Button("Open Metalink…") { model.importMetalink() }
                 .keyboardShortcut("o", modifiers: .command)
                 .disabled(!model.isNetworkReady)
+            Button("Import Playlist…") { model.isPlaylistSheetPresented = true }
+                .disabled(!model.isNetworkReady || !model.canExtractFromPages)
         }
         CommandMenu("Downloads") {
             Button("Pause All") { model.pauseAll() }

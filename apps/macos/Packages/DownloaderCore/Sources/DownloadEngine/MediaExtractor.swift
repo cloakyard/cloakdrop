@@ -16,6 +16,12 @@ public protocol MediaExtractor: Sendable {
     /// The tool's version string, or `nil` when no runnable extractor is bundled — used to
     /// feature-detect at launch so the UI only offers page extraction when it can actually work.
     func version() async -> String?
+    /// Enumerate a bounded playlist without resolving/downloading every item's formats.
+    func playlist(pageURL: URL) async throws -> MediaPlaylist
+}
+
+public extension MediaExtractor {
+    func playlist(pageURL: URL) async throws -> MediaPlaylist { throw MediaExtractionError.noGrabbableFormats }
 }
 
 /// How browser cookies ride into a page extraction.

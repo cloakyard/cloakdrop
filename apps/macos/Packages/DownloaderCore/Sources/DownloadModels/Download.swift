@@ -27,6 +27,8 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     /// The resource's `ETag` as reported by the server at probe time, if any. A content-derived
     /// tag used to recognize a re-added download as a duplicate of one already in the catalog.
     public var etag: String?
+    /// The final resource URL that supplied the validator. Older records have no repair proof.
+    public var validatorURL: URL?
     /// The segments composing this download. A single element means single-stream.
     public var segments: [DownloadSegment]
     /// A user-selected connection count for this download. `nil` means the engine chooses
@@ -84,6 +86,7 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     /// The resolved segment plan when this is a media download; `nil` for a normal file download.
     /// Its presence switches the engine onto the media transfer path.
     public var mediaPlan: MediaPlan?
+    public var mediaPageSelection: MediaPageSelection?
     /// Persisted media progress: how many segments have finished (drives the fraction, since the
     /// total byte size usually isn't known up front) and the bytes written so far (for display).
     public var mediaCompletedSegments: Int
@@ -162,7 +165,7 @@ public struct Download: Sendable, Hashable, Codable, Identifiable {
     // MARK: Derived values
 
     /// Whether this is a media (HLS/DASH) grab rather than a normal file download.
-    public var isMedia: Bool { mediaPlan != nil }
+    public var isMedia: Bool { mediaPlan != nil || mediaPageSelection != nil }
 
     /// Every source to pull bytes from, best-first and de-duplicated: the primary `url` followed by
     /// any Metalink `mirrors`. The segment workers round-robin across this list (each segment starts

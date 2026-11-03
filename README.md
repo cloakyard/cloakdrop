@@ -65,6 +65,9 @@ the remaining signing, Share Extension and official-bundle runtime limits.
 | **Integrity and provenance** | Optional MD5, SHA-1 and SHA-256 verification before ordinary files are published; same-origin checksum discovery; local exportable receipts. Offline code-signature checks are available for recognizable app/DMG code objects, without claiming a notarization verdict. |
 | **Mirrors and safe publication** | Metalink mirror spread and failover, source validation, filename sanitization and collision handling. Finalization must never replace an existing file or directory. |
 | **Queues and bandwidth** | Per-queue concurrency, global and per-download speed caps, time-of-day profiles, scheduling, categories and routing rules. |
+| **Recover and prioritize** | Repair ordinary-file downloads with fresh links, reusing compatible partial data or explicitly restarting. Finish one item first across queues, then restore competing work while respecting manual pauses. |
+| **Move unfinished downloads** | Choose another folder for unfinished file or media data. Staging is copied before the catalog changes; the original is retired after that update succeeds. The download stays paused for review and resume. |
+| **Playlist import** | Review up to 100 items from a supported public playlist, select entries and one quality preference, then queue numbered files in a playlist folder. Each page resolves when its download starts; existing catalog URLs are skipped. Requires yt-dlp. |
 | **Capture from your workflow** | Clipboard watching, drag and drop, Services, a Share Extension, and a link grabber with deduplication and pattern expansion. Remembered credentials use Keychain; request-specific state is retained locally for resume. |
 | **Built-in browser** | WebKit with persistent logins, no saved browsing history, and a one-click site-data wipe. Detects manifests, direct media and file downloads, including players in shadow DOM; filters known ad hosts and stream chunks. Optional blocklists are fetched only when selected or updated. |
 | **Video and audio grabbing** | HLS/DASH quality selection, supported AES-128 streams, subtitle sidecars and independently downloadable audio renditions. Optional yt-dlp resolves supported video pages and audio-only pages; CloakDrop’s own engine transfers the selected payload. Pasted video pages and browser page captures offer compatible MP4 (H.264/AAC, when available) or original quality; both preserve the selected source streams without re-encoding. |
@@ -106,8 +109,9 @@ If another folder occupies the original location, CloakDrop may refuse to resume
 verify which folder is yours. Preserve that replacement folder and its contents by moving it aside,
 then **Retry**. If access still cannot be restored, return the original download folder to the saved
 location shown under **Destination**, then retry. Do not delete unrelated data to make room, or
-remove and re-add the download if you want to retain its partial progress. Existing downloads do not
-currently offer a destination picker.
+remove and re-add the download if you want to retain its partial progress. Use **Move Download…**
+to copy accessible unfinished data to another folder. The download remains paused until you
+resume it; keep the original folder accessible until moving finishes.
 
 ### A remembered password needs entering again after upgrading
 

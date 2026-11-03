@@ -5,7 +5,7 @@ extension DownloadManager {
     /// Reserve a unique output name while in the manager actor's synchronous section. The caller
     /// inserts the resulting record before its next suspension, so another concurrent add observes
     /// the reservation and receives a distinct final name and staging path.
-    func reserveUniqueFileName(_ proposed: String, inDirectory directory: String) -> String {
+    func reserveUniqueFileName(_ proposed: String, inDirectory directory: String, additionalTakenNames: Set<String> = []) -> String {
         var directories = [directory]
         if settings.autoCategorize {
             let categoryName = FileCategory.classify(fileName: proposed).displayName
@@ -22,7 +22,7 @@ extension DownloadManager {
             ).standardizedFileURL.path
             return standardizedDirectories.contains(existingDirectory) ? existing.fileName : nil
         })
-        return Self.uniqueFileName(proposed, inDirectories: directories, takenNames: takenNames)
+        return Self.uniqueFileName(proposed, inDirectories: directories, takenNames: takenNames.union(additionalTakenNames))
     }
 
     /// Resolve, sanitize, and reserve the name for a media grab. A suggested name without a media

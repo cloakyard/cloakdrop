@@ -93,6 +93,7 @@ struct PrivacySettingsView: View {
                     "Download work you configure — URLs, redirects, mirrors, retries, schedules, repeating transfers, and automatic resumes.",
                     "Same-origin checksum files (.sha256, .sha1, or .md5), when automatic checksum verification and discovery are enabled.",
                     "A video page and related service endpoints, when yt-dlp resolves formats for a page you submit.",
+                    "A playlist you submit and the individual pages you select, when their downloads start.",
                     // swiftlint:disable:next line_length
                     "Pages and subresources loaded by the built-in browser — plus your query to the selected search engine, if address-bar search is on, only when you press Return.",
                     // swiftlint:disable:next line_length
@@ -248,8 +249,8 @@ struct PrivacySettingsView: View {
     private static let revisionDate: Date = {
         var components = DateComponents()
         components.year = 2026
-        components.month = 9
-        components.day = 6
+        components.month = 11
+        components.day = 3
         return Calendar(identifier: .gregorian).date(from: components) ?? Date()
     }()
 }

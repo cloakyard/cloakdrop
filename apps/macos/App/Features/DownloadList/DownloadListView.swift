@@ -70,6 +70,16 @@ struct DownloadListView: View {
     /// pane's full height) or inset above the list (pushing rows down) — see `body`.
     private var banners: some View {
         VStack(spacing: 6) {
+            if let priority = model.settings.downloadPriority,
+               let download = model.downloads.first(where: { $0.id == priority.downloadID }) {
+                HStack {
+                    Label("Finishing first: \(download.fileName)", systemImage: "bolt.fill")
+                        .font(.callout).lineLimit(1).truncationMode(.middle)
+                    Spacer()
+                    Button("Stop Prioritizing") { model.stopFinishingFirst() }
+                }
+                .padding(10)
+            }
             clipboardBanner
         }
     }
@@ -182,6 +192,8 @@ struct DownloadListView: View {
             Menu {
                 Button("Add Download…") { model.isAddSheetPresented = true }
                 Button("Grab Links…") { model.isBatchSheetPresented = true }
+                Button("Import Playlist…") { model.isPlaylistSheetPresented = true }
+                    .disabled(!model.canExtractFromPages)
             } label: {
                 Label("Add Download", systemImage: "plus")
             } primaryAction: {
@@ -247,6 +259,17 @@ struct DownloadListView: View {
         }
         if targets.contains(where: { $0.status.isResumable }) {
             Button("Resume") { targets.forEach { model.resume($0.id) } }
+        }
+        if targets.count == 1, download.status.isResumable, !download.isMedia {
+            Button("Repair Download…") { model.pendingDownloadRepair = download }
+        }
+        if targets.count == 1, !download.status.isTerminal, download.status != .scheduled {
+            Button("Move Download…") { model.moveDownload(download) }
+            if model.settings.downloadPriority?.downloadID == download.id {
+                Button("Stop Prioritizing") { model.stopFinishingFirst() }
+            } else {
+                Button("Finish This First") { model.finishFirst(download.id) }
+            }
         }
         // Open / Reveal target a specific file, so only offer them for a single completed download.
         if targets.count == 1, download.status == .completed {

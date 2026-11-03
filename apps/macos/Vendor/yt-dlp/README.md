@@ -1,6 +1,6 @@
 # Vendored yt-dlp
 
-This optional helper resolves a submitted video page into metadata and selectable media URLs.
+This optional helper resolves submitted video pages and playlists into metadata and selectable media URLs.
 CloakDrop's own engine downloads the selected media. Without the helper, page extraction reports
 that it is unavailable; ordinary downloads and browser capture of direct media remain available.
 
@@ -35,9 +35,13 @@ validation exception until removal can be verified with Developer ID signing. If
 absent, the build removes both the resource tree and its relocated code and symlinks.
 
 [`YtDlpExtractor`](../../Packages/DownloaderCore/Sources/DownloadEngine/YtDlpExtractor.swift)
-invokes the helper with `--ignore-config --no-plugin-dirs --no-cache-dir --simulate -J --no-playlist`,
-private output files, and cancellation/timeout handling. This permits metadata requests to the submitted
-page and related service endpoints, without downloading the selected media payload. Browser logins
+invokes the helper with `--ignore-config --no-plugin-dirs --no-cache-dir --simulate -J`,
+private output files, and cancellation/timeout handling. Individual pages use `--no-playlist`.
+The playlist preview instead uses `--flat-playlist --yes-playlist --playlist-end 101`, displays
+at most 100 entries, and resolves only selected pages when their queued transfers start.
+This permits metadata requests to the submitted page and related service endpoints, without
+downloading the selected media payload. Playlist import currently accepts public pages without
+exporting browser cookies. For individual browser-page resolution, browser logins
 can be supplied through a private temporary cookie jar that preserves domain/path scope. The app's
 download proxy setting is not passed to the helper; see the [privacy policy](../../../../PRIVACY.md).
 

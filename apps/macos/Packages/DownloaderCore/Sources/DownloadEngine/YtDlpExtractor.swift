@@ -106,7 +106,7 @@ public struct YtDlpExtractor: MediaExtractor {
             || host == "youtube-nocookie.com" || host.hasSuffix(".youtube-nocookie.com")
     }
 
-    private func run(arguments: [String]) async throws -> ProcessRunResult {
+    func run(arguments: [String]) async throws -> ProcessRunResult {
         do {
             let result = try await runner.run(executable: executableURL, arguments: arguments, timeout: timeout)
             try Task.checkCancellation()

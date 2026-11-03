@@ -500,9 +500,10 @@
         "evidence/public-shell-2026-10-26/checks.json.gz",
         "evidence/consistency-2026-10-26/checks.json.gz",
         "docs/air/consistency-2026-10-28.md",
-        "evidence/privacy-2026-10-29/policies.json.gz"
+        "evidence/privacy-2026-10-29/policies.json.gz",
+        "docs/audits/2026-11-03-download-workflows.md"
       ],
-      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates. Air 1.2.3 compares footer heights/content directly across products and uses the pinned PWA notice; current software checks pass. Separate product/device gates remain open. Air 1.2.5 public privacy/navigation software audit passes; policy meaning/dates and editor work preserved. Full product/device gates remain separate."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates. Air 1.2.3 compares footer heights/content directly across products and uses the pinned PWA notice; current software checks pass. Separate product/device gates remain open. Air 1.2.5 public privacy/navigation software audit passes; policy meaning/dates and editor work preserved. Full product/device gates remain separate. 2026-11-03: Playlist metadata disclosure and policy revision date updated together in root policy, native settings and website. Six Chrome viewport/theme checks and local navigation checks pass; physical/assistive gates remain separate."
     },
     {
       "path": "apps/site/src/scripts/navigation.ts",

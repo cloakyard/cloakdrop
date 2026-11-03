@@ -41,6 +41,9 @@ struct InspectorView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 chips(download)
+                if download.status.isResumable, !download.isMedia {
+                    Button("Repair Download…") { model.pendingDownloadRepair = download }
+                }
                 overview(download)
                 if download.segments.count > 1 {
                     segments(download)
@@ -61,8 +64,6 @@ struct InspectorView: View {
         }
         .scrollBounceBehavior(.basedOnSize)
     }
-
-    // MARK: Header
 
     private func header(_ download: Download) -> some View {
         HStack(spacing: 13) {
@@ -98,8 +99,6 @@ struct InspectorView: View {
             .padding(.vertical, 3)
             .background(status.tint.opacity(0.14), in: Capsule())
     }
-
-    // MARK: At-a-glance chips
 
     private func chips(_ download: Download) -> some View {
         FlowLayout(spacing: 6) {
