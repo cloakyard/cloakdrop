@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-03",
+  "baseline": "377d7df9bd20988c47503aa7321f76cb6e54627f",
+  "contractVersion": "1.4.0",
+  "contractSha256": "338c39fa591104adaf1354437013378e92ffa19189308f9da28e3d9bd83f2f1f",
+  "validation": "Asset synchronization, Astro check and production website build pass.",
+  "family": {
+    "homeLayouts": 648,
+    "secondaryLayouts": 288,
+    "interactions": 390,
+    "failures": 0,
+    "errors": 0
+  },
+  "referenceJourneys": 8,
+  "scratch": "/tmp/air-img-canvas-2026-11-03",
+  "scope": "Generated portable contract/reference and opt-in CSS only. Native and document/image processing unchanged."
+}
