@@ -1,0 +1,20 @@
+{
+  "scope": "Website-only Air 1.5.0: native navigation and reading disclosures fade consistently and retain immediate opening focus. Native code and the eight local unpublished native/release commits are excluded from rollout.",
+  "checks": [
+    "Asset synchronization, Astro check and production build",
+    "Portable design/provenance and standalone checks"
+  ],
+  "family": {
+    "homeLayouts": 648,
+    "secondaryLayouts": 288,
+    "privacyLayouts": 408,
+    "privacyJourneys": 22,
+    "noticeLayoutsAcrossThreePWAs": 396
+  },
+  "limitations": [
+    "physical iPhone/software keyboard",
+    "OS IME",
+    "spoken assistive acceptance"
+  ],
+  "rollout": "pending dev to main PR"
+}

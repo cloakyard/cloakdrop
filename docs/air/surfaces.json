@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.4.0",
+  "contractVersion": "1.5.0",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -567,9 +567,10 @@
         "evidence/privacy-2026-10-29/policies.json.gz",
         "docs/air/family-2026-10-29.md",
         "docs/air/simple-actions-2026-11-02.md",
-        "docs/air/canvas-first-contract-2026-11-03.md"
+        "docs/air/canvas-first-contract-2026-11-03.md",
+        "docs/air/surface-motion-2026-11-03.md"
       ],
-      "notes": "Air 1.3.3 source and rendered automated states reviewed; see dated action audit. Physical device, OS IME and spoken assistive acceptance remain separate and open."
+      "notes": "Air 1.3.3 source and rendered automated states reviewed; see dated action audit. Physical device, OS IME and spoken assistive acceptance remain separate and open. Air 1.5.0 surface-motion software audit recorded; physical/assistive acceptance remains separate."
     },
     {
       "path": "apps/site/src/styles/global.css",
