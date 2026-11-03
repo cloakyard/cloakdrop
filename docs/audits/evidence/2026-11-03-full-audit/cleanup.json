@@ -1,0 +1,7 @@
+{
+  "auditRecordsRemoved": 6,
+  "unrelatedRecordsPreserved": 4,
+  "unrelatedRowsUnchanged": true,
+  "queuesSettingsRulesStatisticsUnchangedDuringCleanup": true,
+  "testStatisticsRetained": true
+}

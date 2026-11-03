@@ -26,6 +26,7 @@ describe each shipped build.
 
 ## Release verification
 
+- [November 3, 2026: Full regression round, concurrency fixes and dependency refresh](audits/2026-11-03-full-audit.md).
 - [November 3, 2026: Repair, priority, destination moves and playlist import](audits/2026-11-03-download-workflows.md).
 - [1.0.0-rc.2 release notes](releases/v1.0.0-rc.2.md): media fixes, About support link, DMG and checksum.
 - [October 30, 2026: RC2 build, installed-app verification and cleanup](audits/2026-10-30-rc.2.md).

@@ -15,9 +15,26 @@ extension DownloadTask {
             emit(.downloadUpdated(download))
         } catch is CancellationError {
             throw CancellationError()
+        } catch let error as MediaExtractionError {
+            let reason: String
+            switch error {
+            case .noGrabbableFormats:
+                reason = "This playlist item has no supported media at the selected quality or format. "
+                    + "Add it again with a different quality or format."
+            case .toolUnavailable:
+                reason = "Video extraction is unavailable in this build."
+            case .timedOut:
+                reason = "Reading this playlist item timed out. Try again."
+            case .invalidOutput:
+                reason = "The video service returned unreadable metadata for this playlist item."
+            case .failed(let detail):
+                reason = "Could not read this playlist item. \(detail)"
+            }
+            throw DownloadError.underlying(reason: reason)
         } catch {
+            let reason = (error as? DownloadError)?.userMessage ?? error.localizedDescription
             throw DownloadError.underlying(
-                reason: "Could not prepare this playlist item at the selected quality. \(error.localizedDescription)"
+                reason: "Could not prepare this playlist item. \(reason)"
             )
         }
     }

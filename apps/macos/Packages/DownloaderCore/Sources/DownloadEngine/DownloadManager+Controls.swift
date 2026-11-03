@@ -6,6 +6,7 @@ extension DownloadManager {
 
     public func pause(id: UUID) async {
         guard !editingDownloads.contains(id) else { return }
+        autoPaused.remove(id)
         manualPauseRevisions[id, default: 0] += 1
         removeFromPriority(id)
         await pauseTransfer(id: id)
@@ -37,6 +38,7 @@ extension DownloadManager {
 
     public func cancel(id: UUID) async {
         guard !editingDownloads.contains(id) else { return }
+        autoPaused.remove(id)
         removeFromPriority(id)
         defer { scheduleAllQueues() }
         guard let download = downloads[id] else { return }
@@ -55,6 +57,7 @@ extension DownloadManager {
 
     public func remove(id: UUID, deleteFile: Bool) async {
         guard !editingDownloads.contains(id) else { return }
+        autoPaused.remove(id)
         removeFromPriority(id)
         defer { scheduleAllQueues() }
         guard let initialDownload = downloads[id] else { return }
@@ -85,6 +88,8 @@ extension DownloadManager {
     }
 
     public func pauseAll() async {
+        // Offline transfers already have .paused status, so the active-only loop cannot clear them.
+        autoPaused.removeAll()
         pendingPriorityTarget = nil
         schedulingHolds += 1
         defer { schedulingHolds -= 1; scheduleAllQueues() }

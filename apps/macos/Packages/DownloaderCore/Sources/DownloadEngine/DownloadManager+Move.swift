@@ -66,6 +66,7 @@ extension DownloadManager {
             throw error
         }
         committed = true
+        autoPaused.remove(id)
         eventContinuation.yield(.downloadUpdated(moved))
         staging.retireOriginals()
     }

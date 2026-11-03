@@ -33,7 +33,9 @@ extension DownloadManager {
         var added: [Download] = []
         for entry in selected {
             try Task.checkCancellation()
-            guard let url = entry.pageURL else { continue }
+            // A save suspends the actor. Another import can claim a later page while this batch
+            // waits, so recheck the live catalog immediately before reserving each record.
+            guard let url = entry.pageURL, !downloads.values.contains(where: { $0.url == url }) else { continue }
             let ext = selection.quality == .audioOnly ? "m4a" : "mp4"
             let title = playlistComponent(entry.title, fallback: url)
             let name = String(format: "%03d", entry.index) + " - " + title + "." + ext

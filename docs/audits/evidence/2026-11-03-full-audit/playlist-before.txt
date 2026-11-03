@@ -1,0 +1,17 @@
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test case passing 1 argument action → "move" to "Reconnection respects pause, pause-all and move, while untouched work resumes" started.
+◇ Test case passing 1 argument action → "none" to "Reconnection respects pause, pause-all and move, while untouched work resumes" started.
+◇ Test case passing 1 argument action → "pauseAll" to "Reconnection respects pause, pause-all and move, while untouched work resumes" started.
+◇ Test case passing 1 argument action → "pause" to "Reconnection respects pause, pause-all and move, while untouched work resumes" started.
+✘ Test "Overlapping imports never enqueue the same page twice" recorded an issue at PlaylistConcurrencyTests.swift:47:9: Expectation failed: initial.count + second.count == 2
+↳ initial.count + second.count == 2 → false
+↳   initial.count + second.count → 3
+✘ Test "Overlapping imports never enqueue the same page twice" recorded an issue at PlaylistConcurrencyTests.swift:48:9: Expectation failed: saved.count == 2
+↳ saved.count == 2 → false
+↳   saved.count → 3
+✘ Test "Overlapping imports never enqueue the same page twice" failed after 0.050 seconds with 2 issues.
+✘ Suite "Concurrent playlist imports" failed after 0.050 seconds with 2 issues.
+✔ Test "Reconnection respects pause, pause-all and move, while untouched work resumes" with 4 test cases passed after 0.460 seconds.
+✔ Suite "Manual intent during network recovery" passed after 0.460 seconds.
+✘ Test run with 2 tests in 2 suites failed after 0.460 seconds with 2 issues.

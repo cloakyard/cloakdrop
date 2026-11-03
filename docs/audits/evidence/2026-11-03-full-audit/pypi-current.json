@@ -1,0 +1,47 @@
+[
+  {
+    "package": "pycryptodomex",
+    "latest": "3.24.1",
+    "requiresPython": "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
+  },
+  {
+    "package": "brotli",
+    "latest": "1.2.1",
+    "requiresPython": null
+  },
+  {
+    "package": "certifi",
+    "latest": "2026.10.23",
+    "requiresPython": ">=3.7"
+  },
+  {
+    "package": "curl-cffi",
+    "latest": "0.17.0",
+    "requiresPython": ">=3.10"
+  },
+  {
+    "package": "mutagen",
+    "latest": "1.48.1",
+    "requiresPython": "<4,>=3.10"
+  },
+  {
+    "package": "requests",
+    "latest": "2.34.2",
+    "requiresPython": ">=3.10"
+  },
+  {
+    "package": "urllib3",
+    "latest": "2.8.0",
+    "requiresPython": ">=3.10"
+  },
+  {
+    "package": "websockets",
+    "latest": "17.4",
+    "requiresPython": ">=3.11"
+  },
+  {
+    "package": "yt-dlp-ejs",
+    "latest": "0.8.0",
+    "requiresPython": ">=3.10"
+  }
+]

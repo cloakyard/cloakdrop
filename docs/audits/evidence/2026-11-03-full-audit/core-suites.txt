@@ -1,0 +1,101 @@
+✔ Suite "Download stats store" passed after 0.007 seconds.
+✔ Suite "GRDB download store" passed after 0.008 seconds.
+✔ Test run with 14 tests in 2 suites passed after 0.008 seconds.
+✔ Suite "Video page detection" passed after 0.039 seconds.
+✔ Suite "Link expiry detection" passed after 0.039 seconds.
+✔ Suite "Provenance receipt" passed after 0.039 seconds.
+✔ Suite "Smart filters" passed after 0.039 seconds.
+✔ Suite "Malformed manifest input safety" passed after 0.039 seconds.
+✔ Suite "Download derived values" passed after 0.039 seconds.
+✔ Suite "Browser media naming" passed after 0.039 seconds.
+✔ Suite "Media sniffer — classification" passed after 0.039 seconds.
+✔ Suite "Media plan & Download media progress" passed after 0.039 seconds.
+✔ Suite "Media sniffer — dedupe cascade" passed after 0.039 seconds.
+✔ Suite "Persisted model input safety" passed after 0.039 seconds.
+✔ Suite "Smart rules (conditions, matching, engine)" passed after 0.039 seconds.
+✔ Suite "Sniff envelope (collector wire format)" passed after 0.039 seconds.
+✔ Suite "File-name derivation (the single source of truth)" passed after 0.039 seconds.
+✔ Suite "Resolution quality label" passed after 0.039 seconds.
+✔ Suite "Checksum auto-discovery (sibling URL derivation + file parsing)" passed after 0.039 seconds.
+✔ Suite "Subtitle converter (WebVTT/SRT → SRT)" passed after 0.039 seconds.
+✔ Suite "Capture inbox filesystem safety" passed after 0.039 seconds.
+✔ Suite "Media sniffer — primary player" passed after 0.039 seconds.
+✔ Suite "Segment math" passed after 0.039 seconds.
+✔ Suite "Bandwidth schedule" passed after 0.039 seconds.
+✔ Suite "Desktop user agent" passed after 0.039 seconds.
+✔ Suite "Metalink → download mapping" passed after 0.039 seconds.
+✔ Suite "Page link extractor" passed after 0.039 seconds.
+✔ Suite "Disk-space preflight decision" passed after 0.039 seconds.
+✔ Suite "Aggregate download progress" passed after 0.039 seconds.
+✔ Suite "Metalink parser" passed after 0.039 seconds.
+✔ Suite "Download transfer sources" passed after 0.039 seconds.
+✔ Suite "HLS parser" passed after 0.039 seconds.
+✔ Suite "Signature assessment + unified trust level" passed after 0.039 seconds.
+✔ Suite "Browser media collector runtime" passed after 0.039 seconds.
+✔ Suite "Catalog duplicate detection" passed after 0.039 seconds.
+✔ Suite "Proxy configuration compatibility" passed after 0.039 seconds.
+✔ Suite "Engine settings decoding" passed after 0.039 seconds.
+✔ Suite "Browser cookies (jar export)" passed after 0.039 seconds.
+✔ Suite "File categorization" passed after 0.039 seconds.
+✔ Suite "Speed test models" passed after 0.039 seconds.
+✔ Suite "Checksum expectation" passed after 0.039 seconds.
+✔ Suite "Captured download (intake payload)" passed after 0.039 seconds.
+✔ Suite "Page media state (per-page aggregator)" passed after 0.048 seconds.
+✔ Suite "Ad-block ruleset" passed after 0.069 seconds.
+✔ Suite "URL batch parsing & pattern expansion" passed after 0.251 seconds.
+✔ Suite "DASH parser" passed after 1.206 seconds.
+✔ Suite "Blocklist parsing & external rules" passed after 1.758 seconds.
+✔ Test run with 341 tests in 44 suites passed after 1.758 seconds.
+➜ Test "Selected pages resolve, download, package and decode completely" skipped.
+✔ Suite "Live media smoke (opt-in)" passed after 0.317 seconds.
+✔ Suite "Speed test math" passed after 0.334 seconds.
+✔ Suite "Segment planner" passed after 0.334 seconds.
+✔ Suite "Media extraction — subtitles" passed after 0.334 seconds.
+✔ Suite "Backoff policy" passed after 0.334 seconds.
+✔ Suite "Media extraction — mapping to MediaStream" passed after 0.334 seconds.
+✔ Suite "Quarantine flag" passed after 0.334 seconds.
+✔ Suite "Speed sampler" passed after 0.334 seconds.
+✔ Suite "Media extraction — parse" passed after 0.334 seconds.
+✔ Suite "Code-signature inspector (Security framework, in-process)" passed after 0.334 seconds.
+✔ Suite "URLRequest building" passed after 0.334 seconds.
+✔ Suite "Audio identity across extracted manifests" passed after 0.334 seconds.
+✔ Suite "Credential store" passed after 0.335 seconds.
+✔ Suite "URLSession task registry" passed after 0.335 seconds.
+✔ Suite "FTP protocol parsing" passed after 0.335 seconds.
+✔ Suite "Live-origin smoke (opt-in)" passed after 0.335 seconds.
+✔ Suite "AES-128-CBC (HLS segment decryption)" passed after 0.336 seconds.
+✔ Suite "ZIP extraction" passed after 0.336 seconds.
+✔ Suite "Speed test endpoints" passed after 0.337 seconds.
+✔ Suite "Media extraction — YtDlpExtractor over a mock process" passed after 0.337 seconds.
+✔ Suite "Proxy routing" passed after 0.338 seconds.
+✔ Suite "Media extraction — multi-audio" passed after 0.338 seconds.
+✔ Suite "Compatible MP4 selection and packaging" passed after 0.406 seconds.
+✔ Suite "Media resolver" passed after 0.420 seconds.
+✔ Suite "Speed test transport (loopback)" passed after 0.423 seconds.
+✔ Suite "Link intelligence (pre-flight probe → LinkPreview)" passed after 0.447 seconds.
+✔ Suite "Media intake robustness" passed after 0.523 seconds.
+✔ Suite "Proxy password via Keychain" passed after 0.765 seconds.
+✔ Suite "Smart rules applied at add time (through the manager)" passed after 0.838 seconds.
+✔ Suite "Concurrent playlist imports" passed after 1.002 seconds.
+✔ Suite "Download edit persistence failures" passed after 1.028 seconds.
+✔ Suite "Security-scoped destination recovery" passed after 1.029 seconds.
+✔ Suite "Signature assessment in the finalize path" passed after 1.099 seconds.
+✔ Suite "Playlist import" passed after 1.211 seconds.
+✔ Suite "Move unfinished downloads" passed after 1.224 seconds.
+✔ Suite "Download repair" passed after 1.226 seconds.
+✔ Suite "Metalink multi-source transfer" passed after 1.239 seconds.
+✔ Suite "Transfer response integrity" passed after 1.242 seconds.
+✔ Suite "Download destination safety" passed after 1.309 seconds.
+✔ Suite "FTP client (loopback server)" passed after 1.314 seconds.
+✔ Suite "Remux (AVFoundation passthrough to a clean container)" passed after 1.337 seconds.
+✔ Suite "Media thumbnailer (poster-frame JPEG)" passed after 1.379 seconds.
+✔ Suite "Speed tester" passed after 1.431 seconds.
+✔ Suite "FFmpeg backend & composite remuxer" passed after 1.512 seconds.
+✔ Suite "Finish this first" passed after 1.527 seconds.
+✔ Suite "Manual intent during network recovery" passed after 1.581 seconds.
+✔ Suite "Engine integration (mock server)" passed after 1.719 seconds.
+✔ Suite "Checksum verifier" passed after 1.777 seconds.
+✔ Suite "Loopback integration (real URLSession)" passed after 1.912 seconds.
+✔ Suite "Media transfer (segment grab through the engine)" passed after 2.052 seconds.
+✔ Suite "Bandwidth limiter (actor)" passed after 2.227 seconds.
+✔ Test run with 318 tests in 51 suites passed after 2.228 seconds.

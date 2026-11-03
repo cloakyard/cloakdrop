@@ -74,6 +74,12 @@ instead of introducing a custom runtime build. This decision was reconfirmed for
 1.0.0-rc.1 on [October 19](../../../../docs/audits/2026-10-19-dependencies.md).
 The exception remains explicit; it is not a claim that the frozen runtime is current.
 
+The [November 3 full audit](../../../../docs/audits/2026-11-03-full-audit.md#dependency-currency)
+rechecks the official 2026.10.26 bundle and six live media cases. Python 3.14.7, OpenSSL 3.5.7,
+SQLite 3.50.4 and websockets 17.3 remain behind upstream releases. The other reported Python
+packages match current PyPI versions. The existing choice to preserve the complete official
+bundle remains in effect; no individual frozen dependency was replaced.
+
 The local script uses ad-hoc signing. Successful code-signature checks do not establish Developer
 ID identity or Apple notarization. Locally signed builds are not notarized; see the
 [security policy](../../../../SECURITY.md).

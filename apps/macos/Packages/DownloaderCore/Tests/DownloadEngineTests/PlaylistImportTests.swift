@@ -97,6 +97,33 @@ struct PlaylistImportTests {
         }
         #expect(await extractor.calls == 2)
     }
+
+    @Test("An unavailable playlist item has an actionable error and does not block other items")
+    func unavailableItemIsIsolated() async throws {
+        let h = try await DownloadWorkflowHarness()
+        defer { h.cleanup() }
+        let manager = DownloadManager(store: h.store, httpClient: h.mock, networkMonitor: AlwaysReachableMonitor(),
+                                      remuxer: PassthroughRemuxer(), mediaExtractor: WorkflowMediaExtractor())
+        try await manager.start()
+        h.mock.setResource(.init(data: h.payload), for: URL(string: "https://example.com/low.mp4")!)
+        let playlist = MediaPlaylist(title: "Lessons", entries: [
+            .init(index: 1, title: "Unavailable", pageURL: URL(string: "https://example.com/watch/unavailable")),
+            .init(index: 2, title: "Available", pageURL: URL(string: "https://example.com/watch/one"))
+        ])
+        let added = try await manager.addPlaylist(playlist, selectedIDs: [1, 2],
+                                                  selection: .init(quality: .hd720, outputFormat: .original),
+                                                  directory: h.directory, bookmark: nil)
+        let failed = try await h.waitFor(added[0].id, manager: manager) {
+            if case .failed = $0.status { return true }; return false
+        }
+        if case .failed(let reason) = failed.status {
+            #expect(reason.contains("different quality or format"))
+            #expect(!reason.contains("MediaExtractionError"))
+        }
+        let done = try await h.waitFor(added[1].id, manager: manager)
+        #expect(try Data(contentsOf: URL(fileURLWithPath: done.destinationFilePath)) == h.payload)
+        #expect(!FileManager.default.fileExists(atPath: failed.destinationFilePath))
+    }
 }
 
 private actor WorkflowMediaExtractor: MediaExtractor {
@@ -104,6 +131,7 @@ private actor WorkflowMediaExtractor: MediaExtractor {
     func version() async -> String? { "test" }
     func extract(pageURL: URL, cookies: ExtractionCookies?, userAgent: String?) async throws -> ExtractedMedia {
         calls += 1
+        if pageURL.lastPathComponent == "unavailable" { throw MediaExtractionError.noGrabbableFormats }
         return try ExtractedMedia.parse(json: Data(#"""
         {"title":"Example","formats":[
           {"format_id":"low","url":"https://example.com/low.mp4","ext":"mp4",

@@ -186,9 +186,12 @@ extension DownloadManager {
         networkReachable = reachable
 
         if wasReachable && !reachable {
-            for download in downloads.values where download.status.isActive {
-                autoPaused.insert(download.id)
-                await pauseTransfer(id: download.id)
+            for id in Array(downloads.keys) {
+                // Pausing a worker suspends this actor. Recheck current intent before adopting
+                // the next item: the user may have paused, moved or removed it in that interval.
+                guard downloads[id]?.status.isActive == true, !editingDownloads.contains(id) else { continue }
+                autoPaused.insert(id)
+                await pauseTransfer(id: id)
             }
         } else if !wasReachable && reachable {
             let toResume = autoPaused

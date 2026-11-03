@@ -339,11 +339,12 @@ folders are persisted as **security-scoped bookmarks** and activated (`SecurityS
 duration of each transfer. When a folder moves, transfers resolve its new path, retain category
 descendants and refresh stale bookmarks before staging I/O. Cancel/remove, thumbnails and Finder
 handoff use the same resolution boundary. Ambiguous replacements at the original path block
-resume and cleanup; they must never receive bytes or deletion intended for the original. Existing
-downloads have no folder re-selection intent: users restore access to the original folder, then
-retry. See the [moved-folder recovery guide](../../README.md#a-download-folder-moved).
+resume and cleanup; they must never receive bytes or deletion intended for the original. **Move
+Download** relocates accessible unfinished staging into a newly selected destination and leaves
+the transfer paused. If the original folder is inaccessible, restore access before moving or
+retrying. See the [moved-folder recovery guide](../../README.md#a-download-folder-moved).
 
-GRDB is the only third-party Swift package (7.11.1 in the tracked core `Package.resolved`). The core
+GRDB is the only third-party Swift package (7.12.0 in the tracked core `Package.resolved`). The core
 package targets macOS 15+, while the SwiftUI app requires macOS 26 and the optional vendor helpers
 are built/prepared for arm64. `project.yml` is the source of truth for generated Xcode projects.
 The opt-in ffmpeg and yt-dlp fetch scripts pin source/archive versions and SHA-256 values, prepare and

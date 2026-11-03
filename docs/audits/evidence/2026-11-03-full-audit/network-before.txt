@@ -1,0 +1,11 @@
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test case passing 1 argument pauseAll → true to "Pausing an offline transfer prevents automatic resume on reconnection" started.
+◇ Test case passing 1 argument pauseAll → false to "Pausing an offline transfer prevents automatic resume on reconnection" started.
+✘ Test "Pausing an offline transfer prevents automatic resume on reconnection" recorded an issue with 1 argument pauseAll → true at NetworkRecoveryIntentTests.swift:27:9: Expectation failed: await manager.snapshot().downloads.first { $0.id == item.id }?.status == .paused
+↳ await manager.snapshot().downloads.first { $0.id == item.id }?.status == .paused → <not evaluated>
+✘ Test "Pausing an offline transfer prevents automatic resume on reconnection" recorded an issue with 1 argument pauseAll → false at NetworkRecoveryIntentTests.swift:27:9: Expectation failed: await manager.snapshot().downloads.first { $0.id == item.id }?.status == .paused
+↳ await manager.snapshot().downloads.first { $0.id == item.id }?.status == .paused → <not evaluated>
+✘ Test "Pausing an offline transfer prevents automatic resume on reconnection" with 2 test cases failed after 0.245 seconds with 2 issues.
+✘ Suite "Manual intent during network recovery" failed after 0.245 seconds with 2 issues.
+✘ Test run with 1 test in 1 suite failed after 0.245 seconds with 2 issues.
