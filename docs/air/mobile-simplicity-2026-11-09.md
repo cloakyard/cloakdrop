@@ -25,4 +25,4 @@ contains its full design contract and does not require a sibling at runtime.
 
 Visual captures are browser evidence. Physical iPhone/Windows, OS keyboards/IME,
 actual browser zoom, spoken assistive review and device battery/frame pacing
-remain separate acceptance work. Deployment is pending the release PR.
+remain separate acceptance work. The preceding dependency release is deployed through #59; its exact-main checks and production verification are recorded in that PR.
