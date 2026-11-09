@@ -30,7 +30,9 @@ jobs:
           node-version: "24"
           cache: npm
           cache-dependency-path: apps/site/package-lock.json
-      - run: npx --yes npm@12.2.1 ci
-      - run: npx --yes npm@12.2.1 run check
-      - run: npx --yes npm@12.2.1 run build
-      - run: npx --yes npm@12.2.1 audit --audit-level=high
+      - name: Use the declared package manager
+        run: npm install --global "$(node -p 'require("./package.json").packageManager')"
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - run: npm audit --audit-level=high
