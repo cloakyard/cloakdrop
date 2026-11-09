@@ -1,5 +1,11 @@
 # Air validation record
 
+## 2026-11-09 — Web refinement and README consistency
+
+See [the bounded refinement record](refinement-2026-11-09.md). Website checks,
+all-layout public/policy/motion comparison and dead-code review pass. Native UI
+and physical-device acceptance are outside this record.
+
 ## 2026-10-26 — Automatic landing artwork without playback controls
 
 Removes the control and its unused CSS. FILE, PKG, ISO and ZIP assemble once, then rest; measured uninterrupted completion was 4,858ms. The 68-layout artwork matrix, all four forms, lifecycle/static profiles and 432 website layouts / 34 journeys pass. Native app, RC, installer and official-bundle exception are unchanged.

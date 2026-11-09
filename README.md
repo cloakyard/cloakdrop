@@ -1,12 +1,8 @@
 # CloakDrop
 
-**A carefully made, open-source download manager for macOS.**
+**Downloads, thoughtfully managed.**
 
-Parallel downloads, saved progress, and video capture in a native Mac app. Built with SwiftUI
-for macOS 27, with support for macOS 26. A thin app shell sits over an independently tested Swift
-engine. Free, MIT-licensed, with no account, telemetry, or CloakDrop service receiving your activity.
-
-**[Website](https://drop.cloakyard.com)** · **[Downloads](https://github.com/cloakyard/cloakdrop/releases)** · **[Documentation](docs/README.md)** · **[Contributing](CONTRIBUTING.md)**
+[Website](https://drop.cloakyard.com/) · [Source](https://github.com/cloakyard/cloakdrop) · [Support](https://ko-fi.com/sumitsahoo21)
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
@@ -19,41 +15,17 @@ engine. Free, MIT-licensed, with no account, telemetry, or CloakDrop service rec
 <p align="center">
   <picture>
     <source srcset="assets/screenshots/hero-readme.webp" type="image/webp">
-    <img src="assets/screenshots/hero-readme.png" alt="CloakDrop on macOS, with the sidebar library, download list, and live segment inspector." width="900">
+    <img src="assets/screenshots/hero-readme.png" alt="CloakDrop on macOS, with the sidebar library, download list, and live segment inspector." width="800">
   </picture>
 </p>
 
-Part of **[Cloakyard](https://github.com/cloakyard)**. The screenshot uses a deterministic example
-catalog; its displayed speeds are illustrative.
+## Overview
 
-## Download and install
+An open-source download manager for Apple silicon Macs, with parallel transfers, saved progress and video capture. The native SwiftUI app and independently tested Swift engine are separate from the Air website.
 
-Requires **macOS 26 or later on Apple silicon**. Release builds and bundled helpers are arm64-only.
+<a id="what-it-does"></a>
 
-1. Download the DMG from the [newest GitHub release](https://github.com/cloakyard/cloakdrop/releases) and open it.
-2. Drag **CloakDrop** into **Applications**, then open it.
-3. If macOS blocks that first launch, and you trust the official download, open **System Settings → Privacy & Security → Open Anyway**, then confirm **Open**.
-
-Current locally signed builds are **not notarized**. See
-[Apple’s opening guidance](https://support.apple.com/en-us/102445) and the release notes for the
-signing status of the build you download.
-
-This source tree is **1.0.0**; [**1.0.0-rc.1 (20261019)**](https://github.com/cloakyard/cloakdrop/releases/tag/v1.0.0-rc.1) is available as a prerelease.
-See the [RC notes](docs/releases/v1.0.0-rc.1.md) for its artifact and validation.
-GitHub Releases lists the available downloads; each release’s notes and assets are the source of truth for its features, checksums,
-and signing status.
-
-## Version 1.0.0
-
-This release focuses on transfer reliability and a simpler native experience: safer recovery of
-saved downloads and moved folders, stronger input validation, scoped remembered credentials,
-and updated macOS 27 controls.
-
-The [October 19 RC audit](docs/audits/2026-10-19-rc.1.md) records **626 passing tests**,
-fresh Debug/Release builds, an actual checksum-verified download and the Air installer.
-It documents the remaining signing, Share Extension and official-bundle runtime limits.
-
-## What it does
+## Features
 
 | Capability | Implementation |
 |---|---|
@@ -92,9 +64,9 @@ physical power-loss durability or compatibility with every FTP/FTPS server. With
 validator or trusted checksum, equal-length remote changes can remain undetected. The
 [1.0.0 release audit](docs/audits/2026-09-14-release-1.0.0.md) records tested behavior and remaining limits.
 
-## Troubleshooting
+### Troubleshooting
 
-### A download folder moved
+#### A download folder moved
 
 Pause downloads before moving their destination folder. Keep its `.cdpart` files and `.cdparts`
 directories with it, then **Resume**; CloakDrop can follow the saved folder and reuse compatible
@@ -107,7 +79,7 @@ location shown under **Destination**, then retry. Do not delete unrelated data t
 remove and re-add the download if you want to retain its partial progress. Existing downloads do not
 currently offer a destination picker.
 
-### A remembered password needs entering again after upgrading
+#### A remembered password needs entering again after upgrading
 
 Version 1.0.0 separates saved website credentials by scheme, host and port, and keeps proxy logins
 separate. Older credentials saved only by hostname are no longer reused, so you may need to enter
@@ -129,7 +101,38 @@ and site data for logins, but no browsing history. App Sandbox limits filesystem
 containers, Downloads and destinations you select. See the [full privacy policy](PRIVACY.md) and
 [security policy](SECURITY.md) for storage, authentication and network boundaries.
 
-## Build the app
+<a id="download-and-install"></a>
+
+## Getting started
+
+Requires **macOS 26 or later on Apple silicon**. Release builds and bundled helpers are arm64-only.
+
+1. Download the DMG from the [newest GitHub release](https://github.com/cloakyard/cloakdrop/releases) and open it.
+2. Drag **CloakDrop** into **Applications**, then open it.
+3. If macOS blocks that first launch, and you trust the official download, open **System Settings → Privacy & Security → Open Anyway**, then confirm **Open**.
+
+Current locally signed builds are **not notarized**. See
+[Apple’s opening guidance](https://support.apple.com/en-us/102445) and the release notes for the
+signing status of the build you download.
+
+This source tree is **1.0.0**; [**1.0.0-rc.1 (20261019)**](https://github.com/cloakyard/cloakdrop/releases/tag/v1.0.0-rc.1) is available as a prerelease.
+See the [RC notes](docs/releases/v1.0.0-rc.1.md) for its artifact and validation.
+GitHub Releases lists the available downloads; each release’s notes and assets are the source of truth for its features, checksums,
+and signing status.
+
+### Published release and source
+
+This release focuses on transfer reliability and a simpler native experience: safer recovery of
+saved downloads and moved folders, stronger input validation, scoped remembered credentials,
+and updated macOS 27 controls.
+
+The [October 19 RC audit](docs/audits/2026-10-19-rc.1.md) records **626 passing tests**,
+fresh Debug/Release builds, an actual checksum-verified download and the Air installer.
+It documents the remaining signing, Share Extension and official-bundle runtime limits.
+
+## Development
+
+### Native app
 
 Requires **macOS 26+**, **Xcode 27+**, an **Apple silicon** Mac and
 [XcodeGen](https://github.com/yonaskolb/XcodeGen). The headless Swift 6 package separately declares
@@ -194,7 +197,9 @@ scripts/dmg/make-dmg.sh build/Verify/Build/Products/Debug/CloakDrop.app
 Release assets belong on [GitHub Releases](https://github.com/cloakyard/cloakdrop/releases), not in
 the source repository. Bundled tools retain their own licenses and distribution requirements.
 
-## Testing
+<a id="testing"></a>
+
+### Verification
 
 From the **repository root**, run the headless suite:
 
@@ -223,7 +228,17 @@ checks and a native checksum-matched transfer. Earlier static analysis, pause/re
 moved-destination and browser-capture evidence remains in the dated September audit.
 For the repeatable visual workflow, see the [verification guide](.agents/skills/verify/SKILL.md).
 
-## Repository layout
+### Website
+
+The independent Air website is in [`apps/site`](apps/site/README.md). Its README documents Node/npm setup, browser verification and deployment; native tests do not verify website layouts.
+
+## Design and assets
+
+The website follows the portable [Air contract](DESIGN.md) and its pinned local bundle. The native app keeps SwiftUI, SF Symbols and macOS system conventions. Do not apply web control skins to native UI.
+
+[Brand assets](assets/README.md) own the marks, installer artwork and synthetic screenshots. Website asset sync reads those checked-in sources; edit the sources rather than generated copies. Screenshots are examples, not evidence of a real transfer or backup.
+
+## Project structure
 
 ~~~text
 cloakdrop/
@@ -248,10 +263,20 @@ cloakdrop/
 See the [architecture](apps/macos/ARCHITECTURE.md), [website guide](apps/site/README.md),
 [asset guide](assets/README.md) and [documentation index](docs/README.md).
 
-## Contributing and license
+## Deployment and releases
 
-Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) and our
-[Code of Conduct](CODE_OF_CONDUCT.md); report vulnerabilities through [SECURITY.md](SECURITY.md).
+Publish website changes through tested `dev` → `main` PRs and keep `dev` updated. When dev also holds unrelated native work, use a separately reviewed website-only PR under the maintainer's approved exception, then merge main into dev without releasing that native work. The [website guide](apps/site/README.md#deployment-and-releases) records build and deployment commands.
 
-CloakDrop source is released under the [MIT License](LICENSE). Third-party components retain their
-own licenses. Built by Sumit Sahoo as part of [Cloakyard](https://github.com/cloakyard).
+Native release preparation is separate from website deployment. Follow the existing build/packaging and verification instructions above; publish binaries and checksums to [GitHub Releases](https://github.com/cloakyard/cloakdrop/releases), not the source tree. Preserve documented signing, runtime and physical-device limits.
+
+## Contributing
+
+Read [AGENTS.md](AGENTS.md), [CLAUDE.md](CLAUDE.md) and [DESIGN.md](DESIGN.md) before changes. See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution and disclosure guidance. Keep changes bounded, preserve features and output, remove obsolete references, and record actual verification. Compare all applicable views in phone, tablet, laptop and desktop layouts, both themes.
+
+The [family README standard](https://github.com/cloakyard/cloakyard/blob/main/docs/README_STANDARD.md) defines this document's section order. Support the project through [Buy me a coffee](https://ko-fi.com/sumitsahoo21).
+
+## License
+
+Released under the [MIT License](LICENSE). Third-party components retain their own licenses.
+
+Built by [Sumit Sahoo](https://github.com/sumitsahoo), part of [Cloakyard](https://cloakyard.com/).
