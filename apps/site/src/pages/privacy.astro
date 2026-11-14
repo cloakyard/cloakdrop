@@ -1,9 +1,13 @@
 ---
-import { Content as PrivacyDocument, getHeadings } from '../../../../PRIVACY.md';
+import { Content as PrivacyDocument, getHeadings, rawContent } from '../../../../PRIVACY.md';
 import Icon from '../components/Icon.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+const revision = rawContent().match(/_Last updated: ([^_]+)_/)?.[1];
+if (!revision) throw new Error('The app privacy policy needs its revision date.');
+const revisionISO = new Date(`${revision} UTC`).toISOString().slice(0, 10);
+const revisionLabel = new Intl.DateTimeFormat('en-US', { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(revisionISO));
 const headings = getHeadings().filter((heading) => heading.depth === 2);
 ---
 <BaseLayout title="Privacy policy — CloakDrop" description="App state stays on your Mac. Network requests happen for transfers and features you initiate or configure.">
@@ -14,14 +18,19 @@ const headings = getHeadings().filter((heading) => heading.depth === 2);
       <p class="air-page-eyebrow">CloakDrop · Privacy</p>
       <h1 id="privacy-title">Privacy policy</h1>
       <p class="air-page-lede">App state stays on your Mac. Network requests happen for transfers and features you initiate or configure.</p>
-      <p class="air-page-meta">Last updated <time datetime="2026-09-06">September 6, 2026</time></p>
+      <p class="air-page-meta">Last updated <time datetime={revisionISO}>{revisionLabel}</time></p>
     </header>
     <div class="air-reading-layout">
       <details class="air-contents" open>
         <summary>On this page <Icon name="chevron" size={18} /></summary>
-        <nav aria-label="Policy contents">{headings.map((heading) => <a href={`#${heading.slug}`}>{heading.text}</a>)}</nav>
+        <nav aria-label="Policy contents">{headings.map((heading) => <a href={`#${heading.slug}`}>{heading.text}</a>)}<a href="#website">This website</a></nav>
       </details>
-      <article class="air-prose air-policy-source" aria-label="CloakDrop privacy policy"><PrivacyDocument /></article>
+      <article class="air-prose air-policy-source" aria-label="CloakDrop privacy policy"><PrivacyDocument />
+        <h2 id="website" tabindex="-1">This website</h2>
+        <p>This static website has no accounts, advertising, analytics, or tracking cookies. Cloudflare serves its code and artwork and may process ordinary request information, such as IP address, requested path and browser headers, for delivery and security under its <a href="https://www.cloudflare.com/privacypolicy/">privacy policy</a>. The CloakDrop project does not add a separate analytics pipeline.</p>
+        <p>GitHub handles downloads and feedback, and the support link opens Ko-fi. These external services have their own policies. No download records or app activity are sent to this website.</p>
+        <p>Website statement updated <time datetime="2026-11-14">November 14, 2026</time>. The app policy above retains its own revision date.</p>
+      </article>
     </div>
   </main>
   <Footer />
