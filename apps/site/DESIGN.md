@@ -1,19 +1,19 @@
 ---
 name: CloakDrop website — Cloakyard Air
-version: 1.6.0
+version: 1.7.3
 status: approved
-date: 2026-11-03
+date: 2026-11-14
 scope: complete-web-product
 source-repository: https://github.com/cloakyard/cloakyard
 source-directory: design/air
-family-contract-sha256: ebcfe4f5ccc2c530fa9676b957664cc1c6e1ad4e7b1612a9771a2e38c89360ca
+family-contract-sha256: cee03d4f76d550277c17dbfda1f634419cad3faf22a94825c229dff62dad4ce9
 ---
 
 <!-- BEGIN CLOAKYARD AIR CONTRACT -->
 
 # Cloakyard Air design contract
 
-Version: **1.6.0 — compact notices and quiet scrolling** · Direction: **Air** · Updated: **2026-11-03**
+Version: **1.7.3 — privacy source consistency** · Direction: **Air** · Updated: **2026-11-14**
 
 The detailed Air system is **locked for implementation**. On 2026-10-13 the user
 authorized one final agent review followed by implementation; that review is
@@ -251,7 +251,29 @@ It never changes author content or exported colours.
 | Field/row interior     | 12–16px; section group gap 24px                   |
 | Reading measure        | 65ch maximum                                      |
 
-Full-bleed app rails may meet an edge without rounded outer corners. Do not nest
+Corner geometry follows the **component role**, including custom controls. Use
+`--air-radius-control` (10px) for buttons, icon actions, fields and selectable model
+choices; `--air-radius-chip` (8px) for text badges, status labels and segment tabs;
+`--air-radius-panel` (18px) for cards, boxed feedback and progress surfaces;
+`--air-radius-menu` (12px) for anchored menus/popovers; and
+`--air-radius-dialog` (20px) for dialogs. A full-width modal sheet has 20px top
+corners and square bottom corners. Attached editor working panels and edge-to-edge
+rails are flush (0px); they are not floating sheets. Do not change these corners
+between light/dark, hover/focus/selected/disabled states or input modes.
+
+Use the component's shared class first. Custom compositions can use the small
+`air-radius-control`, `air-radius-chip` and `air-radius-panel` geometry helpers;
+do not combine them with another radius utility. Framework defaults such as an
+unqualified `rounded` or a pill must not silently choose the control's shape.
+Native checkbox/keycap corners are 4px. Radios, palette swatches, avatars, slider
+thumbs and progress caps retain their functional circular shape. Document/image
+output, miniature paper previews and approved brand artwork are not UI controls.
+A nested clip derives its radius from the outer token minus its actual inset
+(e.g. `calc(var(--air-radius-panel) - 1px)` behind a card's 1px border); never
+introduce an unrelated literal. Compare all four computed corners in real states,
+not just token declarations or landing pages, and record these exceptions.
+
+Full-bleed app rails meet an edge without rounded outer corners. Do not nest
 several padded cards. Use whitespace and modest section dividers inside inspectors.
 Primary action groups contain one dominant action. A 2px focus outline with 3px
 offset uses `accent` and remains visible inside scrolling and clipped containers.
@@ -367,31 +389,38 @@ No glass blur behind forms, body copy, tables, or document content.
   controls on phones/tablets. Never repeat the same commit in the header, panel
   body or canvas. Different operations (such as detecting, printing or downloading)
   retain their descriptive verbs and their real consent/output boundaries.
-- **Canvas-first touch composition:** the approved IMG phone/tablet variant puts
-  one X / tick pair in the fixed tool-panel header beside its title. X means
-  Cancel, tick means Apply; accessible names and keyboard/hover tooltips state
-  those verbs. Use `air-editor-actions--compact`, neutral secondary/monochrome
-  primary materials and 48px targets. Close-only panels retain a labelled Close.
+- **Compact tool completion:** PDF and IMG phone/tablet editing use one X / tick
+  pair in the fixed tool-panel header beside its title. X means Cancel; tick means
+  Apply. Accessible names and keyboard/hover tooltips state those verbs. Use
+  `air-editor-actions--compact`, neutral secondary/monochrome primary materials
+  and 48px targets. Desktop controls retain text labels. Inspection/output panels
+  use labelled Close; autosaved writing uses Close without inventing a transaction.
   Keep errors in the reachable scrolling body, announced and associated with the
-  actions. Never duplicate this pair in the canvas toolbar or panel footer.
-  Reserve at least 40% of the visible editor height for the image viewport;
-  maintain image aspect ratio and scroll only the tool body. Tablet and short
-  landscape may place the inspector beside the photo. Global history/view/export
-  controls form a small opaque floating group on the canvas plane. The compact
-  composition replaces expansion toggles, not real tool transactions. Preserve
-  every navigation/output action, safe-area clearance and keyboard access.
-  This optional composition does not force icon-only actions into document
-  editing or autosaved writing; their labelled actions remain the default.
+  actions. Never duplicate this pair in the canvas header or panel footer.
+- **Compact editor header:** use `air-editor-header--compact`, with a 64px minimum
+  height, 12px side insets, quiet canvas-plane background and no floating toolbar
+  enclosure. Place the home mark at the leading edge; Export and More actions are
+  the trailing actions. Export uses the monochrome primary button; More actions
+  opens the shared Actions dialog/sheet. Use `air-editor-menu` and its rows/zoom
+  composition with shared 18px/1.6 icons. Task-specific navigation or history may
+  use the remaining space; secondary commands remain available in Actions.
+  Filename/context wraps fully in the sheet. Desktop canvas chrome may retain its
+  task-specific layout; compact chrome cannot shrink targets to fit it.
+- Reserve at least 40% of the visible editor working area for the photo/document
+  preview, maintain its aspect ratio and scroll the controls independently. Tablet
+  and short landscape may place controls beside the preview. Remove panel expansion
+  toggles when scrolling serves the task. A full-preview action is distinct from
+  editing and must provide a clearly named return to Edit. Preserve every real
+  navigation/output action, safe-area clearance, drafts and keyboard access.
 - **Apply** accepts the current edit once; **Cancel** restores its entry state.
   Await work, retain failed/invalid drafts for correction and block repeated
   activation. An inspection or output panel with no staged edit uses **Close**;
   autosaved writing stays autosaved, with no invented Apply/Cancel transaction.
   Use **Save**, **Download** or another precise verb when that is the real action.
   Done is reserved for finishing a transient picker whose value is already live.
-- Keep **Expand controls / Split view** separate from edit completion. Changing
-  the view never applies or cancels work; a swipe must not silently commit an edit.
-  The action region wraps at enlarged text, retains 44px touch targets and leaves
-  the photo/document plus a reachable scrolling control region on short screens.
+- Changing views never applies or cancels work; a swipe must not silently commit
+  an edit. Keep the action region outside the scrolling controls, and retain
+  reachable controls and a visible preview on short screens and at enlarged text.
 
 - Use a real button for actions. Ready, busy, success and recoverable failure
   retain the same geometry and hierarchy. Reserve the intrinsic size of all
@@ -621,7 +650,8 @@ same controls in IMG, Resume and future apps.
   year list, hour/minute menus and AM/PM controls share panel/menu styling, focus
   return and viewport containment. Preserve the current date restrictions and time
   semantics. Coarse calendars need room for seven 44px columns; use a full-width
-  sheet on a 320px phone with a 4px calendar-grid inset, rather than shrinking cells.
+  sheet on a 320px phone with at most a 4px calendar-grid inset. Reduce that inset
+  when a native scrollbar needs room; keep the seven 44px targets and scrolling.
   The other sheet content keeps the normal gutter. Short screens scroll the body
   while dismissal and completion stay reachable.
 - **Field insertion:** page/date/file-name chips insert at the last active text
@@ -735,12 +765,18 @@ and primary entry gives an app its own identity. It replaces that landing's hori
 do not stack multiple decorative effects or use an app screenshot as the hero hook.
 An accurate product screenshot may remain in the following feature section.
 
-- **Cloakyard:** the family opens out from its mark into five small, recognisable
-  materials: paper, download pixels, résumé lines, an image and a photo strip. This
-  explains the family without a product screenshot. One finite arrival uses 1,800ms
-  ease-out transforms with a 60ms object stagger; details start at 640ms with 45ms
-  staggering and finish within 4,300ms. Product artwork colours remain confined to
-  these materials. Settle into a quiet collection; no looping orbit or moving text.
+- **Cloakyard:** one isometric blue building block arrives per productivity app,
+  forming a growing grid inspired by the mark. Generate cells from the product
+  registry in stable expanding shells; adding an app needs no bespoke motif or
+  fixed five-item composition. Only the next available cell remains a faint
+  outline. Do not repeat the logo below the artwork or depict KERR as an app cube.
+  Each block arrives from above with the shared ease-out, transform/opacity only,
+  for up to 600ms with a 620ms step and 160ms opening delay. At larger counts,
+  compress the step to 3,900ms divided by the count and keep arrivals sequential.
+  The next outline settles over 480ms after the last block. Total active motion
+  stays at or below 4,540ms; settle at rest and preserve the shared replay lifecycle.
+  Fit the generated composition to reserved responsive bounds; only the Yard
+  artwork blue and neutral face shades are used. No app-specific miniature scenes.
 - **PDF:** five white pages start as a compact stack. The four rear sheets spread
   left and right over 2,200ms with the shared spatial curve and 60ms stagger,
   keeping their stacking order. The front page and real dropzone stay anchored.
@@ -934,6 +970,14 @@ Public shell content follows the same recipe across the family:
   focus/close safeguards. Returning from public privacy never clears a saved draft.
 - Keep policy facts and dates intact during a visual refresh. Native and website
   privacy are distinct; a shared layout does not authorize new privacy claims.
+- Each product keeps one maintained policy body. Public pages and in-editor policy
+  dialogs reuse that body and its date/lead; native websites render the maintained
+  app policy instead of hand-copying its text. Keep published section anchors.
+  Website hosting and external-link disclosures remain distinct from native app
+  network behavior. Say “no accounts, advertising, analytics, or tracking cookies”
+  only where true; distinguish personal details entered in a local document from
+  data collected by the project. Browser storage and caches are not cookies.
+  A wording clarification gets its actual revision date; a visual-only change does not.
 
 - Privacy, help and recovery use the same family mark, navigation, theme, footer
   and controls as the product. They are complete layouts, not unstyled text below
@@ -1252,7 +1296,7 @@ performance approval.
   pending initialization. Reduced motion, Save-Data, unavailable WebGPU, and
   reported memory/core counts of 4 or fewer use the static artwork. These browser
   hints supplement, rather than replace, real-device performance validation.
-- Bundle Shaders locally, pinned to 4.0.5 for this candidate, with no telemetry,
+- Bundle Shaders locally, pinned to 4.0.7 for this candidate, with no telemetry,
   hosted presets or remote assets. The lazy study bundle is approximately 369 kB
   gzip, with a 400 kB build ceiling. This is a measured study budget, not an
   approved production payload. Preserve dependency licenses and asset hashes.

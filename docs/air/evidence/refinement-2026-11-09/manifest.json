@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-09",
+  "scope": "Web only; see local refinement record for limits.",
+  "receipts": [
+    {
+      "source": "gates.json",
+      "file": "gates.json.gz",
+      "sha256": "87eba3d898297b0a03383fba98f8fc5cd3a86c57df6747377e80797351d62f94"
+    },
+    {
+      "source": "ci-alignment.json",
+      "file": "ci-alignment.json.gz",
+      "sha256": "8e903870cb8a6c677458a45d9c7f76947552915dfc45b55912d24da4deab356e"
+    },
+    {
+      "source": "readme-negative-checks.json",
+      "file": "readme-negative-checks.json.gz",
+      "sha256": "9fde7d09c997862cc16298f19c386e93c6b4764fc82d6c08462bbb93b0861e0f"
+    },
+    {
+      "source": "ui-shared.json",
+      "file": "ui-shared.json.gz",
+      "sha256": "fa7bd93d7cab4f77154d6027b7873073808af30ee77695483dc206714dcdcf8c"
+    },
+    {
+      "source": "privacy/results.json",
+      "file": "privacy--results.json.gz",
+      "sha256": "bc4a4b0ced604b8321b396c09c9afdf94d72303240abb92518a2b99d9016379e"
+    },
+    {
+      "source": "artwork-chromium/results.json",
+      "file": "artwork-chromium--results.json.gz",
+      "sha256": "16c6b0f38697e9e0819b3e264f6000a4a615504c0e5e00292e28937d15b10c42"
+    },
+    {
+      "source": "artwork-webkit/results.json",
+      "file": "artwork-webkit--results.json.gz",
+      "sha256": "200d9b04b4844ca822d13724485d869c7874ecb0ad2e45e258fb597ad620bc87"
+    }
+  ]
+}
