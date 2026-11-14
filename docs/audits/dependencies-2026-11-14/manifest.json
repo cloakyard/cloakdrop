@@ -1,0 +1,18 @@
+[
+  {
+    "file": "drop-core.log.gz",
+    "sha256": "79e435f754e8eee64b27add0116b5c718618fc1c01f3dd2a6d54c660e368f0f1"
+  },
+  {
+    "file": "drop-lint.log.gz",
+    "sha256": "8428a1ce9725fceca1f83651804ada2b36e0763ff0538f61b8ee05189ce22c47"
+  },
+  {
+    "file": "drop-localizations.log.gz",
+    "sha256": "7f3c46a70ecff49b745558c4d77d26f3a7e96e982751f5b88fa12862201fc9a7"
+  },
+  {
+    "file": "drop-ffmpeg-version.log.gz",
+    "sha256": "44c7275c2b78021775d44b56a48a4176c09842d4d7d99d1228243fab54b1175b"
+  }
+]
