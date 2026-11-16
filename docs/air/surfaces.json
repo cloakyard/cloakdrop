@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.7.4",
+  "contractVersion": "1.7.5",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -621,28 +621,6 @@
         "evidence/public-shell-2026-10-26/checks.json.gz"
       ],
       "notes": "Local website horizon follow-up passes software checks; physical/assistive and GPU hardware acceptance remain open. Native UI and screenshot bytes unchanged. 2026-10-19: app logo colour in both GPU and static artwork; 12 theme/viewport cases and both GPU themes pass. Physical GPU/battery acceptance remains open. Approved product artwork implemented and validated 2026-10-25; see latest validation record for scope and remaining physical/assistive acceptance. 2026-10-25: Public family comparison: canonical heading tracking/focus offset/radius and neutral underlined credits/hover corrected. Chrome/Firefox 160 local layouts plus Safari spot review pass; 432 site layouts/34 journeys and 68 artwork layouts pass. Existing physical/assistive gates remain open. 2026-10-26: Air 1.2.0 public-shell/Storyline software audit passes; see current validation. Physical/assistive gates stay separate. Public header/footer content, spacing, rendering and navigation verified in Air 1.2.2; this evidence does not close unrelated product/device gates."
-    },
-    {
-      "path": "assets/social/og.html",
-      "kind": "app-surface",
-      "sourceReviewed": true,
-      "airImplemented": true,
-      "validated": true,
-      "states": [
-        "Air light/dark",
-        "normal and enlarged text",
-        "keyboard/no-JS recovery",
-        "coarse targets",
-        "reduced motion/forced colours"
-      ],
-      "viewports": [
-        "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
-      ],
-      "evidence": [
-        "docs/air/evidence/website-air-2026-10-19.json",
-        "docs/air/evidence/website-air-checks-2026-10-19.log"
-      ],
-      "notes": "Rendered and visually reviewed 1200×630 Air OG card using unchanged native screenshot; metadata and copied built asset verified."
     }
   ]
 }
