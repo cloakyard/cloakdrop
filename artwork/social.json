@@ -1,0 +1,19 @@
+{
+  "name": "CloakDrop",
+  "url": "https://drop.cloakyard.com/",
+  "dist": "apps/site/dist",
+  "logo": "assets/logo/cloakdrop-mark.svg",
+  "output": "assets/social/og.png",
+  "artwork": ".drop-pixel, .drop-pixel-type",
+  "headline": [
+    "Your downloads.",
+    "Under control."
+  ],
+  "description": [
+    "A native download manager for Mac.",
+    "Parallel transfers. Saved progress."
+  ],
+  "artAlt": "Teal square pixels forming a file.",
+  "imageAlt": "CloakDrop — Your downloads. Under control. Teal square pixels forming a file.",
+  "imagePath": "/og.png?v=air-1.7.5"
+}

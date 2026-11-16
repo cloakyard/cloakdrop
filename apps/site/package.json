@@ -2,14 +2,14 @@
   "name": "cloakdrop-site",
   "version": "1.0.0",
   "private": true,
-  "description": "CloakDrop brand site — drop.cloakyard.com",
+  "description": "CloakDrop brand site \u2014 drop.cloakyard.com",
   "type": "module",
   "scripts": {
     "sync:assets": "node ../../scripts/sync-assets.mjs",
     "predev": "npm run sync:assets",
     "dev": "astro dev",
     "prebuild": "npm run sync:assets",
-    "build": "astro build",
+    "build": "astro build && node ../../docs/air/check-social.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "deploy": "npm run build && wrangler deploy",
@@ -17,7 +17,9 @@
     "design:check": "node ../../scripts/check-air-design.mjs",
     "design:inventory": "node ../../scripts/air-inventory.mjs",
     "design:portability": "node ../../scripts/check-air-portability.mjs",
-    "test:air-links": "node ../../scripts/test-air-links.mjs"
+    "test:air-links": "node ../../scripts/test-air-links.mjs",
+    "generate:og": "node ../../docs/air/render-social.mjs",
+    "check:og": "node ../../docs/air/check-social.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.5",

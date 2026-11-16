@@ -1,0 +1,206 @@
+{
+  "date": "2026-11-16",
+  "contract": "1.7.5",
+  "scope": "Social images and crawler-visible metadata; no fresh whole-app or physical-device certification",
+  "app": "cloakdrop",
+  "image": {
+    "path": "assets/social/og.png",
+    "url": "https://drop.cloakyard.com/og.png?v=air-1.7.5",
+    "width": 1200,
+    "height": 630,
+    "bytes": 50141,
+    "sha256": "9fc17ac8633920f5b4d8a333f12d4d28f9c48b31ade379271e02b8cddcf99c06"
+  },
+  "repeat": {
+    "app": "cloakdrop",
+    "exit": 0,
+    "identical": true,
+    "hashes": [
+      "9fc17ac8633920f5b4d8a333f12d4d28f9c48b31ade379271e02b8cddcf99c06",
+      "9fc17ac8633920f5b4d8a333f12d4d28f9c48b31ade379271e02b8cddcf99c06"
+    ]
+  },
+  "render": {
+    "name": "CloakDrop",
+    "size": [
+      1200,
+      630
+    ],
+    "artwork": ".drop-pixel, .drop-pixel-type",
+    "clip": {
+      "x": 544,
+      "y": 483,
+      "width": 352,
+      "height": 253
+    },
+    "layout": [
+      {
+        "element": "HEADER",
+        "x": 56,
+        "y": 48,
+        "width": 1088,
+        "height": 36,
+        "overflow": false
+      },
+      {
+        "element": "H1",
+        "x": 56,
+        "y": 207.890625,
+        "width": 544,
+        "height": 138.21875,
+        "overflow": false
+      },
+      {
+        "element": "P",
+        "x": 56,
+        "y": 374.109375,
+        "width": 543.40625,
+        "height": 66,
+        "overflow": false
+      },
+      {
+        "element": "IMG",
+        "x": 664,
+        "y": 160,
+        "width": 480,
+        "height": 328,
+        "overflow": false
+      },
+      {
+        "element": "FOOTER",
+        "x": 56,
+        "y": 544,
+        "width": 1088,
+        "height": 46,
+        "overflow": false
+      }
+    ],
+    "errors": []
+  },
+  "cardLayouts": [
+    {
+      "app": "cloakdrop",
+      "layout": "phone",
+      "theme": "light",
+      "width": 358,
+      "height": 187.9375,
+      "naturalWidth": 1200,
+      "naturalHeight": 630,
+      "overflow": false
+    },
+    {
+      "app": "cloakdrop",
+      "layout": "phone",
+      "theme": "dark",
+      "width": 358,
+      "height": 187.9375,
+      "naturalWidth": 1200,
+      "naturalHeight": 630,
+      "overflow": false
+    },
+    {
+      "app": "cloakdrop",
+      "layout": "tablet",
+      "theme": "light",
+      "width": 788,
+      "height": 413.6875,
+      "naturalWidth": 1200,
+      "naturalHeight": 630,
+      "overflow": false
+    },
+    {
+      "app": "cloakdrop",
+      "layout": "tablet",
+      "theme": "dark",
+      "width": 788,
+      "height": 413.6875,
+      "naturalWidth": 1200,
+      "naturalHeight": 630,
+      "overflow": false
+    },
+    {
+      "app": "cloakdrop",
+      "layout": "laptop",
+      "theme": "light",
+      "width": 1200,
+      "height": 630,
+      "naturalWidth": 1200,
+      "naturalHeight": 630,
+      "overflow": false
+    },
+    {
+      "app": "cloakdrop",
+      "layout": "laptop",
+      "theme": "dark",
+      "width": 1200,
+      "height": 630,
+      "naturalWidth": 1200,
+      "naturalHeight": 630,
+      "overflow": false
+    },
+    {
+      "app": "cloakdrop",
+      "layout": "desktop",
+      "theme": "light",
+      "width": 1200,
+      "height": 630,
+      "naturalWidth": 1200,
+      "naturalHeight": 630,
+      "overflow": false
+    },
+    {
+      "app": "cloakdrop",
+      "layout": "desktop",
+      "theme": "dark",
+      "width": 1200,
+      "height": 630,
+      "naturalWidth": 1200,
+      "naturalHeight": 630,
+      "overflow": false
+    }
+  ],
+  "crawlerPages": [
+    {
+      "app": "cloakdrop",
+      "file": "404.html",
+      "agent": "facebookexternalhit/1.1",
+      "status": 200
+    },
+    {
+      "app": "cloakdrop",
+      "file": "404.html",
+      "agent": "Twitterbot/1.0",
+      "status": 200
+    },
+    {
+      "app": "cloakdrop",
+      "file": "index.html",
+      "agent": "facebookexternalhit/1.1",
+      "status": 200
+    },
+    {
+      "app": "cloakdrop",
+      "file": "index.html",
+      "agent": "Twitterbot/1.0",
+      "status": 200
+    },
+    {
+      "app": "cloakdrop",
+      "file": "privacy/index.html",
+      "agent": "facebookexternalhit/1.1",
+      "status": 200
+    },
+    {
+      "app": "cloakdrop",
+      "file": "privacy/index.html",
+      "agent": "Twitterbot/1.0",
+      "status": 200
+    }
+  ],
+  "tests": {},
+  "build": "pass; includes check:og",
+  "airContractAndPortability": "pass",
+  "readmes": "8 READMEs; 118 local references",
+  "rollout": "Production receipt will be recorded on the rollout PR after merge",
+  "rawEvidence": "Family review evidence/og-2026-11-16"
+}
