@@ -15,7 +15,6 @@ assets/
 │   ├── favicon.png            # circular web mark, 180×180
 │   └── apple-touch-icon.png   # circular web mark, 512×512
 ├── social/
-│   ├── og.html                # source for the card — the thing you edit
 │   └── og.png                 # 1200×630 Open Graph / Twitter share card (rendered)
 └── screenshots/
     ├── hero.webp              # clean native window alpha for the website (primary)
@@ -87,16 +86,10 @@ is illustrative, not a measured throughput benchmark. See the
 
 ## The social card
 
-`social/og.png` is **rendered, not drawn** — edit [`social/og.html`](social/og.html) and run from the repository root:
-
-```bash
-scripts/make-og.sh            # headless Chrome screenshots og.html → og.png (1200×630)
-node scripts/sync-assets.mjs  # …then distribute it
-```
-
-The card imports the pinned `apps/site/src/styles/air.css` and composes the actual
-native screenshot with the same promise as the site. It contains no simulated
-transfer graphic. The original logo and native screenshot bytes remain unchanged.
+`social/og.png` is rendered from `artwork/social.json`, the portable Air template
+and the built landing pixel file. See [the shared workflow](../docs/air/social-previews.md).
+Build the website, run `scripts/make-og.sh`, then rebuild to distribute the new card.
+Native screenshots remain separate and unchanged.
 
 ## Adding a consumer
 
