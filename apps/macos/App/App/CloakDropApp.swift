@@ -5,6 +5,7 @@ import AppKit
 /// Part of the Cloakyard privacy-first suite. Everything runs on-device.
 @main
 struct CloakDropApp: App {
+    @StateObject private var updater = AppUpdater()
     /// Scene id for the single main window, shared with the menu bar's "Open CloakDrop".
     static let mainWindowID = "main"
 
@@ -73,7 +74,10 @@ struct CloakDropApp: App {
             }
             .frame(minWidth: 860, minHeight: 520)
         }
-        .commands { if let model { CloakDropCommands(model: model) } }
+        .commands {
+            if let model { CloakDropCommands(model: model) }
+            UpdateCommands(updater: updater)
+        }
 
         BrowserScene(model: model)
 
@@ -89,7 +93,7 @@ struct CloakDropApp: App {
 
         Settings {
             if let model {
-                SettingsView().environment(model)
+                SettingsView().environment(model).environmentObject(updater)
             } else {
                 startupFailure
             }

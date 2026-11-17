@@ -17,6 +17,7 @@ describe each shipped build.
 - [Contributing](../CONTRIBUTING.md): setup, checks, conventions and documentation maintenance.
 - [App architecture](../apps/macos/ARCHITECTURE.md): model, engine, persistence and UI contracts.
 - [Native verification guide](../.agents/skills/verify/SKILL.md): builds, GUI workflows and evidence.
+- [Signed updates](UPDATES.md): free-account builds, Sparkle keys, feeds and release packaging.
 - [Website guide](../apps/site/README.md): Astro development, visual checks and Cloudflare settings.
 - [Shared asset guide](../assets/README.md): canonical artwork and reproducible screenshots.
 - [ffmpeg vendor guide](../apps/macos/Vendor/ffmpeg/README.md) and
@@ -26,6 +27,7 @@ describe each shipped build.
 
 ## Release verification
 
+- [November 17, 2026: Sparkle, About updates and privacy](audits/2026-11-17-sparkle.md).
 - [November 17, 2026: Rule forms, batch input, inspector, sizing and Stats refinements](audits/2026-11-17-layout-refinements.md).
 - [November 17, 2026: Full-width download URL and native screen inventory](audits/2026-11-17-full-width-url-and-screens.md).
 - [November 17, 2026: Dependency currency, native controls and priority glass](audits/2026-11-17-dependencies-and-controls.md).

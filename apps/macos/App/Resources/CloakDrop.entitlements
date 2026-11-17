@@ -15,9 +15,16 @@
 	<!-- Convenience access to the standard Downloads folder. -->
 	<key>com.apple.security.files.downloads.read-write</key>
 	<true/>
-	<!-- NOTE: the App Group that the bundled Share extension shares with the app (see CaptureInbox) is
-	     added only in the Release variant (CloakDrop.Release.entitlements), because App Groups
-	     require provisioning with a development team. Keeping it out of the Debug/base entitlements
-	     preserves team-less ad-hoc builds for fast local iteration. -->
+	<!-- Provisioned App Groups are opt-in through project-release.yml. Default Debug and
+         Release builds stay team-less so a free Apple account can build and update them. -->
+    <!-- Ad-hoc signatures have no Team ID; allow the embedded Sparkle framework to load. -->
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
+    <!-- Sparkle installer status and installation, scoped to this app. -->
+    <key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
+    <array>
+        <string>$(PRODUCT_BUNDLE_IDENTIFIER)-spks</string>
+        <string>$(PRODUCT_BUNDLE_IDENTIFIER)-spki</string>
+    </array>
 </dict>
 </plist>

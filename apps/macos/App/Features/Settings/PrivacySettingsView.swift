@@ -100,12 +100,10 @@ struct PrivacySettingsView: View {
                     "HTTP downloads and speed tests use system, direct or manual proxy routing. The browser uses the system configuration unless you select a manual proxy, even when downloads use Direct mode. FTP and FTPS connect directly. The app's proxy setting is not passed to yt-dlp.",
                     "A speed-test provider (Cloudflare or Ookla), and only while a test you started is running.",
                     // swiftlint:disable:next line_length
-                    "The ad blocker's open-source blocklist, if you pick one in Browser settings — fetched only when you choose it or press Update Now, never on its own."
+                    "The ad blocker's open-source blocklist, if you pick one in Browser settings — fetched only when you choose it or press Update Now, never on its own.",
+                    "Update feeds and downloads, when you check for updates or enable automatic updates."
                 ],
-                outro: """
-                That is the complete list. There are no update pings, no analytics beacons, and no \
-                phone-home of any kind.
-                """
+                outro: "There are no analytics beacons or advertising calls."
             )
 
             bulletedSection(
@@ -113,12 +111,14 @@ struct PrivacySettingsView: View {
                 intro: "The CloakDrop project has no accounts or analytics service and receives none of the following from the app:",
                 bullets: [
                     "Names, email addresses, or account details — there are no accounts.",
-                    "IP addresses or device identifiers.",
+                    "Persistent device identifiers.",
                     "Usage analytics or behavioural tracking.",
                     "Crash reports or diagnostic data."
                 ],
                 outro: nil
             )
+
+            section("Updates", UpdatePrivacyCopy.details)
 
             section("Where your data lives", """
             Your download list, preferences, URLs, request data, per-download HTTP or FTP \
@@ -250,7 +250,7 @@ struct PrivacySettingsView: View {
         var components = DateComponents()
         components.year = 2026
         components.month = 11
-        components.day = 3
+        components.day = 17
         return Calendar(identifier: .gregorian).date(from: components) ?? Date()
     }()
 }

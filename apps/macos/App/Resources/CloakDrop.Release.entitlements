@@ -2,10 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Release entitlements = the Debug set (CloakDrop.entitlements) PLUS the App Group. App
-	     Groups require provisioning with a development team, so they live only here — the signed
-	     Release/App Store build — keeping Debug builds team-less. Keep the shared keys in sync
-	     with CloakDrop.entitlements. -->
+	<!-- Provisioned distribution via project-release.yml: sandbox permissions plus App Group
+         and Sparkle IPC; library validation remains enabled with a Developer ID identity. -->
 	<!-- App Sandbox: CloakDrop runs fully sandboxed. -->
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
@@ -25,5 +23,11 @@
 	<array>
 		<string>group.com.cloakyard.cloakdrop</string>
 	</array>
+    <!-- Sparkle installer status and installation, scoped to this app. -->
+    <key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
+    <array>
+        <string>$(PRODUCT_BUNDLE_IDENTIFIER)-spks</string>
+        <string>$(PRODUCT_BUNDLE_IDENTIFIER)-spki</string>
+    </array>
 </dict>
 </plist>

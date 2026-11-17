@@ -11636,71 +11636,6 @@
         }
       }
     },
-    "IP addresses or device identifiers.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "عناوين IP أو معرّفات الجهاز."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "IP-Adressen oder Gerätekennungen."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Direcciones IP o identificadores de dispositivo."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Adresses IP ou identifiants d’appareil."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "IP पते या डिवाइस पहचानकर्ता।"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "IP アドレスやデバイス識別子。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "IP 주소나 기기 식별자."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Endereços IP ou identificadores de dispositivo."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "IP-адреса или идентификаторы устройства."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "IP 地址或设备标识符。"
-          }
-        }
-      }
-    },
     "ISP’s Worst Nightmare": {
       "extractionState": "manual",
       "localizations": {
@@ -25416,71 +25351,6 @@
         }
       }
     },
-    "That is the complete list. There are no update pings, no analytics beacons, and no phone-home of any kind.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "هذه هي القائمة الكاملة. لا توجد نبضات تحديث، ولا منارات تحليلات، ولا أي إرسال خفي من أي نوع."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Das ist die vollständige Liste. Es gibt keine Update-Pings, keine Analyse-Beacons und kein Nachhausetelefonieren jeglicher Art."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esa es la lista completa. No hay pings de actualización, ni balizas de analítica, ni ningún tipo de comunicación con servidores propios."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "C’est la liste complète. Il n’y a aucun ping de mise à jour, aucune balise d’analyse, ni aucune communication cachée d’aucune sorte."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "यही पूरी सूची है। कोई अपडेट पिंग नहीं, कोई एनालिटिक्स बीकन नहीं, और किसी भी प्रकार का फ़ोन-होम नहीं।"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "これが全リストです。アップデートの ping も、分析用のビーコンも、いかなる形の外部送信もありません。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이것이 전체 목록입니다. 업데이트 핑도, 분석용 비콘도, 어떤 형태의 외부 전송도 없습니다."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Essa é a lista completa. Não há pings de atualização, nem beacons de análise, nem qualquer tipo de comunicação oculta."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Это полный список. Никаких пингов обновлений, аналитических маяков и какой-либо отправки данных на сторону."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "这就是完整清单。没有更新探测、没有分析信标，也没有任何形式的回传。"
-          }
-        }
-      }
-    },
     "The ad blocker's open-source blocklist, if you pick one in Browser settings — fetched only when you choose it or press Update Now, never on its own.": {
       "extractionState": "manual",
       "localizations": {
@@ -34962,6 +34832,591 @@
           "stringUnit": {
             "state": "translated",
             "value": "720p तक"
+          }
+        }
+      }
+    },
+    "Automatically check for updates": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar actualizaciones automáticamente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher automatiquement les mises à jour"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch nach Updates suchen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自动检查更新"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデートを自動的に確認"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "자동으로 업데이트 확인"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar atualizações automaticamente"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Автоматически проверять обновления"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التحقق من التحديثات تلقائيًا"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अपडेट की स्वचालित जाँच करें"
+          }
+        }
+      }
+    },
+    "Check for Updates…": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar actualizaciones…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher des mises à jour…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Updates suchen…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查更新…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデートを確認…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "업데이트 확인…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar atualizações…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверить обновления…"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التحقق من التحديثات…"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अपडेट की जाँच करें…"
+          }
+        }
+      }
+    },
+    "Checks contact this app’s Cloakyard website; downloads come from GitHub. Automatic updates are optional. No analytics or system profile is sent.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las comprobaciones contactan con el sitio de Cloakyard de esta app; las descargas provienen de GitHub. Las actualizaciones automáticas son opcionales. No se envían análisis ni perfiles del sistema."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les recherches contactent le site Cloakyard de cette app ; les téléchargements viennent de GitHub. Les mises à jour automatiques sont facultatives. Aucune donnée analytique ni aucun profil système n’est envoyé."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Suche kontaktiert die Cloakyard-Website dieser App; Downloads kommen von GitHub. Automatische Updates sind optional. Es werden weder Analysedaten noch Systemprofile gesendet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查更新时会联系此应用的 Cloakyard 网站，下载来自 GitHub。自动更新为可选功能，不发送分析数据或系统信息。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認時はこのアプリの Cloakyard サイトに接続し、GitHub からダウンロードします。自動更新は任意です。分析データやシステムプロファイルは送信しません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "업데이트 확인은 이 앱의 Cloakyard 웹사이트에 연결하며 다운로드는 GitHub에서 제공됩니다. 자동 업데이트는 선택 사항입니다. 분석 데이터나 시스템 프로필은 전송되지 않습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As verificações contatam o site Cloakyard deste app; os downloads vêm do GitHub. Atualizações automáticas são opcionais. Nenhum dado analítico ou perfil do sistema é enviado."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверки обращаются к сайту Cloakyard этого приложения; загрузки поступают с GitHub. Автообновления необязательны. Аналитика и профиль системы не отправляются."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تتصل عمليات التحقق بموقع Cloakyard لهذا التطبيق، وتأتي التنزيلات من GitHub. التحديثات التلقائية اختيارية. لا تُرسل تحليلات أو ملف تعريف النظام."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जाँच इस ऐप की Cloakyard वेबसाइट से संपर्क करती है; डाउनलोड GitHub से आते हैं। स्वचालित अपडेट वैकल्पिक हैं। कोई विश्लेषण डेटा या सिस्टम प्रोफ़ाइल नहीं भेजी जाती।"
+          }
+        }
+      }
+    },
+    "Download updates and install when quitting": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargar actualizaciones e instalarlas al salir"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Télécharger les mises à jour et les installer à la fermeture"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates laden und beim Beenden installieren"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载更新并在退出时安装"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデートをダウンロードし、終了時にインストール"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "업데이트를 다운로드하고 종료할 때 설치"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baixar atualizações e instalar ao encerrar"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Загружать обновления и устанавливать при выходе"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تنزيل التحديثات وتثبيتها عند الإنهاء"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अपडेट डाउनलोड करें और बंद करते समय इंस्टॉल करें"
+          }
+        }
+      }
+    },
+    "Persistent device identifiers.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identificadores persistentes del dispositivo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identifiants persistants de l’appareil."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dauerhafte Gerätekennungen."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "持久性设备标识符。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "永続的なデバイス識別子。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "영구 기기 식별자."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identificadores persistentes do dispositivo."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Постоянные идентификаторы устройства."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "معرّفات الأجهزة الدائمة."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्थायी डिवाइस पहचानकर्ता।"
+          }
+        }
+      }
+    },
+    "There are no analytics beacons or advertising calls.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay balizas de análisis ni solicitudes publicitarias."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune balise d’analyse ni requête publicitaire."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es gibt keine Analyse-Beacons oder Werbeanfragen."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有分析信标或广告请求。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分析ビーコンや広告リクエストはありません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "분석 비콘이나 광고 요청이 없습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não há rastreadores analíticos nem solicitações de publicidade."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет аналитических маячков или рекламных запросов."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا توجد إشارات تتبع تحليلية أو طلبات إعلانية."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कोई विश्लेषण बीकन या विज्ञापन अनुरोध नहीं हैं।"
+          }
+        }
+      }
+    },
+    "Update feeds and downloads, when you check for updates or enable automatic updates.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fuentes y descargas de actualizaciones, cuando buscas actualizaciones o activas las automáticas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flux et téléchargements de mises à jour, lorsque vous recherchez des mises à jour ou activez les mises à jour automatiques."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update-Feeds und Downloads, wenn du nach Updates suchst oder automatische Updates aktivierst."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当你检查更新或启用自动更新时，连接更新源并下载更新。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデートを確認するか自動更新を有効にした場合の、更新フィードとダウンロード。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "업데이트를 확인하거나 자동 업데이트를 활성화할 때 업데이트 피드와 다운로드에 연결합니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feeds e downloads de atualizações, quando você busca atualizações ou ativa as automáticas."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ленты и загрузки обновлений, когда вы проверяете обновления или включаете автообновления."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "خلاصات التحديثات وتنزيلاتها، عند التحقق من التحديثات أو تفعيل التحديثات التلقائية."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जब आप अपडेट की जाँच करते हैं या स्वचालित अपडेट सक्षम करते हैं, तब अपडेट फ़ीड और डाउनलोड।"
+          }
+        }
+      }
+    },
+    "Updates": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualizaciones"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mises à jour"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデート"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "업데이트"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atualizações"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обновления"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التحديثات"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अपडेट"
+          }
+        }
+      }
+    },
+    "Automatic update checks and downloads are off by default. Manage updates in About.\n\nChecks contact this app’s Cloakyard website; downloads come from GitHub Releases. These services receive ordinary request data, including your IP address and app/updater version.\n\nNo files, app activity, analytics or system profile are uploaded. Update preferences and the last check time stay on this Mac.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las comprobaciones y descargas automáticas están desactivadas de forma predeterminada. Gestiona las actualizaciones en Acerca de.\n\nLas comprobaciones contactan con el sitio Cloakyard de esta app; las descargas vienen de GitHub Releases. Estos servicios reciben datos habituales de las solicitudes, como tu dirección IP y la versión de la app o del actualizador.\n\nNo se suben archivos, actividad de la app, análisis ni perfiles del sistema. Las preferencias de actualización y la hora de la última comprobación se guardan en este Mac."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les recherches et téléchargements automatiques sont désactivés par défaut. Gérez les mises à jour dans À propos.\n\nLes recherches contactent le site Cloakyard de cette app ; les téléchargements viennent de GitHub Releases. Ces services reçoivent les données habituelles des requêtes, dont votre adresse IP et la version de l’app ou du programme de mise à jour.\n\nAucun fichier, activité de l’app, donnée analytique ou profil système n’est envoyé. Les préférences et l’heure de la dernière recherche restent sur ce Mac."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatische Update-Suche und Downloads sind standardmäßig deaktiviert. Verwalte Updates unter Über.\n\nDie Suche kontaktiert die Cloakyard-Website dieser App; Downloads kommen von GitHub Releases. Diese Dienste erhalten übliche Anfragedaten, darunter deine IP-Adresse und die App-/Updater-Version.\n\nDateien, App-Aktivitäten, Analysedaten und Systemprofile werden nicht hochgeladen. Update-Einstellungen und der Zeitpunkt der letzten Suche bleiben auf diesem Mac."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自动检查和下载更新默认关闭。请在“关于”中管理更新。\n\n检查更新时会联系此应用的 Cloakyard 网站，下载来自 GitHub Releases。这些服务会收到常规请求数据，包括你的 IP 地址及应用或更新程序版本。\n\n不会上传文件、应用活动、分析数据或系统信息。更新偏好和上次检查时间保存在此 Mac 上。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデートの自動確認とダウンロードは初期状態ではオフです。「このアプリについて」で管理できます。\n\n確認時はこのアプリの Cloakyard サイトに接続し、GitHub Releases からダウンロードします。これらのサービスには、IP アドレスやアプリ／更新プログラムのバージョンなど通常のリクエスト情報が送られます。\n\nファイル、アプリの操作履歴、分析データ、システムプロファイルはアップロードしません。更新設定と最終確認時刻はこの Mac に保存されます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "자동 업데이트 확인과 다운로드는 기본적으로 꺼져 있습니다. 정보에서 업데이트를 관리하세요.\n\n업데이트 확인은 이 앱의 Cloakyard 웹사이트에 연결하고 다운로드는 GitHub Releases에서 제공됩니다. 이러한 서비스에는 IP 주소와 앱 또는 업데이트 프로그램 버전 등 일반적인 요청 데이터가 전달됩니다.\n\n파일, 앱 활동, 분석 데이터나 시스템 프로필은 업로드되지 않습니다. 업데이트 설정과 마지막 확인 시간은 이 Mac에 보관됩니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As verificações e os downloads automáticos estão desativados por padrão. Gerencie as atualizações em Sobre.\n\nAs verificações contatam o site Cloakyard deste app; os downloads vêm do GitHub Releases. Esses serviços recebem dados comuns de solicitações, incluindo seu endereço IP e a versão do app ou atualizador.\n\nNenhum arquivo, atividade do app, dado analítico ou perfil do sistema é enviado. As preferências e o horário da última verificação ficam neste Mac."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Автоматические проверки и загрузки обновлений по умолчанию выключены. Управляйте ими в разделе «О программе».\n\nПроверки обращаются к сайту Cloakyard этого приложения; загрузки поступают с GitHub Releases. Эти сервисы получают обычные данные запросов, включая IP-адрес и версию приложения или средства обновления.\n\nФайлы, действия в приложении, аналитика и профиль системы не загружаются. Настройки обновлений и время последней проверки остаются на этом Mac."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التحقق التلقائي من التحديثات وتنزيلها معطلان افتراضيًا. يمكنك إدارة التحديثات في «حول».\n\nتتصل عمليات التحقق بموقع Cloakyard لهذا التطبيق، وتأتي التنزيلات من GitHub Releases. تتلقى هذه الخدمات بيانات الطلب المعتادة، بما فيها عنوان IP وإصدار التطبيق أو أداة التحديث.\n\nلا تُرفع ملفات أو أنشطة التطبيق أو تحليلات أو ملف تعريف النظام. تبقى تفضيلات التحديث ووقت آخر تحقق على هذا الـ Mac."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्वचालित अपडेट जाँच और डाउनलोड डिफ़ॉल्ट रूप से बंद हैं। अबाउट में अपडेट प्रबंधित करें।\n\nजाँच इस ऐप की Cloakyard वेबसाइट से संपर्क करती है; डाउनलोड GitHub Releases से आते हैं। इन सेवाओं को सामान्य अनुरोध डेटा मिलता है, जिसमें आपका IP पता और ऐप या अपडेटर का संस्करण शामिल है।\n\nफ़ाइलें, ऐप गतिविधि, विश्लेषण डेटा या सिस्टम प्रोफ़ाइल अपलोड नहीं की जाती। अपडेट प्राथमिकताएँ और पिछली जाँच का समय इसी Mac पर रहते हैं।"
           }
         }
       }

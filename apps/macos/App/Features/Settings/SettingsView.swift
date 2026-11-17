@@ -234,6 +234,8 @@ struct SettingsView: View {
                     .listRowInsets(EdgeInsets())
             }
 
+            UpdateSettingsSection()
+
             Section {
                 linkRow(symbol: "person.crop.circle", label: Text(verbatim: "github.com/sumitsahoo"), url: AppLinks.author)
                 linkRow(

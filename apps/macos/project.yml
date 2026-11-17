@@ -39,7 +39,14 @@ settings:
     # overwritten, or lands after CodeSign and invalidates the seal ("invalid Info.plist").
     CURRENT_PROJECT_VERSION: "1"
 
+  configs:
+    Release:
+      CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
+
 packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.10.1
   DownloaderCore:
     path: Packages/DownloaderCore
 
@@ -55,19 +62,26 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.cloakyard.cloakdrop
         PRODUCT_NAME: CloakDrop
-        # Debug uses the team-less entitlements (no App Group); Release adds the App Group below.
+        SPARKLE_PUBLIC_ED_KEY: "vAgqyayEpT3duq5Q9XBoY2DHa0yihhXia+0A1uXfgvQ="
+        SPARKLE_FEED_URL: https://drop.cloakyard.com/updates/appcast.xml
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
+        # Default builds use team-less entitlements. project-release.yml opts into provisioned App Groups.
         CODE_SIGN_ENTITLEMENTS: App/Resources/CloakDrop.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_PREVIEWS: YES
         COMBINE_HIDPI_IMAGES: YES
-        LD_RUNPATH_SEARCH_PATHS: "@executable_path/../Frameworks"
-      configs:
-        Release:
-          CODE_SIGN_ENTITLEMENTS: App/Resources/CloakDrop.Release.entitlements
     info:
       path: App/Resources/Info.plist
       properties:
+        SUFeedURL: "$(SPARKLE_FEED_URL)"
+        SUPublicEDKey: "$(SPARKLE_PUBLIC_ED_KEY)"
+        SUEnableAutomaticChecks: false
+        SUAutomaticallyUpdate: false
+        SUEnableSystemProfiling: false
+        SUVerifyUpdateBeforeExtraction: true
+        SURequireSignedFeed: true
+        SUEnableInstallerLauncherService: true
         CFBundleName: CloakDrop
         CFBundleDisplayName: CloakDrop
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
@@ -102,7 +116,12 @@ targets:
             NSSendTypes:
               - public.url
               - public.utf8-plain-text
+    postBuildScripts:
+      - name: Sign Sparkle helpers for an explicit signing identity
+        basedOnDependencyAnalysis: false
+        script: /bin/bash "${SRCROOT}/../../scripts/sign-sparkle.sh"
     dependencies:
+      - package: Sparkle
       # Native share-sheet extension ("Share ▸ CloakDrop"), embedded into Contents/PlugIns.
       - target: CloakDropShareExtension
         embed: true
@@ -171,11 +190,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.cloakyard.cloakdrop.ShareExtension
         PRODUCT_NAME: CloakDropShareExtension
         PRODUCT_MODULE_NAME: CloakDropShareExtension
-        # Debug: sandbox only (team-less). Release: adds the shared App Group (needs a team).
+        # Team-less in Debug and Release; project-release.yml enables the provisioned App Group.
         CODE_SIGN_ENTITLEMENTS: ShareExtension/CloakDropShareExtension.entitlements
-      configs:
-        Release:
-          CODE_SIGN_ENTITLEMENTS: ShareExtension/CloakDropShareExtension.Release.entitlements
     info:
       path: ShareExtension/Info.plist
       properties:

@@ -5,8 +5,7 @@
 	<!-- The share extension runs fully sandboxed, like the app. -->
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
-	<!-- NOTE: the App Group shared with the app is added only in the Release variant
-	     (CloakDropShareExtension.Release.entitlements), because App Groups require a development
-	     team. Debug builds stay team-less; the share inbox is exercised in Release. -->
+	<!-- project-release.yml opts into the provisioned App Group. The normal Debug and
+         Release configurations remain team-less; their Share inbox is unavailable. -->
 </dict>
 </plist>

@@ -93,11 +93,11 @@ available for its resume.
 
 ## Privacy
 
-There are no analytics, accounts, crash-report uploads, automatic update checks, or phone-home
-requests. Network activity is limited to work you initiate or configure: transfers and their
+There are no analytics, accounts or crash-report uploads. Sparkle update checks and downloads
+are manual unless you enable automatic updates in About settings. Network activity is limited to work you initiate or configure: transfers and their
 redirects/mirrors/retries; optional same-origin checksum discovery; submitted video-page resolution;
 browser pages and subresources; searches submitted on Return; configured proxies; manual speed
-tests; and blocklists you explicitly select or update. Scheduled transfers and automatic resume can
+tests; blocklists you explicitly select or update; and app updates you request or enable. Scheduled transfers and automatic resume can
 continue work configured earlier.
 
 Download records, settings, receipts and statistics stay on your Mac. The browser retains cookies
@@ -156,9 +156,9 @@ open build/Verify/Build/Products/Debug/CloakDrop.app
 ~~~
 
 `project.yml` is the source of truth; the generated `.xcodeproj` is ignored. Regenerate after
-changing project configuration or adding/removing source files. Debug is locally ad-hoc signed
-without a developer team. Release signing and App Group capabilities require an appropriate signing
-configuration; packaging alone does not notarize the app.
+changing project configuration or adding/removing source files. Debug and Release are locally ad-hoc
+signed without a developer team. The separate `project-release.yml` opts into provisioned App Groups
+for future Developer ID distribution; packaging alone does not notarize the app. See [updates](docs/UPDATES.md).
 
 In agent environments that inject `git safe.bareRepository=explicit`, prefix `xcodegen`,
 `xcodebuild` and `swift test` with `GIT_CONFIG_COUNT=0` so SwiftPM can resolve packages.
@@ -187,7 +187,8 @@ and manifest downloads still work, while extractor-based page resolution is unav
 | Page extraction | Optional [yt-dlp](apps/macos/Vendor/yt-dlp/README.md), used for metadata and media URLs |
 | Build | XcodeGen and SwiftLint; the independent website uses Astro |
 
-GRDB is the only third-party Swift dependency. The
+GRDB is the core’s only third-party Swift dependency. The app also embeds pinned Sparkle 2 for
+signed updates; see [update publishing](docs/UPDATES.md). The
 [dependency audit](docs/audits/2026-10-19-dependencies.md) records exact versions, upstream sources,
 verification and compatibility exceptions. The latest audited yt-dlp release still bundles some
 older runtime libraries, including OpenSSL with a newer security patch available. Updating the

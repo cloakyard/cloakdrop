@@ -344,7 +344,7 @@ Download** relocates accessible unfinished staging into a newly selected destina
 the transfer paused. If the original folder is inaccessible, restore access before moving or
 retrying. See the [moved-folder recovery guide](../../README.md#a-download-folder-moved).
 
-GRDB is the only third-party Swift package (7.12.0 in the tracked core `Package.resolved`). The core
+GRDB is the core’s only third-party Swift package (7.12.0 in the tracked core `Package.resolved`). The core
 package targets macOS 15+, while the SwiftUI app requires macOS 26 and the optional vendor helpers
 are built/prepared for arm64. `project.yml` is the source of truth for generated Xcode projects.
 The opt-in ffmpeg and yt-dlp fetch scripts pin source/archive versions and SHA-256 values, prepare and
@@ -458,3 +458,11 @@ boundaries. Further work includes disk/persistence fault injection, long-duratio
 removable-volume soak tests, wider proxy/FTPS coverage, per-resource media authentication, explicit
 extractor proxy routing, expired-URL refresh and live recording. No throughput benchmark gain or
 universal-site compatibility is claimed by the current tests.
+
+
+## App updates
+
+`AppUpdater` owns one app-lifetime `SPUStandardUpdaterController`. The SwiftUI command and
+About settings observe Sparkle’s KVO state. Update preferences stay in Sparkle’s local defaults,
+independent of core persistence. Ed25519 authenticates both feeds and archives, with profiling
+disabled and automatic checks/downloads off by default. See [update publishing](../../docs/UPDATES.md).
