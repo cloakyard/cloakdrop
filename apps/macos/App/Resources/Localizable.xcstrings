@@ -2276,67 +2276,67 @@
         }
       }
     },
-    "Add a new download (⌘N) — or a batch from the menu": {
+    "Download options": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "أضف تنزيلًا جديدًا (⌘N) — أو دفعة من القائمة"
+            "value": "خيارات التنزيل"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Neuen Download hinzufügen (⌘N) – oder einen Stapel aus dem Menü"
+            "value": "Downloadoptionen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Añade una nueva descarga (⌘N) o un lote desde el menú"
+            "value": "Opciones de descarga"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ajoutez un nouveau téléchargement (⌘N) — ou un lot depuis le menu"
+            "value": "Options de téléchargement"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "नया डाउनलोड जोड़ें (⌘N) — या मेनू से एक बैच"
+            "value": "डाउनलोड विकल्प"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "新規ダウンロードを追加(⌘N)— またはメニューから一括追加"
+            "value": "ダウンロードのオプション"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "새로운 다운로드를 추가하거나(⌘N) 메뉴에서 일괄 추가하세요"
+            "value": "다운로드 옵션"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Adicione um novo download (⌘N) — ou um lote pelo menu"
+            "value": "Opções de download"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Добавьте новую загрузку (⌘N) — или пакет из меню"
+            "value": "Параметры загрузки"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "新建下载 (⌘N) — 或从菜单批量添加"
+            "value": "下载选项"
           }
         }
       }

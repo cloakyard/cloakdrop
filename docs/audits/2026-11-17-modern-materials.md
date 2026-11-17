@@ -91,3 +91,47 @@ Ad-hoc Debug verification does not validate Release Share Extension/App Group
 handoff, Developer ID signing, notarization, macOS 26 rendering or native
 distribution. The source changes are separate from the previously deployed
 websites.
+
+## Toolbar spacing follow-up
+
+The Add primary-action menu packed the plus, divider and chevron into a narrow
+split control. The follow-up replaces it with a native Add button and a native
+Download options menu in the same toolbar group. Both use system toolbar sizing.
+Fixed `ToolbarSpacer` items separate Add/options, Browser/transport and Sort.
+Sort uses its existing up/down symbol without a second cramped chevron. The
+toolbar keeps system glass, focus, disabled states and overflow behavior; no
+custom button drawing or hard-coded control widths were added. This follows
+Apple's [toolbar grouping API](https://developer.apple.com/documentation/swiftui/toolbarspacer).
+
+The new Download options label/help is translated in all ten supported languages.
+The obsolete combined split-button help entry was removed, keeping the string
+catalog at 537 keys. No download or persistence behavior changed.
+
+| Check | Result |
+| --- | --- |
+| Normal window, about 1097 × 679 pt | Light/dark: consistent button spacing, distinct Add/options controls and clear group boundaries |
+| Compact window, about 864 × 572 pt | Light/dark: all toolbar controls visible with search collapsed; no clipped icons |
+| Expanded compact search | Light/dark: readable focus ring/query and no-results state; secondary commands move to native overflow |
+| Overflow | Disabled Resume All remains disabled; Sort and its choices are accessible; Name selection works |
+| Add and options | Plus opens New Download; dropdown presents Add Download/Grab Links/Import Playlist; keyboard Down/Return opens Add; Grab Links opens correctly |
+| Keyboard/navigation | ⌘N opens New Download; Escape cancels sheets/menus; Browser opens its blank start page and closes normally |
+| Sort/search cleanup | Name and Date Added selection exercised; original Date Added restored; search cleared |
+| Build and static checks | Warning-free arm64 Debug build, strict SwiftLint, all localizations and `git diff --check` pass |
+
+Verification used the existing `--hero-fixture` and `--verify-dark-appearance`
+launch arguments. No live transfer was started or personal history modified.
+Pause/Resume operation logic was not rerun; the fixture verifies their enabled
+and disabled presentation. Import Playlist is disabled in this fixture because
+the extractor capability is unavailable. Spoken VoiceOver, macOS 26 rendering
+and every localized toolbar were not rechecked. The original window size and
+system-driven appearance were restored; the updated sample preview remains open.
+
+The following are toolbar-only crops of native screenshots, with no redrawing:
+
+![Normal toolbar in light appearance](2026-11-17-materials/toolbar-light.jpg)
+
+![Normal toolbar in dark appearance](2026-11-17-materials/toolbar-dark.jpg)
+
+![Compact toolbar in light appearance](2026-11-17-materials/toolbar-compact-light.jpg)
+
+![Expanded search and overflow in dark appearance](2026-11-17-materials/toolbar-compact-search-dark.jpg)

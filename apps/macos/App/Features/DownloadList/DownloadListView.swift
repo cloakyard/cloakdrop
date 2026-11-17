@@ -188,21 +188,31 @@ struct DownloadListView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .primaryAction) {
+        // Separate native controls give Add and its menu the same comfortable hit area
+        // as the other toolbar actions, without the compressed primary-action split menu.
+        ToolbarItemGroup(placement: .primaryAction) {
+            Button {
+                model.isAddSheetPresented = true
+            } label: {
+                Label("Add Download", systemImage: "plus")
+            }
+            .help("Add Download…")
+
             Menu {
                 Button("Add Download…") { model.isAddSheetPresented = true }
                 Button("Grab Links…") { model.isBatchSheetPresented = true }
                 Button("Import Playlist…") { model.isPlaylistSheetPresented = true }
                     .disabled(!model.canExtractFromPages)
             } label: {
-                Label("Add Download", systemImage: "plus")
-            } primaryAction: {
-                model.isAddSheetPresented = true
+                Label("Download options", systemImage: "chevron.down")
             }
-            .help("Add a new download (⌘N) — or a batch from the menu")
+            .menuIndicator(.hidden)
+            .help("Download options")
         }
 
-        ToolbarItem {
+        ToolbarSpacer(.fixed, placement: .primaryAction)
+
+        ToolbarItem(placement: .primaryAction) {
             Button {
                 openWindow(id: BrowserScene.windowID)
             } label: {
@@ -211,7 +221,7 @@ struct DownloadListView: View {
             .help("Open the built-in browser — browse any site and grab its media (⇧⌘B)")
         }
 
-        ToolbarItemGroup {
+        ToolbarItemGroup(placement: .primaryAction) {
             Button {
                 model.pauseAll()
             } label: {
@@ -227,7 +237,11 @@ struct DownloadListView: View {
             }
             .help("Resume all paused downloads")
             .disabled(!hasResumable)
+        }
 
+        ToolbarSpacer(.fixed, placement: .primaryAction)
+
+        ToolbarItem(placement: .primaryAction) {
             Menu {
                 Picker("Sort By", selection: Binding(get: { model.sort }, set: { model.sort = $0 })) {
                     ForEach(DownloadSort.allCases) { Text($0.label).tag($0) }
@@ -235,6 +249,7 @@ struct DownloadListView: View {
             } label: {
                 Label("Sort", systemImage: "arrow.up.arrow.down")
             }
+            .menuIndicator(.hidden)
             .help("Sort the list")
         }
     }
