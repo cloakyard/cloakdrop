@@ -201,13 +201,13 @@ struct MediaPickerSheet: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            HStack {
+            SheetActions {
                 Spacer()
                 Button("Cancel", role: .cancel) { model.cancelMediaSelection() }
                     .keyboardShortcut(.cancelAction)
                 Button("Download") { confirm() }
                     .keyboardShortcut(.defaultAction)
-                    .buttonStyle(.borderedProminent)
+                    .modifier(SheetActionStyle(prominent: true))
                     .disabled(!audioOnly && chosenVariantID.isEmpty)
             }
             .padding(.top, 2)

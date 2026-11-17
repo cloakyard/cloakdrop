@@ -197,7 +197,7 @@ struct AddDownloadSheet: View {
 
             Divider()
 
-            HStack {
+            SheetActions {
                 Button("Cancel", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
                 Spacer()
@@ -206,6 +206,7 @@ struct AddDownloadSheet: View {
                 // if the toggle was left on from a previous file URL in the same sheet.
                 Button(scheduleEnabled && detectedVideoPage == nil ? "Schedule" : "Add Download") { add() }
                     .keyboardShortcut(.defaultAction)
+                    .modifier(SheetActionStyle(prominent: true))
                     .disabled(!canAdd)
             }
             .padding()

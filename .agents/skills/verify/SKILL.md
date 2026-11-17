@@ -59,6 +59,12 @@ For screenshots without transfers or personal history, `--hero-fixture` provides
 read-only example catalog. See [the asset guide](../../../assets/README.md) for capture
 dimensions and renditions. The fixture does not establish actual throughput or transfer behavior.
 
+With `--hero-fixture`, add `--verify-chrome` for a sample clipboard suggestion and
+extraction-error toast, `--verify-resolving` for the reading-video status, or
+`--verify-repair` for the repair sheet. These flags affect only the in-memory
+fixture; they neither read the clipboard nor initiate media work. Use Cancel or
+Escape to inspect sheets without executing an operation.
+
 ## Verify real transfers when behavior changes
 
 Prefer a local fixture server and unique filenames. For transfer/persistence changes, download a

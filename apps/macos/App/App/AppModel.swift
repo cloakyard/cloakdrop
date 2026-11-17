@@ -229,6 +229,7 @@ final class AppModel {
         // would replace it with an empty in-memory catalog and start ambient services.
         model.didBootstrap = true
         model.isNetworkReady = true
+        model.applyChromeFixture()
         return model
     }
     #endif

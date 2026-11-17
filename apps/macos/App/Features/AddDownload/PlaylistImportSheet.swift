@@ -40,12 +40,13 @@ struct PlaylistImportSheet: View {
             if work != nil { ProgressView("Preparing playlist…").controlSize(.small) }
             options.disabled(work != nil)
             Divider()
-            HStack {
+            SheetActions {
                 Button("Cancel", role: .cancel) { work?.cancel(); dismiss() }
                     .keyboardShortcut(.cancelAction)
                 Spacer()
                 Button("Add Selected") { addSelected() }
                     .keyboardShortcut(.defaultAction)
+                    .modifier(SheetActionStyle(prominent: true))
                     .disabled(work != nil || playlist == nil || selectedIDs.isEmpty)
             }
         }

@@ -108,7 +108,7 @@ struct BatchAddSheet: View {
 
             Divider()
 
-            HStack {
+            SheetActions {
                 Button("Cancel", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
                 Spacer()
@@ -117,6 +117,7 @@ struct BatchAddSheet: View {
                     dismiss()
                 }
                 .keyboardShortcut(.defaultAction)
+                .modifier(SheetActionStyle(prominent: true))
                 .disabled(selectedCount == 0)
             }
             .padding()

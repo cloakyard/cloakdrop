@@ -213,12 +213,13 @@ struct RuleEditorView: View {
 
             Divider()
 
-            HStack {
+            SheetActions {
                 Button("Cancel", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
                 Spacer()
                 Button("Save") { save() }
                     .keyboardShortcut(.defaultAction)
+                    .modifier(SheetActionStyle(prominent: true))
                     .disabled(!canSave)
             }
             .padding()

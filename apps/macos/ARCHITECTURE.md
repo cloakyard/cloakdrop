@@ -428,6 +428,21 @@ Group** container (`CaptureInbox`) and posts a payload-free Darwin notification;
 inbox on that signal and on launch. App Groups require a team, so the shared-inbox path lives only
 in the **Release** entitlements; Debug builds fall back to the `cloakdrop://` deep link.
 
+## Native materials
+
+`Shared/NativeChrome.swift` keeps custom floating chrome and sheet actions consistent.
+`FloatingChrome` uses regular Liquid Glass for the clipboard suggestion and status toast;
+Reduce Transparency or increased contrast uses an opaque semantic surface with a visible edge.
+`SheetActions` groups the seven custom dialog footers, with large capsule `.glass` secondary
+actions and `.glassProminent` primary actions. The same accessibility preferences select native
+bordered buttons. Button roles, shortcuts, disabled states and task-specific placement stay at
+the call sites. `SheetHeader` uses the sheet's own surface instead of another material band.
+
+Keep glass out of list rows, forms and scrolling content. Standard toolbars, menus, popovers
+and alerts retain their system presentation. The toast and clipboard transitions respect Reduce
+Motion. See the [November 17 material verification](../../docs/audits/2026-11-17-modern-materials.md)
+for rendered coverage and untested states.
+
 ## Verification and remaining work
 
 The 6 September 2026 coordinated core run passed **593 tests in 83 suites**: 14 persistence,

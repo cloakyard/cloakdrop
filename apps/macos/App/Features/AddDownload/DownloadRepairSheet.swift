@@ -32,13 +32,14 @@ struct DownloadRepairSheet: View {
             if let message {
                 Text(message).font(.callout).foregroundStyle(.secondary)
             }
-            HStack {
+            SheetActions {
                 Button("Cancel", role: .cancel) { work?.cancel(); dismiss() }
                     .keyboardShortcut(.cancelAction)
                 Spacer()
                 if work != nil { ProgressView().controlSize(.small) }
                 Button(needsRestart ? "Restart Download" : "Repair and Resume") { repair() }
                     .keyboardShortcut(.defaultAction)
+                    .modifier(SheetActionStyle(prominent: true))
                     .disabled(work != nil || AppModel.normalizedURL(address) == nil)
             }
         }

@@ -6,6 +6,7 @@ import DownloadModels
 struct DownloadListView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// Window key/active state — selection loses its accent emphasis when the window resigns.
     @Environment(\.controlActiveState) private var controlActiveState
     /// Whether the list itself owns keyboard focus; with an inactive window or focus elsewhere
@@ -116,11 +117,10 @@ struct DownloadListView: View {
             }
             .accessibilityElement(children: .contain)
             .padding(10)
-            .background(.regularMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: Design.cardRadius))
+            .modifier(FloatingChrome(shape: RoundedRectangle(cornerRadius: Design.cardRadius)))
             .padding(.horizontal, 10)
             .padding(.top, 6)
-            .transition(.move(edge: .top).combined(with: .opacity))
+            .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
         }
     }
 

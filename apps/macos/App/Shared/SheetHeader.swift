@@ -1,9 +1,7 @@
 import SwiftUI
 
-/// A compact, consistent title row for sheets: a tinted glyph and a title, over a faint
-/// material so it reads as a header band above the form. An optional subtitle (host, context)
-/// and trailing accessory keep sheet-specific details inside the shared chrome instead of each
-/// sheet rolling its own header.
+/// A compact native heading on the sheet's own surface. Glass belongs to the sheet's
+/// actions, not another full-width material band behind its title and context.
 struct SheetHeader<Accessory: View>: View {
     let title: LocalizedStringKey
     let systemImage: String
@@ -31,6 +29,7 @@ struct SheetHeader<Accessory: View>: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text(title)
                     .font(.headline)
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                 if let subtitle {
                     subtitle
@@ -45,6 +44,5 @@ struct SheetHeader<Accessory: View>: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 14)
-        .background(.regularMaterial)
     }
 }
