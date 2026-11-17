@@ -29,6 +29,7 @@ struct RulesSettingsView: View {
             Divider()
             HStack(spacing: 8) {
                 Button { addRule() } label: { Label("Add Rule", systemImage: "plus") }
+                    .modifier(ChromeActionStyle())
                 Spacer()
                 Text("Rules apply top to bottom — the first match wins.")
                     .font(.caption)

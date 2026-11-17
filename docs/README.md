@@ -26,6 +26,7 @@ describe each shipped build.
 
 ## Release verification
 
+- [November 17, 2026: Full-width download URL and native screen inventory](audits/2026-11-17-full-width-url-and-screens.md).
 - [November 17, 2026: Dependency currency, native controls and priority glass](audits/2026-11-17-dependencies-and-controls.md).
 - [November 17, 2026: Native Liquid Glass, floating chrome and toolbar spacing](audits/2026-11-17-modern-materials.md) (source verification; no new native release).
 - [November 3, 2026: Full regression round, concurrency fixes and dependency refresh](audits/2026-11-03-full-audit.md).

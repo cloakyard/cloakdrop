@@ -18,9 +18,10 @@ struct FloatingChrome<Surface: InsettableShape>: ViewModifier {
     }
 }
 
-/// The same action hierarchy in every sheet, with system focus, disabled and pressed states.
-struct SheetActionStyle: ViewModifier {
+/// System actions in fixed or floating chrome. Content rows use ordinary bordered controls.
+struct ChromeActionStyle: ViewModifier {
     var prominent = false
+    var controlSize: ControlSize = .regular
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var contrast
 
@@ -32,8 +33,17 @@ struct SheetActionStyle: ViewModifier {
                 if prominent { content.buttonStyle(.glassProminent) } else { content.buttonStyle(.glass) }
             }
         }
-        .controlSize(.large)
+        .controlSize(controlSize)
         .buttonBorderShape(.capsule)
+    }
+}
+
+/// The same action hierarchy in every sheet, with system focus, disabled and pressed states.
+struct SheetActionStyle: ViewModifier {
+    var prominent = false
+
+    func body(content: Content) -> some View {
+        content.modifier(ChromeActionStyle(prominent: prominent, controlSize: .large))
     }
 }
 

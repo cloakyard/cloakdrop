@@ -179,6 +179,7 @@ struct RuleEditorView: View {
                             .buttonStyle(.borderless)
                             .foregroundStyle(.secondary)
                             .help("Clear folder")
+                            .accessibilityLabel("Clear folder")
                         }
                     }
                     Picker("Add to queue", selection: $assignedQueueID) {
@@ -237,6 +238,7 @@ struct RuleEditorView: View {
                 }
             }
             .labelsHidden()
+            .accessibilityLabel("When")
             // Size to the longest label so no locale's condition names get clipped.
             .fixedSize()
 
@@ -248,6 +250,7 @@ struct RuleEditorView: View {
                     }
                 }
                 .labelsHidden()
+                .accessibilityLabel("Category")
             case .largerThan, .smallerThan:
                 TextField("100", value: condition.sizeMB, format: .number)
                     .labelsHidden()
@@ -271,6 +274,7 @@ struct RuleEditorView: View {
             .buttonStyle(.borderless)
             .foregroundStyle(.secondary)
             .help("Remove condition")
+            .accessibilityLabel("Remove condition")
         }
     }
 

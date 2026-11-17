@@ -89,12 +89,22 @@ struct AddDownloadSheet: View {
 
             Form {
                 Section("Source") {
-                    TextField("URL", text: $urlString, prompt: Text("https://example.com/file.zip"))
-                        .borderedTextField()
-                        .onChange(of: urlString) { _, _ in
-                            deriveFileNameIfNeeded()
-                            if let url = resolvedURL { autofillSavedCredentials(for: url) }
-                        }
+                    // A primary URL needs the whole row, rather than the grouped Form's
+                    // trailing value column. Keep a visible label above the native field.
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("URL")
+                            .accessibilityHidden(true)
+                        TextField("URL", text: $urlString, prompt: Text("https://example.com/file.zip"))
+                            .labelsHidden()
+                            .borderedTextField()
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity)
+                            .onChange(of: urlString) { _, _ in
+                                deriveFileNameIfNeeded()
+                                if let url = resolvedURL { autofillSavedCredentials(for: url) }
+                            }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     if let site = detectedVideoPage {
                         videoPageRow(site)
                     } else {
