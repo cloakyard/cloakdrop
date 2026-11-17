@@ -94,6 +94,7 @@ struct CloakDropApp: App {
                 startupFailure
             }
         }
+        .defaultSize(width: 640, height: 600)
     }
 }
 

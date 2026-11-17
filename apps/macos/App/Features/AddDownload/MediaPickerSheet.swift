@@ -86,7 +86,8 @@ struct MediaPickerSheet: View {
             Divider()
             footer
         }
-        .frame(width: 440, height: offersOutputFormat ? 550 : 460)
+        .modifier(ResizableSheetLayout(width: 440, height: offersOutputFormat ? 550 : 460,
+                                       minimumHeight: offersOutputFormat ? 500 : 420))
         .onAppear {
             audioOnly = isAudioSource
             outputFormat = selection.compatibleMP4Stream == nil ? .original : .compatibleMP4

@@ -15,7 +15,8 @@ struct DownloadRepairSheet: View {
             SheetHeader(title: "Repair Download", systemImage: "arrow.trianglehead.2.clockwise.rotate.90")
             content
         }
-        .frame(width: 480)
+        .frame(minWidth: 480, idealWidth: 480, maxWidth: .infinity)
+        .presentationSizing(.fitted)
         .interactiveDismissDisabled(work != nil)
         .onDisappear { work?.cancel() }
     }

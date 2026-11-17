@@ -1,5 +1,19 @@
 import SwiftUI
 
+/// Start at a useful size while letting native macOS sheets expand for longer content.
+struct ResizableSheetLayout: ViewModifier {
+    let width: CGFloat
+    let height: CGFloat
+    let minimumHeight: CGFloat
+
+    func body(content: Content) -> some View {
+        content
+            .frame(minWidth: width, idealWidth: width, maxWidth: .infinity,
+                   minHeight: minimumHeight, idealHeight: height, maxHeight: .infinity)
+            .presentationSizing(.fitted)
+    }
+}
+
 /// Glass is reserved for floating chrome. Accessibility preferences get an opaque,
 /// semantic surface with a visible boundary instead of layered blur and custom shadows.
 struct FloatingChrome<Surface: InsettableShape>: ViewModifier {

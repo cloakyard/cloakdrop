@@ -45,13 +45,14 @@ struct InspectorView: View {
                     Button("Repair Download…") { model.pendingDownloadRepair = download }
                 }
                 overview(download)
-                if download.segments.count > 1 {
-                    segments(download)
-                }
+                detailsSection(download)
                 if let plan = download.mediaPlan {
                     mediaSection(plan)
                 }
-                detailsSection(download)
+                if download.segments.count > 1 {
+                    InspectorSegmentsView(download: download)
+                        .id(download.id)
+                }
                 if download.checksum != nil || download.signature != nil {
                     integritySection(download)
                 }
@@ -218,30 +219,6 @@ struct InspectorView: View {
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
         .background(Design.cardFill, in: RoundedRectangle(cornerRadius: Design.cardRadius))
-    }
-
-    // MARK: Segments (multi-connection transfers)
-
-    private func segments(_ download: Download) -> some View {
-        section("Segments (\(download.segments.count))", "rectangle.split.3x1") {
-            ForEach(Array(download.segments.enumerated()), id: \.offset) { index, segment in
-                let live = model.progress[download.id]?.value.segmentBytes[segment.id] ?? segment.downloadedBytes
-                let fraction = segment.length > 0 ? min(1, Double(live) / Double(segment.length)) : 0
-                HStack(spacing: 8) {
-                    Text("#\(index + 1)")
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
-                        .frame(width: 28, alignment: .leading)
-                    CapsuleProgressBar(fraction: fraction, tint: download.status.tint)
-                    Text(Format.bytes(segment.length))
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
-                        .frame(width: 64, alignment: .trailing)
-                }
-                // One VoiceOver stop per segment ("#1, 45%, 2 MB") instead of three.
-                .accessibilityElement(children: .combine)
-            }
-        }
     }
 
     // MARK: Media (HLS/DASH grabs)

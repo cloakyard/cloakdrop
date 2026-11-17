@@ -222,7 +222,7 @@ struct AddDownloadSheet: View {
             }
             .padding()
         }
-        .frame(width: 520, height: 600)
+        .modifier(ResizableSheetLayout(width: 520, height: 600, minimumHeight: 420))
         .onAppear(perform: prefill)
         .task(id: inspectionInput) { await inspectLink(inspectionInput) }
     }

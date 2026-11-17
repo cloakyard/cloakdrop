@@ -23,9 +23,9 @@ struct SettingsView: View {
             Tab("Privacy", systemImage: "lock.shield", value: SettingsTab.privacy) { PrivacySettingsView() }
             Tab("About", systemImage: "info.circle", value: SettingsTab.about) { about }
         }
-        // Wide enough for all eight tab buttons (narrower overflows into a "»" menu) and tall
-        // enough that the Speed Test dials fit without scrolling.
-        .frame(width: 640, height: 600)
+        // Keep all eight tabs visible, while allowing longer forms to use a larger window.
+        .frame(minWidth: 640, idealWidth: 640, maxWidth: .infinity,
+               minHeight: 480, idealHeight: 600, maxHeight: .infinity)
         .disabled(!model.isNetworkReady)
         // Settings always reopens on the first page (General); About is reached via its own
         // "About CloakDrop" command, which sets the tab just before opening the window. Reset

@@ -31,6 +31,8 @@ struct BatchAddSheet: View {
     @State private var parseTask: Task<Void, Never>?
     @State private var destinationURL = AppEnvironment.defaultDownloadsDirectory()
     @State private var destinationBookmark: Data?
+    @State private var isPageSourceExpanded = false
+    @FocusState private var linksFocused: Bool
 
     private var filteredIndices: [Int] {
         let needle = filter.trimmingCharacters(in: .whitespaces).lowercased()
@@ -43,68 +45,11 @@ struct BatchAddSheet: View {
         VStack(spacing: 0) {
             SheetHeader(title: "Grab Links", systemImage: "square.stack.3d.down.right.fill")
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Paste links — one per line. Patterns like `file[01-50].zip` expand automatically.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-
-                HStack(spacing: 8) {
-                    TextField("Page URL", text: $pageURLString, prompt: Text("Grab all links from a page…"))
-                        .borderedTextField()
-                        .onSubmit { fetchFromPage() }
-                    Button {
-                        fetchFromPage()
-                    } label: {
-                        if isFetchingPage {
-                            ProgressView().controlSize(.small)
-                        } else {
-                            Label("Fetch Links", systemImage: "arrow.down.doc")
-                        }
-                    }
-                    .disabled(isFetchingPage || AppModel.normalizedURL(pageURLString) == nil)
-                }
-                if let pageFetchNote {
-                    Text(pageFetchNote).font(.caption).foregroundStyle(.secondary)
-                }
-
-                TextEditor(text: $text)
-                    .font(.callout.monospaced())
-                    .frame(minHeight: 90)
-                    .overlay(RoundedRectangle(cornerRadius: Design.inlineRadius).strokeBorder(.separator))
-                    .onChange(of: text) { _, newValue in reparse(newValue) }
-
-                if !links.isEmpty {
-                    grabbedList
-                }
-
-                HStack {
-                    Button {
-                        importTextFile()
-                    } label: {
-                        Label("Import .txt…", systemImage: "doc.badge.plus")
-                    }
-                    Spacer()
-                    if expiredCount > 0 {
-                        Label("\(expiredCount) expired", systemImage: "exclamationmark.triangle.fill")
-                            .font(.callout)
-                            .foregroundStyle(.red)
-                            .contentTransition(.numericText())
-                        Text(verbatim: "·").foregroundStyle(.secondary)
-                    }
-                    Text("\(selectedCount) selected")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .contentTransition(.numericText())
-                }
-
-                HStack(spacing: 6) {
-                    Image(systemName: "folder").foregroundStyle(.secondary)
-                    Text(destinationURL.path).lineLimit(1).truncationMode(.middle).foregroundStyle(.secondary)
-                    Spacer()
-                    Button("Choose…") { chooseDestination() }
-                }
+            ScrollView {
+                batchContent
+                    .padding(20)
             }
-            .padding(20)
+            .scrollBounceBehavior(.basedOnSize)
 
             Divider()
 
@@ -122,12 +67,93 @@ struct BatchAddSheet: View {
             }
             .padding()
         }
-        .frame(width: 580, height: 600)
+        .modifier(ResizableSheetLayout(width: 580, height: 600, minimumHeight: 440))
+        .defaultFocus($linksFocused, true)
         .onDisappear {
             pageFetchTask?.cancel()
             fileImportTask?.cancel()
             parseTask?.cancel()
         }
+    }
+
+    private var batchContent: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Paste links")
+                .font(.headline)
+                .accessibilityAddTraits(.isHeader)
+            Text("Paste links — one per line. Patterns like `file[01-50].zip` expand automatically.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+
+            TextEditor(text: $text)
+                .font(.callout.monospaced())
+                .frame(height: 110)
+                .overlay(RoundedRectangle(cornerRadius: Design.inlineRadius).strokeBorder(.separator))
+                .accessibilityLabel("Paste links")
+                .focused($linksFocused)
+                .onChange(of: text) { _, newValue in reparse(newValue) }
+
+            DisclosureGroup("Fetch Links", isExpanded: $isPageSourceExpanded) {
+                pageSource
+            }
+
+            if !links.isEmpty {
+                grabbedList
+            }
+
+            HStack {
+                Button {
+                    importTextFile()
+                } label: {
+                    Label("Import .txt…", systemImage: "doc.badge.plus")
+                }
+                Spacer()
+                if expiredCount > 0 {
+                    Label("\(expiredCount) expired", systemImage: "exclamationmark.triangle.fill")
+                        .font(.callout)
+                        .foregroundStyle(.red)
+                        .contentTransition(.numericText())
+                    Text(verbatim: "·").foregroundStyle(.secondary)
+                }
+                Text("\(selectedCount) selected")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .contentTransition(.numericText())
+            }
+
+            HStack(spacing: 6) {
+                Image(systemName: "folder").foregroundStyle(.secondary)
+                Text(destinationURL.path).lineLimit(1).truncationMode(.middle).foregroundStyle(.secondary)
+                Spacer()
+                Button("Choose…") { chooseDestination() }
+            }
+        }
+    }
+
+    private var pageSource: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                TextField("Page URL", text: $pageURLString, prompt: Text("Grab all links from a page…"))
+                    .borderedTextField()
+                    .accessibilityLabel("Page URL")
+                    .onSubmit { fetchFromPage() }
+                Button {
+                    fetchFromPage()
+                } label: {
+                    if isFetchingPage {
+                        ProgressView().controlSize(.small)
+                    } else {
+                        Label("Fetch Links", systemImage: "arrow.down.doc")
+                    }
+                }
+                .accessibilityLabel("Fetch Links")
+                .disabled(isFetchingPage || AppModel.normalizedURL(pageURLString) == nil)
+            }
+            if let pageFetchNote {
+                Text(pageFetchNote).font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .padding(.top, 6)
     }
 
     private var grabbedList: some View {
@@ -162,7 +188,8 @@ struct BatchAddSheet: View {
                     .toggleStyle(.checkbox)
                 }
             }
-            .frame(minHeight: 200)
+            // Bound the native results scroller inside the form's outer scroll view.
+            .frame(height: 240)
         }
     }
 

@@ -20,7 +20,8 @@ struct PlaylistImportSheet: View {
             SheetHeader(title: "Import Playlist", systemImage: "list.bullet.rectangle")
             content
         }
-        .frame(width: 570)
+        .frame(minWidth: 570, idealWidth: 570, maxWidth: .infinity)
+        .presentationSizing(.fitted)
         .interactiveDismissDisabled(work != nil)
         .onDisappear { work?.cancel() }
     }
@@ -74,7 +75,7 @@ struct PlaylistImportSheet: View {
                 }
                 .disabled(!canSelect(entry))
             }
-            .frame(height: 220)
+            .frame(minHeight: 160, idealHeight: 220, maxHeight: .infinity)
             .listStyle(.inset)
             if playlist.hasMore { Text("Only the first 100 items are shown.").font(.caption).foregroundStyle(.secondary) }
         }
