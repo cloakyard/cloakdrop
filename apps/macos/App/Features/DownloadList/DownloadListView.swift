@@ -70,18 +70,26 @@ struct DownloadListView: View {
     /// The transient capture/clipboard banners, stacked. Floated over the empty state (keeping the
     /// pane's full height) or inset above the list (pushing rows down) — see `body`.
     private var banners: some View {
-        VStack(spacing: 6) {
-            if let priority = model.settings.downloadPriority,
-               let download = model.downloads.first(where: { $0.id == priority.downloadID }) {
-                HStack {
-                    Label("Finishing first: \(download.fileName)", systemImage: "bolt.fill")
-                        .font(.callout).lineLimit(1).truncationMode(.middle)
-                    Spacer()
-                    Button("Stop Prioritizing") { model.stopFinishingFirst() }
+        GlassEffectContainer(spacing: 6) {
+            VStack(spacing: 6) {
+                if let priority = model.settings.downloadPriority,
+                   let download = model.downloads.first(where: { $0.id == priority.downloadID }) {
+                    HStack {
+                        Label("Finishing first: \(download.fileName)", systemImage: "bolt.fill")
+                            .font(.callout)
+                            .lineLimit(2)
+                            .truncationMode(.middle)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer()
+                        Button("Stop Prioritizing") { model.stopFinishingFirst() }
+                    }
+                    .padding(10)
+                    .modifier(FloatingChrome(shape: RoundedRectangle(cornerRadius: Design.cardRadius)))
+                    .padding(.horizontal, 10)
+                    .padding(.top, 6)
                 }
-                .padding(10)
+                clipboardBanner
             }
-            clipboardBanner
         }
     }
 

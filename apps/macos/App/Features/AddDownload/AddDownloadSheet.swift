@@ -8,6 +8,7 @@ import DownloadEngine
 struct AddDownloadSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var urlString = ""
     @State private var fileName = ""
@@ -138,7 +139,7 @@ struct AddDownloadSheet: View {
                         }
                         Toggle("Start immediately", isOn: $startImmediately)
                             .disabled(scheduleEnabled)
-                        Toggle("Schedule for later", isOn: $scheduleEnabled.animation(.smooth(duration: 0.2)))
+                        Toggle("Schedule for later", isOn: $scheduleEnabled.animation(reduceMotion ? nil : .smooth(duration: 0.2)))
                         if scheduleEnabled {
                             DatePicker("Start at", selection: $scheduledDate, in: Date()...)
                                 .datePickerStyle(.compact)
@@ -350,7 +351,7 @@ struct AddDownloadSheet: View {
         let result = await model.preview(url: input.url, referrer: input.referrer, cookies: input.cookies,
                                          username: input.username, password: input.password)
         guard !Task.isCancelled else { return }
-        withAnimation(.smooth(duration: 0.2)) {
+        withAnimation(reduceMotion ? nil : .smooth(duration: 0.2)) {
             isInspecting = false
             preview = result
             previewFailed = (result == nil)

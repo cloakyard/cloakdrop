@@ -64,6 +64,7 @@ extraction-error toast, `--verify-resolving` for the reading-video status, or
 `--verify-repair` for the repair sheet. These flags affect only the in-memory
 fixture; they neither read the clipboard nor initiate media work. Use Cancel or
 Escape to inspect sheets without executing an operation.
+Add `--verify-priority` to inspect the floating priority banner alongside the clipboard suggestion.
 
 ## Verify real transfers when behavior changes
 

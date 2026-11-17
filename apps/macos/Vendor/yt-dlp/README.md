@@ -80,6 +80,11 @@ SQLite 3.50.4 and websockets 17.3 remain behind upstream releases. The other rep
 packages match current PyPI versions. The existing choice to preserve the complete official
 bundle remains in effect; no individual frozen dependency was replaced.
 
+The [November 17 control/dependency audit](../../../../docs/audits/2026-11-17-dependencies-and-controls.md)
+confirms that 2026.10.26 remains the latest official stable bundle. Python, OpenSSL, SQLite and
+websockets still lag upstream; pycryptodomex 3.24.1 now also trails 3.24.2. The complete official
+runtime remains intact under the existing exception.
+
 The local script uses ad-hoc signing. Successful code-signature checks do not establish Developer
 ID identity or Apple notarization. Locally signed builds are not notarized; see the
 [security policy](../../../../SECURITY.md).

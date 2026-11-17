@@ -121,6 +121,9 @@ extension AppModel {
         }
         if arguments.contains("--verify-resolving") { beginMediaResolve() }
         if arguments.contains("--verify-repair") { pendingDownloadRepair = downloads.first }
+        if arguments.contains("--verify-priority"), let download = downloads.first {
+            settings.downloadPriority = DownloadPriority(downloadID: download.id, heldDownloadIDs: [])
+        }
     }
 }
 #endif

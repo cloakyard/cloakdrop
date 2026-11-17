@@ -1,0 +1,11 @@
+npm notice run cloakdrop-site@1.0.0 npx
+npm notice run 'wrangler' deploy --dry-run
+
+ ⛅️ wrangler 4.164.0
+────────────────────
+
+Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+✨ Read 20 files from the assets directory <repository>/apps/site/dist
+Total Upload: 0.31 KiB / gzip: 0.22 KiB
+No bindings found.
+--dry-run: exiting now.
