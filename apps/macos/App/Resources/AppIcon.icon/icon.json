@@ -7,11 +7,23 @@
       "layers" : [
         {
           "image-name" : "02-download-arrow.svg",
-          "name" : "02-download-arrow"
+          "name" : "02-download-arrow",
+          "fill-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : { "solid" : "extended-srgb:0.09020,0.39216,0.49020,1.00000" }
+            }
+          ]
         },
         {
           "image-name" : "01-shield.svg",
-          "name" : "01-shield"
+          "name" : "01-shield",
+          "fill-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : { "solid" : "extended-srgb:0.96078,0.98039,0.98824,1.00000" }
+            }
+          ]
         },
         {
           "image-name" : "00-background.svg",

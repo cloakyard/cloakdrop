@@ -113,7 +113,10 @@ The macOS launcher source of truth is
 `apps/macos/App/Resources/AppIcon.icon`, a native Icon Composer document. Its
 background, drop-shield, and arrow come from `logo/macos-layers/`; Xcode applies the
 platform mask and compiles the layered Liquid Glass material for Default, Dark,
-and Mono appearances. `apps/macos/scripts/generate_app_icon.swift` uses Icon
+and Mono appearances. The Dark rendition sets the shield to `#F5FAFC` and the arrow
+to `#17647D`, matching the native SVG layers. These explicit foreground colors
+keep Icon Composer’s dark material from turning the pale shield blue.
+`apps/macos/scripts/generate_app_icon.swift` uses Icon
 Composer's `ictool` to export the flattened `AboutAppIcon.imageset` copies and
 keep the conventional `AppIcon.appiconset` PNG fallbacks visually aligned:
 
@@ -137,3 +140,5 @@ the canonical light palette; native app appearance remains unchanged. Review the
 mounted installer, since the preview PNG alone cannot show icon/label collisions.
 
 The sidebar uses 44- and 88-pixel renditions of the 44-point product icon for standard and Retina displays. Regenerate its light and dark artwork from the repository root with `apps/macos/scripts/export-sidebar-icon.sh apps/macos/App/Resources/AppIcon.icon`. The exporter downsamples a 1024-pixel Icon Composer render of each appearance.
+
+Run `swift apps/macos/scripts/tests/IconPaletteRegression.swift` from the repository root to check the shield and arrow colors in every sidebar and About rendition. Pass square launcher exports or tightly cropped screenshots as additional arguments to check rendered output as well.
