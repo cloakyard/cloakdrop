@@ -14,7 +14,7 @@ struct RootView: View {
         @Bindable var model = model
         NavigationSplitView {
             SidebarView()
-                .navigationSplitViewColumnWidth(min: 200, ideal: 224, max: 300)
+                .navigationSplitViewColumnWidth(min: 208, ideal: 244, max: 300)
         } detail: {
             PersistentInspectorSplitView()
         }
