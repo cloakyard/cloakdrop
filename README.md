@@ -248,6 +248,8 @@ The website follows the portable [Air contract](DESIGN.md) and its pinned local 
 
 ## Project structure
 
+In `apps/macos/App/`, `App/` holds the entry point and app state, `Features/` groups product workflows, `Shared/` holds reusable UI helpers and `Resources/` contains app resources. Headless code and its tests live under `apps/macos/Packages/`.
+
 ~~~text
 cloakdrop/
 ├── apps/
@@ -272,6 +274,9 @@ See the [architecture](apps/macos/ARCHITECTURE.md), [website guide](apps/site/RE
 [asset guide](assets/README.md) and [documentation index](docs/README.md).
 
 ## Deployment and releases
+
+The app uses a three-part marketing version and an increasing `YYYYMMDD.N` build number.
+See the [Mac release guide](docs/MAC-RELEASE.md) for the Air installer, version settings and Developer ID workflow.
 
 Publish website changes through tested `dev` → `main` PRs and keep `dev` updated. When dev also holds unrelated native work, use a separately reviewed website-only PR under the maintainer's approved exception, then merge main into dev without releasing that native work. The [website guide](apps/site/README.md#deployment-and-releases) records build and deployment commands.
 

@@ -18,6 +18,14 @@ APP="${1:-}"
 OUT="${2:-$HOME/Desktop/CloakDrop-Installer.dmg}"
 VOLNAME="CloakDrop"
 LAYOUT="${DMG_LAYOUT_TEMPLATE:-}"
+python="${DMG_PYTHON:-$REPO/build/dmg-tools/bin/python}"
+if [[ -x "$python" && -z "$LAYOUT" && -n "$APP" ]]; then
+  exec "$python" "$HERE/make_dmg.py" "$APP" "$OUT"
+fi
+if [[ -e "$OUT" || -L "$OUT" ]]; then
+  echo "Choose a new DMG path." >&2
+  exit 2
+fi
 
 if [[ -z "$APP" || ! -d "$APP" ]]; then
   echo "usage: $0 <path/to/CloakDrop.app> [output.dmg]" >&2
@@ -35,7 +43,7 @@ if [[ -e "/Volumes/$VOLNAME" ]]; then
   exit 1
 fi
 
-ICON="$REPO/App/Resources/Assets.xcassets/AboutAppIcon.imageset/about_icon_512.png"
+ICON="$HERE/cloakyard-mark.svg"
 ICNS="$APP/Contents/Resources/AppIcon.icns"
 
 if [[ ! -f "$ICON" ]]; then
@@ -51,7 +59,8 @@ if ! command -v SetFile >/dev/null 2>&1; then
   exit 1
 fi
 
-WORK="$(mktemp -d)"
+mkdir -p "$(dirname "$OUT")"
+WORK="$(mktemp -d "$(dirname "$OUT")/.installer-XXXXXXXX")"
 STAGE="$WORK/stage"
 MNT="$WORK/mount"
 mkdir -p "$STAGE/.background"
@@ -62,7 +71,7 @@ cleanup() {
 trap cleanup EXIT
 
 echo "▸ Rendering background art…"
-swift "$HERE/background.swift" "$ICON" "$STAGE/.background/background.png"
+swift "$HERE/background.swift" "$STAGE/.background/background.png"
 sips -s dpiWidth 144 -s dpiHeight 144 "$STAGE/.background/background.png" >/dev/null
 # Keep a version-controlled preview copy next to the source art.
 cp "$STAGE/.background/background.png" "$HERE/background.png"
@@ -136,7 +145,8 @@ echo "▸ Detaching…"
 hdiutil detach "$MNT" -quiet
 
 echo "▸ Compressing to read-only…"
-rm -f "$OUT"
-hdiutil convert "$RW" -format UDZO -imagekey zlib-level=9 -ov -o "$OUT" >/dev/null
+hdiutil convert "$RW" -format UDZO -imagekey zlib-level=9 -o "$WORK/complete.dmg" >/dev/null
+# Publish on the same filesystem. A collision leaves the existing installer untouched.
+/usr/bin/python3 -c 'import os, sys; os.link(sys.argv[1], sys.argv[2])' "$WORK/complete.dmg" "$OUT"
 
 echo "✓ Built $OUT ($(du -h "$OUT" | awk '{print $1}'))"

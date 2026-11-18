@@ -1,18 +1,14 @@
 CloakDrop — Install Guide
-═════════════════════════
 
-THE APP
-  1.  Drag CloakDrop onto the Applications folder in this window.
-  2.  Open CloakDrop from Applications in Finder or with Spotlight.
-  3.  This build is locally signed but has not been notarized by Apple.
-      If macOS cannot verify the app and you trust this official
-      download, open System Settings → Privacy & Security → Open Anyway
-      after attempting to launch the app. Authenticate if prompted,
-      then confirm Open. Future launches work normally.
-  4.  Eject the CloakDrop installer from Finder.
+INSTALL
+  Drag CloakDrop to Applications. Open it from Applications, then eject this disk.
+  Requires an Apple silicon Mac with macOS 26 or later. Check the release notes
+  for this build’s signing status and checksum. macOS checks the app on first open.
+  Apple’s installation guidance: https://support.apple.com/en-us/102445
 
-  We’ll consider joining Apple’s paid Developer Program for notarization
-  as demand grows. Apple’s guidance: support.apple.com/102445
+UPDATES AND PRIVACY
+  Settings → About lets you check for signed updates and choose automatic updates.
+  Automatic checks and downloads start off. See Settings → Privacy for details.
 
 GRABBING WEB VIDEO  (built-in browser — nothing to install)
   CloakDrop has a browser built in. In the app, click the globe in the
@@ -20,11 +16,5 @@ GRABBING WEB VIDEO  (built-in browser — nothing to install)
   and files appear in the capture badge. DRM-protected media is not
   supported. You can also paste a supported page link into New Download.
 
-PRIVACY
-  CloakDrop has no account, telemetry, automatic crash upload, or update
-  ping. Network activity is limited to transfers and features you start or
-  configure. Full details live in the app under  Settings ▸ Privacy.
-
-SOURCE  (on GitHub)
-  Project    github.com/cloakyard/cloakdrop
-  Issues     github.com/cloakyard/cloakdrop/issues
+SOURCE
+  https://github.com/cloakyard/cloakdrop

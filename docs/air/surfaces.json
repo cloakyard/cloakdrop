@@ -19,9 +19,10 @@
       ],
       "evidence": [
         "docs/audits/2026-10-19-installer.md",
-        "docs/audits/images/2026-10-19-installer-air.png"
+        "docs/audits/images/2026-10-19-installer-air.png",
+        "docs/MAC-RELEASE.md"
       ],
-      "notes": "User explicitly extended Air to installer artwork. Fixed light bitmap; app controls and output unchanged. Finder target positions and install guide preserved."
+      "notes": "The fixed Air background uses the family mark from Cloakyard. Finder supplies the draggable product icon, Applications shortcut and Install Guide."
     },
     {
       "path": "apps/site/src/components/Brand.astro",

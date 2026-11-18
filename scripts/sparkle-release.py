@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Prepare a signed Sparkle ZIP and appcast locally. Never uploads or deploys."""
 import argparse
+from datetime import datetime
 import hashlib
 from pathlib import Path
 import plistlib
@@ -74,7 +75,14 @@ def main():
     require(not entitlements.get("com.apple.security.get-task-allow"), "Package a Release build, without the debugger entitlement.")
     feed = ROOT / "apps/site/public/updates/appcast.xml"
     run(tools / "sign_update", "--verify", "--account", account, feed)
-    version(info["CFBundleVersion"])
+    build = info["CFBundleVersion"]
+    require(re.fullmatch(r"[0-9]{8}(?:\.[1-9][0-9]*)?", build), "Use a dated release build (YYYYMMDD.N).")
+    datetime.strptime(build.split(".")[0], "%Y%m%d")
+    require(re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", info["CFBundleShortVersionString"]), "Use X.Y.Z for the marketing version.")
+    for extension in (app / "Contents/PlugIns").glob("*.appex"):
+        ext_info = plistlib.loads((extension / "Contents/Info.plist").read_bytes())
+        require(all(info[k] == ext_info.get(k) for k in ("CFBundleVersion", "CFBundleShortVersionString")),
+                "Embedded extension and app versions must match.")
     validate_feed(feed, info["CFBundleVersion"])
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)

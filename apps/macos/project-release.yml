@@ -1,5 +1,8 @@
 # Future provisioned Developer ID distribution; ordinary builds need no paid account.
 include: [project.yml]
+settings:
+  base:
+    CODE_SIGN_IDENTITY: "Apple Development"
 targets:
   CloakDrop:
     settings:

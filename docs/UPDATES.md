@@ -3,6 +3,8 @@
 CloakDrop embeds **Sparkle 2.10.1**, pinned in `apps/macos/project.yml`.
 The host owns the updater; the headless package does not depend on Sparkle.
 
+See the [Mac release workflow](MAC-RELEASE.md) for the Air installer and Developer ID export.
+
 ## Free Apple account / team-less builds
 
 The default project builds Debug and Release with ad-hoc signing (`CODE_SIGN_IDENTITY=-`),
