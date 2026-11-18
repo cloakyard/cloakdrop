@@ -25,6 +25,8 @@ struct CloakDropApp: App {
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--verify-dark-appearance") {
             NSApplication.shared.appearance = NSAppearance(named: .darkAqua)
+        } else if ProcessInfo.processInfo.arguments.contains("--verify-light-appearance") {
+            NSApplication.shared.appearance = NSAppearance(named: .aqua)
         }
         // Exercise the recovery UI without altering the real catalog.
         if ProcessInfo.processInfo.arguments.contains("--verify-store-unavailable") {

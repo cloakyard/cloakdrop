@@ -30,7 +30,7 @@ export const hero = {
   titleAccent: 'Under control.',
   lead: 'Parallel downloads, saved progress, and video capture in a native Mac app. Keep things organised and get on with your day.',
   micro: 'MIT licensed · No account required',
-  shotAlt: 'CloakDrop on macOS showing an example Ubuntu ISO download, eight parallel ranges, live speed and progress, and a library of completed files.',
+  shotAlt: 'CloakDrop on macOS with an Ubuntu ISO download selected, its speed and progress in the inspector, and five completed files in the queue.',
 } as const;
 
 export const product = {

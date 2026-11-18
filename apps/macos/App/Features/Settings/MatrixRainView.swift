@@ -54,9 +54,11 @@ struct AboutHeaderView: View {
                 Text(wordmark)
                     .font(.title2.weight(.semibold))
                     .accessibilityLabel(Text(verbatim: "CloakDrop"))
+                    .accessibilityAddTraits(.isHeader)
                 Text("Version \(version)")
                     .font(.callout)
                     .monospacedDigit()
+                    .textSelection(.enabled)
                     .foregroundStyle(matrixMode ? Self.phosphor.opacity(0.85) : .secondary)
                 Text("Created by Sumit Sahoo")
                     .font(.footnote)
@@ -79,7 +81,7 @@ struct AboutHeaderView: View {
         return lead
     }
 
-    // A deterministic Default-rendition export from AppIcon.icon, not
+    // An appearance-matched export from AppIcon.icon, not
     // `NSApp.applicationIconImage` — which can lag a rebuilt icon through the OS icon cache.
     // Keeping a flattened copy here also makes the About header match the layered launcher.
     private var icon: some View {

@@ -6,6 +6,8 @@
 
 For a stable release use the tag `vX.Y.Z`. For a beta use `vX.Y.Z-beta.YYYYMMDD.N`. Keep historical release tags and update feeds intact. Choose a new marketing version for a new stable tag.
 
+For a release candidate, use `vX.Y.Z-rc.N` and pass `'CLOAKDROP_RELEASE_CHANNEL=RC N'` to the Release build. About displays the channel alongside the marketing version and build number. Leave this setting empty for stable releases.
+
 Native entry points, state and updater coordination live in `apps/macos/App/App/`. Feature UI and operations live in `App/Features/`, shared presentation helpers in `App/Shared/` and app resources in `App/Resources/`. The headless package and its tests live under `apps/macos/Packages/`. Each product keeps its own feature modules and extension targets.
 
 ## Build the local installer

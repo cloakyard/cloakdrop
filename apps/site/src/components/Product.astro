@@ -11,6 +11,8 @@ const shot = readPngDimensions(resolve(process.cwd(), 'public/hero.png'));
   </header>
   <figure class="product-preview">
     <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="/hero-dark.webp" type="image/webp" />
+      <source media="(prefers-color-scheme: dark)" srcset="/hero-dark.png" />
       <source srcset="/hero.webp" type="image/webp" />
       <img src="/hero.png" width={shot.width} height={shot.height} alt={hero.shotAlt} loading="lazy" decoding="async" />
     </picture>

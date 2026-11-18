@@ -27,6 +27,8 @@ const MANIFEST = [
   { from: 'logo/apple-touch-icon.png', to: ['apps/site/public/apple-touch-icon.png'] },
   { from: 'social/og.png', to: ['apps/site/public/og.png'] },
   { from: 'screenshots/hero.webp', to: ['apps/site/public/hero.webp'] },
+  { from: 'screenshots/hero-dark.webp', to: ['apps/site/public/hero-dark.webp'] },
+  { from: 'screenshots/hero-dark.png', to: ['apps/site/public/hero-dark.png'] },
   { from: 'screenshots/hero.png', to: ['apps/site/public/hero.png'] },
 ];
 

@@ -274,7 +274,10 @@ struct SettingsView: View {
     private static var appVersion: String {
         let short = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
         let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"
-        return "\(short) (\(build))"
+        let version = "\(short) (\(build))"
+        guard let channel = Bundle.main.object(forInfoDictionaryKey: "CloakDropReleaseChannel") as? String,
+              !channel.isEmpty else { return version }
+        return "\(version) · \(channel)"
     }
 
     // MARK: Binding helpers
