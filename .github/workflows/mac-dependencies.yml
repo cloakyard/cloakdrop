@@ -15,3 +15,5 @@ jobs:
       - run: python3 scripts/check-mac-dependencies.py
       - if: always()
         run: python3 scripts/check-published-update.py
+      - if: always()
+        run: python3 scripts/check-update-ux.py

@@ -109,3 +109,13 @@ Run `python3 scripts/check-mac-dependencies.py` to compare the shipping dependen
 ## Temporary website build dependency exception
 
 Through 1 December 2026 UTC, the website audit permits only [GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf) and findings caused exclusively by that advisory. Astro uses picomatch to match build files in the trusted checkout. Cloudflare serves the resulting static assets. The exception expires at 00:00 UTC on 2 December. Unrelated high and critical advisories and audit failures still block the build. Remove the exception when patched releases resolve the advisory.
+
+## Family update experience
+
+The three apps use the same About section, update options and Sparkle standard user driver. The installed version and app icon identify each product. The weekly family check compares the three published tags for changes to those controls, dialog driver, framework version and updater UI preferences. Before releasing, run `python3 scripts/check-update-ux.py --checkouts /path/to/family-checkouts` from CloakDrop.
+
+## Production verification on 18 November 2026
+
+The installed build `20261118.1` found `20261118.2` using **Settings → About → Check for Updates** against the public HTTPS feed. **Install Update** downloaded the signed GitHub ZIP. **Install and Relaunch** replaced the app in Applications. About then displayed build `20261118.2`, and a second check reported that the app was up to date. The unauthenticated public DMG, ZIP and checksum manifest matched the local release files byte for byte.
+
+All three apps used the same update offer, cancellable progress window, relaunch action and up-to-date dialog. An isolated copy of each release with an unavailable test feed showed Sparkle’s update error and **Cancel Update**. In those copies automatic checks and downloads started off. Enabling checks enabled the download switch, and disabling checks disabled it again. The production apps kept their own saved preferences.
