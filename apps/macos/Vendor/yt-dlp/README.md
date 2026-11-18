@@ -88,3 +88,5 @@ runtime remains intact under the existing exception.
 The local script uses ad-hoc signing. Successful code-signature checks do not establish Developer
 ID identity or Apple notarization. Locally signed builds are not notarized; see the
 [security policy](../../../../SECURITY.md).
+
+For [RC 3](../../../../docs/releases/v1.0.0-rc.3.md), the maintainer reconfirmed the exception for the complete official yt-dlp 2026.10.26 runtime on 18 November 2026.

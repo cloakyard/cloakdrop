@@ -49,3 +49,7 @@ The arm64 Release build `20261118.1` passed strict code signature verification. 
 Sparkle generated and verified a local signed appcast and ZIP for this installed build using its existing product key. The public feed and GitHub release were unchanged during verification.
 
 The Developer ID project spec parsed locally, and the distribution preflight rejected the ad-hoc app. Apple submission, the provisioned feature checks and the clean-Mac Gatekeeper test require the enrolled team.
+
+## Reproducing the November 18 prerelease
+
+Build `20261118.2` uses the regular ad-hoc project spec and the Release configuration. Install the hash-pinned DMG tools from this revision. Package the same Release app into both the DMG and the Sparkle update ZIP. See the [update workflow](UPDATES.md) for signing and public endpoint checks.

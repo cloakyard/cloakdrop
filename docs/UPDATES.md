@@ -28,7 +28,7 @@ macOS may ask again for privacy permissions after an ad-hoc update because its c
 
 ## User controls and network behavior
 
-The app menu contains **Check for Updates…**. About settings provide automatic-check and
+**Settings → About → Check for Updates…** starts a manual check. About also provides automatic-check and
 install-on-quit preferences, both off initially. Sparkle’s standard UI handles download progress,
 signature errors, installation and relaunch. Turning automatic checks off stops scheduled checks;
 a manual check still works. No system profile or analytics are sent.
@@ -37,8 +37,7 @@ Feed: `https://drop.cloakyard.com/updates/appcast.xml`
 
 Payloads: `https://github.com/cloakyard/cloakdrop/releases/download/<tag>/<archive>.zip`
 
-The checked-in feed starts empty and signed: it advertises no unbuilt release. It becomes live
-only after normal website publication. No deployment or GitHub release is performed by the build.
+The checked-in feed contains the signed release entry. Publish and verify its ZIP before deploying the matching feed. No deployment or GitHub release is performed by the build.
 Cloudflare must serve XML bytes without rewriting them because the feed itself is signed.
 `public/_headers` sets XML content type and a short, no-transform cache policy for this path.
 
@@ -102,3 +101,7 @@ Publication is separate from preparation; neither script silently uploads or dep
 - [Sandbox services and code signing](https://sparkle-project.org/documentation/sandboxing/)
 - [Update preferences and verification settings](https://sparkle-project.org/documentation/customization/)
 - [Sparkle 2.10.1 release](https://github.com/sparkle-project/Sparkle/releases/tag/2.10.1)
+
+## Ongoing checks
+
+Run `python3 scripts/check-mac-dependencies.py` to compare the shipping dependencies and installer tooling with their stable upstream versions. After deploying a release, run `python3 scripts/check-published-update.py` to verify the production feed matches the signed source and the advertised archive is available at the expected size. The Mac dependencies and public updates workflow runs both checks weekly and on demand.
