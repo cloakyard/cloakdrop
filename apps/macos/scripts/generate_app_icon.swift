@@ -5,7 +5,7 @@ import Foundation
 // App/Resources/AppIcon.icon is the macOS launcher source of truth: Xcode compiles its
 // layered Liquid Glass material directly and generates the platform-specific icon sizes.
 // The About page can't render an Icon Composer document inside SwiftUI, so it consumes
-// deterministic Default-rendition exports instead. The AppIcon.appiconset copies remain
+// appearance-specific exports instead. The AppIcon.appiconset copies remain
 // aligned as fallbacks for tooling that still expects conventional PNG slots.
 //
 // Run from apps/macos with Xcode 26.4 or later:
@@ -51,7 +51,7 @@ func iconComposerTool() -> String {
 
 let ictool = iconComposerTool()
 
-func render(_ size: Int, to path: String) {
+func render(_ size: Int, rendition: String = "Default", to path: String) {
     let p = Process()
     p.executableURL = URL(fileURLWithPath: ictool)
     p.arguments = [
@@ -59,7 +59,7 @@ func render(_ size: Int, to path: String) {
         "--export-image",
         "--output-file", path,
         "--platform", "macOS",
-        "--rendition", "Default",
+        "--rendition", rendition,
         "--width", "\(size)",
         "--height", "\(size)",
         "--scale", "1",
@@ -81,6 +81,10 @@ let fallbackIcon = "App/Resources/Assets.xcassets/AppIcon.appiconset"
 
 render(256, to: "\(aboutIcon)/about_icon_256.png")
 render(512, to: "\(aboutIcon)/about_icon_512.png")
+
+for size in [256, 512] {
+    render(size, rendition: "Dark", to: "\(aboutIcon)/about_icon_dark_\(size).png")
+}
 
 for size in [16, 32, 64, 128, 256, 512, 1024] {
     render(size, to: "\(fallbackIcon)/icon_\(size).png")

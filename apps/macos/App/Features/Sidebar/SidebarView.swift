@@ -14,6 +14,14 @@ struct SidebarView: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            productHeader
+            navigationList.clipped()
+            settingsFooter
+        }
+    }
+
+    private var navigationList: some View {
         List(selection: selectionBinding) {
             Section("Library") {
                 ForEach(SmartFilter.allCases) { filter in
@@ -41,7 +49,31 @@ struct SidebarView: View {
             }
         }
         .listStyle(.sidebar)
-        .navigationTitle("CloakDrop")
+    }
+
+    private var productHeader: some View {
+        HStack(spacing: 10) {
+            Image("SidebarAppIcon").interpolation(.high)
+                .frame(width: 44, height: 44).accessibilityHidden(true)
+            Text(verbatim: "CloakDrop").font(.title3.weight(.semibold)).accessibilityAddTraits(.isHeader)
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 10)
+        .padding(.bottom, 12)
+    }
+
+    private var settingsFooter: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Divider().accessibilityHidden(true)
+            SettingsLink {
+                Label("Settings…", systemImage: "gearshape")
+                    .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
+                    .contentShape(.rect)
+            }
+            .buttonStyle(.borderless)
+        }
+        .padding(.horizontal, 16)
+        .padding(.bottom, 6)
     }
 
     /// Drives the content filter from the List's single selection; ignores a deselect-to-nil so a

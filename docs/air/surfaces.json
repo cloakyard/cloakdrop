@@ -287,9 +287,10 @@
         "docs/air/evidence/website-interactions-2026-10-12.json",
         "docs/air/evidence/website-air-2026-10-19.json",
         "docs/air/evidence/website-air-checks-2026-10-19.log",
-        "evidence/product-artwork-2026-10-25/"
+        "evidence/product-artwork-2026-10-25/",
+        "docs/audits/2026-11-18-retina-ui.md"
       ],
-      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. Approved product artwork implemented and validated 2026-10-25; see latest validation record for scope and remaining physical/assistive acceptance."
+      "notes": "Implemented static website Air migration. All applicable software checks pass; physical touch and spoken assistive acceptance remain open. Native app/screenshots and source policy are unchanged. Approved product artwork implemented and validated 2026-10-25; see latest validation record for scope and remaining physical/assistive acceptance. The November 18 review covers new native light and dark product captures at 390, 820, 1280 and 1600 CSS pixels."
     },
     {
       "path": "apps/site/src/components/Provenance.astro",

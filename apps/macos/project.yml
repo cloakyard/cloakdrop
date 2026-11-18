@@ -28,7 +28,8 @@ settings:
     # Shared by the app and native Share Extension; signing status belongs in the release notes.
     MARKETING_VERSION: "1.0.0"
     # Increase YYYYMMDD.N for each release. The app and extension inherit this value.
-    CURRENT_PROJECT_VERSION: "20261118.2"
+    CURRENT_PROJECT_VERSION: "20261118.6"
+    CLOAKDROP_RELEASE_CHANNEL: ""
 
   configs:
     Release:
@@ -75,6 +76,7 @@ targets:
         SUEnableInstallerLauncherService: true
         CFBundleName: CloakDrop
         CFBundleDisplayName: CloakDrop
+        CloakDropReleaseChannel: "$(CLOAKDROP_RELEASE_CHANNEL)"
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         LSMinimumSystemVersion: "26.0"

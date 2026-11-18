@@ -19,6 +19,8 @@ assets/
 └── screenshots/
     ├── hero.webp              # clean native window alpha for the website (primary)
     ├── hero.png               # PNG fallback for the same
+    ├── hero-dark.webp         # native window in dark appearance
+    ├── hero-dark.png          # PNG fallback for dark appearance
     ├── hero-readme.webp       # README rendition with a complete padded shadow
     └── hero-readme.png        # PNG fallback for the README rendition
 ```
@@ -49,7 +51,7 @@ The generated copies (e.g. `apps/site/public/cloakdrop-mark.svg`, `…/hero.webp
 this folder is the only committed home for them. That's the whole point: no duplicated
 binaries in version control.
 
-The root README references the `hero-readme` pair directly. The website pair contains the
+The root README references the `hero-readme` pair directly. The website renditions contain the
 clean native window alpha with no baked shadow; CSS can render that shadow without guessing
 the corner geometry. The README pair reconstructs the shadow on a 72px transparent inset,
 because GitHub cannot supply the same styling and would otherwise clip a tightly trimmed
@@ -76,9 +78,9 @@ open -n apps/macos/build/Verify/Build/Products/Debug/CloakDrop.app --args --hero
 
 The fixture is compiled only when `DEBUG` is set. Capture the main window at 1097 × 678 points
 (2194 × 1356 Retina pixels), then produce the padded README rendition on a 2338 × 1500 transparent
-canvas. Keep the four files in `assets/screenshots/` synchronized before running the asset sync.
+canvas. Keep the light, dark and README renditions in `assets/screenshots/` synchronized before running the asset sync.
 
-Debug also accepts `--verify-dark-appearance` to inspect native dark materials without changing the
+Debug also accepts `--verify-light-appearance` and `--verify-dark-appearance` to inspect native dark materials without changing the
 system appearance. Keep audit screenshots in [`docs/audits/images/`](../docs/audits/images); do not
 replace the canonical hero with temporary test records or a personal download catalog. The fixture
 is illustrative, not a measured throughput benchmark. See the
@@ -111,7 +113,10 @@ The macOS launcher source of truth is
 `apps/macos/App/Resources/AppIcon.icon`, a native Icon Composer document. Its
 background, drop-shield, and arrow come from `logo/macos-layers/`; Xcode applies the
 platform mask and compiles the layered Liquid Glass material for Default, Dark,
-and Mono appearances. `apps/macos/scripts/generate_app_icon.swift` uses Icon
+and Mono appearances. The Dark rendition sets the shield to `#F5FAFC` and the arrow
+to `#17647D`, matching the native SVG layers. These explicit foreground colors
+keep Icon Composer’s dark material from turning the pale shield blue.
+`apps/macos/scripts/generate_app_icon.swift` uses Icon
 Composer's `ictool` to export the flattened `AboutAppIcon.imageset` copies and
 keep the conventional `AppIcon.appiconset` PNG fallbacks visually aligned:
 
@@ -133,3 +138,7 @@ Finder supplies the actual app, Applications and guide icons. Preserve their
 centres at (204,282), (556,282) and (380,464), respectively. The static canvas uses
 the canonical light palette; native app appearance remains unchanged. Review the
 mounted installer, since the preview PNG alone cannot show icon/label collisions.
+
+The sidebar uses 44- and 88-pixel renditions of the 44-point product icon for standard and Retina displays. Regenerate its light and dark artwork from the repository root with `apps/macos/scripts/export-sidebar-icon.sh apps/macos/App/Resources/AppIcon.icon`. The exporter downsamples a 1024-pixel Icon Composer render of each appearance.
+
+Run `swift apps/macos/scripts/tests/IconPaletteRegression.swift` from the repository root to check the shield and arrow colors in every sidebar and About rendition. Pass square launcher exports or tightly cropped screenshots as additional arguments to check rendered output as well.

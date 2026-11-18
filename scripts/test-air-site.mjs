@@ -6,6 +6,7 @@ import { mkdir, mkdtemp, writeFile, readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { resolve } from "node:path";
 import { tmpdir } from "node:os";
+import { downloads } from "../apps/site/src/data/site.ts";
 const { default: puppeteer } = await import(process.env.PUPPETEER_MODULE || "puppeteer-core");
 const base = process.env.SITE_URL || "http://127.0.0.1:8144";
 const parent = process.env.AIR_EVIDENCE_DIR || tmpdir();
@@ -161,7 +162,13 @@ async function setup(width, height, theme, root = 16) {
   // below-fold images. Exercise lazy loading after each viewport change.
   for (const image of await page.$$("img")) {
     await image.scrollIntoView();
-    await page.waitForFunction((node) => node.complete && node.naturalWidth > 0, {}, image);
+    // A completed light rendition can remain current while a new dark source loads.
+    await page.waitForFunction((node) => {
+      if (!node.complete || !node.naturalWidth) return false;
+      if (!node.closest(".product-preview picture")) return true;
+      const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+      return new URL(node.currentSrc).pathname === (dark ? "/hero-dark.webp" : "/hero.webp");
+    }, {}, image);
     await image.evaluate((node) => node.decode());
   }
   await page.evaluate(() => scrollTo(0, 0));
@@ -308,7 +315,10 @@ try {
   await page.keyboard.press("Enter");
   assert.equal(await page.evaluate(() => document.activeElement.id), "main");
   await page.keyboard.press("Tab");
-  assert.equal(await page.$(".drop-artwork button"), null);
+  const replayHasFocus = await page.evaluate(() =>
+    document.activeElement.matches('button[aria-label="Replay CloakDrop animation"]'),
+  );
+  if (replayHasFocus) await page.keyboard.press("Tab");
   assert.equal(await page.evaluate(() => document.activeElement.getAttribute("href")), "#download");
   evidence.journeys.push({
     check: "keyboard disclosure Enter/Space/Tab/Escape and skip link",
@@ -321,9 +331,11 @@ try {
   const sections = [...source.matchAll(/^## (.+)$/gm)].map((match) => match[1]);
   assert.deepEqual(
     await page.$$eval(".air-policy .air-prose h2", (nodes) => nodes.map((n) => n.textContent)),
-    sections,
+    [...sections, "This website"],
   );
-  assert.equal(await page.$eval("time", (n) => n.dateTime), "2026-09-06");
+  const [, revision] = source.match(/_Last updated: ([^_]+)_/);
+  assert.equal(await page.$eval(".air-page-meta time", (n) => n.dateTime),
+    new Date(`${revision} UTC`).toISOString().slice(0, 10));
   for (const link of await page.$$eval(".air-contents a", (nodes) =>
     nodes.map((n) => n.getAttribute("href")),
   )) {
@@ -336,7 +348,7 @@ try {
   await page.keyboard.press("Enter");
   assert.equal(await page.$eval(".air-contents", (n) => n.open), true);
   evidence.journeys.push({
-    check: "all source policy headings, nine contents anchors, revision and disclosure",
+    check: "all source and website policy headings, contents anchors, revision and disclosure",
     sections: sections.length,
     sourceSha256: createHash("sha256").update(source).digest("hex"),
   });
@@ -361,7 +373,7 @@ try {
   await page.keyboard.press("Tab");
   assert.equal(
     await page.evaluate(() => document.activeElement.href),
-    "https://github.com/cloakyard/cloakdrop/releases",
+    downloads.href,
   );
   evidence.journeys.push({
     check: "anchor Back/Forward, repeated destination and next keyboard action",
@@ -375,16 +387,18 @@ try {
     "locally signed",
     "not notarized",
     "Open Anyway",
-    "release preparation",
+    "Check for signed updates in Settings → About",
   ])
     assert.ok(install.includes(text), text);
   assert.equal(
     await page.$eval("#download .air-button", (n) => n.href),
-    "https://github.com/cloakyard/cloakdrop/releases",
+    downloads.href,
   );
   for (const path of [
     "/hero.png",
     "/hero.webp",
+    "/hero-dark.png",
+    "/hero-dark.webp",
     "/cloakdrop-mark.svg",
     "/icons/favicon.svg",
     "/favicon.png",
@@ -410,7 +424,7 @@ try {
     "https://drop.cloakyard.com/",
   );
   evidence.journeys.push({
-    check: "404 home recovery, accurate install/release links, metadata and nine built assets",
+    check: "404 home recovery, accurate install/release links, metadata and built assets",
     pass: true,
   });
   await page.goto(base + "/#%E0%A4%A", { waitUntil: "networkidle0" });
