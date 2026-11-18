@@ -28,7 +28,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
     "typescript": "^6.0.3",
-    "wrangler": "^4.162.0"
+    "wrangler": "^4.164.0"
   },
   "engines": {
     "node": "^22.23.4 || ^24.15.0 || >=26.0.0"
@@ -36,7 +36,7 @@
   "allowScripts": {
     "esbuild@0.28.2": true,
     "fsevents@2.3.3": true,
-    "workerd@1.20261113.1": true
+    "workerd@1.20261117.1": true
   },
   "packageManager": "npm@12.2.2"
 }

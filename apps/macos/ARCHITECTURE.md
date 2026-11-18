@@ -2,9 +2,10 @@
 
 CloakDrop is split into a **thin SwiftUI app shell** and a **headless, UI-agnostic core**
 packaged as a local Swift package. The core builds and tests without launching a GUI, and the
-engine never imports SwiftUI. This document describes the source checked on **6 September 2026**;
-published releases can lag behind it. See the [implementation audit](../../docs/audits/2026-09-06-overview.md)
-for the latest recorded verification and its limits.
+engine never imports SwiftUI. The original architecture review is dated **6 September 2026**;
+the workflow additions below were checked on **3 November 2026**. Published releases can lag
+behind the source. See the [original audit](../../docs/audits/2026-09-06-overview.md) and
+[workflow audit](../../docs/audits/2026-11-03-download-workflows.md) for their evidence and limits.
 
 ```
 ┌──────────────────────────── App target (CloakDrop) ────────────────────────────┐
@@ -21,6 +22,36 @@ for the latest recorded verification and its limits.
 │  ── SegmentPlanner · BandwidthLimiter · ChecksumVerifier · NetworkMonitor · Keychain │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+## Repair, priority, moves and playlist import
+
+These workflows remain manager intents, with SwiftUI supplying URLs, choices and folder bookmarks:
+
+- `repairDownload` locks a paused/failed ordinary-file record against lifecycle re-entry, probes
+  the replacement with origin-scoped credentials, and preserves partial bytes only with a matching
+  strong ETag, final origin/path, total length and range support. `Download.validatorURL` records
+  where the validator was observed. Unmatched or legacy evidence requires an explicit restart.
+  The replacement record is saved successfully before restart staging is discarded.
+- `finishFirst` holds scheduling while stopping competitors and saves `DownloadPriority` in
+  `EngineSettings`. The scheduler admits only its target across queues. Held transfers return
+  to normal scheduling on completion, failure, cancellation, manual target pause or Stop Prioritizing;
+  manual peer pauses are removed from the held set. Relaunch respects the resume-on-launch setting.
+- `moveDownload` locks an unfinished record, activates both folder scopes, copies `.cdpart` and
+  media `.cdparts` off the manager actor, publishes without replacement, and commits the new location
+  before retiring old staging. A failed copy or database save retains the original. The moved item
+  remains paused. This is recovery safety for ordinary failures, not a power-loss transaction across
+  two filesystems and SQLite; interrupted copies can leave unreferenced staging.
+- `MediaPlaylist` bounds previews to 100 entries. The optional `MediaExtractor.playlist` seam uses
+  flat metadata enumeration; `addPlaylist` persists selected page URLs and `MediaPageSelection`
+  with sanitized numbered filenames in a dedicated folder. `DownloadTask` resolves a queued page
+  only when it receives a transfer slot, then persists a normal media plan before payload transfer.
+  Original quality, compatible MP4, capped video quality and standalone audio reuse existing
+  resolution/remux paths. A failed item does not invalidate other items. Already-resolved plans
+  remain stable on resume; expired plan URLs are not automatically refreshed.
+
+The new optional Codable properties remain compatible with older stored records. No new Swift
+dependency or database schema migration is required. Focused tests cover relaunch, rejected identity,
+manual pause semantics, destination collisions, persistence failures and deferred media resolution.
 
 ## Modules
 
@@ -308,11 +339,12 @@ folders are persisted as **security-scoped bookmarks** and activated (`SecurityS
 duration of each transfer. When a folder moves, transfers resolve its new path, retain category
 descendants and refresh stale bookmarks before staging I/O. Cancel/remove, thumbnails and Finder
 handoff use the same resolution boundary. Ambiguous replacements at the original path block
-resume and cleanup; they must never receive bytes or deletion intended for the original. Existing
-downloads have no folder re-selection intent: users restore access to the original folder, then
-retry. See the [moved-folder recovery guide](../../README.md#a-download-folder-moved).
+resume and cleanup; they must never receive bytes or deletion intended for the original. **Move
+Download** relocates accessible unfinished staging into a newly selected destination and leaves
+the transfer paused. If the original folder is inaccessible, restore access before moving or
+retrying. See the [moved-folder recovery guide](../../README.md#a-download-folder-moved).
 
-GRDB is the only third-party Swift package (7.11.1 in the tracked core `Package.resolved`). The core
+GRDB is the core’s only third-party Swift package (7.12.0 in the tracked core `Package.resolved`). The core
 package targets macOS 15+, while the SwiftUI app requires macOS 26 and the optional vendor helpers
 are built/prepared for arm64. `project.yml` is the source of truth for generated Xcode projects.
 The opt-in ffmpeg and yt-dlp fetch scripts pin source/archive versions and SHA-256 values, prepare and
@@ -396,6 +428,21 @@ Group** container (`CaptureInbox`) and posts a payload-free Darwin notification;
 inbox on that signal and on launch. App Groups require a team, so the shared-inbox path lives only
 in the **Release** entitlements; Debug builds fall back to the `cloakdrop://` deep link.
 
+## Native materials
+
+`Shared/NativeChrome.swift` keeps custom floating chrome and sheet actions consistent.
+`FloatingChrome` uses regular Liquid Glass for the clipboard suggestion and status toast;
+Reduce Transparency or increased contrast uses an opaque semantic surface with a visible edge.
+`SheetActions` groups the seven custom dialog footers, with large capsule `.glass` secondary
+actions and `.glassProminent` primary actions. The same accessibility preferences select native
+bordered buttons. Button roles, shortcuts, disabled states and task-specific placement stay at
+the call sites. `SheetHeader` uses the sheet's own surface instead of another material band.
+
+Keep glass out of list rows, forms and scrolling content. Standard toolbars, menus, popovers
+and alerts retain their system presentation. The toast and clipboard transitions respect Reduce
+Motion. See the [November 17 material verification](../../docs/audits/2026-11-17-modern-materials.md)
+for rendered coverage and untested states.
+
 ## Verification and remaining work
 
 The 6 September 2026 coordinated core run passed **593 tests in 83 suites**: 14 persistence,
@@ -411,3 +458,11 @@ boundaries. Further work includes disk/persistence fault injection, long-duratio
 removable-volume soak tests, wider proxy/FTPS coverage, per-resource media authentication, explicit
 extractor proxy routing, expired-URL refresh and live recording. No throughput benchmark gain or
 universal-site compatibility is claimed by the current tests.
+
+
+## App updates
+
+`AppUpdater` owns one app-lifetime `SPUStandardUpdaterController`. The SwiftUI command and
+About settings observe Sparkle’s KVO state. Update preferences stay in Sparkle’s local defaults,
+independent of core persistence. Ed25519 authenticates both feeds and archives, with profiling
+disabled and automatic checks/downloads off by default. See [update publishing](../../docs/UPDATES.md).

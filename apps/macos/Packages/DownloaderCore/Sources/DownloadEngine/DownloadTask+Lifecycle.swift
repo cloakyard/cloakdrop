@@ -3,6 +3,42 @@ import DownloadModels
 import DownloadPersistence
 
 extension DownloadTask {
+    /// Best-effort check that the remote resource is still the one we began downloading. Returns
+    /// `true` only on positive evidence of change (a differing ETag, or a differing size) — a failed
+    /// or inconclusive probe returns `false`, so a transient hiccup never triggers a needless restart.
+    func remoteContentChanged() async -> Bool {
+        guard let head = try? await httpClient.probe(
+            HTTPDownloadRequest(
+                url: download.url,
+                headers: download.requestHeaders,
+                username: download.username,
+                password: download.password
+            )
+        ) else { return false }
+        if let old = download.etag, let new = head.etag, !old.isEmpty, !new.isEmpty {
+            return old != new
+        }
+        if let oldSize = download.totalBytes, let newSize = head.totalBytes {
+            return oldSize != newSize
+        }
+        return false
+    }
+
+    /// True when the `.cdpart` file on disk can actually back the segments' persisted progress: it
+    /// exists and is at least large enough to hold the highest byte any segment claims to have
+    /// written (`start + downloadedBytes`). False means those bytes are gone — the part file was
+    /// deleted, moved, left on an unmounted volume, or orphaned by a format change — so resuming
+    /// from the persisted offsets would read zeros. Callers restart cleanly when this is false.
+    func partFileBacksProgress() -> Bool {
+        let highestWrittenOffset = download.segments.reduce(Int64(0)) { highest, segment in
+            segment.downloadedBytes > 0 ? max(highest, segment.start + segment.downloadedBytes) : highest
+        }
+        guard highestWrittenOffset > 0 else { return true }   // no progress claimed ⇒ nothing to back
+        let attributes = try? FileManager.default.attributesOfItem(atPath: download.partFilePath)
+        let size = (attributes?[.size] as? NSNumber)?.int64Value ?? 0
+        return size >= highestWrittenOffset
+    }
+
     func refreshDestination(using scope: SecurityScope) async throws {
         guard scope.hasBookmark else { return }
         guard let path = scope.resolvedPath(for: download.destinationDirectoryPath) else {

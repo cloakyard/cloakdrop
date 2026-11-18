@@ -1,0 +1,7 @@
+{
+  "product": "CloakDrop",
+  "website": "drop.cloakyard.com",
+  "minimumOS": 26,
+  "volumeIcon": "AppIcon.icns",
+  "background": "apps/macos/scripts/dmg/background.png"
+}

@@ -420,7 +420,7 @@ private struct BrowserAuthSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // The same header band as every other sheet, with the host (and realm) as context.
+            // The shared native heading, with the host (and realm) as context.
             SheetHeader(
                 title: request.isProxy ? "The proxy requires a password." : "This site requires a password.",
                 systemImage: "lock.shield",
@@ -433,7 +433,7 @@ private struct BrowserAuthSheet: View {
                     Toggle("Remember in my Keychain", isOn: $remember)
                         .disabled(request.credentialScope == nil)
                 }
-                HStack {
+                SheetActions {
                     Spacer()
                     Button("Cancel", role: .cancel) { request.cancel() }
                         .keyboardShortcut(.cancelAction)
@@ -444,6 +444,7 @@ private struct BrowserAuthSheet: View {
                         request.finish(username: username, password: password)
                     }
                     .keyboardShortcut(.defaultAction)
+                    .modifier(SheetActionStyle(prominent: true))
                     .disabled(username.isEmpty)
                 }
             }

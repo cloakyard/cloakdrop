@@ -1,0 +1,14 @@
+Building for debugging...
+[Computing dependencies]
+[1 / 5]
+Build complete! (0.47 secs)
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "Live media smoke (opt-in)" started.
+◇ Test "Selected pages resolve, download, package and decode completely" started.
+[live-media] START dailymotion-original
+[live-media] PASS dailymotion-original mode=original output=dailymotion-original.mkv fullDecode=true
+✔ Test "Selected pages resolve, download, package and decode completely" passed after 7.477 seconds.
+✔ Suite "Live media smoke (opt-in)" passed after 7.477 seconds.
+✔ Test run with 1 test in 1 suite passed after 7.477 seconds.

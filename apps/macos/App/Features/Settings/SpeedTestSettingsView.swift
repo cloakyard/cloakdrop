@@ -159,6 +159,8 @@ struct SpeedTestSettingsView: View {
 /// both a struggling hotel Wi-Fi and a fiber line produce a readable sweep. The measured
 /// value sits under the dial; the needle animates as live rates stream in.
 private struct SpeedometerView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var title: String
     /// Current value, or `nil` when neither a live rate nor a stored result exists.
     var bytesPerSecond: Double?
@@ -194,7 +196,7 @@ private struct SpeedometerView: View {
                 needle
             }
             .frame(width: 110, height: 100)
-            .animation(.smooth(duration: 0.35), value: fraction)
+            .animation(reduceMotion ? nil : .smooth(duration: 0.35), value: fraction)
 
             // The reading sits below the dial — inside the arc it crowds the needle and the
             // arc's rounded end caps.

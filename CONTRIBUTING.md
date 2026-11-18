@@ -107,11 +107,13 @@ Call out network activity, access outside the sandbox and dependency changes in 
 Allowed network work is limited to configured transfers, redirects, mirrors, retries, schedules,
 resume and optional same-origin checksum discovery; metadata resolution for a submitted video
 page; browser pages/subresources and searches submitted on Return; configured proxies; manual
-speed tests; and blocklists explicitly selected or updated. No telemetry, analytics, accounts or
+speed tests; blocklists explicitly selected or updated; and manual or explicitly enabled Sparkle
+updates from the Cloakyard feed and GitHub release hosts. No telemetry, analytics, accounts or
 phone-home. Preserve the boundaries in [PRIVACY.md](PRIVACY.md).
 
 Ask before adding dependencies beyond the existing stack, including new helper-build tooling.
-GRDB is the only third-party Swift dependency. Prefer system frameworks such as CryptoKit.
+GRDB is the core's only third-party Swift dependency; the app embeds pinned Sparkle 2 for signed
+updates. Prefer system frameworks such as CryptoKit.
 The optional ffmpeg helper processes local media without network support. yt-dlp may resolve
 submitted pages and their service endpoints, but CloakDrop’s engine must transfer the selected
 media payload.

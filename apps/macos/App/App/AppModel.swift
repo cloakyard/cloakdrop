@@ -42,6 +42,10 @@ final class AppModel {
     var sort: DownloadSort = .dateAdded
     var isAddSheetPresented = false
     var isBatchSheetPresented = false
+    var isPlaylistSheetPresented = false
+    var pendingDownloadRepair: Download?
+    var downloadOperationError: String?
+    var movingDownloadIDs: Set<UUID> = []
     /// Which Settings tab is shown; a menu command can steer this (e.g. "About CloakDrop").
     var settingsSelection: SettingsTab = .general
     /// Becomes true only after persisted settings have configured both engine and browser routing.
@@ -225,6 +229,7 @@ final class AppModel {
         // would replace it with an empty in-memory catalog and start ambient services.
         model.didBootstrap = true
         model.isNetworkReady = true
+        model.applyChromeFixture()
         return model
     }
     #endif

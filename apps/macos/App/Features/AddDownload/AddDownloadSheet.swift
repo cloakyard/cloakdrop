@@ -8,6 +8,7 @@ import DownloadEngine
 struct AddDownloadSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var urlString = ""
     @State private var fileName = ""
@@ -88,12 +89,22 @@ struct AddDownloadSheet: View {
 
             Form {
                 Section("Source") {
-                    TextField("URL", text: $urlString, prompt: Text("https://example.com/file.zip"))
-                        .borderedTextField()
-                        .onChange(of: urlString) { _, _ in
-                            deriveFileNameIfNeeded()
-                            if let url = resolvedURL { autofillSavedCredentials(for: url) }
-                        }
+                    // A primary URL needs the whole row, rather than the grouped Form's
+                    // trailing value column. Keep a visible label above the native field.
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("URL")
+                            .accessibilityHidden(true)
+                        TextField("URL", text: $urlString, prompt: Text("https://example.com/file.zip"))
+                            .labelsHidden()
+                            .borderedTextField()
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity)
+                            .onChange(of: urlString) { _, _ in
+                                deriveFileNameIfNeeded()
+                                if let url = resolvedURL { autofillSavedCredentials(for: url) }
+                            }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     if let site = detectedVideoPage {
                         videoPageRow(site)
                     } else {
@@ -138,7 +149,7 @@ struct AddDownloadSheet: View {
                         }
                         Toggle("Start immediately", isOn: $startImmediately)
                             .disabled(scheduleEnabled)
-                        Toggle("Schedule for later", isOn: $scheduleEnabled.animation(.smooth(duration: 0.2)))
+                        Toggle("Schedule for later", isOn: $scheduleEnabled.animation(reduceMotion ? nil : .smooth(duration: 0.2)))
                         if scheduleEnabled {
                             DatePicker("Start at", selection: $scheduledDate, in: Date()...)
                                 .datePickerStyle(.compact)
@@ -197,7 +208,7 @@ struct AddDownloadSheet: View {
 
             Divider()
 
-            HStack {
+            SheetActions {
                 Button("Cancel", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
                 Spacer()
@@ -206,11 +217,12 @@ struct AddDownloadSheet: View {
                 // if the toggle was left on from a previous file URL in the same sheet.
                 Button(scheduleEnabled && detectedVideoPage == nil ? "Schedule" : "Add Download") { add() }
                     .keyboardShortcut(.defaultAction)
+                    .modifier(SheetActionStyle(prominent: true))
                     .disabled(!canAdd)
             }
             .padding()
         }
-        .frame(width: 520, height: 600)
+        .modifier(ResizableSheetLayout(width: 520, height: 600, minimumHeight: 420))
         .onAppear(perform: prefill)
         .task(id: inspectionInput) { await inspectLink(inspectionInput) }
     }
@@ -349,7 +361,7 @@ struct AddDownloadSheet: View {
         let result = await model.preview(url: input.url, referrer: input.referrer, cookies: input.cookies,
                                          username: input.username, password: input.password)
         guard !Task.isCancelled else { return }
-        withAnimation(.smooth(duration: 0.2)) {
+        withAnimation(reduceMotion ? nil : .smooth(duration: 0.2)) {
             isInspecting = false
             preview = result
             previewFailed = (result == nil)

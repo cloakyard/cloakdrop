@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-03",
+  "sourceBytes": 33554432,
+  "sourceSHA256": "1cbd22e11bc209926b1e050d644779ba4105d7a023109c3b78bb35edf5c7c292",
+  "finalSHA256": "1cbd22e11bc209926b1e050d644779ba4105d7a023109c3b78bb35edf5c7c292",
+  "resumedRangesAfterMove": [
+    {
+      "url": "/workflow-repair.bin?token=fresh",
+      "start": 11141120,
+      "end": 12582911
+    },
+    {
+      "url": "/workflow-repair.bin?token=fresh",
+      "start": 2752512,
+      "end": 4194303
+    },
+    {
+      "url": "/workflow-repair.bin?token=fresh",
+      "start": 15335424,
+      "end": 16777215
+    },
+    {
+      "url": "/workflow-repair.bin?token=fresh",
+      "start": 6946816,
+      "end": 8388607
+    },
+    {
+      "url": "/workflow-repair.bin?token=fresh",
+      "start": 23724032,
+      "end": 25165823
+    },
+    {
+      "url": "/workflow-repair.bin?token=fresh",
+      "start": 27918336,
+      "end": 29360127
+    },
+    {
+      "url": "/workflow-repair.bin?token=fresh",
+      "start": 32112640,
+      "end": 33554431
+    },
+    {
+      "url": "/workflow-repair.bin?token=fresh",
+      "start": 19529728,
+      "end": 20971519
+    }
+  ],
+  "playlistOutputs": [
+    {
+      "fileName": "001 - Workflow Lessons (1).mkv",
+      "bytes": 2014,
+      "codec": "h264",
+      "durationSeconds": 1.0
+    },
+    {
+      "fileName": "002 - Workflow Lessons (2).mkv",
+      "bytes": 2014,
+      "codec": "h264",
+      "durationSeconds": 1.0
+    }
+  ]
+}

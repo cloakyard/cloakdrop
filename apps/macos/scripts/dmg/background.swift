@@ -1,18 +1,29 @@
-// Renders the CloakDrop installer DMG background.
+// Renders the Cloakyard installer DMG background.
 //
 // The artwork is authored in the Finder window's 760x570-point content area and rasterized at
-// 2x. Finder overlays the real CloakDrop, Applications, and Install Guide icons, so this file
+// 2x. Finder overlays the real app, Applications, and Install Guide icons, so this file
 // only draws the open Air composition, instructions, horizon and directional cue.
 //
-//   swift background.swift <app-icon.png> <out.png>
+//   swift background.swift <out.png>
 
 import AppKit
 
 let W: CGFloat = 760
 let H: CGFloat = 570
 
-let iconPath = CommandLine.arguments[1]
-let outPath = CommandLine.arguments[2]
+guard CommandLine.arguments.count == 2 else {
+    fatalError("usage: swift background.swift <out.png>")
+}
+let outPath = CommandLine.arguments[1]
+struct Installer: Decodable {
+    let product: String
+    let minimumOS: Int
+    let website: String
+}
+let config = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("installer.json")
+let installer = try JSONDecoder().decode(Installer.self, from: Data(contentsOf: config))
+let logo = config.deletingLastPathComponent().appendingPathComponent("cloakyard-mark.svg")
+guard let mark = NSImage(contentsOf: logo) else { fatalError("Missing Cloakyard logo: \(logo.path)") }
 
 func hex(_ string: String, _ alpha: CGFloat = 1) -> NSColor {
     var valueString = string
@@ -54,15 +65,15 @@ let image = NSImage(size: NSSize(width: W, height: H), flipped: true) { _ in
     NSRect(x: 0, y: 0, width: W, height: H).fill()
 
     // Keep the original mark, with the family's quiet single-colour wordmark.
-    NSImage(contentsOfFile: iconPath)?.draw(in: NSRect(x: 40, y: 28, width: 36, height: 36))
-    text("CloakDrop", size: 18, weight: .medium, color: ink, x: 86, y: 46, tracking: -0.5)
-    text("Apple silicon · macOS 26+", size: 12, color: secondary,
-         x: 552, y: 46)
+    mark.draw(in: NSRect(x: 40, y: 28, width: 36, height: 36))
+    text("Cloakyard", size: 18, weight: .medium, color: ink, x: 86, y: 46, tracking: -0.5)
+    text("Apple silicon · macOS \(installer.minimumOS)+", size: 12, color: secondary,
+         x: 548, y: 46)
 
-    text("A little more care.", size: 34, color: ink,
+    text("Install \(installer.product)", size: 34, color: ink,
          x: W / 2, y: 116, centered: true, tracking: -1.25)
-    text("For every download.", size: 34, color: secondary,
-         x: W / 2, y: 155, centered: true, tracking: -1.25)
+    text("Drag the app to Applications.", size: 19, color: secondary,
+         x: W / 2, y: 155, centered: true, tracking: -0.2)
 
     // Two soft offset planes echo the family horizon without competing with the real icons.
     for offset in [CGFloat(0), 11] {
@@ -97,9 +108,9 @@ let image = NSImage(size: NSSize(width: W, height: H), flipped: true) { _ in
     secondary.setStroke()
     arrow.stroke()
 
-    text("Drag CloakDrop to Applications.", size: 16, weight: .medium,
+    text("Open \(installer.product) from Applications.", size: 16, weight: .medium,
          color: ink, x: W / 2, y: 366, centered: true, tracking: -0.2)
-    text("Then open it from Applications.", size: 13, color: secondary,
+    text("You can then eject this disk.", size: 13, color: secondary,
          x: W / 2, y: 390, centered: true)
 
     // The real Install Guide icon is centred at (380, 464), with Finder's own label.
@@ -111,8 +122,7 @@ let image = NSImage(size: NSSize(width: W, height: H), flipped: true) { _ in
     divider.lineWidth = 1
     line.setStroke()
     divider.stroke()
-    text("Made with care.", size: 12, color: muted, x: 48, y: 542)
-    text("drop.cloakyard.com", size: 12, color: muted, x: 604, y: 542)
+    text(installer.website, size: 12, color: muted, x: 48, y: 542)
     return true
 }
 

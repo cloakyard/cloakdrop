@@ -123,9 +123,7 @@ public extension DownloadManager {
             }
             return catalogContainsName
                 || directories.contains {
-                    FileManager.default.fileExists(
-                        atPath: ($0 as NSString).appendingPathComponent(name)
-                    )
+                    FileManager.default.fileExists(atPath: ($0 as NSString).appendingPathComponent(name))
                 }
         }
         guard taken(fileName) else { return fileName }

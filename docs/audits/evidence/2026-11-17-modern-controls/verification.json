@@ -1,0 +1,53 @@
+{
+  "date": "2026-11-17",
+  "platform": "macOS 27.2.1 arm64",
+  "xcode": "27.2",
+  "coreTests": {
+    "persistence": 14,
+    "models": 341,
+    "engine": 318,
+    "suites": 97
+  },
+  "xcodebuild": {
+    "build": "passed",
+    "analyze": "passed",
+    "exitCode": 0
+  },
+  "swiftlint": {
+    "violations": 0,
+    "files": 193
+  },
+  "localizations": {
+    "strings": 537,
+    "languages": 10
+  },
+  "codesignDeepStrict": "passed",
+  "website": {
+    "npm": "12.2.2",
+    "node": "26.13.1",
+    "ci": "passed",
+    "check": "passed",
+    "build": "passed",
+    "auditVulnerabilities": 0,
+    "dependencyTree": "passed",
+    "wranglerDryRun": "passed",
+    "airContract": "passed",
+    "airPortability": "passed",
+    "browserLinkHarness": "not run: external puppeteer-core unavailable"
+  },
+  "settingsTabs": [
+    "General",
+    "Rules",
+    "Network",
+    "Speed Test",
+    "Browser",
+    "Stats",
+    "Privacy",
+    "About"
+  ],
+  "limits": [
+    "Official yt-dlp frozen runtime retained with five reported version gaps",
+    "TypeScript 6 retained for Astro Check peer compatibility",
+    "No new macOS 26, Release distribution or live external-media verification"
+  ]
+}

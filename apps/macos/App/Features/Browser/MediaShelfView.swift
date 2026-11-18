@@ -71,7 +71,9 @@ struct MediaShelfView: View {
             Label("Extract Media from This Page", systemImage: "sparkles.tv")
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .buttonStyle(.plain)
+        // The popover already owns its material. Use a native action without a second glass layer.
+        .buttonStyle(.bordered)
+        .controlSize(.large)
         .font(.callout)
         .padding(10)
         .help("Read this page with the bundled resolver (YouTube and other supported sites) and pick a quality")
@@ -113,14 +115,15 @@ private struct ShelfRow: View {
                 action()
                 handedOff = true
             } label: {
-                Image(systemName: handedOff ? "checkmark.circle.fill" : "arrow.down.circle.fill")
-                    .font(.title3)
+                Image(systemName: handedOff ? "checkmark" : "arrow.down")
+                    .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(handedOff ? Color.green : Color.accentColor)
-                    // A comfortable click target — the bare glyph alone is ~18 pt.
-                    .frame(width: 26, height: 26)
-                    .contentShape(Rectangle())
+                    .frame(width: 22, height: 22)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.bordered)
+            .buttonBorderShape(.circle)
+            .controlSize(.regular)
+            .tint(handedOff ? .green : .accentColor)
             .disabled(handedOff)
             .help(grabHelp)
             // `.help` is only a tooltip — VoiceOver needs an explicit name.

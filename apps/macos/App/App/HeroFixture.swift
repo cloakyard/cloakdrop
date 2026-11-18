@@ -109,4 +109,21 @@ struct HeroFixtureState {
         return value
     }
 }
+
+extension AppModel {
+    /// Opt-in presentation states on the existing in-memory fixture. No clipboard reads,
+    /// extraction requests or persistent download edits are needed to inspect the chrome.
+    func applyChromeFixture() {
+        let arguments = ProcessInfo.processInfo.arguments
+        if arguments.contains("--verify-chrome") {
+            detectedClipboardURL = URL(string: "https://example.invalid/a-long-folder-name/quarterly-report.zip")
+            mediaExtractionError = String(localized: "This video is protected — no downloadable stream is available.")
+        }
+        if arguments.contains("--verify-resolving") { beginMediaResolve() }
+        if arguments.contains("--verify-repair") { pendingDownloadRepair = downloads.first }
+        if arguments.contains("--verify-priority"), let download = downloads.first {
+            settings.downloadPriority = DownloadPriority(downloadID: download.id, heldDownloadIDs: [])
+        }
+    }
+}
 #endif

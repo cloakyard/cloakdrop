@@ -6,6 +6,7 @@ import DownloadModels
 struct DownloadListView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// Window key/active state — selection loses its accent emphasis when the window resigns.
     @Environment(\.controlActiveState) private var controlActiveState
     /// Whether the list itself owns keyboard focus; with an inactive window or focus elsewhere
@@ -69,8 +70,26 @@ struct DownloadListView: View {
     /// The transient capture/clipboard banners, stacked. Floated over the empty state (keeping the
     /// pane's full height) or inset above the list (pushing rows down) — see `body`.
     private var banners: some View {
-        VStack(spacing: 6) {
-            clipboardBanner
+        GlassEffectContainer(spacing: 6) {
+            VStack(spacing: 6) {
+                if let priority = model.settings.downloadPriority,
+                   let download = model.downloads.first(where: { $0.id == priority.downloadID }) {
+                    HStack {
+                        Label("Finishing first: \(download.fileName)", systemImage: "bolt.fill")
+                            .font(.callout)
+                            .lineLimit(2)
+                            .truncationMode(.middle)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer()
+                        Button("Stop Prioritizing") { model.stopFinishingFirst() }
+                    }
+                    .padding(10)
+                    .modifier(FloatingChrome(shape: RoundedRectangle(cornerRadius: Design.cardRadius)))
+                    .padding(.horizontal, 10)
+                    .padding(.top, 6)
+                }
+                clipboardBanner
+            }
         }
     }
 
@@ -106,11 +125,10 @@ struct DownloadListView: View {
             }
             .accessibilityElement(children: .contain)
             .padding(10)
-            .background(.regularMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: Design.cardRadius))
+            .modifier(FloatingChrome(shape: RoundedRectangle(cornerRadius: Design.cardRadius)))
             .padding(.horizontal, 10)
             .padding(.top, 6)
-            .transition(.move(edge: .top).combined(with: .opacity))
+            .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
         }
     }
 
@@ -178,19 +196,31 @@ struct DownloadListView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .primaryAction) {
+        // Separate native controls give Add and its menu the same comfortable hit area
+        // as the other toolbar actions, without the compressed primary-action split menu.
+        ToolbarItemGroup(placement: .primaryAction) {
+            Button {
+                model.isAddSheetPresented = true
+            } label: {
+                Label("Add Download", systemImage: "plus")
+            }
+            .help("Add Download…")
+
             Menu {
                 Button("Add Download…") { model.isAddSheetPresented = true }
                 Button("Grab Links…") { model.isBatchSheetPresented = true }
+                Button("Import Playlist…") { model.isPlaylistSheetPresented = true }
+                    .disabled(!model.canExtractFromPages)
             } label: {
-                Label("Add Download", systemImage: "plus")
-            } primaryAction: {
-                model.isAddSheetPresented = true
+                Label("Download options", systemImage: "chevron.down")
             }
-            .help("Add a new download (⌘N) — or a batch from the menu")
+            .menuIndicator(.hidden)
+            .help("Download options")
         }
 
-        ToolbarItem {
+        ToolbarSpacer(.fixed, placement: .primaryAction)
+
+        ToolbarItem(placement: .primaryAction) {
             Button {
                 openWindow(id: BrowserScene.windowID)
             } label: {
@@ -199,7 +229,7 @@ struct DownloadListView: View {
             .help("Open the built-in browser — browse any site and grab its media (⇧⌘B)")
         }
 
-        ToolbarItemGroup {
+        ToolbarItemGroup(placement: .primaryAction) {
             Button {
                 model.pauseAll()
             } label: {
@@ -215,7 +245,11 @@ struct DownloadListView: View {
             }
             .help("Resume all paused downloads")
             .disabled(!hasResumable)
+        }
 
+        ToolbarSpacer(.fixed, placement: .primaryAction)
+
+        ToolbarItem(placement: .primaryAction) {
             Menu {
                 Picker("Sort By", selection: Binding(get: { model.sort }, set: { model.sort = $0 })) {
                     ForEach(DownloadSort.allCases) { Text($0.label).tag($0) }
@@ -223,6 +257,7 @@ struct DownloadListView: View {
             } label: {
                 Label("Sort", systemImage: "arrow.up.arrow.down")
             }
+            .menuIndicator(.hidden)
             .help("Sort the list")
         }
     }
@@ -247,6 +282,17 @@ struct DownloadListView: View {
         }
         if targets.contains(where: { $0.status.isResumable }) {
             Button("Resume") { targets.forEach { model.resume($0.id) } }
+        }
+        if targets.count == 1, download.status.isResumable, !download.isMedia {
+            Button("Repair Download…") { model.pendingDownloadRepair = download }
+        }
+        if targets.count == 1, !download.status.isTerminal, download.status != .scheduled {
+            Button("Move Download…") { model.moveDownload(download) }
+            if model.settings.downloadPriority?.downloadID == download.id {
+                Button("Stop Prioritizing") { model.stopFinishingFirst() }
+            } else {
+                Button("Finish This First") { model.finishFirst(download.id) }
+            }
         }
         // Open / Reveal target a specific file, so only offer them for a single completed download.
         if targets.count == 1, download.status == .completed {

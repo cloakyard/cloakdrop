@@ -14,34 +14,18 @@ struct SettingsView: View {
     var body: some View {
         @Bindable var model = model
         TabView(selection: $model.settingsSelection) {
-            general
-                .tabItem { Label("General", systemImage: "gearshape") }
-                .tag(SettingsTab.general)
-            RulesSettingsView()
-                .tabItem { Label("Rules", systemImage: "arrow.triangle.branch") }
-                .tag(SettingsTab.rules)
-            network
-                .tabItem { Label("Network", systemImage: "point.3.connected.trianglepath.dotted") }
-                .tag(SettingsTab.network)
-            SpeedTestSettingsView()
-                .tabItem { Label("Speed Test", systemImage: "gauge.with.needle") }
-                .tag(SettingsTab.speedTest)
-            BrowserSettingsView()
-                .tabItem { Label("Browser", systemImage: "globe") }
-                .tag(SettingsTab.browser)
-            StatsSettingsView()
-                .tabItem { Label("Stats", systemImage: "medal") }
-                .tag(SettingsTab.stats)
-            PrivacySettingsView()
-                .tabItem { Label("Privacy", systemImage: "lock.shield") }
-                .tag(SettingsTab.privacy)
-            about
-                .tabItem { Label("About", systemImage: "info.circle") }
-                .tag(SettingsTab.about)
+            Tab("General", systemImage: "gearshape", value: SettingsTab.general) { general }
+            Tab("Rules", systemImage: "arrow.triangle.branch", value: SettingsTab.rules) { RulesSettingsView() }
+            Tab("Network", systemImage: "point.3.connected.trianglepath.dotted", value: SettingsTab.network) { network }
+            Tab("Speed Test", systemImage: "gauge.with.needle", value: SettingsTab.speedTest) { SpeedTestSettingsView() }
+            Tab("Browser", systemImage: "globe", value: SettingsTab.browser) { BrowserSettingsView() }
+            Tab("Stats", systemImage: "medal", value: SettingsTab.stats) { StatsSettingsView() }
+            Tab("Privacy", systemImage: "lock.shield", value: SettingsTab.privacy) { PrivacySettingsView() }
+            Tab("About", systemImage: "info.circle", value: SettingsTab.about) { about }
         }
-        // Wide enough for all eight tab buttons (narrower overflows into a "»" menu) and tall
-        // enough that the Speed Test dials fit without scrolling.
-        .frame(width: 640, height: 600)
+        // Keep all eight tabs visible, while allowing longer forms to use a larger window.
+        .frame(minWidth: 640, idealWidth: 640, maxWidth: .infinity,
+               minHeight: 480, idealHeight: 600, maxHeight: .infinity)
         .disabled(!model.isNetworkReady)
         // Settings always reopens on the first page (General); About is reached via its own
         // "About CloakDrop" command, which sets the tab just before opening the window. Reset
@@ -250,6 +234,8 @@ struct SettingsView: View {
                     .listRowInsets(EdgeInsets())
             }
 
+            UpdateSettingsSection()
+
             Section {
                 linkRow(symbol: "person.crop.circle", label: Text(verbatim: "github.com/sumitsahoo"), url: AppLinks.author)
                 linkRow(
@@ -258,6 +244,7 @@ struct SettingsView: View {
                     url: AppLinks.repository
                 )
                 linkRow(symbol: "ladybug", label: Text("Report a Bug"), url: BugReport.issueURL)
+                linkRow(symbol: "cup.and.saucer", label: Text("Buy me a coffee"), url: AppLinks.support)
             }
         }
         .formStyle(.grouped)

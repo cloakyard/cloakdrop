@@ -35,6 +35,9 @@ An open-source download manager for Apple silicon Macs, with parallel transfers,
 | **Integrity and provenance** | Optional MD5, SHA-1 and SHA-256 verification before ordinary files are published; same-origin checksum discovery; local exportable receipts. Offline code-signature checks are available for recognizable app/DMG code objects, without claiming a notarization verdict. |
 | **Mirrors and safe publication** | Metalink mirror spread and failover, source validation, filename sanitization and collision handling. Finalization must never replace an existing file or directory. |
 | **Queues and bandwidth** | Per-queue concurrency, global and per-download speed caps, time-of-day profiles, scheduling, categories and routing rules. |
+| **Recover and prioritize** | Repair ordinary-file downloads with fresh links, reusing compatible partial data or explicitly restarting. Finish one item first across queues, then restore competing work while respecting manual pauses. |
+| **Move unfinished downloads** | Choose another folder for unfinished file or media data. Staging is copied before the catalog changes; the original is retired after that update succeeds. The download stays paused for review and resume. |
+| **Playlist import** | Review up to 100 items from a supported public playlist, select entries and one quality preference, then queue numbered files in a playlist folder. Each page resolves when its download starts; existing catalog URLs are skipped. Requires yt-dlp. |
 | **Capture from your workflow** | Clipboard watching, drag and drop, Services, a Share Extension, and a link grabber with deduplication and pattern expansion. Remembered credentials use Keychain; request-specific state is retained locally for resume. |
 | **Built-in browser** | WebKit with persistent logins, no saved browsing history, and a one-click site-data wipe. Detects manifests, direct media and file downloads, including players in shadow DOM; filters known ad hosts and stream chunks. Optional blocklists are fetched only when selected or updated. |
 | **Video and audio grabbing** | HLS/DASH quality selection, supported AES-128 streams, subtitle sidecars and independently downloadable audio renditions. Optional yt-dlp resolves supported video pages and audio-only pages; CloakDrop’s own engine transfers the selected payload. Pasted video pages and browser page captures offer compatible MP4 (H.264/AAC, when available) or original quality; both preserve the selected source streams without re-encoding. |
@@ -76,8 +79,9 @@ If another folder occupies the original location, CloakDrop may refuse to resume
 verify which folder is yours. Preserve that replacement folder and its contents by moving it aside,
 then **Retry**. If access still cannot be restored, return the original download folder to the saved
 location shown under **Destination**, then retry. Do not delete unrelated data to make room, or
-remove and re-add the download if you want to retain its partial progress. Existing downloads do not
-currently offer a destination picker.
+remove and re-add the download if you want to retain its partial progress. Use **Move Download…**
+to copy accessible unfinished data to another folder. The download remains paused until you
+resume it; keep the original folder accessible until moving finishes.
 
 #### A remembered password needs entering again after upgrading
 
@@ -89,11 +93,11 @@ available for its resume.
 
 ## Privacy
 
-There are no analytics, accounts, crash-report uploads, automatic update checks, or phone-home
-requests. Network activity is limited to work you initiate or configure: transfers and their
+There are no analytics, accounts or crash-report uploads. Sparkle update checks and downloads
+are manual unless you enable automatic updates in About settings. Network activity is limited to work you initiate or configure: transfers and their
 redirects/mirrors/retries; optional same-origin checksum discovery; submitted video-page resolution;
 browser pages and subresources; searches submitted on Return; configured proxies; manual speed
-tests; and blocklists you explicitly select or update. Scheduled transfers and automatic resume can
+tests; blocklists you explicitly select or update; and app updates you request or enable. Scheduled transfers and automatic resume can
 continue work configured earlier.
 
 Download records, settings, receipts and statistics stay on your Mac. The browser retains cookies
@@ -115,8 +119,8 @@ Current locally signed builds are **not notarized**. See
 [Apple’s opening guidance](https://support.apple.com/en-us/102445) and the release notes for the
 signing status of the build you download.
 
-This source tree is **1.0.0**; [**1.0.0-rc.1 (20261019)**](https://github.com/cloakyard/cloakdrop/releases/tag/v1.0.0-rc.1) is available as a prerelease.
-See the [RC notes](docs/releases/v1.0.0-rc.1.md) for its artifact and validation.
+This source tree is **1.0.0**; [**1.0.0-rc.3 (20261118.2)**](https://github.com/cloakyard/cloakdrop/releases/tag/v1.0.0-rc.3) is available as a prerelease.
+See the [RC 3 notes](docs/releases/v1.0.0-rc.3.md) for the installer and verification.
 GitHub Releases lists the available downloads; each release’s notes and assets are the source of truth for its features, checksums,
 and signing status.
 
@@ -126,9 +130,11 @@ This release focuses on transfer reliability and a simpler native experience: sa
 saved downloads and moved folders, stronger input validation, scoped remembered credentials,
 and updated macOS 27 controls.
 
-The [October 19 RC audit](docs/audits/2026-10-19-rc.1.md) records **626 passing tests**,
-fresh Debug/Release builds, an actual checksum-verified download and the Air installer.
-It documents the remaining signing, Share Extension and official-bundle runtime limits.
+The [October 30 RC2 audit](docs/audits/2026-10-30-rc.2.md) records **649 executed passing
+tests** (one opt-in live test skipped), fresh Debug/Release builds and a complete
+YouTube MP4 downloaded by the installed RC. RC2 adds compatible MP4 selection,
+media timing/packaging fixes and a Ko-fi support link in About. The audit documents
+the remaining signing, Share Extension and official-bundle runtime limits.
 
 ## Development
 
@@ -150,9 +156,9 @@ open build/Verify/Build/Products/Debug/CloakDrop.app
 ~~~
 
 `project.yml` is the source of truth; the generated `.xcodeproj` is ignored. Regenerate after
-changing project configuration or adding/removing source files. Debug is locally ad-hoc signed
-without a developer team. Release signing and App Group capabilities require an appropriate signing
-configuration; packaging alone does not notarize the app.
+changing project configuration or adding/removing source files. Debug and Release are locally ad-hoc
+signed without a developer team. The separate `project-release.yml` opts into provisioned App Groups
+for future Developer ID distribution; packaging alone does not notarize the app. See [updates](docs/UPDATES.md).
 
 In agent environments that inject `git safe.bareRepository=explicit`, prefix `xcodegen`,
 `xcodebuild` and `swift test` with `GIT_CONFIG_COUNT=0` so SwiftPM can resolve packages.
@@ -181,7 +187,8 @@ and manifest downloads still work, while extractor-based page resolution is unav
 | Page extraction | Optional [yt-dlp](apps/macos/Vendor/yt-dlp/README.md), used for metadata and media URLs |
 | Build | XcodeGen and SwiftLint; the independent website uses Astro |
 
-GRDB is the only third-party Swift dependency. The
+GRDB is the core’s only third-party Swift dependency. The app also embeds pinned Sparkle 2 for
+signed updates; see [update publishing](docs/UPDATES.md). The
 [dependency audit](docs/audits/2026-10-19-dependencies.md) records exact versions, upstream sources,
 verification and compatibility exceptions. The latest audited yt-dlp release still bundles some
 older runtime libraries, including OpenSSL with a newer security patch available. Updating the
@@ -208,11 +215,12 @@ cd apps/macos/Packages/DownloaderCore
 swift test
 ~~~
 
-The **October 19, 2026 RC audit passed 626 tests across 87 suites** in the optimized run,
+The **October 30, 2026 RC2 audit reports 650 tests across 90 suites: 649 executed and
+passed, one opt-in live-site test skipped** in the optimized run,
 covering segment scheduling, relaunch/resume, range and identity validation, retry truncation, cancellation races, credential
 scoping, HTTP/FTP loopback transfers, safe publication, checksums, bandwidth limiting, archive
 guards, manifest parsing and media extraction. See the
-[RC audit](docs/audits/2026-10-19-rc.1.md) for the exact commands, results and limits.
+[RC2 audit](docs/audits/2026-10-30-rc.2.md) for the exact commands, results and limits.
 The September 14 audit separately records the earlier Thread Sanitizer run.
 
 Normal tests use mocks or loopback servers; a cold package resolution may fetch GRDB. To opt into
@@ -240,6 +248,8 @@ The website follows the portable [Air contract](DESIGN.md) and its pinned local 
 
 ## Project structure
 
+In `apps/macos/App/`, `App/` holds the entry point and app state, `Features/` groups product workflows, `Shared/` holds reusable UI helpers and `Resources/` contains app resources. Headless code and its tests live under `apps/macos/Packages/`.
+
 ~~~text
 cloakdrop/
 ├── apps/
@@ -264,6 +274,9 @@ See the [architecture](apps/macos/ARCHITECTURE.md), [website guide](apps/site/RE
 [asset guide](assets/README.md) and [documentation index](docs/README.md).
 
 ## Deployment and releases
+
+The app uses a three-part marketing version and an increasing `YYYYMMDD.N` build number.
+See the [Mac release guide](docs/MAC-RELEASE.md) for the Air installer, version settings and Developer ID workflow.
 
 Publish website changes through tested `dev` → `main` PRs and keep `dev` updated. When dev also holds unrelated native work, use a separately reviewed website-only PR under the maintainer's approved exception, then merge main into dev without releasing that native work. The [website guide](apps/site/README.md#deployment-and-releases) records build and deployment commands.
 

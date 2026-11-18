@@ -93,18 +93,17 @@ struct PrivacySettingsView: View {
                     "Download work you configure — URLs, redirects, mirrors, retries, schedules, repeating transfers, and automatic resumes.",
                     "Same-origin checksum files (.sha256, .sha1, or .md5), when automatic checksum verification and discovery are enabled.",
                     "A video page and related service endpoints, when yt-dlp resolves formats for a page you submit.",
+                    "A playlist you submit and the individual pages you select, when their downloads start.",
                     // swiftlint:disable:next line_length
                     "Pages and subresources loaded by the built-in browser — plus your query to the selected search engine, if address-bar search is on, only when you press Return.",
                     // swiftlint:disable:next line_length
                     "HTTP downloads and speed tests use system, direct or manual proxy routing. The browser uses the system configuration unless you select a manual proxy, even when downloads use Direct mode. FTP and FTPS connect directly. The app's proxy setting is not passed to yt-dlp.",
                     "A speed-test provider (Cloudflare or Ookla), and only while a test you started is running.",
                     // swiftlint:disable:next line_length
-                    "The ad blocker's open-source blocklist, if you pick one in Browser settings — fetched only when you choose it or press Update Now, never on its own."
+                    "The ad blocker's open-source blocklist, if you pick one in Browser settings — fetched only when you choose it or press Update Now, never on its own.",
+                    "Update feeds and downloads, when you check for updates or enable automatic updates."
                 ],
-                outro: """
-                That is the complete list. There are no update pings, no analytics beacons, and no \
-                phone-home of any kind.
-                """
+                outro: "There are no analytics beacons or advertising calls."
             )
 
             bulletedSection(
@@ -112,12 +111,14 @@ struct PrivacySettingsView: View {
                 intro: "The CloakDrop project has no accounts or analytics service and receives none of the following from the app:",
                 bullets: [
                     "Names, email addresses, or account details — there are no accounts.",
-                    "IP addresses or device identifiers.",
+                    "Persistent device identifiers.",
                     "Usage analytics or behavioural tracking.",
                     "Crash reports or diagnostic data."
                 ],
                 outro: nil
             )
+
+            section("Updates", UpdatePrivacyCopy.details)
 
             section("Where your data lives", """
             Your download list, preferences, URLs, request data, per-download HTTP or FTP \
@@ -248,8 +249,8 @@ struct PrivacySettingsView: View {
     private static let revisionDate: Date = {
         var components = DateComponents()
         components.year = 2026
-        components.month = 9
-        components.day = 6
+        components.month = 11
+        components.day = 17
         return Calendar(identifier: .gregorian).date(from: components) ?? Date()
     }()
 }

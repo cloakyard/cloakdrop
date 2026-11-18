@@ -1,0 +1,14 @@
+# Future provisioned Developer ID distribution; ordinary builds need no paid account.
+include: [project.yml]
+settings:
+  base:
+    CODE_SIGN_IDENTITY: "Apple Development"
+targets:
+  CloakDrop:
+    settings:
+      base:
+        CODE_SIGN_ENTITLEMENTS: App/Resources/CloakDrop.Release.entitlements
+  CloakDropShareExtension:
+    settings:
+      base:
+        CODE_SIGN_ENTITLEMENTS: ShareExtension/CloakDropShareExtension.Release.entitlements

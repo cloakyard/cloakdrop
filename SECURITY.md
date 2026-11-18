@@ -6,8 +6,8 @@ appreciate responsible disclosure.
 ## Supported Versions
 
 Security fixes target the latest release. Older versions do not
-receive backports. Install updates manually from [GitHub Releases](https://github.com/cloakyard/cloakdrop/releases);
-the app does not check for updates automatically. Fixes in the repository may not yet be included
+receive backports. Install the first Sparkle-enabled build manually from [GitHub Releases](https://github.com/cloakyard/cloakdrop/releases).
+It can then verify and install signed updates; automatic checks/downloads require opt-in. Fixes in the repository may not yet be included
 in a published installer.
 
 | Version | Supported          |
@@ -48,7 +48,7 @@ CloakDrop is a native, sandboxed macOS app designed to minimize attack surface:
   discovery); yt-dlp metadata resolution for a video page you submit; pages and subresources loaded
   in the built-in browser; an address-bar query sent to your chosen search engine on Return; a proxy
   you configure; a speed test you start (Cloudflare default, Ookla optional); and an optional browser
-  blocklist you explicitly select or update. There are no project analytics or update pings.
+  blocklist you explicitly select or update. Sparkle may also contact the update feed and GitHub release hosts on a manual check or after opt-in. There are no project analytics.
 - **Sandboxed.** The app runs under the macOS App Sandbox with the hardened runtime. It accesses its
   containers, the standard Downloads folder covered by its entitlement, and destinations you select
   via security-scoped bookmarks.
@@ -80,7 +80,7 @@ Developer Program for notarization as demand grows; no notarized release date is
 
 ### Risk areas
 
-- **Third-party dependencies.** CloakDrop's only third-party Swift dependency is GRDB (SQLite).
+- **Third-party dependencies.** The core uses GRDB (SQLite); the app embeds pinned Sparkle 2 for Ed25519-verified feeds and update archives.
   Release builds can also bundle two native command-line tools as code-signed, sandboxed helpers:
   **ffmpeg** (network-free stream-copy muxing) and **yt-dlp** (a page→formats resolver). Both run
   in-sandbox as `inherit`-entitled children. ffmpeg transforms local data only; yt-dlp may contact a

@@ -135,8 +135,13 @@ struct RuleEditorView: View {
 
             Form {
                 Section("Name") {
-                    TextField("Rule name", text: $name, prompt: Text("e.g. Videos to Movies"))
-                        .borderedTextField()
+                    VStack(alignment: .leading) {
+                        TextField("Rule name", text: $name, prompt: Text("e.g. Videos to Movies"))
+                            .labelsHidden()
+                            .borderedTextField()
+                            .multilineTextAlignment(.leading)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
                 Section {
@@ -179,6 +184,7 @@ struct RuleEditorView: View {
                             .buttonStyle(.borderless)
                             .foregroundStyle(.secondary)
                             .help("Clear folder")
+                            .accessibilityLabel("Clear folder")
                         }
                     }
                     Picker("Add to queue", selection: $assignedQueueID) {
@@ -213,64 +219,67 @@ struct RuleEditorView: View {
 
             Divider()
 
-            HStack {
+            SheetActions {
                 Button("Cancel", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
                 Spacer()
                 Button("Save") { save() }
                     .keyboardShortcut(.defaultAction)
+                    .modifier(SheetActionStyle(prominent: true))
                     .disabled(!canSave)
             }
             .padding()
         }
-        // Comfortable sheet size for the rule form (the hosting Settings window is wider).
-        .frame(width: 480, height: 540)
+        .modifier(ResizableSheetLayout(width: 480, height: 600, minimumHeight: 440))
     }
 
     @ViewBuilder
     private func conditionRow(_ condition: Binding<DraftCondition>) -> some View {
-        HStack(spacing: 8) {
-            Picker("", selection: condition.kind) {
-                ForEach(ConditionKind.allCases) { kind in
-                    Text(kind.label).tag(kind)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Picker("When", selection: condition.kind) {
+                    ForEach(ConditionKind.allCases) { kind in
+                        Text(kind.label).tag(kind)
+                    }
                 }
+                .labelsHidden()
+                Spacer(minLength: 8)
+                Button {
+                    conditions.removeAll { $0.id == condition.wrappedValue.id }
+                } label: {
+                    Image(systemName: "minus.circle.fill")
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.secondary)
+                .help("Remove condition")
+                .accessibilityLabel("Remove condition")
             }
-            .labelsHidden()
-            // Size to the longest label so no locale's condition names get clipped.
-            .fixedSize()
 
             switch condition.wrappedValue.kind {
             case .category:
-                Picker("", selection: condition.category) {
+                Picker("Category", selection: condition.category) {
                     ForEach(FileCategory.allCases) { category in
                         Text(category.localizedName).tag(category)
                     }
                 }
                 .labelsHidden()
             case .largerThan, .smallerThan:
-                TextField("100", value: condition.sizeMB, format: .number)
-                    .labelsHidden()
-                    .frame(width: 70)
-                    .borderedTextField()
-                    .multilineTextAlignment(.trailing)
-                    .accessibilityLabel("Size in megabytes")
-                Text("MB").foregroundStyle(.secondary)
+                HStack(spacing: 8) {
+                    TextField("Size in megabytes", value: condition.sizeMB, format: .number)
+                        .labelsHidden()
+                        .borderedTextField()
+                        .multilineTextAlignment(.leading)
+                    Text("MB").foregroundStyle(.secondary)
+                }
             default:
-                TextField(condition.wrappedValue.kind.placeholder, text: condition.text)
+                TextField(condition.wrappedValue.kind.label, text: condition.text,
+                          prompt: Text(condition.wrappedValue.kind.placeholder))
+                    .labelsHidden()
                     .borderedTextField()
+                    .multilineTextAlignment(.leading)
             }
-
-            Spacer(minLength: 0)
-
-            Button {
-                conditions.removeAll { $0.id == condition.wrappedValue.id }
-            } label: {
-                Image(systemName: "minus.circle.fill")
-            }
-            .buttonStyle(.borderless)
-            .foregroundStyle(.secondary)
-            .help("Remove condition")
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func queueName(_ queue: DownloadQueue) -> String {

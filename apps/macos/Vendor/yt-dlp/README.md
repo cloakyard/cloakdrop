@@ -1,6 +1,6 @@
 # Vendored yt-dlp
 
-This optional helper resolves a submitted video page into metadata and selectable media URLs.
+This optional helper resolves submitted video pages and playlists into metadata and selectable media URLs.
 CloakDrop's own engine downloads the selected media. Without the helper, page extraction reports
 that it is unavailable; ordinary downloads and browser capture of direct media remain available.
 
@@ -35,9 +35,13 @@ validation exception until removal can be verified with Developer ID signing. If
 absent, the build removes both the resource tree and its relocated code and symlinks.
 
 [`YtDlpExtractor`](../../Packages/DownloaderCore/Sources/DownloadEngine/YtDlpExtractor.swift)
-invokes the helper with `--ignore-config --no-plugin-dirs --no-cache-dir --simulate -J --no-playlist`,
-private output files, and cancellation/timeout handling. This permits metadata requests to the submitted
-page and related service endpoints, without downloading the selected media payload. Browser logins
+invokes the helper with `--ignore-config --no-plugin-dirs --no-cache-dir --simulate -J`,
+private output files, and cancellation/timeout handling. Individual pages use `--no-playlist`.
+The playlist preview instead uses `--flat-playlist --yes-playlist --playlist-end 101`, displays
+at most 100 entries, and resolves only selected pages when their queued transfers start.
+This permits metadata requests to the submitted page and related service endpoints, without
+downloading the selected media payload. Playlist import currently accepts public pages without
+exporting browser cookies. For individual browser-page resolution, browser logins
 can be supplied through a private temporary cookie jar that preserves domain/path scope. The app's
 download proxy setting is not passed to the helper; see the [privacy policy](../../../../PRIVACY.md).
 
@@ -70,6 +74,19 @@ instead of introducing a custom runtime build. This decision was reconfirmed for
 1.0.0-rc.1 on [October 19](../../../../docs/audits/2026-10-19-dependencies.md).
 The exception remains explicit; it is not a claim that the frozen runtime is current.
 
+The [November 3 full audit](../../../../docs/audits/2026-11-03-full-audit.md#dependency-currency)
+rechecks the official 2026.10.26 bundle and six live media cases. Python 3.14.7, OpenSSL 3.5.7,
+SQLite 3.50.4 and websockets 17.3 remain behind upstream releases. The other reported Python
+packages match current PyPI versions. The existing choice to preserve the complete official
+bundle remains in effect; no individual frozen dependency was replaced.
+
+The [November 17 control/dependency audit](../../../../docs/audits/2026-11-17-dependencies-and-controls.md)
+confirms that 2026.10.26 remains the latest official stable bundle. Python, OpenSSL, SQLite and
+websockets still lag upstream; pycryptodomex 3.24.1 now also trails 3.24.2. The complete official
+runtime remains intact under the existing exception.
+
 The local script uses ad-hoc signing. Successful code-signature checks do not establish Developer
 ID identity or Apple notarization. Locally signed builds are not notarized; see the
 [security policy](../../../../SECURITY.md).
+
+For [RC 3](../../../../docs/releases/v1.0.0-rc.3.md), the maintainer reconfirmed the exception for the complete official yt-dlp 2026.10.26 runtime on 18 November 2026.

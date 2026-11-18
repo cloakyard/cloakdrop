@@ -54,6 +54,8 @@ public struct EngineSettings: Sendable, Hashable, Codable {
     public var postCompletionShortcutName: String?
     /// Which service manual speed tests run against. `nil` is treated as `.cloudflare`.
     public var speedTestProvider: SpeedTestProvider?
+    /// Engine-owned, temporary "Finish this first" session; absent in older settings.
+    public var downloadPriority: DownloadPriority?
 
     public init(
         defaultSegmentCount: Int = 8,
@@ -119,7 +121,7 @@ public struct EngineSettings: Sendable, Hashable, Codable {
         case assessSignatures
         case resumeDownloadsOnLaunch
         case proxy, postCompletionAction, postCompletionShortcutName
-        case speedTestProvider
+        case speedTestProvider, downloadPriority
     }
 
     /// Tolerant decoder: any key absent from the stored payload falls back to its default.
@@ -161,5 +163,6 @@ public struct EngineSettings: Sendable, Hashable, Codable {
             speedTestProvider: (try container.decodeIfPresent(String.self, forKey: .speedTestProvider))
                 .flatMap(SpeedTestProvider.init(rawValue:))
         )
+        downloadPriority = try container.decodeIfPresent(DownloadPriority.self, forKey: .downloadPriority)
     }
 }

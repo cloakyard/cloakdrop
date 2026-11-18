@@ -1,0 +1,9 @@
+npm notice run cloakdrop-site@1.0.0 check
+npm notice run astro check
+16:32:37 [vite] Re-optimizing dependencies because lockfile has changed
+16:32:37 [types] Generated 79ms
+16:32:37 [check] Getting diagnostics for Astro files in <repo>/apps/site...
+Result (19 files):
+- 0 errors
+- 0 warnings
+- 0 hints

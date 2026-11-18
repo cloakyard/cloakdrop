@@ -1,6 +1,6 @@
 # CloakDrop App Privacy Policy
 
-_Last updated: September 6, 2026_
+_Last updated: November 17, 2026_
 
 CloakDrop is a free, open-source download manager for macOS. This policy describes the data the app keeps on your Mac, the network activity its features can create, and the controls available to you.
 
@@ -8,7 +8,7 @@ This policy covers the CloakDrop app. Websites, search engines, proxy operators,
 
 ## Privacy at a glance
 
-- CloakDrop has no accounts, advertising, analytics SDK, telemetry, or automatic update checks.
+- CloakDrop has no accounts, advertising, analytics SDK or telemetry. Automatic update checks are off by default.
 - CloakDrop does not upload crash reports or your app activity to the CloakDrop project.
 - Download records and settings stay in local app storage; request data is sent only as needed for the network activity described below.
 - Network activity is limited to downloads and features you initiate or configure, including automatic behavior you enable or leave enabled.
@@ -37,14 +37,19 @@ CloakDrop can make the following network requests:
 
 - **Downloads:** probes and transfers for URLs you add, including redirects, mirrors, retries, scheduled or repeating transfers, and downloads resumed automatically after launch when that setting is enabled.
 - **Checksum discovery:** when automatic checksum verification and discovery are enabled, CloakDrop tries same-origin sibling files ending in `.sha256`, `.sha1`, and `.md5` after the bytes arrive and before publishing an ordinary download's final file. This setting is enabled by default and can be turned off in Settings.
-- **Video-page resolution:** when a build includes the optional yt-dlp helper and you submit a supported video-page URL, the helper contacts that page and related service endpoints to resolve metadata and media-format URLs.
+- **Video-page and playlist resolution:** when a build includes the optional yt-dlp helper and you submit a supported video-page or playlist URL, the helper contacts that page and related service endpoints to resolve metadata. Playlist import lists up to 100 items for selection; selected pages are resolved into media-format URLs when their queued downloads start. The helper does not transfer the selected media payload.
 - **Built-in browser:** WebKit loads pages you visit and the resources those pages request, which can include third-party images, scripts, frames, media, ads, or trackers. The optional blocker can reduce some of those requests.
 - **Address-bar search:** if search is enabled, the query is sent to your selected search engine only when you press Return.
 - **Proxies:** HTTP-based downloads and speed tests use your macOS system proxy by default, or direct/manual routing if you choose it. Manual routing is also mirrored into the built-in browser; other browser modes follow the system configuration, including when downloads are set to direct. The native FTP/FTPS client connects directly. The app's proxy setting is not passed to yt-dlp, whose routing depends on its runtime and environment. This setting does not route all app traffic through one proxy.
 - **Speed tests:** Cloudflare or Ookla is contacted only while a speed test you started is running.
+- **App updates:** manual checks, or automatic checks/downloads you explicitly enable, contact the update feed and release hosts described below.
 - **Optional blocklists:** an open-source ad-blocking list is fetched only when you select it or press **Update Now**, never on a timer or at launch.
 
-There are no analytics beacons, advertising calls injected by CloakDrop, update pings, or other phone-home requests.
+There are no analytics beacons or advertising calls injected by CloakDrop.
+
+## App updates
+
+Sparkle 2 checks for updates only when you choose Check for Updates or enable automatic checks in About settings. Automatic checks and automatic downloads are off by default. The app contacts its Cloakyard website for a signed update feed and GitHub Releases (including its asset delivery hosts) for update downloads. These providers receive ordinary request data such as your IP address, requested resource and the app/updater version in the user agent. No system profile, analytics, files or app activity are uploaded. Preferences and the last check time are stored locally. Downloads are signature-verified before extraction; optional automatic installation happens when the app quits.
 
 ## What contacted services can see
 
@@ -75,6 +80,7 @@ CloakDrop provides controls to:
 - Reset local download statistics.
 - Wipe all WebKit website data from Browser settings.
 - Disable address-bar search, checksum-file discovery, automatic resume, or the optional blocker.
+- Manage manual and automatic app updates in About settings.
 
 Downloaded files remain on your Mac unless you choose to delete them. Removing the app does not necessarily remove files outside its container or credentials stored in the macOS Keychain; Keychain items can be managed with macOS Keychain Access.
 

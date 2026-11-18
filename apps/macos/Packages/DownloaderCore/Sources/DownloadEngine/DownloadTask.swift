@@ -22,6 +22,7 @@ actor DownloadTask {
     let settings: EngineSettings
     let remuxer: any Remuxer
     let signatureInspector: any CodeSignatureInspecting
+    let mediaExtractor: (any MediaExtractor)?
     let emit: @Sendable (EngineEvent) -> Void
 
     var stopReason: StopReason?
@@ -55,6 +56,7 @@ actor DownloadTask {
         settings: EngineSettings,
         remuxer: any Remuxer = PassthroughRemuxer(),
         signatureInspector: any CodeSignatureInspecting = SecCodeSignatureInspector(),
+        mediaExtractor: (any MediaExtractor)? = nil,
         emit: @escaping @Sendable (EngineEvent) -> Void
     ) {
         self.download = download
@@ -64,6 +66,7 @@ actor DownloadTask {
         self.settings = settings
         self.remuxer = remuxer
         self.signatureInspector = signatureInspector
+        self.mediaExtractor = mediaExtractor
         self.emit = emit
         let now = ContinuousClock().now
         self.lastEmit = now
@@ -94,6 +97,7 @@ actor DownloadTask {
                 throw DownloadError.fileSystem(reason: "restore access to the original download folder, then retry")
             }
             try await refreshDestination(using: scope)
+            try await resolveQueuedMediaPage()
             if download.mediaPlan != nil {
                 try await transferMedia()
             } else {
@@ -151,6 +155,7 @@ actor DownloadTask {
             // primary doesn't sink a download that other Metalink mirrors could serve. (Single-source
             // downloads just probe their one URL.)
             var probed: HTTPResponseHead?
+            var probedSource: URL?
             var probeError: Error?
             for source in download.transferSources {
                 do {
@@ -162,6 +167,7 @@ actor DownloadTask {
                             password: download.password
                         ).forSource(source)
                     )
+                    probedSource = source
                     break
                 } catch is CancellationError {
                     throw CancellationError()
@@ -173,6 +179,7 @@ actor DownloadTask {
             download.totalBytes = head.totalBytes
             download.supportsResume = head.acceptsRanges && (head.totalBytes ?? 0) > 0
             download.etag = head.etag
+            download.validatorURL = head.finalURL ?? probedSource
 
             if let total = head.totalBytes, total == 0 {
                 // An advertised empty resource is a valid empty file. It needs no synthetic byte
@@ -219,42 +226,6 @@ actor DownloadTask {
             maximumSegments: settings.maxSegmentCount,
             minimumSegmentSize: settings.minimumSegmentSizeBytes
         )
-    }
-
-    /// Best-effort check that the remote resource is still the one we began downloading. Returns
-    /// `true` only on positive evidence of change (a differing ETag, or a differing size) — a failed
-    /// or inconclusive probe returns `false`, so a transient hiccup never triggers a needless restart.
-    private func remoteContentChanged() async -> Bool {
-        guard let head = try? await httpClient.probe(
-            HTTPDownloadRequest(
-                url: download.url,
-                headers: download.requestHeaders,
-                username: download.username,
-                password: download.password
-            )
-        ) else { return false }
-        if let old = download.etag, let new = head.etag, !old.isEmpty, !new.isEmpty {
-            return old != new
-        }
-        if let oldSize = download.totalBytes, let newSize = head.totalBytes {
-            return oldSize != newSize
-        }
-        return false
-    }
-
-    /// True when the `.cdpart` file on disk can actually back the segments' persisted progress: it
-    /// exists and is at least large enough to hold the highest byte any segment claims to have
-    /// written (`start + downloadedBytes`). False means those bytes are gone — the part file was
-    /// deleted, moved, left on an unmounted volume, or orphaned by a format change — so resuming
-    /// from the persisted offsets would read zeros. Callers restart cleanly when this is false.
-    private func partFileBacksProgress() -> Bool {
-        let highestWrittenOffset = download.segments.reduce(Int64(0)) { highest, segment in
-            segment.downloadedBytes > 0 ? max(highest, segment.start + segment.downloadedBytes) : highest
-        }
-        guard highestWrittenOffset > 0 else { return true }   // no progress claimed ⇒ nothing to back
-        let attributes = try? FileManager.default.attributesOfItem(atPath: download.partFilePath)
-        let size = (attributes?[.size] as? NSNumber)?.int64Value ?? 0
-        return size >= highestWrittenOffset
     }
 
     // MARK: Transfer

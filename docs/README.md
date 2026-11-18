@@ -17,6 +17,7 @@ describe each shipped build.
 - [Contributing](../CONTRIBUTING.md): setup, checks, conventions and documentation maintenance.
 - [App architecture](../apps/macos/ARCHITECTURE.md): model, engine, persistence and UI contracts.
 - [Native verification guide](../.agents/skills/verify/SKILL.md): builds, GUI workflows and evidence.
+- [Signed updates](UPDATES.md): free-account builds, Sparkle keys, feeds and release packaging.
 - [Website guide](../apps/site/README.md): Astro development, visual checks and Cloudflare settings.
 - [Shared asset guide](../assets/README.md): canonical artwork and reproducible screenshots.
 - [ffmpeg vendor guide](../apps/macos/Vendor/ffmpeg/README.md) and
@@ -25,6 +26,16 @@ describe each shipped build.
 - Agent guidance: [Codex](../AGENTS.md) and [Claude Code](../CLAUDE.md).
 
 ## Release verification
+
+- [November 17, 2026: Sparkle, About updates and privacy](audits/2026-11-17-sparkle.md).
+- [November 17, 2026: Rule forms, batch input, inspector, sizing and Stats refinements](audits/2026-11-17-layout-refinements.md).
+- [November 17, 2026: Full-width download URL and native screen inventory](audits/2026-11-17-full-width-url-and-screens.md).
+- [November 17, 2026: Dependency currency, native controls and priority glass](audits/2026-11-17-dependencies-and-controls.md).
+- [November 17, 2026: Native Liquid Glass, floating chrome and toolbar spacing](audits/2026-11-17-modern-materials.md) (source verification; no new native release).
+- [November 3, 2026: Full regression round, concurrency fixes and dependency refresh](audits/2026-11-03-full-audit.md).
+- [November 3, 2026: Repair, priority, destination moves and playlist import](audits/2026-11-03-download-workflows.md).
+- [1.0.0-rc.2 release notes](releases/v1.0.0-rc.2.md): media fixes, About support link, DMG and checksum.
+- [October 30, 2026: RC2 build, installed-app verification and cleanup](audits/2026-10-30-rc.2.md).
 
 - [October 29, 2026: Multi-site media verification and packaging fixes](audits/2026-10-29-multisite.md).
 

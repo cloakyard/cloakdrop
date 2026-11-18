@@ -1,0 +1,64 @@
+{
+  "candidate": "v1.0.0-rc.2",
+  "appVersion": "1.0.0",
+  "build": "20261030",
+  "sourceCommit": "055e22c1a1861196702ff50c36a7f1260637750c",
+  "artifact": "CloakDrop-v1.0.0-rc.2.dmg",
+  "sha256": "f9b832c9b3f42cc1f12040cc87f20960588d8fe1c48775a13d519c4df45df933",
+  "bytes": 48626482,
+  "architecture": "arm64",
+  "minimumMacOS": "26.0",
+  "configuration": "Release",
+  "toolchain": "Xcode 27.1 (27A9275), Swift 6.4, macOS SDK 27.0",
+  "signing": "ad hoc; teamless App Sandbox and hardened runtime; not notarized",
+  "matchingFileAndLinkEntries": 295,
+  "validRelativeLinks": 126,
+  "helperVersions": {
+    "GRDB": "7.11.1",
+    "ffmpeg": "9.0.2 (AAC probing enabled; no encoders/network)",
+    "yt-dlp": "2026.10.26"
+  },
+  "officialFrozenRuntimeException": true,
+  "published": false,
+  "publicationStateNote": "Preparation manifest; publication verified separately after upload.",
+  "installerBackgroundSHA256": "441831f7e8f5e94d6557d578880a2aaebbab643a8026ec93ec2b07737c7203cf",
+  "tests": {
+    "coreReported": 650,
+    "coreExecutedPassed": 649,
+    "coreSkippedOptInLive": 1,
+    "coreSuites": 90,
+    "swiftlintFiles": 178,
+    "swiftlintViolations": 0,
+    "localizedStrings": 502,
+    "translatedLanguages": 10
+  },
+  "nativeSmoke": {
+    "source": "https://www.youtube.com/watch?v=7zfir0Ide0A",
+    "appVersion": "1.0.0 (20261030)",
+    "installedPath": "/Applications/CloakDrop.app",
+    "output": "MP4 (compatible), 720p",
+    "duration": "44.489433",
+    "streams": [
+      {
+        "codec": "h264",
+        "packets": 1333
+      },
+      {
+        "codec": "aac",
+        "packets": 1916
+      }
+    ],
+    "bytes": 2453267,
+    "sha256": "57ae0d54389239755143e15bf9f1a8525bb07f063b99f5b88cf94fde52e62633",
+    "fullDecodeExitCode": 0,
+    "fullDecodeStderr": "",
+    "matchingPreviousCompleteFile": true
+  },
+  "nativeCleanup": {
+    "ownedTestRecordAndPayloadRemoved": true,
+    "userLibraryEntriesPreserved": 4,
+    "lifetimeStatistics": "One verification completion and its transferred bytes remain; no statistics reset."
+  },
+  "supportLink": "https://ko-fi.com/sumitsahoo21",
+  "supportLinkActualBrowserNavigationVerified": true
+}

@@ -1,0 +1,425 @@
+{
+  "records": [
+    {
+      "fileName": "audit-main.bin",
+      "status": {
+        "completed": {}
+      },
+      "totalBytes": 33554432,
+      "checksumVerified": true,
+      "selection": null,
+      "outputExists": true,
+      "fileBytes": 33554432,
+      "sha256": "e09320c5b00b34bb704802136c599a95b3996332ba84d7c7f21112b6231b6bd0",
+      "sourceSHA256": "e09320c5b00b34bb704802136c599a95b3996332ba84d7c7f21112b6231b6bd0"
+    },
+    {
+      "fileName": "audit-urgent.bin",
+      "status": {
+        "completed": {}
+      },
+      "totalBytes": 2097152,
+      "checksumVerified": null,
+      "selection": null,
+      "outputExists": true,
+      "fileBytes": 2097152,
+      "sha256": "91d3beb88a9b2f778a6c44a1c53b63d3c79931845a9aef84b3fb414610bd1938",
+      "sourceSHA256": "91d3beb88a9b2f778a6c44a1c53b63d3c79931845a9aef84b3fb414610bd1938"
+    },
+    {
+      "fileName": "001 - Audit Lessons (1).mp4",
+      "status": {
+        "failed": {
+          "reason": "This playlist item has no supported media at the selected quality or format. Add it again with a different quality or format."
+        }
+      },
+      "totalBytes": null,
+      "checksumVerified": null,
+      "selection": {
+        "quality": "best",
+        "outputFormat": "compatibleMP4"
+      },
+      "outputExists": false
+    },
+    {
+      "fileName": "002 - Audit Lessons (2).mp4",
+      "status": {
+        "failed": {
+          "reason": "This playlist item has no supported media at the selected quality or format. Add it again with a different quality or format."
+        }
+      },
+      "totalBytes": null,
+      "checksumVerified": null,
+      "selection": {
+        "quality": "best",
+        "outputFormat": "compatibleMP4"
+      },
+      "outputExists": false
+    },
+    {
+      "fileName": "001 - Audit Original (1).mkv",
+      "status": {
+        "completed": {}
+      },
+      "totalBytes": 2014,
+      "checksumVerified": null,
+      "selection": {
+        "outputFormat": "original",
+        "quality": "best"
+      },
+      "outputExists": true,
+      "fileBytes": 2014,
+      "sha256": "8c64291a5b33c75217c108e71e7d62830ea9961a5577a5ab38565019db39f4a4",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "nb_read_packets": "30"
+          }
+        ],
+        "format": {
+          "duration": "1.000000"
+        }
+      }
+    },
+    {
+      "fileName": "002 - Audit Original (2).mkv",
+      "status": {
+        "completed": {}
+      },
+      "totalBytes": 2014,
+      "checksumVerified": null,
+      "selection": {
+        "outputFormat": "original",
+        "quality": "best"
+      },
+      "outputExists": true,
+      "fileBytes": 2014,
+      "sha256": "f5f5be37f535dcd7e229cd980c9f9b928718d64aa392b3077d5d1125acbfcb76",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "nb_read_packets": "30"
+          }
+        ],
+        "format": {
+          "duration": "1.000000"
+        }
+      }
+    }
+  ],
+  "requestRanges": [
+    {
+      "url": "/audit-main.bin?token=old",
+      "start": 0,
+      "end": 0
+    },
+    {
+      "url": "/audit-main.bin?token=old",
+      "start": 0,
+      "end": 0
+    },
+    {
+      "url": "/audit-main.bin?token=old",
+      "start": 8388608,
+      "end": 12582911
+    },
+    {
+      "url": "/audit-main.bin?token=old",
+      "start": 0,
+      "end": 4194303
+    },
+    {
+      "url": "/audit-main.bin?token=old",
+      "start": 20971520,
+      "end": 25165823
+    },
+    {
+      "url": "/audit-main.bin?token=old",
+      "start": 4194304,
+      "end": 8388607
+    },
+    {
+      "url": "/audit-main.bin?token=old",
+      "start": 25165824,
+      "end": 29360127
+    },
+    {
+      "url": "/audit-main.bin?token=old",
+      "start": 29360128,
+      "end": 33554431
+    },
+    {
+      "url": "/audit-main.bin?token=old",
+      "start": 12582912,
+      "end": 16777215
+    },
+    {
+      "url": "/audit-main.bin?token=old",
+      "start": 16777216,
+      "end": 20971519
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 0,
+      "end": 0
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 0,
+      "end": 0
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 360448,
+      "end": 4194303
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 29720576,
+      "end": 33554431
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 8749056,
+      "end": 12582911
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 25526272,
+      "end": 29360127
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 12943360,
+      "end": 16777215
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 17137664,
+      "end": 20971519
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 21331968,
+      "end": 25165823
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 4554752,
+      "end": 8388607
+    },
+    {
+      "url": "/audit-urgent.bin",
+      "start": 0,
+      "end": 0
+    },
+    {
+      "url": "/audit-urgent.bin",
+      "start": 0,
+      "end": 1048575
+    },
+    {
+      "url": "/audit-urgent.bin",
+      "start": 1048576,
+      "end": 2097151
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 0,
+      "end": 0
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 22200320,
+      "end": 25165823
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 13811712,
+      "end": 16777215
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 9617408,
+      "end": 12582911
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 1228800,
+      "end": 4194303
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 5423104,
+      "end": 8388607
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 18006016,
+      "end": 20971519
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 30588928,
+      "end": 33554431
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 26394624,
+      "end": 29360127
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 0,
+      "end": 0
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 7225344,
+      "end": 8388607
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 11419648,
+      "end": 12582911
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 3031040,
+      "end": 4194303
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 28196864,
+      "end": 29360127
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 15613952,
+      "end": 16777215
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 32391168,
+      "end": 33554431
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 19808256,
+      "end": 20971519
+    },
+    {
+      "url": "/audit-main.bin?token=new",
+      "start": 24002560,
+      "end": 25165823
+    },
+    {
+      "url": "/playlist.html",
+      "start": 0,
+      "end": 120
+    },
+    {
+      "url": "/audit-lesson-2.mp4",
+      "start": 0,
+      "end": 2429
+    },
+    {
+      "url": "/audit-lesson-1.mp4",
+      "start": 0,
+      "end": 2429
+    },
+    {
+      "url": "/audit-lesson-1.mp4",
+      "start": 0,
+      "end": 2429
+    },
+    {
+      "url": "/audit-lesson-2.mp4",
+      "start": 0,
+      "end": 2429
+    },
+    {
+      "url": "/playlist-original.html",
+      "start": 0,
+      "end": 143
+    },
+    {
+      "url": "/audit-original-1.mp4",
+      "start": 0,
+      "end": 2429
+    },
+    {
+      "url": "/audit-original-2.mp4",
+      "start": 0,
+      "end": 2429
+    },
+    {
+      "url": "/audit-original-1.mp4",
+      "start": 0,
+      "end": 0
+    },
+    {
+      "url": "/audit-original-2.mp4",
+      "start": 0,
+      "end": 0
+    },
+    {
+      "url": "/audit-original-1.mp4",
+      "start": 0,
+      "end": 2429
+    },
+    {
+      "url": "/audit-original-2.mp4",
+      "start": 0,
+      "end": 2429
+    },
+    {
+      "url": "/audit-lesson-1.mp4",
+      "start": 0,
+      "end": 2429
+    },
+    {
+      "url": "/playlist-original.html",
+      "start": 0,
+      "end": 143
+    },
+    {
+      "url": "/audit-original-1.mp4",
+      "start": 0,
+      "end": 1
+    },
+    {
+      "url": "/audit-original-2.mp4",
+      "start": 0,
+      "end": 1
+    },
+    {
+      "url": "/audit-original-1.mp4",
+      "start": 0,
+      "end": 2429
+    },
+    {
+      "url": "/audit-original-2.mp4",
+      "start": 0,
+      "end": 2429
+    },
+    {
+      "url": "/audit-original-1.mp4",
+      "start": 0,
+      "end": 0
+    }
+  ],
+  "notes": [
+    "Paused and relaunched twice during native repair/priority/move flow.",
+    "The old fixture URL expired; compatible repaired URL and moved staging completed with matching SHA-256.",
+    "Unrelated records are omitted."
+  ]
+}

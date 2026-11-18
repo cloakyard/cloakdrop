@@ -40,7 +40,7 @@ enum AppEnvironment {
     static func makeManager() throws -> DownloadManager {
         let dbPath = try supportDirectory().appendingPathComponent("cloakdrop.sqlite").path
         let store = try GRDBDownloadStore(path: dbPath)
-        return DownloadManager(store: store, remuxer: makeRemuxer())
+        return DownloadManager(store: store, remuxer: makeRemuxer(), mediaExtractor: YtDlpExtractor.locate())
     }
 
     #if DEBUG

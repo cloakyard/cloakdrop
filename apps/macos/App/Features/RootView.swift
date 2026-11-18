@@ -8,6 +8,7 @@ import DownloadModels
 /// affordance.
 struct RootView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         @Bindable var model = model
@@ -22,6 +23,18 @@ struct RootView: View {
         }
         .sheet(isPresented: $model.isBatchSheetPresented) {
             BatchAddSheet()
+        }
+        .sheet(item: $model.pendingDownloadRepair) { download in
+            DownloadRepairSheet(download: download)
+        }
+        .sheet(isPresented: $model.isPlaylistSheetPresented) { PlaylistImportSheet() }
+        .alert("Couldn’t Change Download", isPresented: Binding(
+            get: { model.downloadOperationError != nil },
+            set: { if !$0 { model.downloadOperationError = nil } }
+        )) {
+            Button("OK") { model.downloadOperationError = nil }
+        } message: {
+            Text(model.downloadOperationError ?? "")
         }
         // A streaming manifest resolved into renditions — pick a quality before the grab is queued.
         .sheet(item: $model.pendingMediaSelection) { selection in
@@ -40,12 +53,14 @@ struct RootView: View {
                             .foregroundStyle(.orange)
                     }
                 }
+            } else if !model.movingDownloadIDs.isEmpty {
+                toast { ProgressView("Moving download…").controlSize(.small) }
             } else if model.isResolvingMedia {
                 toast { Label("Reading video…", systemImage: "sparkles.tv") }
             }
         }
-        .animation(.default, value: model.isResolvingMedia)
-        .animation(.default, value: model.mediaExtractionError)
+        .animation(reduceMotion ? nil : .default, value: model.isResolvingMedia)
+        .animation(reduceMotion ? nil : .default, value: model.mediaExtractionError)
         .disabled(!model.isNetworkReady)
         .overlay {
             if !model.isNetworkReady {
@@ -87,18 +102,18 @@ struct RootView: View {
         }
     }
 
-    /// The floating status capsule above the list. A hairline separator stroke keeps its edge
-    /// defined in dark mode, where the shadow alone all but disappears.
+    /// System glass owns the floating status surface. A rounded rectangle accommodates
+    /// multiline errors without the excessive end padding of a tall capsule.
     private func toast(@ViewBuilder content: () -> some View) -> some View {
         content()
             .font(.callout)
+            .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
-            .background(.regularMaterial, in: Capsule())
-            .overlay(Capsule().strokeBorder(.separator.opacity(0.6)))
-            .shadow(radius: 8, y: 2)
+            .modifier(FloatingChrome(shape: RoundedRectangle(cornerRadius: Design.cardRadius)))
+            .padding(.horizontal, 24)
             .padding(.bottom, 24)
-            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
     }
 }
 

@@ -24,6 +24,7 @@ public actor DownloadManager {
     let globalLimiter: BandwidthLimiter
     let remuxer: any Remuxer
     let signatureInspector: any CodeSignatureInspecting
+    let mediaExtractor: (any MediaExtractor)?
     /// Where the manual-proxy password lives — the Keychain in production — so it never touches the
     /// settings JSON on disk.
     private let credentialStore: any CredentialStoring
@@ -44,6 +45,12 @@ public actor DownloadManager {
     /// same id, so two rapid status flips can never reach the store out of order (a stale `.queued`
     /// landing after `.paused` would restart a paused download on relaunch).
     var pendingSaves: [UUID: Task<Void, Never>] = [:]
+    /// Prevent lifecycle/scheduler re-entry while an edit probes or commits persistent state.
+    var editingDownloads: Set<UUID> = []
+    var schedulingHolds = 0
+    var pendingSettingsSave: Task<Void, Never>?
+    var pendingPriorityTarget: UUID?
+    var manualPauseRevisions: [UUID: Int] = [:]
 
     let eventContinuation: AsyncStream<EngineEvent>.Continuation
     /// Status-level engine events (add/update/remove/queues/settings/completion). Unbounded so a
@@ -74,7 +81,8 @@ public actor DownloadManager {
         networkMonitor: any NetworkPathMonitoring = NetworkMonitor(),
         remuxer: any Remuxer = AVFoundationRemuxer(),
         signatureInspector: any CodeSignatureInspecting = SecCodeSignatureInspector(),
-        credentialStore: any CredentialStoring = KeychainCredentialStore()
+        credentialStore: any CredentialStoring = KeychainCredentialStore(),
+        mediaExtractor: (any MediaExtractor)? = nil
     ) {
         self.store = store
         self.httpClient = httpClient
@@ -82,6 +90,7 @@ public actor DownloadManager {
         self.remuxer = remuxer
         self.signatureInspector = signatureInspector
         self.credentialStore = credentialStore
+        self.mediaExtractor = mediaExtractor
         self.globalLimiter = BandwidthLimiter(bytesPerSecond: nil)
         // Status events must not be dropped (a lost `.downloadAdded` strands a row in limbo), so
         // they get an unbounded stream. Progress events are lossy-tolerant and ride a separate
@@ -124,6 +133,7 @@ public actor DownloadManager {
             downloads[download.id] = download
         }
         currentStats = (try? await store.loadStats(asOf: Date())) ?? .empty
+        restorePriorityAfterLaunch()
 
         startNetworkMonitoring()
         startScheduler()
@@ -312,108 +322,20 @@ public actor DownloadManager {
         return download
     }
 
-    // MARK: - Lifecycle controls
-
-    public func pause(id: UUID) async {
-        guard let download = downloads[id] else { return }
-        if let task = tasks[id] {
-            let handle = handles[id]
-            await task.requestStop(.pause)
-            handle?.cancel()
-            // Wait for the task to fully unwind (its terminal ".paused" persist runs here) before
-            // returning. Otherwise a resume() issued in the gap sets .queued, then the task's late
-            // taskFinished() clobbers it back to .paused and the download is stuck. Mirrors cancel().
-            await handle?.value
-        } else if download.status.isActive || download.status == .scheduled {
-            update(id: id) { $0.status = .paused }
-        }
-    }
-
-    public func resume(id: UUID) async {
-        guard let download = downloads[id], !download.status.isTerminal else { return }
-        autoPaused.remove(id)
-        update(id: id) { $0.status = .queued }
-        scheduleQueue(download.queueID)
-    }
-
-    public func cancel(id: UUID) async {
-        guard let download = downloads[id] else { return }
-        if let task = tasks[id] {
-            let handle = handles[id]
-            await task.requestStop(.cancel)
-            handle?.cancel()
-            // Wait for the task to fully unwind (its terminal persist runs here) so a later
-            // remove() can't race with a resurrecting save.
-            await handle?.value
-        } else {
-            SegmentedFileWriter.discardPartData(for: download)
-            update(id: id) { $0.status = .canceled }
-        }
-    }
-
-    public func remove(id: UUID, deleteFile: Bool) async {
-        guard let initialDownload = downloads[id] else { return }
-        // Stop any running transfer and wait for it to fully unwind (its terminal save runs
-        // here) so it can't re-create the row after we delete it.
-        if let task = tasks[id] {
-            let handle = handles[id]
-            await task.requestStop(.cancel)
-            handle?.cancel()
-            await handle?.value
-        }
-        // Finalization may have won the race before cancellation and remapped the destination (for
-        // example into an auto-category folder). Delete from the authoritative post-unwind snapshot.
-        let download = downloads[id] ?? initialDownload
-        // Drop from memory, then discard files and delete from the store. We deliberately do
-        // NOT route through cancel()/update(): marking a terminal download ".canceled" and
-        // persisting it via a detached task would race with the delete below.
-        downloads[id] = nil
-        tasks[id] = nil
-        handles[id] = nil
-        SegmentedFileWriter.discardPartData(for: download, deleteFile: deleteFile)
-        // Drain any save still queued for this id so a straggler can't re-create the row after
-        // the delete.
-        await pendingSaves[id]?.value
-        pendingSaves[id] = nil
-        try? await store.delete(id: id)
-        eventContinuation.yield(.downloadRemoved(id))
-    }
-
-    public func pauseAll() async {
-        for id in downloads.keys where downloads[id]?.status.isActive == true {
-            await pause(id: id)
-        }
-    }
-
-    public func resumeAll() async {
-        for download in downloads.values where download.status.isResumable {
-            await resume(id: download.id)
-        }
-    }
-
-    /// Drop every completed download from the catalog and the store. The finished files on
-    /// disk are left untouched — this only clears them from the list.
-    public func clearCompleted() async {
-        let ids = downloads.values.filter { $0.status == .completed }.map(\.id)
-        guard !ids.isEmpty else { return }
-        for id in ids {
-            downloads[id] = nil
-            eventContinuation.yield(.downloadRemoved(id))
-        }
-        try? await store.deleteCompleted()
-    }
-
     // MARK: - Settings & queues
 
     public func updateSettings(_ newSettings: EngineSettings) async {
         // Keep the real proxy password in memory (to authenticate and to show in the UI this session),
         // but move it to the Keychain and persist a blanked copy so plaintext never reaches the DB.
         persistProxyPassword(from: newSettings)
+        let priority = settings.downloadPriority
         settings = newSettings
+        settings.downloadPriority = priority
         await globalLimiter.setRate(bytesPerSecond: effectiveGlobalLimit())
         await httpClient.configure(proxy: newSettings.resolvedProxy)
-        try? await store.save(settings: settingsForPersistence(newSettings))
-        eventContinuation.yield(.settingsChanged(newSettings))
+        persistSettings()
+        await pendingSettingsSave?.value
+        eventContinuation.yield(.settingsChanged(settings))
     }
 
     // MARK: Proxy credential ↔ Keychain
@@ -442,7 +364,7 @@ public actor DownloadManager {
     /// A copy of the settings safe to write to disk: the proxy password is blanked (it's in the
     /// Keychain). Blanked **unconditionally** — a stale plaintext password can linger in the field after
     /// the user switches the proxy mode away from `.manual`, and it must never reach the settings JSON.
-    private func settingsForPersistence(_ source: EngineSettings) -> EngineSettings {
+    func settingsForPersistence(_ source: EngineSettings) -> EngineSettings {
         var copy = source
         if copy.proxy != nil {
             copy.proxy?.password = ""

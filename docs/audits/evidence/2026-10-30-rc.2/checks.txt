@@ -1,0 +1,18 @@
+RC2 verification — 2026-10-30
+Source: 055e22c1a1861196702ff50c36a7f1260637750c
+Fresh Debug build: exit 0
+Optimized Release build and final incremental build: exit 0
+Core release tests with FFMPEG_PATH=vendor helper: exit 0
+Swift Testing: 14/2 + 341/44 + 295/44 (tests/suites), one opt-in live test skipped
+Strict lint: 178 files, zero violations
+Localization: 502 strings x 10 languages, all translated and placeholders consistent
+DMG build: exit 0
+hdiutil verify: valid
+codesign --verify --deep --strict: pass
+126 runtime symlinks: relative, resolve inside bundle
+295 file/link entries: staging == DMG == installed
+Installed app: /Applications/CloakDrop.app, 1.0.0 (20261030), arm64
+Native YouTube MP4: full decode exit 0, known-good SHA256 and packet counts match
+Ko-fi: actual external navigation to https://ko-fi.com/sumitsahoo21 verified
+Release remains ad-hoc signed and not notarized
+Detailed temporary logs: /tmp/cloakdrop-rc2-20261030/

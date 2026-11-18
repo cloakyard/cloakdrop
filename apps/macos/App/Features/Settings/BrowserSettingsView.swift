@@ -18,6 +18,7 @@ extension BlocklistSource {
 /// wipes it all.
 struct BrowserSettingsView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isClearing = false
     @State private var confirmClear = false
     @State private var didClear = false
@@ -79,7 +80,7 @@ struct BrowserSettingsView: View {
                         }
                         .disabled(isClearing)
                     }
-                    .animation(.default, value: didClear)
+                    .animation(reduceMotion ? nil : .default, value: didClear)
                 } label: {
                     Label("Cookies & Site Data", systemImage: "trash")
                 }

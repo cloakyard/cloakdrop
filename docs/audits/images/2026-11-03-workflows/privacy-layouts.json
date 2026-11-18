@@ -1,0 +1,50 @@
+[
+  {
+    "theme": "light",
+    "height": 900,
+    "network": "Network activity",
+    "overflow": false,
+    "revision": "November 3, 2026",
+    "width": 1440
+  },
+  {
+    "theme": "light",
+    "height": 720,
+    "network": "Network activity",
+    "overflow": false,
+    "revision": "November 3, 2026",
+    "width": 1280
+  },
+  {
+    "theme": "light",
+    "height": 844,
+    "network": "Network activity",
+    "overflow": false,
+    "revision": "November 3, 2026",
+    "width": 390
+  },
+  {
+    "theme": "dark",
+    "height": 900,
+    "network": "Network activity",
+    "overflow": false,
+    "revision": "November 3, 2026",
+    "width": 1440
+  },
+  {
+    "theme": "dark",
+    "height": 720,
+    "network": "Network activity",
+    "overflow": false,
+    "revision": "November 3, 2026",
+    "width": 1280
+  },
+  {
+    "theme": "dark",
+    "height": 844,
+    "network": "Network activity",
+    "overflow": false,
+    "revision": "November 3, 2026",
+    "width": 390
+  }
+]

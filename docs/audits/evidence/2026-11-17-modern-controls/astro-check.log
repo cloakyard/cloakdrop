@@ -1,0 +1,10 @@
+npm notice run cloakdrop-site@1.0.0 npx
+npm notice run 'npm' run check
+npm notice run cloakdrop-site@1.0.0 check
+npm notice run astro check
+17:36:48 [types] Generated 64ms
+17:36:48 [check] Getting diagnostics for Astro files in <repository>/apps/site...
+Result (19 files):
+- 0 errors
+- 0 warnings
+- 0 hints

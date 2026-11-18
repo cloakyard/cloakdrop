@@ -1,9 +1,8 @@
 import SwiftUI
 import DownloadModels
 
-/// Settings ▸ Stats — a lightly gamified view of lifetime download totals: a headline tier badge,
-/// progress toward the next one, the today / this-month / all-time figures, and a reset. All counts
-/// are local to this Mac (no telemetry) — the footer says so.
+/// Settings ▸ Stats — download totals first, followed by a compact rank and progress toward the
+/// next tier. All counts are local to this Mac (no telemetry) — the footer says so.
 struct StatsSettingsView: View {
     @Environment(AppModel.self) private var model
     @State private var showResetConfirm = false
@@ -13,30 +12,33 @@ struct StatsSettingsView: View {
 
     var body: some View {
         Form {
-            Section {
-                VStack(spacing: 12) {
+            Section("Downloaded") {
+                LabeledContent("Today", value: bytes(stats.todayBytes))
+                LabeledContent("This month", value: bytes(stats.monthBytes))
+                LabeledContent("All time", value: bytes(stats.allTimeBytes))
+            }
+            .monospacedDigit()
+
+            Section("This Month’s Rank") {
+                HStack(alignment: .center, spacing: 12) {
                     ZStack {
-                        Circle().fill(.tint.opacity(0.15)).frame(width: 96, height: 96)
+                        Circle().fill(.tint.opacity(0.15)).frame(width: 48, height: 48)
                         Image(systemName: badge.symbol)
-                            .font(.system(size: 44))
+                            .font(.system(size: 24))
                             .foregroundStyle(.tint)
                             .symbolRenderingMode(.hierarchical)
                     }
-                    // Uppercased in layout, not in the source string — translators shouldn't have
-                    // to reproduce the styling (and some scripts have no uppercase at all).
-                    Text("This Month’s Rank")
-                        .textCase(.uppercase)
-                        .font(.caption2).fontWeight(.semibold)
-                        .foregroundStyle(.secondary)
-                    Text(LocalizedStringKey(badge.title)).font(.title2).fontWeight(.bold)
-                    Text(LocalizedStringKey(badge.blurb))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(LocalizedStringKey(badge.title)).font(.headline)
+                        Text(LocalizedStringKey(badge.blurb))
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 4)
             }
 
             if let next = DownloadTier.next(after: stats.monthBytes) {
@@ -50,14 +52,6 @@ struct StatsSettingsView: View {
                 } header: {
                     Text("Next tier")
                 }
-            }
-
-            Section {
-                LabeledContent("Today", value: bytes(stats.todayBytes))
-                LabeledContent("This month", value: bytes(stats.monthBytes))
-                LabeledContent("All time", value: bytes(stats.allTimeBytes))
-            } header: {
-                Text("Downloaded")
             }
 
             Section {

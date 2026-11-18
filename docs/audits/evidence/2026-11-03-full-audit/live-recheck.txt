@@ -1,0 +1,19 @@
+[live-media] START youtube-mp4
+[live-origin] PASS https://www.rfc-editor.org/rfc/rfc9110.txt range=ignored-or-unavailable reportedBytes=502941 fileBytes=502941 segments=1
+[live-origin] PASS https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz range=honored reportedBytes=4515854 fileBytes=4515854 segments=4
+[live-media] PASS youtube-mp4 mode=mp4 output=youtube-mp4.mp4 fullDecode=true
+[live-media] START youtube-original
+[live-media] PASS youtube-original mode=original output=youtube-original.mkv fullDecode=true
+[live-media] START youtube-audio
+[live-media] PASS youtube-audio mode=audio output=youtube-audio.m4a fullDecode=true
+[live-media] START dailymotion-original
+✘ Test "Selected pages resolve, download, package and decode completely" recorded an issue at LiveMediaSmokeTests.swift:54:29: Issue recorded
+↳ Live media case dailymotion-original failed; inspect its private failure artifact
+[live-media] START soundcloud-audio
+[live-media] PASS soundcloud-audio mode=audio output=soundcloud-audio.m4a fullDecode=true
+[live-media] START dailymotion-mp4
+[live-media] PASS dailymotion-mp4 mode=mp4 output=dailymotion-mp4.mp4 fullDecode=true
+✘ Test "Selected pages resolve, download, package and decode completely" failed after 30.742 seconds with 1 issue.
+✘ Suite "Live media smoke (opt-in)" failed after 30.745 seconds with 1 issue.
+✘ Test run with 317 tests in 51 suites failed after 30.745 seconds with 1 issue.
+Transient case failure: HTTP 403. Focused fresh-metadata retry passed; see live-retry.txt.

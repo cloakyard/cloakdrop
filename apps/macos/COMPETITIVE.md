@@ -6,6 +6,25 @@ The historical `COMPETITIVE.md` filename is retained, but this is a CloakDrop ca
 It makes no current competitor feature, price or performance comparison; such comparisons require
 fresh, dated evidence from the products concerned.
 
+## November 3, 2026 workflow additions
+
+The following additions were checked separately in the
+[download workflow audit](../../docs/audits/2026-11-03-download-workflows.md).
+The older inventory and dependency evidence below retain their original dates.
+
+| Workflow | Current behavior | Boundary |
+|---|---|---|
+| Repair Download | Replace an expired ordinary-file URL and reuse compatible staging | Preserving bytes requires matching strong ETag, final origin/path, length and range support; otherwise explicit restart is required. Media-plan refresh is not included. |
+| Finish This First | Temporarily hold competing transfers across queues and restore scheduling afterward | Manually paused items stay paused. The session is saved locally and respects resume-on-launch. |
+| Move Download | Move unfinished file/media staging into a selected folder or volume | Pauses active work, refuses overwrite, commits the catalog before removing the original, and stays paused afterward. A copy needs enough destination space. |
+| Import Playlist | Review up to 100 public items, select a shared quality/audio preference, and save numbered outputs in a playlist folder | Requires yt-dlp; duplicate catalog URLs are skipped. No browser login import, live recording, or automatic refresh of an already-resolved expired media plan. |
+
+The subsequent [November 3 regression and dependency audit](../../docs/audits/2026-11-03-full-audit.md)
+fixes manual pause/move intent during network recovery, concurrent playlist deduplication, and
+opaque playlist extraction errors. It records the full core suite, native workflows, six live
+media cases, website checks, and their limits. Current direct dependencies include GRDB 7.12.0,
+Astro 7.4.5 and Wrangler 4.156.2. The official yt-dlp frozen-runtime exception remains explicit.
+
 ## Implemented in the current source
 
 | Area | Capability | Boundary |

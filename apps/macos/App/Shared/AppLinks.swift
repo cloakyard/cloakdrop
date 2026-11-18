@@ -13,6 +13,9 @@ enum AppLinks {
     /// The CloakDrop source repository (part of the Cloakyard suite).
     static let repository = URL(string: "https://github.com/cloakyard/cloakdrop")!
 
+    /// Optional support, opened only when the user clicks the About link.
+    static let support = URL(string: "https://ko-fi.com/sumitsahoo21")!
+
     /// A plain, pre-labeled "new bug" issue on the project repo. The **Report a Bug** actions use
     /// `BugReport.issueURL` instead, which adds a filled-in template and diagnostics; this bare URL
     /// is the fallback and the "ask a question or report an issue" link.

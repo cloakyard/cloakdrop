@@ -9,12 +9,13 @@ extension DownloadManager {
     }
 
     func scheduleQueue(_ queueID: UUID) {
-        guard networkReachable else { return }
+        guard networkReachable, schedulingHolds == 0 else { return }
         let limit = queues[queueID]?.maxConcurrentDownloads ?? 1
         var active = downloads.values.filter { $0.queueID == queueID && tasks[$0.id] != nil }.count
 
         let waiting = downloads.values
-            .filter { $0.queueID == queueID && $0.status == .queued && tasks[$0.id] == nil }
+            .filter { $0.queueID == queueID && $0.status == .queued && tasks[$0.id] == nil && !editingDownloads.contains($0.id) }
+            .filter { settings.downloadPriority == nil || settings.downloadPriority?.downloadID == $0.id }
             .sorted { ($0.order, $0.createdAt) < ($1.order, $1.createdAt) }
 
         for download in waiting where active < limit {
@@ -36,6 +37,7 @@ extension DownloadManager {
             settings: settings,
             remuxer: remuxer,
             signatureInspector: signatureInspector,
+            mediaExtractor: mediaExtractor,
             emit: { [eventContinuation, progressContinuation] event in
                 if case .progress = event {
                     progressContinuation.yield(event)
@@ -62,8 +64,12 @@ extension DownloadManager {
         downloads[id] = result
         tasks[id] = nil
         handles[id] = nil
+        if settings.downloadPriority?.downloadID == id,
+           result.status.isTerminal || { if case .failed = result.status { return true }; return false }() {
+            endPriority()
+        }
         if result.status == .completed { enqueueRecurrence(of: result) }
-        scheduleQueue(result.queueID)
+        scheduleAllQueues()
         signalIfQueueDrained(after: result)
         if result.status == .completed {
             try? await store.recordDownloadedBytes(result.downloadedBytes, on: Date())
@@ -180,9 +186,12 @@ extension DownloadManager {
         networkReachable = reachable
 
         if wasReachable && !reachable {
-            for download in downloads.values where download.status.isActive {
-                autoPaused.insert(download.id)
-                await pause(id: download.id)
+            for id in Array(downloads.keys) {
+                // Pausing a worker suspends this actor. Recheck current intent before adopting
+                // the next item: the user may have paused, moved or removed it in that interval.
+                guard downloads[id]?.status.isActive == true, !editingDownloads.contains(id) else { continue }
+                autoPaused.insert(id)
+                await pauseTransfer(id: id)
             }
         } else if !wasReachable && reachable {
             let toResume = autoPaused

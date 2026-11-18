@@ -1,0 +1,3 @@
+[debug] yt-dlp version stable@2026.10.26 from yt-dlp/yt-dlp [c91f8de0b] (darwin_dir)
+[debug] Python 3.14.7 (CPython arm64 64bit) - macOS-27.2.1-arm64-arm-64bit-Mach-O (OpenSSL 3.5.7 9 Jun 2026)
+[debug] Optional libraries: Cryptodome-3.24.1, brotli-1.2.1, certifi-2026.10.23, curl_cffi-0.17.0, mutagen-1.48.1, requests-2.34.2, sqlite3-3.50.4, urllib3-2.8.0, websockets-17.3, yt_dlp_ejs-0.8.0

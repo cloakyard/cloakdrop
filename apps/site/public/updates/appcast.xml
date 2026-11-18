@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!-- sparkle-sign-warning:
+IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
+-->
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>CloakDrop Updates</title>
+        <link>https://drop.cloakyard.com/updates/appcast.xml</link>
+        <description>Signed updates for CloakDrop.</description>
+        <language>en</language>
+        <item>
+            <title>1.0.0</title>
+            <pubDate>Wed, 18 Nov 2026 15:14:25 +0530</pubDate>
+            <sparkle:version>20261118.2</sparkle:version>
+            <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <enclosure url="https://github.com/cloakyard/cloakdrop/releases/download/v1.0.0-rc.3/CloakDrop-20261118.2.zip" length="37433974" type="application/octet-stream" sparkle:edSignature="rNZxr8MOmcI9w5ygjg5dwymzTpwL5+2v2bqWvbdejsXND87lEDJMwJATPeDSAcYzCNjerexEZr3cQfpUuFoIAQ=="/>
+        </item>
+    </channel>
+</rss>
+<!-- sparkle-signatures:
+edSignature: AB+634qMhPQzs5FenzD/kyTzvkNvXI9AJkd+cTjnt6uf40yuPP9bQmy3UZHA+c3+2Y4BJZ4bpF7a8KRa3En0CA==
+length: 1326
+-->

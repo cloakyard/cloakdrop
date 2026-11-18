@@ -1,0 +1,1 @@
+OK: 537 strings × 10 languages (ar, de, es, fr, hi, ja, ko, pt-BR, ru, zh-Hans) — all translated, placeholders consistent.

@@ -1,0 +1,30 @@
+Building for debugging...
+[Computing dependencies]
+[1 / 5]
+Build complete! (0.45 secs)
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "Live-origin smoke (opt-in)" started.
+◇ Suite "Live media smoke (opt-in)" started.
+◇ Test "Real URLSession downloads selected origins to complete files" started.
+◇ Test "Selected pages resolve, download, package and decode completely" started.
+[live-media] START youtube-mp4
+[live-origin] PASS https://www.rfc-editor.org/rfc/rfc9110.txt range=ignored-or-unavailable reportedBytes=502941 fileBytes=502941 segments=1
+[live-origin] PASS https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz range=honored reportedBytes=4515854 fileBytes=4515854 segments=4
+✔ Test "Real URLSession downloads selected origins to complete files" passed after 2.757 seconds.
+✔ Suite "Live-origin smoke (opt-in)" passed after 2.757 seconds.
+[live-media] PASS youtube-mp4 mode=mp4 output=youtube-mp4.mp4 fullDecode=true
+[live-media] START youtube-original
+[live-media] PASS youtube-original mode=original output=youtube-original.mkv fullDecode=true
+[live-media] START youtube-audio
+[live-media] PASS youtube-audio mode=audio output=youtube-audio.m4a fullDecode=true
+[live-media] START dailymotion-original
+[live-media] PASS dailymotion-original mode=original output=dailymotion-original.mkv fullDecode=true
+[live-media] START soundcloud-audio
+[live-media] PASS soundcloud-audio mode=audio output=soundcloud-audio.m4a fullDecode=true
+[live-media] START dailymotion-mp4
+[live-media] PASS dailymotion-mp4 mode=mp4 output=dailymotion-mp4.mp4 fullDecode=true
+✔ Test "Selected pages resolve, download, package and decode completely" passed after 46.541 seconds.
+✔ Suite "Live media smoke (opt-in)" passed after 46.541 seconds.
+✔ Test run with 2 tests in 2 suites passed after 46.541 seconds.
