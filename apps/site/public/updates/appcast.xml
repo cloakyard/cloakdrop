@@ -10,16 +10,16 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
         <language>en</language>
         <item>
             <title>1.0.0</title>
-            <pubDate>Wed, 18 Nov 2026 15:14:25 +0530</pubDate>
-            <sparkle:version>20261118.2</sparkle:version>
+            <pubDate>Wed, 18 Nov 2026 20:42:07 +0530</pubDate>
+            <sparkle:version>20261118.6</sparkle:version>
             <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
             <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <enclosure url="https://github.com/cloakyard/cloakdrop/releases/download/v1.0.0-rc.3/CloakDrop-20261118.2.zip" length="37433974" type="application/octet-stream" sparkle:edSignature="rNZxr8MOmcI9w5ygjg5dwymzTpwL5+2v2bqWvbdejsXND87lEDJMwJATPeDSAcYzCNjerexEZr3cQfpUuFoIAQ=="/>
+            <enclosure url="https://github.com/cloakyard/cloakdrop/releases/download/v1.0.0-rc.4/CloakDrop-20261118.6.zip" length="38005591" type="application/octet-stream" sparkle:edSignature="vOQ7xdjDNeCEIdCGGFgLRThxYS2mOyssHgZi8eZHbmSYAHLj+KcVQw8aFgY7LFVuDSuAHlvYfVmFd5mOm6EeCg=="/>
         </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: AB+634qMhPQzs5FenzD/kyTzvkNvXI9AJkd+cTjnt6uf40yuPP9bQmy3UZHA+c3+2Y4BJZ4bpF7a8KRa3En0CA==
+edSignature: ALKQwqJj9/eovBhfoZP7tFK/cVHSml8N6vJw0RQ3i6sESyix6P/M0DSc9zKAfkPJTuydUT4A755w2tC8/g36Ag==
 length: 1326
 -->

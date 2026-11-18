@@ -119,8 +119,8 @@ Current locally signed builds are **not notarized**. See
 [Apple’s opening guidance](https://support.apple.com/en-us/102445) and the release notes for the
 signing status of the build you download.
 
-This source tree is **1.0.0**; [**1.0.0-rc.3 (20261118.2)**](https://github.com/cloakyard/cloakdrop/releases/tag/v1.0.0-rc.3) is available as a prerelease.
-See the [RC 3 notes](docs/releases/v1.0.0-rc.3.md) for the installer and verification.
+This source tree is **1.0.0**; [**1.0.0-rc.4 (20261118.6)**](https://github.com/cloakyard/cloakdrop/releases/tag/v1.0.0-rc.4) is available as a prerelease.
+See the [RC 4 notes](docs/releases/v1.0.0-rc.4.md) for the installer and verification.
 GitHub Releases lists the available downloads; each release’s notes and assets are the source of truth for its features, checksums,
 and signing status.
 
