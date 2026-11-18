@@ -105,3 +105,7 @@ Publication is separate from preparation; neither script silently uploads or dep
 ## Ongoing checks
 
 Run `python3 scripts/check-mac-dependencies.py` to compare the shipping dependencies and installer tooling with their stable upstream versions. After deploying a release, run `python3 scripts/check-published-update.py` to verify the production feed matches the signed source and the advertised archive is available at the expected size. The Mac dependencies and public updates workflow runs both checks weekly and on demand.
+
+## Temporary website build dependency exception
+
+Through 1 December 2026 UTC, the website audit permits only [GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf) and findings caused exclusively by that advisory. Astro uses picomatch to match build files in the trusted checkout. Cloudflare serves the resulting static assets. The exception expires at 00:00 UTC on 2 December. Unrelated high and critical advisories and audit failures still block the build. Remove the exception when patched releases resolve the advisory.
