@@ -10,11 +10,11 @@ export const site = {
 
 export const downloads = {
   // GitHub excludes release candidates from /latest. Link the verified RC explicitly.
-  href: `${site.repo}/releases/tag/v1.0.0-rc.3`,
+  href: `${site.repo}/releases/tag/v1.0.0-rc.4`,
   sectionHref: '#download',
   label: 'Download CloakDrop',
-  actionLabel: 'Download RC 3',
-  status: 'Version 1.0.0 RC 3, build 20261118.2. Check for signed updates in Settings → About. The installer, checksums and release notes are on GitHub.',
+  actionLabel: 'Download RC 4',
+  status: 'Version 1.0.0 RC 4, build 20261118.6. Check for signed updates in Settings → About. The installer, checksums and release notes are on GitHub.',
   note: 'Apple silicon · macOS 26 or later',
 } as const;
 
