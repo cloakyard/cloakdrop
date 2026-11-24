@@ -22,3 +22,7 @@ Clean npm installation, package-tree check, audit, Astro diagnostics, site build
 
 This review covered the web landing and the listed regression checks on local
 builds. Physical-device and assistive-technology acceptance remain open.
+
+## Release verification
+
+The website includes the Air 1.8.2 portable bundle. Its landing, policy and recovery routes retain the verified navigation and reveal behavior.
