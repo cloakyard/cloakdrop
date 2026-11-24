@@ -5,11 +5,11 @@ import { readPngDimensions } from '../lib/heroGeometry';
 const shot = readPngDimensions(resolve(process.cwd(), 'public/hero.png'));
 ---
 <section id="product" class="section frame" tabindex="-1" aria-labelledby="product-title">
-  <header class="section-intro">
+  <header class="section-intro" data-air-reveal=""><span class="air-reveal-veil" aria-hidden="true"></span>
     <p class="eyebrow">{product.label}</p>
     <h2 id="product-title">From the first connection to the finished file.</h2>
   </header>
-  <figure class="product-preview">
+  <figure class="product-preview" data-air-reveal=""><span class="air-reveal-veil" aria-hidden="true"></span>
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="/hero-dark.webp" type="image/webp" />
       <source media="(prefers-color-scheme: dark)" srcset="/hero-dark.png" />
@@ -20,7 +20,7 @@ const shot = readPngDimensions(resolve(process.cwd(), 'public/hero.png'));
   </figure>
   <div class="features">
     {product.features.map((feature) => (
-      <article>
+      <article data-air-reveal=""><span class="air-reveal-veil" aria-hidden="true"></span>
         <p class="eyebrow">{feature.label}</p>
         <h3>{feature.title}</h3>
         <p>{feature.body}</p>

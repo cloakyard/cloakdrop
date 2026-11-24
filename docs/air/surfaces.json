@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contractVersion": "1.7.5",
+  "contractVersion": "1.8.1",
   "note": "Presence in this inventory is not audit or validation. Preserve evidence when updating.",
   "surfaces": [
     {
@@ -73,6 +73,7 @@
         "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
+        "docs/air/landing-reveals-2026-11-24.md",
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
         "docs/air/evidence/website-interactions-2026-10-12.json",
@@ -282,6 +283,7 @@
         "native Chrome 200%"
       ],
       "evidence": [
+        "docs/air/landing-reveals-2026-11-24.md",
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
         "docs/air/evidence/website-interactions-2026-10-12.json",
@@ -312,6 +314,7 @@
         "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
+        "docs/air/landing-reveals-2026-11-24.md",
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
         "docs/air/evidence/website-interactions-2026-10-12.json",
@@ -468,6 +471,7 @@
         "23 sizes including all contract classes and breakpoint neighbours; light/dark × 16/32px root font; compact menu open/closed"
       ],
       "evidence": [
+        "docs/air/landing-reveals-2026-11-24.md",
         "docs/air/website-audit.md",
         "docs/air/evidence/website-baseline-2026-10-11.json",
         "docs/air/evidence/website-interactions-2026-10-12.json",
