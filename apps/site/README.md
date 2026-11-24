@@ -24,11 +24,11 @@ Visit [drop.cloakyard.com](https://drop.cloakyard.com/) for the product and publ
 
 ## Development
 
-Use the Node range in `package.json` (`^22.23.4 || ^24.15.0 || >=26.0.0`) and the pinned npm 12.2.2. From a full repository checkout:
+Use the Node range in `package.json` (`^22.23.4 || ^24.15.0 || >=26.0.0`) and the pinned npm 12.2.3. From a full repository checkout:
 
 ```sh
 cd apps/site
-npx --yes npm@12.2.2 ci
+npx --yes npm@12.2.3 ci
 npm run dev
 ```
 
@@ -38,7 +38,7 @@ npm run dev
 | `npm run build` | Sync source assets and build static `dist/` |
 | `npm run preview` | Serve the production build |
 | `npm audit` | Check the dependency graph |
-| `npx --yes knip@6.44.2` | Audit the web module/dependency graph |
+| `npx --yes knip@6.48.0` | Audit the web module/dependency graph |
 
 TypeScript 6 is retained for the supported Astro checker. Astro 7 may leave a server running after the command returns; stop owned servers with `npx astro dev stop` or `npx astro preview stop`.
 

@@ -4,7 +4,7 @@ import Icon from './Icon.astro';
 ---
 <section id="download" class="section frame" tabindex="-1" aria-labelledby="download-title">
   <div class="download-grid">
-    <div class="section-intro">
+    <div class="section-intro" data-air-reveal=""><span class="air-reveal-veil" aria-hidden="true"></span>
       <p class="eyebrow">Yours to download</p>
       <h2 id="download-title">A little more care. For every download.</h2>
       <p>{downloads.note}<br />Free · Open source</p>
@@ -13,7 +13,7 @@ import Icon from './Icon.astro';
       </a>
       <p class="detail release-note">{downloads.status}</p>
     </div>
-    <div class="install" aria-labelledby="install-title">
+    <div class="install" aria-labelledby="install-title" data-air-reveal=""><span class="air-reveal-veil" aria-hidden="true"></span>
       <h3 id="install-title">On your Mac in a few steps.</h3>
       <ol>
         <li>Download the <strong>.dmg</strong> asset from <a href={downloads.href}>GitHub Releases</a>.</li>
